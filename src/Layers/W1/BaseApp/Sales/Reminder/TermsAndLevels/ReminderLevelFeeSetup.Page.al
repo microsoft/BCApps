@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Configures interest calculation and additional fee settings for a reminder level.
+/// </summary>
 page 1895 "Reminder Level Fee Setup"
 {
     Caption = 'Reminder Level Fee Setup';

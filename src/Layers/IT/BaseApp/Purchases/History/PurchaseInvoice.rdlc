@@ -2015,6 +2015,7 @@
                                                       <FontFamily>Segoe UI</FontFamily>
                                                       <FontSize>8pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
+                                                      <Format>=Fields!TotalAmountFormat.Value</Format>
                                                       <Color>#000000</Color>
                                                     </Style>
                                                   </TextRun>

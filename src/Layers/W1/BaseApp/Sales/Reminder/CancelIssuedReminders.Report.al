@@ -9,6 +9,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using System.Utilities;
 
+/// <summary>
+/// Processes batch cancellation of multiple issued reminders with configurable posting options.
+/// </summary>
 report 1393 "Cancel Issued Reminders"
 {
     AdditionalSearchTerms = 'cancel issued reminder';

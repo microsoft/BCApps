@@ -391,6 +391,7 @@ table 221 "Gen. Jnl. Allocation"
         }
         field(12102; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -644,15 +645,15 @@ table 221 "Gen. Jnl. Allocation"
         IsHandled := false;
         OnBeforeUpdateVAT(GenJnlLine, IsHandled, Rec);
         if not IsHandled then begin
-	        GenJnlLine2.CopyFromGenJnlAllocation(Rec);
-	        GenJnlLine2."Posting Date" := GenJnlLine."Posting Date";
-	        GenJnlLine2."Operation Occurred Date" := GenJnlLine."Operation Occurred Date";
-	        GenJnlLine2.Validate("VAT Prod. Posting Group");
-	        Amount := GenJnlLine2."Amount (LCY)";
-	        "VAT Calculation Type" := GenJnlLine2."VAT Calculation Type";
-	        "VAT Amount" := GenJnlLine2."VAT Amount";
-	        "VAT %" := GenJnlLine2."VAT %";
-	        "Deductible %" := GenJnlLine2."Deductible %";
+            GenJnlLine2.CopyFromGenJnlAllocation(Rec);
+            GenJnlLine2."Posting Date" := GenJnlLine."Posting Date";
+            GenJnlLine2."Operation Occurred Date" := GenJnlLine."Operation Occurred Date";
+            GenJnlLine2.Validate("VAT Prod. Posting Group");
+            Amount := GenJnlLine2."Amount (LCY)";
+            "VAT Calculation Type" := GenJnlLine2."VAT Calculation Type";
+            "VAT Amount" := GenJnlLine2."VAT Amount";
+            "VAT %" := GenJnlLine2."VAT %";
+            "Deductible %" := GenJnlLine2."Deductible %";
         end;
         OnAfterUpdateVAT(GenJnlLine, GenJnlLine2, Rec);
     end;

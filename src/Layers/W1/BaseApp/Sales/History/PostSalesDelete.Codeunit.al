@@ -11,6 +11,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Handles the deletion of posted sales documents and their related data according to retention policies.
+/// </summary>
 codeunit 363 "PostSales-Delete"
 {
     Permissions = TableData "Sales Shipment Header" = ri,
@@ -32,6 +35,16 @@ codeunit 363 "PostSales-Delete"
         DocumentDeletionErr: Label 'You cannot delete posted sales documents that are posted after %1. \\The date is defined by the Allow Document Deletion Before field in the Sales & Receivables Setup window.', Comment = '%1 - Posting Date';
         AllowDocumentDeletionBeforeBlankErr: Label 'The date %1 must be set on the page %2 before deleting sales documents.', Comment = '%1 = Field name, %2 = Page name';
 
+    /// <summary>
+    /// Deletes a sales document header and creates placeholder records for the deleted posted documents.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to delete.</param>
+    /// <param name="SalesShptHeader">Returns the created sales shipment header placeholder.</param>
+    /// <param name="SalesInvHeader">Returns the created sales invoice header placeholder.</param>
+    /// <param name="SalesCrMemoHeader">Returns the created sales credit memo header placeholder.</param>
+    /// <param name="ReturnRcptHeader">Returns the created return receipt header placeholder.</param>
+    /// <param name="SalesInvHeaderPrePmt">Returns the created prepayment sales invoice header placeholder.</param>
+    /// <param name="SalesCrMemoHeaderPrePmt">Returns the created prepayment credit memo header placeholder.</param>
     procedure DeleteHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnRcptHeader: Record "Return Receipt Header"; var SalesInvHeaderPrePmt: Record "Sales Invoice Header"; var SalesCrMemoHeaderPrePmt: Record "Sales Cr.Memo Header")
     var
         SalesInvLine: Record "Sales Invoice Line";
@@ -112,6 +125,10 @@ codeunit 363 "PostSales-Delete"
           SalesHeader, SalesShptHeader, SalesInvHeader, SalesCrMemoHeader, ReturnRcptHeader, SalesInvHeaderPrePmt, SalesCrMemoHeaderPrePmt);
     end;
 
+    /// <summary>
+    /// Deletes all sales shipment lines and related item tracking entries for the specified shipment header.
+    /// </summary>
+    /// <param name="SalesShptHeader">Specifies the sales shipment header whose lines are to be deleted.</param>
     procedure DeleteSalesShptLines(SalesShptHeader: Record "Sales Shipment Header")
     var
         SalesShptLine: Record "Sales Shipment Line";
@@ -134,6 +151,10 @@ codeunit 363 "PostSales-Delete"
         MoveEntries.MoveDocRelatedEntries(DATABASE::"Sales Shipment Header", SalesShptHeader."No.");
     end;
 
+    /// <summary>
+    /// Deletes all sales invoice lines and related value entries for the specified invoice header.
+    /// </summary>
+    /// <param name="SalesInvHeader">Specifies the sales invoice header whose lines are to be deleted.</param>
     procedure DeleteSalesInvLines(SalesInvHeader: Record "Sales Invoice Header")
     var
         SalesInvLine: Record "Sales Invoice Line";
@@ -151,6 +172,10 @@ codeunit 363 "PostSales-Delete"
         MoveEntries.MoveDocRelatedEntries(DATABASE::"Sales Invoice Header", SalesInvHeader."No.");
     end;
 
+    /// <summary>
+    /// Deletes all sales credit memo lines and related item tracking entries for the specified credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">Specifies the sales credit memo header whose lines are to be deleted.</param>
     procedure DeleteSalesCrMemoLines(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -167,6 +192,10 @@ codeunit 363 "PostSales-Delete"
         MoveEntries.MoveDocRelatedEntries(DATABASE::"Sales Cr.Memo Header", SalesCrMemoHeader."No.");
     end;
 
+    /// <summary>
+    /// Deletes all return receipt lines and related item tracking entries for the specified return receipt header.
+    /// </summary>
+    /// <param name="ReturnRcptHeader">Specifies the return receipt header whose lines are to be deleted.</param>
     procedure DeleteSalesRcptLines(ReturnRcptHeader: Record "Return Receipt Header")
     var
         ReturnRcptLine: Record "Return Receipt Line";
@@ -189,6 +218,17 @@ codeunit 363 "PostSales-Delete"
         MoveEntries.MoveDocRelatedEntries(DATABASE::"Return Receipt Header", ReturnRcptHeader."No.");
     end;
 
+    /// <summary>
+    /// Initializes the posted document headers with data from the sales header for deletion tracking purposes.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the source sales header.</param>
+    /// <param name="SalesShptHeader">Returns the initialized sales shipment header.</param>
+    /// <param name="SalesInvHeader">Returns the initialized sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">Returns the initialized sales credit memo header.</param>
+    /// <param name="ReturnRcptHeader">Returns the initialized return receipt header.</param>
+    /// <param name="SalesInvHeaderPrePmt">Returns the initialized prepayment sales invoice header.</param>
+    /// <param name="SalesCrMemoHeaderPrePmt">Returns the initialized prepayment credit memo header.</param>
+    /// <param name="SourceCode">Specifies the source code for the deleted document.</param>
     procedure InitDeleteHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnRcptHeader: Record "Return Receipt Header"; var SalesInvHeaderPrePmt: Record "Sales Invoice Header"; var SalesCrMemoHeaderPrePmt: Record "Sales Cr.Memo Header"; SourceCode: Code[10])
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -295,6 +335,10 @@ codeunit 363 "PostSales-Delete"
         OnAfterInitSalesInvHeader(SalesInvHeader, SalesHeader);
     end;
 
+    /// <summary>
+    /// Checks whether document deletion is allowed for the specified posting date based on retention policies.
+    /// </summary>
+    /// <param name="PostingDate">Specifies the posting date of the document to be deleted.</param>
     procedure IsDocumentDeletionAllowed(PostingDate: Date)
     var
         SalesSetup: Record "Sales & Receivables Setup";

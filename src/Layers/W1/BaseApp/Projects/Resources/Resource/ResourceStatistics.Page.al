@@ -35,6 +35,7 @@ page 223 "Resource Statistics"
                         field("ResCapacity[1]"; ResCapacity[1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the scheduled capacity of the resource. The amount is the sum of values in the Quantity field on project planning lines for the resource.';
@@ -42,6 +43,7 @@ page 223 "Resource Statistics"
                         field("UnusedCapacity[1]"; UnusedCapacity[1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Unused Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the difference between the capacity and the capacity used. It is calculated as follows: Unused Capacity = Capacity - Charg. Usage + Not Charg. Usage.';
@@ -56,6 +58,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[1][1]"; ResUsageUnits[1] [1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -64,6 +67,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
@@ -77,6 +81,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[1][2]"; ResUsageUnits[1] [2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -85,12 +90,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
                         field("ChargeablePct[1]"; ChargeablePct[1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Chargeable % (Units)';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of usage that applies to chargeable units. It is calculated as follows: Chargeable % = (Chargeable Units + Nonchargeable Units) x 100.';
@@ -107,6 +114,7 @@ page 223 "Resource Statistics"
                         field("ResCapacity[2]"; ResCapacity[2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the scheduled capacity of the resource. The amount is the sum of values in the Quantity field on project planning lines for the resource.';
@@ -114,6 +122,7 @@ page 223 "Resource Statistics"
                         field("UnusedCapacity[2]"; UnusedCapacity[2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Unused Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the difference between the capacity and the capacity used. It is calculated as follows: Unused Capacity = Capacity - Charg. Usage + Not Charg. Usage.';
@@ -126,6 +135,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[2][1]"; ResUsageUnits[2] [1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -134,6 +144,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
@@ -145,6 +156,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[2][2]"; ResUsageUnits[2] [2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -153,12 +165,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
                         field("ChargeablePct[2]"; ChargeablePct[2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Chargeable % (Units)';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of usage that applies to chargeable units. It is calculated as follows: Chargeable % = (Chargeable Units + Nonchargeable Units) x 100.';
@@ -175,6 +189,7 @@ page 223 "Resource Statistics"
                         field("ResCapacity[3]"; ResCapacity[3])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the scheduled capacity of the resource. The amount is the sum of values in the Quantity field on project planning lines for the resource.';
@@ -182,6 +197,7 @@ page 223 "Resource Statistics"
                         field("UnusedCapacity[3]"; UnusedCapacity[3])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Unused Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the difference between the capacity and the capacity used. It is calculated as follows: Unused Capacity = Capacity - Charg. Usage + Not Charg. Usage.';
@@ -194,6 +210,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[3][1]"; ResUsageUnits[3] [1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -202,6 +219,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
@@ -213,6 +231,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[3][2]"; ResUsageUnits[3] [2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -221,12 +240,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
                         field("ChargeablePct[3]"; ChargeablePct[3])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Chargeable % (Units)';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of usage that applies to chargeable units. It is calculated as follows: Chargeable % = (Chargeable Units + Nonchargeable Units) x 100.';
@@ -243,6 +264,7 @@ page 223 "Resource Statistics"
                         field("ResCapacity[4]"; ResCapacity[4])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the scheduled capacity of the resource. The amount is the sum of values in the Quantity field on project planning lines for the resource.';
@@ -250,6 +272,7 @@ page 223 "Resource Statistics"
                         field("UnusedCapacity[4]"; UnusedCapacity[4])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Unused Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the difference between the capacity and the capacity used. It is calculated as follows: Unused Capacity = Capacity - Charg. Usage + Not Charg. Usage.';
@@ -262,6 +285,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[4][1]"; ResUsageUnits[4] [1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -270,6 +294,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
@@ -281,6 +306,7 @@ page 223 "Resource Statistics"
                         field("ResUsageUnits[4][2]"; ResUsageUnits[4] [2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Units';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the usage, displayed in the specified unit of measure.';
@@ -289,12 +315,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Price';
                             ToolTip = 'Specifies the price amounts.';
                         }
                         field("ChargeablePct[4]"; ChargeablePct[4])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Chargeable % (Units)';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of usage that applies to chargeable units. It is calculated as follows: Chargeable % = (Chargeable Units + Nonchargeable Units) x 100.';
@@ -320,12 +348,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced';
                             ToolTip = 'Specifies the unit prices of postings of the type sale. Sales can be posted in the resource group journal and the sales lines.';
                         }
                         field("InvoicedPct[1]"; InvoicedPct[1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Invoiced %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of invoiced amounts in unit prices. It is calculated as follows: Invoiced % = (Invoiced (LCY) / Usage(Unit Price)) x 100.';
@@ -334,6 +364,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Usage (Cost)';
                             ToolTip = 'Specifies values for project usage based on cost. Specifies, based on cost, how much the resources has been used.';
                         }
@@ -341,12 +372,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit amounts.';
                         }
                         field("ResProfitPct[1]"; ResProfitPct[1])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the profit percentages.';
@@ -364,12 +397,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced';
                             ToolTip = 'Specifies the unit prices of postings of the type sale. Sales can be posted in the resource group journal and the sales lines.';
                         }
                         field("InvoicedPct[2]"; InvoicedPct[2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Invoiced %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of invoiced amounts in unit prices. It is calculated as follows: Invoiced % = (Invoiced (LCY) / Usage(Unit Price)) x 100.';
@@ -378,6 +413,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Usage (Cost)';
                             ToolTip = 'Specifies values for project usage based on cost. Specifies, based on cost, how much the resources has been used.';
                         }
@@ -385,12 +421,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit amounts.';
                         }
                         field("ResProfitPct[2]"; ResProfitPct[2])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the profit percentages.';
@@ -408,12 +446,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced';
                             ToolTip = 'Specifies the unit prices of postings of the type sale. Sales can be posted in the resource group journal and the sales lines.';
                         }
                         field("InvoicedPct[3]"; InvoicedPct[3])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Invoiced %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of invoiced amounts in unit prices. It is calculated as follows: Invoiced % = (Invoiced (LCY) / Usage(Unit Price)) x 100.';
@@ -422,6 +462,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Usage (Cost)';
                             ToolTip = 'Specifies values for project usage based on cost. Specifies, based on cost, how much the resources has been used.';
                         }
@@ -429,12 +470,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit amounts.';
                         }
                         field("ResProfitPct[3]"; ResProfitPct[3])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the profit percentages.';
@@ -452,12 +495,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced';
                             ToolTip = 'Specifies the unit prices of postings of the type sale. Sales can be posted in the resource group journal and the sales lines.';
                         }
                         field("InvoicedPct[4]"; InvoicedPct[4])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Invoiced %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the percentage of invoiced amounts in unit prices. It is calculated as follows: Invoiced % = (Invoiced (LCY) / Usage(Unit Price)) x 100.';
@@ -466,6 +511,7 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Usage (Cost)';
                             ToolTip = 'Specifies values for project usage based on cost. Specifies, based on cost, how much the resources has been used.';
                         }
@@ -473,12 +519,14 @@ page 223 "Resource Statistics"
                         {
                             ApplicationArea = Jobs;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit amounts.';
                         }
                         field("ResProfitPct[4]"; ResProfitPct[4])
                         {
                             ApplicationArea = Jobs;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the profit percentages.';

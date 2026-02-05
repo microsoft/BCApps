@@ -41,6 +41,9 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
 
+/// <summary>
+/// Stores header information for posted sales credit memos including customer details and credited amounts.
+/// </summary>
 table 114 "Sales Cr.Memo Header"
 {
     Caption = 'Sales Cr.Memo Header';
@@ -51,6 +54,9 @@ table 114 "Sales Cr.Memo Header"
 
     fields
     {
+        /// <summary>
+        /// Specifies the customer number who received the credited items.
+        /// </summary>
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
@@ -58,10 +64,16 @@ table 114 "Sales Cr.Memo Header"
             TableRelation = Customer;
             ToolTip = 'Specifies the number of the customer that you shipped the items on the credit memo to.';
         }
+        /// <summary>
+        /// Specifies the unique identifier for the posted sales credit memo.
+        /// </summary>
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Specifies the customer number who receives the credit memo for billing purposes.
+        /// </summary>
         field(4; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
@@ -69,173 +81,283 @@ table 114 "Sales Cr.Memo Header"
             TableRelation = Customer;
             ToolTip = 'Specifies the number of the customer that you send or sent the credit memo to.';
         }
+        /// <summary>
+        /// Specifies the name of the customer who receives the credit memo.
+        /// </summary>
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
         }
+        /// <summary>
+        /// Specifies an additional part of the bill-to customer name.
+        /// </summary>
         field(6; "Bill-to Name 2"; Text[50])
         {
             Caption = 'Bill-to Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer that you send or sent the credit memo to.';
         }
+        /// <summary>
+        /// Specifies the street address of the customer who receives the credit memo.
+        /// </summary>
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
         }
+        /// <summary>
+        /// Specifies additional address information for the bill-to customer.
+        /// </summary>
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the customer who receives the credit memo.
+        /// </summary>
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the bill-to customer.
+        /// </summary>
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
         }
+        /// <summary>
+        /// Specifies the customer's own reference number for this transaction.
+        /// </summary>
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
         }
+        /// <summary>
+        /// Specifies the code for the ship-to address used on the credit memo.
+        /// </summary>
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
+        /// <summary>
+        /// Specifies the name of the location where items were shipped.
+        /// </summary>
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
         }
+        /// <summary>
+        /// Specifies an additional part of the ship-to name.
+        /// </summary>
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
         }
+        /// <summary>
+        /// Specifies the street address of the ship-to location.
+        /// </summary>
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
         }
+        /// <summary>
+        /// Specifies additional address information for the ship-to location.
+        /// </summary>
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the ship-to location.
+        /// </summary>
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the ship-to location.
+        /// </summary>
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
         }
+        /// <summary>
+        /// Specifies the date when the credit memo was posted to the ledger.
+        /// </summary>
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Specifies the date when items were shipped related to this credit memo.
+        /// </summary>
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
         }
+        /// <summary>
+        /// Specifies the text that describes this posted credit memo.
+        /// </summary>
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
         }
+        /// <summary>
+        /// Specifies the code for the payment terms used on the credit memo.
+        /// </summary>
         field(23; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
             TableRelation = "Payment Terms";
         }
+        /// <summary>
+        /// Specifies the date when the credit memo payment is due.
+        /// </summary>
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Specifies the payment discount percentage applied to the credit memo.
+        /// </summary>
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the last date for the customer to take the payment discount.
+        /// </summary>
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
         }
+        /// <summary>
+        /// Specifies the code for the shipment method used on the credit memo.
+        /// </summary>
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
             TableRelation = "Shipment Method";
         }
+        /// <summary>
+        /// Specifies the location from which items were shipped or returned.
+        /// </summary>
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+        /// <summary>
+        /// Specifies the first global dimension code used for analysis.
+        /// </summary>
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Specifies the second global dimension code used for analysis.
+        /// </summary>
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Specifies the customer posting group used to post receivables to the general ledger.
+        /// </summary>
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
+        /// <summary>
+        /// Specifies the currency code used for the credit memo amounts.
+        /// </summary>
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             Editable = false;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the exchange rate used to convert amounts to local currency.
+        /// </summary>
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the customer price group used for pricing on the credit memo.
+        /// </summary>
         field(34; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
             TableRelation = "Customer Price Group";
         }
+        /// <summary>
+        /// Indicates whether the prices on the credit memo include VAT.
+        /// </summary>
         field(35; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
         }
+        /// <summary>
+        /// Specifies the code used to calculate invoice discounts for this customer.
+        /// </summary>
         field(37; "Invoice Disc. Code"; Code[20])
         {
             Caption = 'Invoice Disc. Code';
         }
+        /// <summary>
+        /// Specifies the customer discount group used for line discounts.
+        /// </summary>
         field(40; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
         }
+        /// <summary>
+        /// Specifies the language code for the credit memo document.
+        /// </summary>
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
             TableRelation = Language;
         }
+        /// <summary>
+        /// Specifies the regional format for dates and numbers on the document.
+        /// </summary>
         field(42; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
             TableRelation = "Language Selection"."Language Tag";
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for the credit memo.
+        /// </summary>
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
             TableRelation = "Salesperson/Purchaser";
         }
+        /// <summary>
+        /// Indicates whether comments exist for this posted credit memo.
+        /// </summary>
         field(46; Comment; Boolean)
         {
             CalcFormula = exist("Sales Comment Line" where("Document Type" = const("Posted Credit Memo"),
@@ -245,19 +367,31 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies how many times the credit memo has been printed.
+        /// </summary>
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the on hold status to block further processing.
+        /// </summary>
         field(51; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
         }
+        /// <summary>
+        /// Specifies the type of document this credit memo is applied to.
+        /// </summary>
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Specifies the document number this credit memo is applied to.
+        /// </summary>
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
@@ -273,6 +407,9 @@ table 114 "Sales Cr.Memo Header"
                 PAGE.Run(0, CustLedgEntry);
             end;
         }
+        /// <summary>
+        /// Specifies the balancing account number for the credit memo posting.
+        /// </summary>
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -280,6 +417,9 @@ table 114 "Sales Cr.Memo Header"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
+        /// <summary>
+        /// Specifies the total amount of the credit memo excluding VAT.
+        /// </summary>
         field(60; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -289,6 +429,9 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the total amount of the credit memo including VAT.
+        /// </summary>
         field(61; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -298,161 +441,260 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number.
+        /// </summary>
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
         }
+        /// <summary>
+        /// Specifies the customer's company registration number.
+        /// </summary>
         field(72; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the reason code for the credit memo posting.
+        /// </summary>
         field(73; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Specifies the general business posting group used for the credit memo.
+        /// </summary>
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
             TableRelation = "Gen. Business Posting Group";
         }
+        /// <summary>
+        /// Indicates whether the transaction involves three-party trade within the EU.
+        /// </summary>
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
         }
+        /// <summary>
+        /// Specifies the transaction type code for Intrastat reporting.
+        /// </summary>
         field(76; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
             TableRelation = "Transaction Type";
         }
+        /// <summary>
+        /// Specifies the transport method code for Intrastat reporting.
+        /// </summary>
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
             TableRelation = "Transport Method";
         }
+        /// <summary>
+        /// Specifies the country/region code for VAT purposes.
+        /// </summary>
         field(78; "VAT Country/Region Code"; Code[10])
         {
             Caption = 'VAT Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the name of the customer who received the credited items.
+        /// </summary>
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
         }
+        /// <summary>
+        /// Specifies an additional part of the sell-to customer name.
+        /// </summary>
         field(80; "Sell-to Customer Name 2"; Text[50])
         {
             Caption = 'Sell-to Customer Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer who will receive the products and be billed by default.';
         }
+        /// <summary>
+        /// Specifies the street address of the sell-to customer.
+        /// </summary>
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
         }
+        /// <summary>
+        /// Specifies additional address information for the sell-to customer.
+        /// </summary>
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the sell-to customer.
+        /// </summary>
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the sell-to customer.
+        /// </summary>
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
         }
+        /// <summary>
+        /// Specifies the postal code of the bill-to customer address.
+        /// </summary>
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the bill-to customer address.
+        /// </summary>
         field(86; "Bill-to County"; Text[30])
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
         }
+        /// <summary>
+        /// Specifies the country/region code of the bill-to customer address.
+        /// </summary>
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the postal code of the sell-to customer address.
+        /// </summary>
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the sell-to customer address.
+        /// </summary>
         field(89; "Sell-to County"; Text[30])
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
         }
+        /// <summary>
+        /// Specifies the country/region code of the sell-to customer address.
+        /// </summary>
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the postal code of the ship-to address.
+        /// </summary>
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the ship-to address.
+        /// </summary>
         field(92; "Ship-to County"; Text[30])
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
         }
+        /// <summary>
+        /// Specifies the country/region code of the ship-to address.
+        /// </summary>
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the type of balancing account used for posting.
+        /// </summary>
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
         {
             Caption = 'Bal. Account Type';
         }
+        /// <summary>
+        /// Specifies the exit point for goods leaving the country for Intrastat.
+        /// </summary>
         field(97; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
             TableRelation = "Entry/Exit Point";
         }
+        /// <summary>
+        /// Indicates whether this is a correcting entry that reverses a previous posting.
+        /// </summary>
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
         }
+        /// <summary>
+        /// Specifies the date when the credit memo document was created.
+        /// </summary>
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
         }
+        /// <summary>
+        /// Specifies the external document number provided by the customer.
+        /// </summary>
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
         }
+        /// <summary>
+        /// Specifies the area code for Intrastat reporting.
+        /// </summary>
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
             TableRelation = Area;
         }
+        /// <summary>
+        /// Specifies the transaction specification code for Intrastat reporting.
+        /// </summary>
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
             TableRelation = "Transaction Specification";
         }
+        /// <summary>
+        /// Specifies the payment method code for the credit memo.
+        /// </summary>
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
             TableRelation = "Payment Method";
         }
+        /// <summary>
+        /// Specifies the shipping agent responsible for delivering goods.
+        /// </summary>
         field(105; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
             TableRelation = "Shipping Agent";
         }
+        /// <summary>
+        /// Specifies the tracking number for the shipped package.
+        /// </summary>
 #if not CLEAN27
 #pragma warning disable AS0086
 #endif
@@ -463,116 +705,186 @@ table 114 "Sales Cr.Memo Header"
         {
             Caption = 'Package Tracking No.';
         }
+        /// <summary>
+        /// Specifies the number series used before the credit memo was posted.
+        /// </summary>
         field(107; "Pre-Assigned No. Series"; Code[20])
         {
             Caption = 'Pre-Assigned No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the number series used for the posted credit memo.
+        /// </summary>
         field(108; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the document number assigned before posting.
+        /// </summary>
         field(111; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
         }
+        /// <summary>
+        /// Specifies the user who posted the credit memo.
+        /// </summary>
         field(112; "User ID"; Code[50])
         {
             Caption = 'User ID';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
+        /// <summary>
+        /// Specifies the source code that identifies the posting origin.
+        /// </summary>
         field(113; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculations.
+        /// </summary>
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the credit memo is subject to sales tax.
+        /// </summary>
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the VAT business posting group used for tax calculations.
+        /// </summary>
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the percentage used to reduce the VAT base amount for discounts.
+        /// </summary>
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the number series for prepayment credit memos.
+        /// </summary>
         field(134; "Prepmt. Cr. Memo No. Series"; Code[20])
         {
             Caption = 'Prepmt. Cr. Memo No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Indicates whether this is a prepayment credit memo.
+        /// </summary>
         field(136; "Prepayment Credit Memo"; Boolean)
         {
             Caption = 'Prepayment Credit Memo';
         }
+        /// <summary>
+        /// Specifies the prepayment order number related to this credit memo.
+        /// </summary>
         field(137; "Prepayment Order No."; Code[20])
         {
             Caption = 'Prepayment Order No.';
         }
+        /// <summary>
+        /// Specifies the company bank account used for the credit memo payment.
+        /// </summary>
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        /// <summary>
+        /// Indicates whether an alternative VAT registration number was used.
+        /// </summary>
         field(166; "Alt. VAT Registration No."; Boolean)
         {
             Caption = 'Alternative VAT Registration No.';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an alternative general business posting group was used.
+        /// </summary>
         field(167; "Alt. Gen. Bus Posting Group"; Boolean)
         {
             Caption = 'Alternative Gen. Bus. Posting Group';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an alternative VAT business posting group was used.
+        /// </summary>
         field(168; "Alt. VAT Bus Posting Group"; Boolean)
         {
             Caption = 'Alternative VAT Bus. Posting Group';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the phone number of the sell-to customer.
+        /// </summary>
         field(171; "Sell-to Phone No."; Text[30])
         {
             Caption = 'Sell-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
+        /// <summary>
+        /// Specifies the email address of the sell-to customer.
+        /// </summary>
         field(172; "Sell-to E-Mail"; Text[80])
         {
             Caption = 'Email';
             ExtendedDatatype = EMail;
         }
+        /// <summary>
+        /// Specifies the date used for VAT reporting purposes.
+        /// </summary>
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the country/region code from which the goods were received.
+        /// </summary>
         field(181; "Rcvd.-from Count./Region Code"; Code[10])
         {
             Caption = 'Received-from Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Stores the work description or detailed notes for the credit memo.
+        /// </summary>
         field(200; "Work Description"; BLOB)
         {
             Caption = 'Work Description';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the phone number of the ship-to location.
+        /// </summary>
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
+        /// <summary>
+        /// Specifies the unique identifier for the dimension set applied to this credit memo.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -584,18 +896,30 @@ table 114 "Sales Cr.Memo Header"
                 Rec.ShowDimensions();
             end;
         }
+        /// <summary>
+        /// Specifies the identifier used when exchanging the document electronically.
+        /// </summary>
         field(710; "Document Exchange Identifier"; Text[50])
         {
             Caption = 'Document Exchange Identifier';
         }
+        /// <summary>
+        /// Specifies the status of the document exchange process.
+        /// </summary>
         field(711; "Document Exchange Status"; Enum "Sales Document Exchange Status")
         {
             Caption = 'Document Exchange Status';
         }
+        /// <summary>
+        /// Specifies the original identifier from the document exchange service.
+        /// </summary>
         field(712; "Doc. Exch. Original Identifier"; Text[50])
         {
             Caption = 'Doc. Exch. Original Identifier';
         }
+        /// <summary>
+        /// Indicates whether the credit memo has been fully paid or applied.
+        /// </summary>
         field(1302; Paid; Boolean)
         {
             CalcFormula = - exist("Cust. Ledger Entry" where("Entry No." = field("Cust. Ledger Entry No."),
@@ -604,6 +928,9 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the remaining amount to be applied from the credit memo.
+        /// </summary>
         field(1303; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -613,20 +940,30 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the entry number of the related customer ledger entry.
+        /// </summary>
         field(1304; "Cust. Ledger Entry No."; Integer)
         {
             Caption = 'Cust. Ledger Entry No.';
             Editable = false;
             TableRelation = "Cust. Ledger Entry"."Entry No.";
         }
+        /// <summary>
+        /// Specifies the total invoice discount amount applied to the credit memo.
+        /// </summary>
         field(1305; "Invoice Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Sales Cr.Memo Line"."Inv. Discount Amount" where("Document No." = field("No.")));
             Caption = 'Invoice Discount Amount';
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether this credit memo has been cancelled by another document.
+        /// </summary>
         field(1310; Cancelled; Boolean)
         {
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(114),
@@ -635,6 +972,9 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether this credit memo is a correction of a posted invoice.
+        /// </summary>
         field(1311; Corrective; Boolean)
         {
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(112),
@@ -643,58 +983,94 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the marketing campaign associated with the credit memo.
+        /// </summary>
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
             TableRelation = Campaign;
         }
+        /// <summary>
+        /// Specifies the contact number of the sell-to customer.
+        /// </summary>
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
             TableRelation = Contact;
         }
+        /// <summary>
+        /// Specifies the contact number of the bill-to customer.
+        /// </summary>
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
             TableRelation = Contact;
         }
+        /// <summary>
+        /// Specifies the sales opportunity associated with this credit memo.
+        /// </summary>
         field(5055; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
             TableRelation = Opportunity;
         }
+        /// <summary>
+        /// Specifies the responsibility center that processed the credit memo.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
             TableRelation = "Responsibility Center";
         }
+        /// <summary>
+        /// Specifies the shipping agent service code for delivery options.
+        /// </summary>
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
+        /// <summary>
+        /// Specifies the return order number that this credit memo was created from.
+        /// </summary>
         field(6601; "Return Order No."; Code[20])
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Return Order No.';
         }
+        /// <summary>
+        /// Specifies the number series used for the return order.
+        /// </summary>
         field(6602; "Return Order No. Series"; Code[20])
         {
             Caption = 'Return Order No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the method used to calculate prices on the credit memo.
+        /// </summary>
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
         }
+        /// <summary>
+        /// Indicates whether line discounts are allowed on the credit memo.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
         }
+        /// <summary>
+        /// Indicates whether the Get Return Receipt function was used to create lines.
+        /// </summary>
         field(7200; "Get Return Receipt Used"; Boolean)
         {
             Caption = 'Get Return Receipt Used';
         }
+        /// <summary>
+        /// Specifies the system ID of the draft credit memo before posting.
+        /// </summary>
         field(8001; "Draft Cr. Memo SystemId"; Guid)
         {
             Caption = 'Draft Cr. Memo System Id';
@@ -774,6 +1150,9 @@ table 114 "Sales Cr.Memo Header"
         DimMgt: Codeunit DimensionManagement;
         UserSetupMgt: Codeunit "User Setup Management";
 
+    /// <summary>
+    /// Sends the credit memo records using the customer's document sending profile.
+    /// </summary>
     procedure SendRecords()
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -794,6 +1173,10 @@ table 114 "Sales Cr.Memo Header"
           FieldNo("Bill-to Customer No."), FieldNo("No."));
     end;
 
+    /// <summary>
+    /// Sends the credit memo using a specific document sending profile.
+    /// </summary>
+    /// <param name="DocumentSendingProfile">The document sending profile to use.</param>
     procedure SendProfile(var DocumentSendingProfile: Record "Document Sending Profile")
     var
         DummyReportSelections: Record "Report Selections";
@@ -813,6 +1196,9 @@ table 114 "Sales Cr.Memo Header"
           DocumentTypeTxt, FieldNo("Bill-to Customer No."), FieldNo("No."));
     end;
 
+    /// <summary>
+    /// Opens the shipping agent's tracking website for this return shipment.
+    /// </summary>
     procedure StartTrackingSite()
     var
         ShippingAgent: Record "Shipping Agent";
@@ -822,6 +1208,10 @@ table 114 "Sales Cr.Memo Header"
         HyperLink(ShippingAgent.GetTrackingInternetAddr("Package Tracking No."));
     end;
 
+    /// <summary>
+    /// Prints the selected credit memo records.
+    /// </summary>
+    /// <param name="ShowRequestPage">Whether to show the report request page.</param>
     procedure PrintRecords(ShowRequestPage: Boolean)
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -837,6 +1227,9 @@ table 114 "Sales Cr.Memo Header"
           DummyReportSelections.Usage::"S.Cr.Memo".AsInteger(), Rec, FieldNo("Bill-to Customer No."), ShowRequestPage);
     end;
 
+    /// <summary>
+    /// Validates that the credit memo has been printed at least once.
+    /// </summary>
     procedure CheckNoPrinted()
     var
         IsHandled: Boolean;
@@ -849,6 +1242,10 @@ table 114 "Sales Cr.Memo Header"
         Rec.TestField("No. Printed");
     end;
 
+    /// <summary>
+    /// Sends the credit memo records by email.
+    /// </summary>
+    /// <param name="ShowRequestPage">Whether to show the email dialog.</param>
     procedure EmailRecords(ShowRequestPage: Boolean)
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -869,6 +1266,10 @@ table 114 "Sales Cr.Memo Header"
           FieldNo("Bill-to Customer No."), ShowRequestPage);
     end;
 
+    /// <summary>
+    /// Prints the credit memos and saves them as document attachments.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The credit memo records to print and attach.</param>
     procedure PrintToDocumentAttachment(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         ShowNotificationAction: Boolean;
@@ -895,6 +1296,9 @@ table 114 "Sales Cr.Memo Header"
             ReportSelections.Usage::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."No.", SalesCrMemoHeader."Bill-to Customer No.", ShowNotificationAction);
     end;
 
+    /// <summary>
+    /// Opens the Navigate page to show related entries for this credit memo.
+    /// </summary>
     procedure Navigate()
     var
         NavigatePage: Page Navigate;
@@ -904,6 +1308,9 @@ table 114 "Sales Cr.Memo Header"
         NavigatePage.Run();
     end;
 
+    /// <summary>
+    /// Opens a page showing value entries with adjustments for this credit memo.
+    /// </summary>
     procedure LookupAdjmtValueEntries()
     var
         ValueEntry: Record "Value Entry";
@@ -915,25 +1322,47 @@ table 114 "Sales Cr.Memo Header"
         PAGE.RunModal(0, ValueEntry);
     end;
 
+    /// <summary>
+    /// Gets the customer's VAT registration number.
+    /// </summary>
+    /// <returns>The VAT registration number.</returns>
     procedure GetCustomerVATRegistrationNumber(): Text
     var
         CountryRegion: Record "Country/Region";
     begin
         if CountryRegion.DetermineCountry("Bill-to Country/Region Code") then
+            if "Enterprise No." <> '' then
+                exit("Enterprise No.");
+
+        if "VAT Registration No." = '' then
             exit("Enterprise No.");
+
         exit("VAT Registration No.");
     end;
 
+    /// <summary>
+    /// Gets the label for the VAT registration number field.
+    /// </summary>
+    /// <returns>The field caption.</returns>
     procedure GetCustomerVATRegistrationNumberLbl(): Text
     var
         CountryRegion: Record "Country/Region";
     begin
         if CountryRegion.DetermineCountry("Bill-to Country/Region Code") then
+            if "Enterprise No." <> '' then
+                exit(FieldCaption("Enterprise No."));
+
+        if "VAT Registration No." = '' then
             exit(FieldCaption("Enterprise No."));
+
         exit(FieldCaption("VAT Registration No."));
     end;
 
 
+    /// <summary>
+    /// Gets the legal statement from sales setup for printing on credit memos.
+    /// </summary>
+    /// <returns>The legal statement text.</returns>
     procedure GetLegalStatement(): Text
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -942,11 +1371,17 @@ table 114 "Sales Cr.Memo Header"
         exit(SalesSetup.GetLegalStatement());
     end;
 
+    /// <summary>
+    /// Shows the dimension set entries for this credit memo.
+    /// </summary>
     procedure ShowDimensions()
     begin
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "No."));
     end;
 
+    /// <summary>
+    /// Sets a security filter based on the user's responsibility center.
+    /// </summary>
     procedure SetSecurityFilterOnRespCenter()
     var
         IsHandled: Boolean;
@@ -963,6 +1398,10 @@ table 114 "Sales Cr.Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Gets the style class for displaying the document exchange status.
+    /// </summary>
+    /// <returns>A style name for UI display.</returns>
     procedure GetDocExchStatusStyle(): Text
     begin
         case "Document Exchange Status" of
@@ -977,6 +1416,9 @@ table 114 "Sales Cr.Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Shows the activity log entries for this credit memo.
+    /// </summary>
     procedure ShowActivityLog()
     var
         ActivityLog: Record "Activity Log";
@@ -984,11 +1426,18 @@ table 114 "Sales Cr.Memo Header"
         ActivityLog.ShowEntries(Rec.RecordId);
     end;
 
+    /// <summary>
+    /// Checks if the credit memo has been sent via document exchange.
+    /// </summary>
+    /// <returns>True if the document has been sent.</returns>
     procedure DocExchangeStatusIsSent(): Boolean
     begin
         exit("Document Exchange Status" <> "Document Exchange Status"::"Not Sent");
     end;
 
+    /// <summary>
+    /// Shows the invoice that was canceled or corrected by this credit memo.
+    /// </summary>
     procedure ShowCanceledOrCorrInvoice()
     begin
         CalcFields(Cancelled, Corrective);
@@ -1000,6 +1449,9 @@ table 114 "Sales Cr.Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Opens the invoice that corrected this cancelled credit memo.
+    /// </summary>
     procedure ShowCorrectiveInvoice()
     var
         CancelledDocument: Record "Cancelled Document";
@@ -1015,6 +1467,9 @@ table 114 "Sales Cr.Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Opens the invoice that was cancelled by this corrective credit memo.
+    /// </summary>
     procedure ShowCancelledInvoice()
     var
         CancelledDocument: Record "Cancelled Document";
@@ -1042,6 +1497,10 @@ table 114 "Sales Cr.Memo Header"
         PAGE.Run(PageID, SalesInvoiceHeader);
     end;
 
+    /// <summary>
+    /// Retrieves the work description text from the BLOB field.
+    /// </summary>
+    /// <returns>The work description text.</returns>
     procedure GetWorkDescription(): Text
     var
         TypeHelper: Codeunit "Type Helper";
@@ -1052,46 +1511,103 @@ table 114 "Sales Cr.Memo Header"
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName("Work Description")));
     end;
 
+    /// <summary>
+    /// Raised before emailing sales credit memo records to customers.
+    /// </summary>
+    /// <param name="ReportSelections">The report selections to use.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to email.</param>
+    /// <param name="DocTxt">The document type text.</param>
+    /// <param name="ShowDialog">Indicates whether to show the email dialog.</param>
+    /// <param name="IsHandled">Set to true to skip default email processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEmailRecords(var ReportSelections: Record "Report Selections"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; DocTxt: Text; var ShowDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing sales credit memo records.
+    /// </summary>
+    /// <param name="ReportSelections">The report selections to use.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to print.</param>
+    /// <param name="ShowRequestPage">Indicates whether to show the report request page.</param>
+    /// <param name="IsHandled">Set to true to skip default print processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintRecords(var ReportSelections: Record "Report Selections"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; ShowRequestPage: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending the sales credit memo using the document sending profile.
+    /// </summary>
+    /// <param name="ReportSelections">The report selections to use.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to send.</param>
+    /// <param name="DocTxt">The document type text.</param>
+    /// <param name="IsHandled">Set to true to skip default sending profile processing.</param>
+    /// <param name="DocumentSendingProfile">The document sending profile to use.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendProfile(var ReportSelections: Record "Report Selections"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; DocTxt: Text; var IsHandled: Boolean; var DocumentSendingProfile: Record "Document Sending Profile")
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending sales credit memo records.
+    /// </summary>
+    /// <param name="ReportSelections">The report selections to use.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to send.</param>
+    /// <param name="DocTxt">The document type text.</param>
+    /// <param name="IsHandled">Set to true to skip default sending processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendRecords(var ReportSelections: Record "Report Selections"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; DocTxt: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting security filter on responsibility center for the sales credit memo.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to filter.</param>
+    /// <param name="IsHandled">Set to true to skip default security filter application.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when looking up the applies-to document number.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry with applied filters.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupAppliesToDocNoOnAfterSetFilters(var CustLedgEntry: Record "Cust. Ledger Entry"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the sales invoice header page when showing the cancelled invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header to display.</param>
+    /// <param name="PageID">The page ID to run.</param>
+    /// <param name="IsHandled">Set to true to skip default page execution.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunSalesInvoiceHeaderPage(var SalesInvoiceHeader: Record "Sales Invoice Header"; var PageID: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing to document attachment for the sales credit memo.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to print.</param>
+    /// <param name="ShowNotificationAction">Indicates whether to show notification action.</param>
+    /// <param name="IsHandled">Set to true to skip default document attachment processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDoPrintToDocumentAttachment(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; ShowNotificationAction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the credit memo has been printed.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header being checked.</param>
+    /// <param name="IsHandled">Set to true to skip default print status check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoPrinted(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin

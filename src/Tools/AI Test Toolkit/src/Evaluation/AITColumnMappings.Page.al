@@ -20,15 +20,15 @@ page 149044 "AIT Column Mappings"
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Test Suite Code';
-                    ToolTip = 'Specifies the code of the test suite.';
+                    Caption = 'Eval Suite Code';
+                    ToolTip = 'Specifies the code of the eval suite.';
                 }
                 field("Test Method Line"; Rec."Test Method Line")
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Test Method Line';
-                    ToolTip = 'Specifies the line number of the test method.';
+                    Caption = 'Eval Method Line';
+                    ToolTip = 'Specifies the line number of the eval method.';
                 }
                 field(Column; Rec.Column)
                 {

@@ -18,11 +18,13 @@ table 10700 "Inc. Stmt. Clos. Buffer"
         }
         field(2; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(3; "Additional-Currency Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Additional-Currency Amount';
             DataClassification = SystemMetadata;
         }

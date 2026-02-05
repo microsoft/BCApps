@@ -67,6 +67,7 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales ($)';
                     ToolTip = 'Specifies the sales amount.';
                 }
@@ -74,6 +75,7 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit ($)';
                     ToolTip = 'Specifies the profit, expressed as an amount, that was associated with the sales order when it was originally posted.';
                 }
@@ -81,11 +83,13 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit ($)';
                     ToolTip = 'Specifies the difference between the amounts in the Amount and Cost fields on the sales order.';
                 }
                 field(ProfitPct; ProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -94,6 +98,7 @@ page 10041 "Sales Invoice Stats."
                 field(AdjProfitPct; AdjProfitPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     ToolTip = 'Specifies the adjusted profit of the sales order expressed as a percentage.';
@@ -101,12 +106,14 @@ page 10041 "Sales Invoice Stats."
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the item quantity.';
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the number of parcels on the document.';
@@ -114,18 +121,21 @@ page 10041 "Sales Invoice Stats."
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the net weight of items on the sales order.';
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the gross weight of items on the document.';
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the invoiced items.';
@@ -134,6 +144,7 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Cost ($)';
                     ToolTip = 'Specifies the original cost of the items on the sales document.';
                 }
@@ -141,6 +152,7 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost ($)';
                     ToolTip = 'Specifies the adjusted cost of the items on the sales order.';
                 }
@@ -148,6 +160,7 @@ page 10041 "Sales Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount ($)';
                     ToolTip = 'Specifies the adjusted cost of the sales order based on the total adjusted cost, total sales, and unit cost.';
 
@@ -165,6 +178,8 @@ page 10041 "Sales Invoice Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -173,6 +188,8 @@ page 10041 "Sales Invoice Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -181,6 +198,8 @@ page 10041 "Sales Invoice Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -189,6 +208,8 @@ page 10041 "Sales Invoice Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;
@@ -220,6 +241,7 @@ page 10041 "Sales Invoice Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies how must of the customer''s credit is used, expressed as a percentage of the credit limit.';

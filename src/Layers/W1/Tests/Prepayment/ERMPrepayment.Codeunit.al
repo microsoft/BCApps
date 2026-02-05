@@ -4051,6 +4051,104 @@
             until SalesLine.Next() = 0;
     end;
 
+    [Test]
+    procedure SalesInvoiceDiscountRecalculatedAfterTogglingAllowInvoiceDisc()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        LineGLAccount: Record "G/L Account";
+        Location: Record Location;
+        Item: Record Item;
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        InvoiceDiscountPct: Decimal;
+        OriginalAmount: Decimal;
+        AmountAfterDiscount: Decimal;
+    begin
+        // [SCENARIO 612009] Invoice discount is recalculated when "Allow Invoice Disc." is toggled back on after being turned off in prepayment scenario
+        Initialize();
+
+        // [GIVEN] Sales & Receivables Setup with "Calc. Inv. Discount" enabled
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Calc. Inv. Discount", true);
+        SalesReceivablesSetup.Modify(true);
+
+        // [GIVEN] Create No. Series for Posted Prepayment Invoices.
+        PostedPrepmtInvNosInSetup(SalesReceivablesSetup, CreateNoSeriesWithLine());
+
+        // [GIVEN] Create Prepayment VAT Setup.
+        CreatePrepmtVATSetup(LineGLAccount, LineGLAccount."Gen. Posting Type"::Sale);
+
+        // [GIVEN] Create a new Customer with Prepayment %.
+        CreateCustomerWithPrepmtPct(Customer, LineGLAccount);
+
+        // [GIVEN] Create Invoice Discount for Customer.
+        InvoiceDiscountPct := LibraryRandom.RandDecInRange(5, 15, 2);
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, Customer."No.", '', 0);
+        CustInvoiceDisc.Validate("Discount %", InvoiceDiscountPct);
+        CustInvoiceDisc.Modify(true);
+
+        // [GIVEN] Create Sales Order with two lines.
+        CreateSalesOrder(SalesHeader, Customer."No.", LineGLAccount);
+
+        SalesLine[1].SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine[1].SetRange("Document No.", SalesHeader."No.");
+        SalesLine[1].SetRange(SalesLine[1].Type, SalesLine[1].Type::Item);
+        SalesLine[1].FindFirst();
+        Item.Get(SalesLine[1]."No.");
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+
+        // [WHEN] Create Setup for Sales Prepayment Account, post the Prepayment Sales Invoice and Prepayment Credit Memo.
+        PostSalesPrepaymentInvoice(SalesHeader);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [WHEN] Create Sales Invoice and Get Shipment Lines
+        LibrarySales.CreateSalesHeader(SalesInvoiceHeader, SalesInvoiceHeader."Document Type"::Invoice, Customer."No.");
+
+        // [GIVEN] Create Sales Shipment Line.
+        SalesShipmentLine.SetRange("Sell-to Customer No.", Customer."No.");
+        SalesShipmentLine.FindFirst();
+        SalesGetShipment.SetSalesHeader(SalesInvoiceHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+
+        // [THEN] Sales Invoice Line has "Allow Invoice Disc." = TRUE and discount is applied
+        SalesLine[2].SetRange("Document Type", SalesInvoiceHeader."Document Type");
+        SalesLine[2].SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesLine[2].FindFirst();
+
+        OriginalAmount := SalesLine[2].Amount;
+
+        // [WHEN] Toggle "Allow Invoice Disc." to false.
+        SalesLine[2].Validate("Allow Invoice Disc.", false);
+        SalesLine[2].Modify(true);
+
+        // [WHEN] Toggle "Allow Invoice Disc." back to true.
+        SalesLine[2].Validate("Allow Invoice Disc.", true);
+        SalesLine[2].Modify(true);
+
+        // [THEN] Amount and Prepmt. Line Amount are restored with discount.
+        SalesLine[2].Find();
+        AmountAfterDiscount := SalesLine[2].Amount;
+        Assert.AreNearlyEqual(
+            OriginalAmount,
+            AmountAfterDiscount,
+            0.01,
+            StrSubstNo(
+                AmountErr,
+                SalesLine[2].FieldCaption(Amount),
+                AmountAfterDiscount,
+                SalesLine[2].TableCaption()));
+
+        // Tear down
+        TearDownVATPostingSetup(SalesHeader."VAT Bus. Posting Group");
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

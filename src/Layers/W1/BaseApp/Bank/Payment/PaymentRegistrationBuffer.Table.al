@@ -83,7 +83,7 @@ table 981 "Payment Registration Buffer"
         /// </summary>
         field(8; "Remaining Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Remaining Amount';
         }
         /// <summary>
@@ -127,7 +127,7 @@ table 981 "Payment Registration Buffer"
         /// </summary>
         field(11; "Amount Received"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount Received';
 
             trigger OnValidate()
@@ -150,7 +150,7 @@ table 981 "Payment Registration Buffer"
         /// </summary>
         field(12; "Original Remaining Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Original Remaining Amount';
         }
         /// <summary>
@@ -158,7 +158,7 @@ table 981 "Payment Registration Buffer"
         /// </summary>
         field(13; "Rem. Amt. after Discount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Rem. Amt. after Discount';
         }
         /// <summary>

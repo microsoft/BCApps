@@ -248,6 +248,7 @@ table 6413 "FS BookableResourceBookingHdr"
         }
         field(40; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'exchangerate';
             ExternalType = 'Decimal';
             ExternalAccess = Read;
@@ -309,5 +310,5 @@ table 6413 "FS BookableResourceBookingHdr"
         {
         }
     }
-} 
+}
 #endif

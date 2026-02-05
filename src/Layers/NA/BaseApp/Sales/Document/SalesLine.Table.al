@@ -64,6 +64,9 @@ using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Stores line-level details for sales documents including items, quantities, prices, and discounts.
+/// </summary>
 table 37 "Sales Line"
 {
     Caption = 'Sales Line';
@@ -74,11 +77,17 @@ table 37 "Sales Line"
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of sales document such as quote, order, invoice, credit memo, blanket order, or return order.
+        /// </summary>
         field(1; "Document Type"; Enum "Sales Document Type")
         {
             Caption = 'Document Type';
             ToolTip = 'Specifies the type of document that you are about to create.';
         }
+        /// <summary>
+        /// Specifies the number of the customer who will receive the items and be billed for them.
+        /// </summary>
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
@@ -86,17 +95,26 @@ table 37 "Sales Line"
             Editable = false;
             TableRelation = Customer;
         }
+        /// <summary>
+        /// Specifies the document number that this line belongs to.
+        /// </summary>
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             ToolTip = 'Specifies the document number.';
             TableRelation = "Sales Header"."No." where("Document Type" = field("Document Type"));
         }
+        /// <summary>
+        /// Specifies the sequential number assigned to this line within the document.
+        /// </summary>
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
             ToolTip = 'Specifies the line number.';
         }
+        /// <summary>
+        /// Specifies the type of entity on this line such as Item, Resource, G/L Account, Fixed Asset, or Charge.
+        /// </summary>
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
@@ -180,6 +198,9 @@ table 37 "Sales Line"
                     "Allow Item Charge Assignment" := false;
             end;
         }
+        /// <summary>
+        /// Specifies the number of the entity based on the line type, such as item number, G/L account, or resource code.
+        /// </summary>
         field(6; "No."; Code[20])
         {
             CaptionClass = GetCaptionClass(FieldNo("No."));
@@ -366,6 +387,9 @@ table 37 "Sales Line"
                 OnValidateNoOnAfterUpdateUnitPrice(Rec, xRec, TempSalesLine);
             end;
         }
+        /// <summary>
+        /// Specifies the location from which the items on this line will be shipped.
+        /// </summary>
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
@@ -444,6 +468,9 @@ table 37 "Sales Line"
                 OnAfterValidateLocationCode(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Specifies the inventory posting group or fixed asset posting group that applies to this line.
+        /// </summary>
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
@@ -452,6 +479,9 @@ table 37 "Sales Line"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
+        /// <summary>
+        /// Specifies the date when the items on this line are expected to be shipped.
+        /// </summary>
         field(10; "Shipment Date"; Date)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -503,6 +533,9 @@ table 37 "Sales Line"
                     "Planned Delivery Date" := CalcPlannedDeliveryDate(FieldNo("Shipment Date"));
             end;
         }
+        /// <summary>
+        /// Contains a description of the item, resource, or other entity on this line.
+        /// </summary>
         field(11; Description; Text[100])
         {
             Caption = 'Description';
@@ -614,11 +647,17 @@ table 37 "Sales Line"
                                 Error(CannotFindDescErr, Type, Description);
             end;
         }
+        /// <summary>
+        /// Contains additional description text for the line item.
+        /// </summary>
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
             ToolTip = 'Specifies information in addition to the description.';
         }
+        /// <summary>
+        /// Specifies the text description of the unit of measure for the quantity.
+        /// </summary>
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
@@ -631,6 +670,9 @@ table 37 "Sales Line"
                     CheckWarehouse(false);
             end;
         }
+        /// <summary>
+        /// Specifies the number of units being sold on this line.
+        /// </summary>
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
@@ -779,6 +821,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the quantity that has not yet been shipped or received for this line.
+        /// </summary>
         field(16; "Outstanding Quantity"; Decimal)
         {
             AutoFormatType = 0;
@@ -787,6 +832,9 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the quantity to be invoiced in the current posting operation.
+        /// </summary>
         field(17; "Qty. to Invoice"; Decimal)
         {
             AutoFormatType = 0;
@@ -823,6 +871,9 @@ table 37 "Sales Line"
                 CalcPrepaymentToDeduct();
             end;
         }
+        /// <summary>
+        /// Specifies the quantity to be shipped in the current posting operation.
+        /// </summary>
         field(18; "Qty. to Ship"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -870,6 +921,9 @@ table 37 "Sales Line"
                 UpdateQtyToAsmFromSalesLineQtyToShip();
             end;
         }
+        /// <summary>
+        /// Specifies the selling price per unit of measure for this line.
+        /// </summary>
         field(22; "Unit Price"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -892,6 +946,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the cost per unit in local currency for the item or resource on this line.
+        /// </summary>
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -944,6 +1001,9 @@ table 37 "Sales Line"
                     "Unit Cost" := "Unit Cost (LCY)";
             end;
         }
+        /// <summary>
+        /// Specifies the VAT percentage used to calculate the VAT amount on this line.
+        /// </summary>
         field(25; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -951,6 +1011,9 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the discount percentage applied to the unit price on this line.
+        /// </summary>
         field(27; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -970,6 +1033,9 @@ table 37 "Sales Line"
                 NotifyOnMissingSetup(FieldNo("Line Discount Amount"));
             end;
         }
+        /// <summary>
+        /// Specifies the discount amount deducted from the line amount before VAT.
+        /// </summary>
         field(28; "Line Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -991,6 +1057,9 @@ table 37 "Sales Line"
                 NotifyOnMissingSetup(FieldNo("Line Discount Amount"));
             end;
         }
+        /// <summary>
+        /// Specifies the net amount for this line excluding VAT.
+        /// </summary>
         field(29; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1037,6 +1106,9 @@ table 37 "Sales Line"
                 InitOutstandingAmount();
             end;
         }
+        /// <summary>
+        /// Specifies the total amount for this line including VAT.
+        /// </summary>
         field(30; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1083,6 +1155,9 @@ table 37 "Sales Line"
                 InitOutstandingAmount();
             end;
         }
+        /// <summary>
+        /// Indicates whether this line is eligible for invoice discount calculation.
+        /// </summary>
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
@@ -1099,34 +1174,50 @@ table 37 "Sales Line"
                         "Inv. Discount Amount" := 0;
                         "Inv. Disc. Amount to Invoice" := 0;
                     end;
+                    "Recalculate Invoice Disc." := true;
                     UpdateAmounts();
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the gross weight of one unit of the item on this line.
+        /// </summary>
         field(34; "Gross Weight"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the net weight of one unit of the item on this line.
+        /// </summary>
         field(35; "Net Weight"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies how many units of the item can fit in one parcel for shipping.
+        /// </summary>
         field(36; "Units per Parcel"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the volume of one unit of the item on this line.
+        /// </summary>
         field(37; "Unit Volume"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies a specific item ledger entry to apply this transaction to for cost application.
+        /// </summary>
         field(38; "Appl.-to Item Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
@@ -1166,6 +1257,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the code for the first global dimension used for analysis.
+        /// </summary>
         field(40; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -1180,6 +1274,9 @@ table 37 "Sales Line"
                 ATOLink.UpdateAsmDimFromSalesLine(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the code for the second global dimension used for analysis.
+        /// </summary>
         field(41; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -1194,6 +1291,9 @@ table 37 "Sales Line"
                 ATOLink.UpdateAsmDimFromSalesLine(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the customer price group used for calculating the unit price on this line.
+        /// </summary>
         field(42; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
@@ -1209,6 +1309,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the project number that this sales line is linked to.
+        /// </summary>
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
@@ -1216,6 +1319,9 @@ table 37 "Sales Line"
             Editable = false;
             TableRelation = Job;
         }
+        /// <summary>
+        /// Specifies the type of work performed by the resource for pricing purposes.
+        /// </summary>
         field(52; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
@@ -1243,11 +1349,17 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates that the invoice discount should be recalculated for this line.
+        /// </summary>
         field(56; "Recalculate Invoice Disc."; Boolean)
         {
             Caption = 'Recalculate Invoice Disc.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the outstanding amount yet to be shipped or invoiced for this line.
+        /// </summary>
         field(57; "Outstanding Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1273,6 +1385,9 @@ table 37 "Sales Line"
                       Round("Outstanding Amount", Currency2."Amount Rounding Precision");
             end;
         }
+        /// <summary>
+        /// Specifies the quantity that has been shipped but not yet invoiced.
+        /// </summary>
         field(58; "Qty. Shipped Not Invoiced"; Decimal)
         {
             AutoFormatType = 0;
@@ -1280,6 +1395,9 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the amount for shipped quantities that have not yet been invoiced.
+        /// </summary>
         field(59; "Shipped Not Invoiced"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1307,6 +1425,9 @@ table 37 "Sales Line"
                 CalculateNotShippedInvExlcVatLCY();
             end;
         }
+        /// <summary>
+        /// Specifies the total quantity that has been shipped from this sales line.
+        /// </summary>
         field(60; "Quantity Shipped"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1315,6 +1436,9 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the total quantity that has been invoiced for this sales line.
+        /// </summary>
         field(61; "Quantity Invoiced"; Decimal)
         {
             AutoFormatType = 0;
@@ -1322,16 +1446,25 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the number of the posted shipment document that this line originated from.
+        /// </summary>
         field(63; "Shipment No."; Code[20])
         {
             Caption = 'Shipment No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the line number in the posted shipment document that this line originated from.
+        /// </summary>
         field(64; "Shipment Line No."; Integer)
         {
             Caption = 'Shipment Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the profit margin percentage for this line based on unit price and cost.
+        /// </summary>
         field(67; "Profit %"; Decimal)
         {
             AutoFormatType = 0;
@@ -1339,12 +1472,18 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the customer number who will receive the invoice for this line.
+        /// </summary>
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
             Editable = false;
             TableRelation = Customer;
         }
+        /// <summary>
+        /// Specifies the invoice discount amount applied to this line.
+        /// </summary>
         field(69; "Inv. Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1359,6 +1498,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the purchase order number for drop shipment or special order linked to this sales line.
+        /// </summary>
         field(71; "Purchase Order No."; Code[20])
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1374,6 +1516,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the purchase order line number for drop shipment or special order linked to this sales line.
+        /// </summary>
         field(72; "Purch. Order Line No."; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1390,6 +1535,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates that the item will be shipped directly from the vendor to the customer without passing through inventory.
+        /// </summary>
         field(73; "Drop Shipment"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
@@ -1449,6 +1597,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the general business posting group for determining accounts when posting.
+        /// </summary>
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -1461,6 +1612,9 @@ table 37 "Sales Line"
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the general product posting group for determining accounts when posting.
+        /// </summary>
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -1481,21 +1635,33 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the method used to calculate VAT on this line.
+        /// </summary>
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the transaction type for Intrastat reporting purposes.
+        /// </summary>
         field(78; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
             TableRelation = "Transaction Type";
         }
+        /// <summary>
+        /// Specifies the transport method used for Intrastat reporting purposes.
+        /// </summary>
         field(79; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
             TableRelation = "Transport Method";
         }
+        /// <summary>
+        /// Specifies the line number this comment or extended text line is attached to.
+        /// </summary>
         field(80; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
@@ -1503,25 +1669,40 @@ table 37 "Sales Line"
             TableRelation = "Sales Line"."Line No." where("Document Type" = field("Document Type"),
                                                            "Document No." = field("Document No."));
         }
+        /// <summary>
+        /// Specifies the exit point for goods for Intrastat reporting purposes.
+        /// </summary>
         field(81; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
             TableRelation = "Entry/Exit Point";
         }
+        /// <summary>
+        /// Specifies the area code for Intrastat reporting purposes.
+        /// </summary>
         field(82; "Area"; Code[10])
         {
             Caption = 'Area';
             TableRelation = Area;
         }
+        /// <summary>
+        /// Specifies the transaction specification for Intrastat reporting purposes.
+        /// </summary>
         field(83; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
             TableRelation = "Transaction Specification";
         }
+        /// <summary>
+        /// Specifies the tax category code for electronic document reporting.
+        /// </summary>
         field(84; "Tax Category"; Code[10])
         {
             Caption = 'Tax Category';
         }
+        /// <summary>
+        /// Specifies the tax area that applies for sales tax calculation on this line.
+        /// </summary>
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
@@ -1556,6 +1737,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Indicates whether the line is subject to sales tax.
+        /// </summary>
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
@@ -1566,6 +1750,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the tax group that determines the tax rate for this line.
+        /// </summary>
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
@@ -1578,11 +1765,17 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the VAT clause that applies to this line for special VAT reporting.
+        /// </summary>
         field(88; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for determining VAT settings.
+        /// </summary>
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -1593,6 +1786,9 @@ table 37 "Sales Line"
                 ValidateVATProdPostingGroup();
             end;
         }
+        /// <summary>
+        /// Specifies the VAT product posting group for determining VAT settings.
+        /// </summary>
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -1646,12 +1842,18 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the currency code for amounts on this line.
+        /// </summary>
         field(91; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             Editable = false;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the outstanding amount in local currency that has not yet been shipped or invoiced.
+        /// </summary>
         field(92; "Outstanding Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -1659,6 +1861,9 @@ table 37 "Sales Line"
             Caption = 'Outstanding Amount (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the shipped but not invoiced amount in local currency including VAT.
+        /// </summary>
         field(93; "Shipped Not Invoiced (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -1666,6 +1871,9 @@ table 37 "Sales Line"
             Caption = 'Shipped Not Invoiced (LCY) Incl. VAT';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the shipped but not invoiced amount in local currency excluding VAT.
+        /// </summary>
         field(94; "Shipped Not Inv. (LCY) No VAT"; Decimal)
         {
             AutoFormatExpression = '';
@@ -1674,6 +1882,9 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = Normal;
         }
+        /// <summary>
+        /// Specifies the quantity that has been reserved from inventory for this line.
+        /// </summary>
         field(95; "Reserved Quantity"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1690,6 +1901,9 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the reservation policy for items on this line.
+        /// </summary>
         field(96; Reserve; Enum "Reserve Method")
         {
             AccessByPermission = TableData Item = R;
@@ -1721,6 +1935,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the blanket order number that this line was created from.
+        /// </summary>
         field(97; "Blanket Order No."; Code[20])
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1748,6 +1965,9 @@ table 37 "Sales Line"
                     Validate("Blanket Order Line No.");
             end;
         }
+        /// <summary>
+        /// Specifies the blanket order line number that this line was created from.
+        /// </summary>
         field(98; "Blanket Order Line No."; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1792,6 +2012,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the base amount used to calculate VAT for this line.
+        /// </summary>
         field(99; "VAT Base Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1799,6 +2022,9 @@ table 37 "Sales Line"
             Caption = 'VAT Base Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the cost per unit in the document currency.
+        /// </summary>
         field(100; "Unit Cost"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1806,11 +2032,17 @@ table 37 "Sales Line"
             Caption = 'Unit Cost';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates that this line was created by the system and not manually by a user.
+        /// </summary>
         field(101; "System-Created Entry"; Boolean)
         {
             Caption = 'System-Created Entry';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the calculated line amount before invoice discounts.
+        /// </summary>
         field(103; "Line Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1845,6 +2077,9 @@ table 37 "Sales Line"
                 Validate("Line Discount Amount", MaxLineAmount - "Line Amount");
             end;
         }
+        /// <summary>
+        /// Specifies the difference between the calculated VAT and manually adjusted VAT amount.
+        /// </summary>
         field(104; "VAT Difference"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1852,6 +2087,9 @@ table 37 "Sales Line"
             Caption = 'VAT Difference';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the invoice discount amount that will be applied when the line is invoiced.
+        /// </summary>
         field(105; "Inv. Disc. Amount to Invoice"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1859,11 +2097,17 @@ table 37 "Sales Line"
             Caption = 'Inv. Disc. Amount to Invoice';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the VAT identifier code that groups lines with the same VAT setup.
+        /// </summary>
         field(106; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the type of intercompany partner reference for the line item.
+        /// </summary>
         field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
         {
             AccessByPermission = TableData "IC G/L Account" = R;
@@ -1884,6 +2128,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the intercompany partner reference number for the item or G/L account.
+        /// </summary>
         field(108; "IC Partner Reference"; Code[20])
         {
             AccessByPermission = TableData "IC G/L Account" = R;
@@ -1913,6 +2160,9 @@ table 37 "Sales Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment percentage required for this line before shipping.
+        /// </summary>
         field(109; "Prepayment %"; Decimal)
         {
             AutoFormatType = 0;
@@ -1940,6 +2190,9 @@ table 37 "Sales Line"
                 UpdateBaseAmounts(Amount, "Amount Including VAT", "VAT Base Amount");
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment amount calculated for this line based on the prepayment percentage.
+        /// </summary>
         field(110; "Prepmt. Line Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1969,6 +2222,9 @@ table 37 "Sales Line"
                 Validate("Prepayment %", "Prepmt. Line Amount" * 100 / Round(CalculateOutstandingAmountExclTax(), Currency."Amount Rounding Precision"));
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment amount that has already been invoiced for this line.
+        /// </summary>
         field(111; "Prepmt. Amt. Inv."; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1977,6 +2233,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Amt. Inv.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the prepayment amount including VAT for this line.
+        /// </summary>
         field(112; "Prepmt. Amt. Incl. VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1984,6 +2243,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Amt. Incl. VAT';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the calculated prepayment amount for this line.
+        /// </summary>
         field(113; "Prepayment Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1991,6 +2253,9 @@ table 37 "Sales Line"
             Caption = 'Prepayment Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the base amount used to calculate VAT on the prepayment.
+        /// </summary>
         field(114; "Prepmt. VAT Base Amt."; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1998,6 +2263,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. VAT Base Amt.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the VAT percentage applied to the prepayment amount.
+        /// </summary>
         field(115; "Prepayment VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -2006,16 +2274,25 @@ table 37 "Sales Line"
             Editable = false;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the VAT calculation method for prepayments on this line.
+        /// </summary>
         field(116; "Prepmt. VAT Calc. Type"; Enum "Tax Calculation Type")
         {
             Caption = 'Prepmt. VAT Calc. Type';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the VAT identifier for prepayment VAT reporting.
+        /// </summary>
         field(117; "Prepayment VAT Identifier"; Code[20])
         {
             Caption = 'Prepayment VAT Identifier';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculation on prepayments.
+        /// </summary>
         field(118; "Prepayment Tax Area Code"; Code[20])
         {
             Caption = 'Prepayment Tax Area Code';
@@ -2026,6 +2303,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Indicates whether sales tax applies to prepayments on this line.
+        /// </summary>
         field(119; "Prepayment Tax Liable"; Boolean)
         {
             Caption = 'Prepayment Tax Liable';
@@ -2035,6 +2315,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the tax group code for sales tax calculation on prepayments.
+        /// </summary>
         field(120; "Prepayment Tax Group Code"; Code[20])
         {
             Caption = 'Prepayment Tax Group Code';
@@ -2046,6 +2329,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment amount to deduct from the final invoice.
+        /// </summary>
         field(121; "Prepmt Amt to Deduct"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2082,6 +2368,9 @@ table 37 "Sales Line"
                         "Prepmt. Amt. Inv." - "Prepmt Amt Deducted" - (Quantity - "Qty. to Invoice" - "Quantity Invoiced") * "Unit Price"));
             end;
         }
+        /// <summary>
+        /// Specifies the total prepayment amount already deducted from invoices for this line.
+        /// </summary>
         field(122; "Prepmt Amt Deducted"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2090,11 +2379,17 @@ table 37 "Sales Line"
             Caption = 'Prepmt Amt Deducted';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates that this line is a prepayment line for invoicing purposes.
+        /// </summary>
         field(123; "Prepayment Line"; Boolean)
         {
             Caption = 'Prepayment Line';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the invoiced prepayment amount including VAT for this line.
+        /// </summary>
         field(124; "Prepmt. Amount Inv. Incl. VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2102,6 +2397,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Amount Inv. Incl. VAT';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the invoiced prepayment amount in local currency.
+        /// </summary>
         field(129; "Prepmt. Amount Inv. (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -2109,6 +2407,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Amount Inv. (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the intercompany partner code for transactions with related companies.
+        /// </summary>
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -2125,6 +2426,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the invoiced prepayment VAT amount in local currency.
+        /// </summary>
         field(132; "Prepmt. VAT Amount Inv. (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -2132,6 +2436,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt. VAT Amount Inv. (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the difference between calculated and manually adjusted prepayment VAT.
+        /// </summary>
         field(135; "Prepayment VAT Difference"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2139,6 +2446,9 @@ table 37 "Sales Line"
             Caption = 'Prepayment VAT Difference';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the prepayment VAT difference amount to deduct.
+        /// </summary>
         field(136; "Prepmt VAT Diff. to Deduct"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2146,6 +2456,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt VAT Diff. to Deduct';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the prepayment VAT difference amount that has been deducted.
+        /// </summary>
         field(137; "Prepmt VAT Diff. Deducted"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2153,6 +2466,9 @@ table 37 "Sales Line"
             Caption = 'Prepmt VAT Diff. Deducted';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the item reference number for intercompany transactions.
+        /// </summary>
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
@@ -2176,6 +2492,9 @@ table 37 "Sales Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the payment discount amount that applies to this line.
+        /// </summary>
         field(145; "Pmt. Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2188,6 +2507,9 @@ table 37 "Sales Line"
                 UpdateAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the payment discount amount for the prepayment on this line.
+        /// </summary>
         field(146; "Prepmt. Pmt. Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2195,12 +2517,18 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Pmt. Discount Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies how the line discount was calculated such as by percentage or amount.
+        /// </summary>
         field(180; "Line Discount Calculation"; Option)
         {
             Caption = 'Line Discount Calculation';
             OptionCaption = 'None,%,Amount';
             OptionMembers = "None","%",Amount;
         }
+        /// <summary>
+        /// Specifies the unique identifier for the combination of dimensions assigned to this line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -2217,6 +2545,9 @@ table 37 "Sales Line"
                 DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the quantity of assembly items to assemble to fulfill this sales order line.
+        /// </summary>
         field(900; "Qty. to Assemble to Order"; Decimal)
         {
             AccessByPermission = TableData "BOM Component" = R;
@@ -2272,6 +2603,9 @@ table 37 "Sales Line"
                     Rec.AutoAsmToOrder();
             end;
         }
+        /// <summary>
+        /// Specifies the quantity to assemble to order in base unit of measure.
+        /// </summary>
         field(901; "Qty. to Asm. to Order (Base)"; Decimal)
         {
             AutoFormatType = 0;
@@ -2291,6 +2625,9 @@ table 37 "Sales Line"
                 Validate("Qty. to Assemble to Order", "Qty. to Asm. to Order (Base)");
             end;
         }
+        /// <summary>
+        /// Specifies the outstanding warehouse shipment quantity for assemble-to-order items.
+        /// </summary>
         field(902; "ATO Whse. Outstanding Qty."; Decimal)
         {
             AccessByPermission = TableData "BOM Component" = R;
@@ -2308,8 +2645,12 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the outstanding warehouse shipment quantity in base unit for assemble-to-order items.
+        /// </summary>
         field(903; "ATO Whse. Outstd. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "BOM Component" = R;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding (Base)" where("Source Type" = const(37),
@@ -2324,12 +2665,18 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the project task number linked to this sales line.
+        /// </summary>
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
             Editable = false;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
+        /// <summary>
+        /// Specifies the project contract entry number that this line was created from.
+        /// </summary>
         field(1002; "Job Contract Entry No."; Integer)
         {
             AccessByPermission = TableData Job = R;
@@ -2354,6 +2701,9 @@ table 37 "Sales Line"
                 CreateDim(DefaultDimSource);
             end;
         }
+        /// <summary>
+        /// Specifies the posting date from the sales header for this line.
+        /// </summary>
         field(1300; "Posting Date"; Date)
         {
             CalcFormula = lookup("Sales Header"."Posting Date" where("Document Type" = field("Document Type"),
@@ -2361,6 +2711,9 @@ table 37 "Sales Line"
             Caption = 'Posting Date';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the deferral template code for spreading revenue recognition over multiple periods.
+        /// </summary>
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
@@ -2388,6 +2741,9 @@ table 37 "Sales Line"
                             "Document No.", "Line No.", "Deferral Code", SalesHeader."Posting Date");
             end;
         }
+        /// <summary>
+        /// Specifies the start date for deferral schedule on return order lines.
+        /// </summary>
         field(1702; "Returns Deferral Start Date"; Date)
         {
             Caption = 'Returns Deferral Start Date';
@@ -2407,6 +2763,9 @@ table 37 "Sales Line"
                         SalesHeader."Currency Code");
             end;
         }
+        /// <summary>
+        /// Specifies the allocation account number used for distributing amounts during posting.
+        /// </summary>
         field(2675; "Selected Alloc. Account No."; Code[20])
         {
             Caption = 'Allocation Account No.';
@@ -2414,23 +2773,35 @@ table 37 "Sales Line"
             DataClassification = CustomerContent;
             TableRelation = "Allocation Account";
         }
+        /// <summary>
+        /// Indicates whether the allocation account distributions have been manually modified.
+        /// </summary>
         field(2677; "Alloc. Acc. Modified by User"; Boolean)
         {
             Caption = 'Allocation Account Distributions Modified';
             FieldClass = FlowField;
             CalcFormula = exist("Alloc. Acc. Manual Override" where("Parent System Id" = field(SystemId), "Parent Table Id" = const(Database::"Sales Line")));
         }
+        /// <summary>
+        /// Specifies the allocation account number used for posting allocation distributions.
+        /// </summary>
         field(2678; "Allocation Account No."; Code[20])
         {
             Caption = 'Posting Allocation Account No.';
             DataClassification = CustomerContent;
             TableRelation = "Allocation Account";
         }
+        /// <summary>
+        /// Stores the system identifier linking to the allocation sales line.
+        /// </summary>
         field(2679; "Alloc. Sales Line SystemId"; Guid)
         {
             Caption = 'Allocation Sales Line SystemId';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the variant code for the item on this line.
+        /// </summary>
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
@@ -2497,6 +2868,9 @@ table 37 "Sales Line"
                 UpdateUnitPriceByField(FieldNo("Variant Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the bin code where the item is located or will be placed.
+        /// </summary>
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
@@ -2558,20 +2932,31 @@ table 37 "Sales Line"
                 ATOLink.UpdateAsmBinCodeFromSalesLine(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the conversion factor between the unit of measure and the base unit of measure.
+        /// </summary>
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
         }
+        /// <summary>
+        /// Indicates that planning has been run for this line.
+        /// </summary>
         field(5405; Planned; Boolean)
         {
             Caption = 'Planned';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the rounding precision for quantities in the unit of measure.
+        /// </summary>
         field(5406; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -2579,8 +2964,12 @@ table 37 "Sales Line"
             MaxValue = 1;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the rounding precision for quantities in the base unit of measure.
+        /// </summary>
         field(5408; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -2588,6 +2977,9 @@ table 37 "Sales Line"
             MaxValue = 1;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unit of measure code for the quantity on this line.
+        /// </summary>
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
@@ -2680,8 +3072,12 @@ table 37 "Sales Line"
                 UpdateUnitPriceByField(FieldNo("Unit of Measure Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the quantity in the base unit of measure.
+        /// </summary>
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -2702,14 +3098,22 @@ table 37 "Sales Line"
                 UpdateUnitPriceByField(FieldNo("Quantity (Base)"));
             end;
         }
+        /// <summary>
+        /// Specifies the outstanding quantity in the base unit of measure.
+        /// </summary>
         field(5416; "Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the quantity to invoice in the base unit of measure.
+        /// </summary>
         field(5417; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -2726,8 +3130,12 @@ table 37 "Sales Line"
                 Validate("Qty. to Invoice", "Qty. to Invoice (Base)");
             end;
         }
+        /// <summary>
+        /// Specifies the quantity to ship in the base unit of measure.
+        /// </summary>
         field(5418; "Qty. to Ship (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -2744,26 +3152,42 @@ table 37 "Sales Line"
                 Validate("Qty. to Ship", "Qty. to Ship (Base)");
             end;
         }
+        /// <summary>
+        /// Specifies the shipped but not invoiced quantity in the base unit of measure.
+        /// </summary>
         field(5458; "Qty. Shipped Not Invd. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invd. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the shipped quantity in the base unit of measure.
+        /// </summary>
         field(5460; "Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the invoiced quantity in the base unit of measure.
+        /// </summary>
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the reserved quantity in the base unit of measure.
+        /// </summary>
         field(5495; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Sales Shipment Header" = R;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                             "Source Ref. No." = field("Line No."),
@@ -2778,11 +3202,17 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the posting date for the fixed asset transaction.
+        /// </summary>
         field(5600; "FA Posting Date"; Date)
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Date';
         }
+        /// <summary>
+        /// Specifies the depreciation book code for fixed asset accounting.
+        /// </summary>
         field(5602; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
@@ -2793,11 +3223,17 @@ table 37 "Sales Line"
                 GetFAPostingGroup();
             end;
         }
+        /// <summary>
+        /// Indicates whether depreciation should be calculated up to the fixed asset posting date.
+        /// </summary>
         field(5605; "Depr. until FA Posting Date"; Boolean)
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'Depr. until FA Posting Date';
         }
+        /// <summary>
+        /// Specifies the depreciation book to duplicate the fixed asset transaction into.
+        /// </summary>
         field(5612; "Duplicate in Depreciation Book"; Code[10])
         {
             Caption = 'Duplicate in Depreciation Book';
@@ -2808,6 +3244,9 @@ table 37 "Sales Line"
                 "Use Duplication List" := false;
             end;
         }
+        /// <summary>
+        /// Indicates whether to use the duplication list for posting fixed asset transactions.
+        /// </summary>
         field(5613; "Use Duplication List"; Boolean)
         {
             AccessByPermission = TableData "Fixed Asset" = R;
@@ -2818,6 +3257,9 @@ table 37 "Sales Line"
                 "Duplicate in Depreciation Book" := '';
             end;
         }
+        /// <summary>
+        /// Specifies the responsibility center code for this sales line.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
@@ -2829,11 +3271,17 @@ table 37 "Sales Line"
                 CreateDimFromDefaultDim(Rec.FieldNo("Responsibility Center"));
             end;
         }
+        /// <summary>
+        /// Indicates that the item was substituted due to being out of stock.
+        /// </summary>
         field(5701; "Out-of-Stock Substitution"; Boolean)
         {
             Caption = 'Out-of-Stock Substitution';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether a substitute item is available for this line.
+        /// </summary>
         field(5702; "Substitution Available"; Boolean)
         {
             CalcFormula = exist("Item Substitution" where(Type = const(Item),
@@ -2843,29 +3291,44 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the original item number before substitution occurred.
+        /// </summary>
         field(5703; "Originally Ordered No."; Code[20])
         {
             AccessByPermission = TableData "Item Substitution" = R;
             Caption = 'Originally Ordered No.';
             TableRelation = if (Type = const(Item)) Item;
         }
+        /// <summary>
+        /// Specifies the original variant code before substitution occurred.
+        /// </summary>
         field(5704; "Originally Ordered Var. Code"; Code[10])
         {
             AccessByPermission = TableData "Item Substitution" = R;
             Caption = 'Originally Ordered Var. Code';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("Originally Ordered No."));
         }
+        /// <summary>
+        /// Specifies the item category code for classification purposes.
+        /// </summary>
         field(5709; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
             TableRelation = "Item Category";
         }
+        /// <summary>
+        /// Indicates that this line contains a catalog or non-inventory item.
+        /// </summary>
         field(5710; Nonstock; Boolean)
         {
             AccessByPermission = TableData "Nonstock Item" = R;
             Caption = 'Catalog';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the purchasing code that determines drop shipment or special order handling.
+        /// </summary>
         field(5711; "Purchasing Code"; Code[10])
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
@@ -2936,18 +3399,27 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates that this line is a special order requiring a dedicated purchase order.
+        /// </summary>
         field(5713; "Special Order"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the purchase order number linked to this special order line.
+        /// </summary>
         field(5714; "Special Order Purchase No."; Code[20])
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order Purchase No.';
             TableRelation = if ("Special Order" = const(true)) "Purchase Header"."No." where("Document Type" = const(Order));
         }
+        /// <summary>
+        /// Specifies the purchase order line number linked to this special order line.
+        /// </summary>
         field(5715; "Special Order Purch. Line No."; Integer)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
@@ -2955,6 +3427,9 @@ table 37 "Sales Line"
             TableRelation = if ("Special Order" = const(true)) "Purchase Line"."Line No." where("Document Type" = const(Order),
                                                                                                "Document No." = field("Special Order Purchase No."));
         }
+        /// <summary>
+        /// Specifies the item reference number such as a barcode or customer item number.
+        /// </summary>
         field(5725; "Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
@@ -2976,22 +3451,35 @@ table 37 "Sales Line"
                 ItemReferenceMgt.ValidateSalesReferenceNo(Rec, SalesHeader, ItemReference, true, CurrFieldNo);
             end;
         }
+        /// <summary>
+        /// Specifies the unit of measure associated with the item reference.
+        /// </summary>
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Reference Unit of Measure';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
+        /// <summary>
+        /// Specifies the type of item reference such as customer, vendor, or barcode.
+        /// </summary>
         field(5727; "Item Reference Type"; Enum "Item Reference Type")
         {
             Caption = 'Item Reference Type';
         }
+        /// <summary>
+        /// Specifies the number associated with the item reference type.
+        /// </summary>
         field(5728; "Item Reference Type No."; Code[30])
         {
             Caption = 'Item Reference Type No.';
         }
+        /// <summary>
+        /// Specifies the outstanding warehouse shipment quantity for this line.
+        /// </summary>
         field(5749; "Whse. Outstanding Qty."; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Location = R;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding" where("Source Type" = const(37),
@@ -3005,8 +3493,12 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the outstanding warehouse shipment quantity in base unit for this line.
+        /// </summary>
         field(5750; "Whse. Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Location = R;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding (Base)" where("Source Type" = const(37),
@@ -3020,11 +3512,17 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates that the full quantity on this line has been shipped.
+        /// </summary>
         field(5752; "Completely Shipped"; Boolean)
         {
             Caption = 'Completely Shipped';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the date that the customer requested for delivery.
+        /// </summary>
         field(5790; "Requested Delivery Date"; Date)
         {
             Caption = 'Requested Delivery Date';
@@ -3050,6 +3548,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the date that was promised for delivery to the customer.
+        /// </summary>
         field(5791; "Promised Delivery Date"; Date)
         {
             AccessByPermission = TableData "Order Promising Line" = R;
@@ -3072,6 +3573,9 @@ table 37 "Sales Line"
                     Validate("Requested Delivery Date");
             end;
         }
+        /// <summary>
+        /// Specifies the time needed for shipping from the warehouse to the customer.
+        /// </summary>
         field(5792; "Shipping Time"; DateFormula)
         {
             AccessByPermission = TableData "Order Promising Line" = R;
@@ -3085,6 +3589,9 @@ table 37 "Sales Line"
                 UpdateDates();
             end;
         }
+        /// <summary>
+        /// Specifies the time needed to handle items in the outbound warehouse.
+        /// </summary>
         field(5793; "Outbound Whse. Handling Time"; DateFormula)
         {
             AccessByPermission = TableData Location = R;
@@ -3099,6 +3606,9 @@ table 37 "Sales Line"
                 UpdateDates();
             end;
         }
+        /// <summary>
+        /// Specifies the calculated date when the items are planned to arrive at the customer.
+        /// </summary>
         field(5794; "Planned Delivery Date"; Date)
         {
             AccessByPermission = TableData "Order Promising Line" = R;
@@ -3124,6 +3634,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the calculated date when the items are planned to ship from the warehouse.
+        /// </summary>
         field(5795; "Planned Shipment Date"; Date)
         {
             AccessByPermission = TableData "Order Promising Line" = R;
@@ -3146,6 +3659,9 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the shipping agent code for delivering items on this line.
+        /// </summary>
         field(5796; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -3159,6 +3675,9 @@ table 37 "Sales Line"
                     Validate("Shipping Agent Service Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the shipping agent service code that determines shipping time.
+        /// </summary>
         field(5797; "Shipping Agent Service Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -3181,6 +3700,9 @@ table 37 "Sales Line"
                     Validate("Shipping Time");
             end;
         }
+        /// <summary>
+        /// Indicates whether item charges can be assigned to this line.
+        /// </summary>
         field(5800; "Allow Item Charge Assignment"; Boolean)
         {
             AccessByPermission = TableData "Item Charge" = R;
@@ -3192,8 +3714,12 @@ table 37 "Sales Line"
                 CheckItemChargeAssgnt();
             end;
         }
+        /// <summary>
+        /// Specifies the quantity of item charges to assign from this line.
+        /// </summary>
         field(5801; "Qty. to Assign"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Charge Assignment (Sales)"."Qty. to Assign" where("Document Type" = field("Document Type"),
                                                                                        "Document No." = field("Document No."),
                                                                                        "Document Line No." = field("Line No.")));
@@ -3202,8 +3728,12 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the quantity of item charges that have been assigned from this line.
+        /// </summary>
         field(5802; "Qty. Assigned"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Charge Assignment (Sales)"."Qty. Assigned" where("Document Type" = field("Document Type"),
                                                                                       "Document No." = field("Document No."),
                                                                                       "Document Line No." = field("Line No.")));
@@ -3212,10 +3742,14 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the quantity to receive for sales return order lines.
+        /// </summary>
         field(5803; "Return Qty. to Receive"; Decimal)
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Return Qty. to Receive';
+            AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -3263,8 +3797,12 @@ table 37 "Sales Line"
                     CheckApplFromItemLedgEntry(ItemLedgEntry);
             end;
         }
+        /// <summary>
+        /// Specifies the return quantity to receive in the base unit of measure.
+        /// </summary>
         field(5804; "Return Qty. to Receive (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. to Receive (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -3281,18 +3819,29 @@ table 37 "Sales Line"
                 Validate("Return Qty. to Receive", "Return Qty. to Receive (Base)");
             end;
         }
+        /// <summary>
+        /// Specifies the return quantity received but not yet invoiced.
+        /// </summary>
         field(5805; "Return Qty. Rcd. Not Invd."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Rcd. Not Invd.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the return quantity received but not yet invoiced in base unit of measure.
+        /// </summary>
         field(5806; "Ret. Qty. Rcd. Not Invd.(Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Ret. Qty. Rcd. Not Invd.(Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the amount for return quantities received but not yet invoiced.
+        /// </summary>
         field(5807; "Return Rcd. Not Invd."; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -3318,6 +3867,9 @@ table 37 "Sales Line"
                       Round("Return Rcd. Not Invd.", Currency2."Amount Rounding Precision");
             end;
         }
+        /// <summary>
+        /// Specifies the amount for returns received but not invoiced in local currency.
+        /// </summary>
         field(5808; "Return Rcd. Not Invd. (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -3325,19 +3877,30 @@ table 37 "Sales Line"
             Caption = 'Return Rcd. Not Invd. (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the total quantity received for this sales return line.
+        /// </summary>
         field(5809; "Return Qty. Received"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Return Qty. Received';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the return quantity received in the base unit of measure.
+        /// </summary>
         field(5810; "Return Qty. Received (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Received (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies a specific item ledger entry to apply this return to for cost application.
+        /// </summary>
         field(5811; "Appl.-from Item Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
@@ -3359,8 +3922,12 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the quantity of item charges to handle for this line.
+        /// </summary>
         field(5812; "Item Charge Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Charge Assignment (Sales)"."Qty. to Handle" where("Document Type" = field("Document Type"),
                                                                                        "Document No." = field("Document No."),
                                                                                        "Document Line No." = field("Line No.")));
@@ -3369,21 +3936,33 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the bill of materials item number when selling a BOM component.
+        /// </summary>
         field(5909; "BOM Item No."; Code[20])
         {
             Caption = 'BOM Item No.';
             TableRelation = Item;
         }
+        /// <summary>
+        /// Specifies the return receipt document number that this line originated from.
+        /// </summary>
         field(6600; "Return Receipt No."; Code[20])
         {
             Caption = 'Return Receipt No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the return receipt line number that this line originated from.
+        /// </summary>
         field(6601; "Return Receipt Line No."; Integer)
         {
             Caption = 'Return Receipt Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the reason code for the sales return.
+        /// </summary>
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
@@ -3394,20 +3973,32 @@ table 37 "Sales Line"
                 ValidateReturnReasonCode(FieldNo("Return Reason Code"));
             end;
         }
+        /// <summary>
+        /// Indicates that this line was copied from a posted document.
+        /// </summary>
         field(6610; "Copied From Posted Doc."; Boolean)
         {
             Caption = 'Copied From Posted Doc.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the price calculation method used for this line.
+        /// </summary>
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
         }
+        /// <summary>
+        /// Indicates whether line discounts are allowed on this line.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the customer discount group used for discount calculation.
+        /// </summary>
         field(7002; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
@@ -3422,16 +4013,25 @@ table 37 "Sales Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the subtype classification for the line.
+        /// </summary>
         field(7003; Subtype; Option)
         {
             Caption = 'Subtype';
             OptionCaption = ' ,Item - Inventory,Item - Service,Comment';
             OptionMembers = " ","Item - Inventory","Item - Service",Comment;
         }
+        /// <summary>
+        /// Contains a description of how the price was determined.
+        /// </summary>
         field(7004; "Price description"; Text[80])
         {
             Caption = 'Price description';
         }
+        /// <summary>
+        /// Specifies the number of documents attached to this line.
+        /// </summary>
         field(7010; "Attached Doc Count"; Integer)
         {
             BlankNumbers = DontBlank;
@@ -3443,6 +4043,9 @@ table 37 "Sales Line"
             FieldClass = FlowField;
             InitValue = 0;
         }
+        /// <summary>
+        /// Specifies the number of lines attached to this line such as extended text.
+        /// </summary>
         field(7011; "Attached Lines Count"; Integer)
         {
             CalcFormula = count("Sales Line" where("Document Type" = field("Document Type"),
@@ -3454,6 +4057,9 @@ table 37 "Sales Line"
             FieldClass = FlowField;
             BlankZero = true;
         }
+        /// <summary>
+        /// Specifies the name of the sell-to customer for this line.
+        /// </summary>
         field(7012; "Sell-to Customer Name"; Text[100])
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Sell-to Customer No.")));
@@ -3486,7 +4092,7 @@ table 37 "Sales Line"
         field(10002; "Retention VAT %"; Decimal)
         {
             Caption = 'Retention VAT %';
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             MaxValue = 100;
             MinValue = 0;
         }
@@ -3762,6 +4368,7 @@ table 37 "Sales Line"
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
         HasSalesHeader: Boolean;
+        SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You cannot delete the order line because it is associated with purchase order %1 line %2.';
@@ -4785,6 +5392,11 @@ table 37 "Sales Line"
             exit(true);
     end;
 
+    /// <summary>
+    /// Copies the unit price and line discount percentage from a blanket order sales line to this line.
+    /// </summary>
+    /// <param name="BlanketOrderSalesLine">Specifies the blanket order sales line to copy values from.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered this copy operation.</param>
     procedure CopyUnitPriceAndLineDiscountPct(BlanketOrderSalesLine: Record "Sales Line"; CalledByFieldNo: Integer)
     begin
         Validate("Unit Price", BlanketOrderSalesLine."Unit Price");
@@ -4792,6 +5404,9 @@ table 37 "Sales Line"
         OnAfterCopyUnitPriceAndLineDiscountPct(Rec, BlanketOrderSalesLine, CalledByFieldNo, SalesHeader);
     end;
 
+    /// <summary>
+    /// Displays a message when the unit price has changed for a credit document line copied from a posted document.
+    /// </summary>
     procedure ShowUnitPriceChangedMsg()
     var
         IsHandled: Boolean;
@@ -4960,7 +5575,8 @@ table 37 "Sales Line"
     var
         PriceCalculation: Interface "Price Calculation";
     begin
-        GetSalesHeader();
+        if Rec."Document No." <> '' then
+            SalesHeader.Get(Rec."Document Type", Rec."Document No.");
         GetPriceCalculationHandler(PriceType::Sale, SalesHeader, PriceCalculation);
         PriceCalculation.PickPrice();
         GetLineWithCalculatedPrice(PriceCalculation);
@@ -4989,6 +5605,9 @@ table 37 "Sales Line"
         end;
     end;
 
+    /// <summary>
+    /// Finds and applies the unit cost for a resource line based on the resource cost setup.
+    /// </summary>
     procedure FindResUnitCost()
     var
         ResCost: Record "Resource Cost";
@@ -5002,11 +5621,19 @@ table 37 "Sales Line"
         Validate("Unit Cost (LCY)", ResCost."Unit Cost" * "Qty. per Unit of Measure");
     end;
 
+    /// <summary>
+    /// Raises the OnFindResUnitCostOnAfterInitResCost event after the resource cost record is initialized.
+    /// </summary>
+    /// <param name="ResourceCost">Specifies the initialized resource cost record.</param>
     procedure FindResUnitCostOnAfterInitResCost(var ResourceCost: Record "Resource Cost")
     begin
         OnFindResUnitCostOnAfterInitResCost(Rec, ResourceCost);
     end;
 
+    /// <summary>
+    /// Raises the OnAfterFindResUnitCost event after the resource unit cost is found.
+    /// </summary>
+    /// <param name="ResourceCost">Specifies the resource cost record with the found unit cost.</param>
     procedure AfterFindResUnitCost(var ResourceCost: Record "Resource Cost")
     begin
         OnAfterFindResUnitCost(Rec, ResourceCost);
@@ -5087,6 +5714,10 @@ table 37 "Sales Line"
             CheckPrepmtAmounts();
     end;
 
+    /// <summary>
+    /// Calculates the outstanding amount excluding tax for the sales line.
+    /// </summary>
+    /// <returns>The outstanding amount excluding tax.</returns>
     procedure CalculateOutstandingAmountExclTax(): Decimal
     var
         OutstandingAmount: Decimal;
@@ -5117,6 +5748,9 @@ table 37 "Sales Line"
                 Error(LineAmountInvalidErr);
     end;
 
+    /// <summary>
+    /// Validates that the prepayment amounts are consistent with the line amounts and invoiced amounts.
+    /// </summary>
     procedure CheckPrepmtAmounts()
     var
         RemLineAmountToInvoice: Decimal;
@@ -5160,6 +5794,9 @@ table 37 "Sales Line"
             end;
     end;
 
+    /// <summary>
+    /// Raises an error when the prepayment line amount is less than the prepayment amount invoiced.
+    /// </summary>
     procedure ThrowWrongAmountError()
     var
         IsHandled: Boolean;
@@ -5226,7 +5863,7 @@ table 37 "Sales Line"
 
         GetSalesHeader();
         VATBaseAmount := "Amount Including VAT";
-        "Recalculate Invoice Disc." := "Allow Invoice Disc.";
+        "Recalculate Invoice Disc." := "Recalculate Invoice Disc." or "Allow Invoice Disc.";
 
         IsHandled := false;
         OnUpdateAmountsOnBeforeCheckLineAmount(IsHandled, Rec, xRec);
@@ -5757,6 +6394,10 @@ table 37 "Sales Line"
         end;
     end;
 
+    /// <summary>
+    /// Checks whether the sell-to customer has a base calendar code assigned.
+    /// </summary>
+    /// <returns>True if the customer has a base calendar code, otherwise false.</returns>
     procedure CheckCustomerBaseCalendarCodeExist(): Boolean
     var
         Customer: Record customer;
@@ -8041,6 +8682,9 @@ table 37 "Sales Line"
         OnAfterSetReserveWithoutPurchasingCode(Rec, SalesHeader, Item);
     end;
 
+    /// <summary>
+    /// Changes the reservation setting from Never to Optional and saves the record.
+    /// </summary>
     procedure SetReserveToOptional()
     begin
         if Reserve = Reserve::Never then begin
@@ -8070,6 +8714,9 @@ table 37 "Sales Line"
         IsHandled := false;
         OnBeforeSetDefaultItemQuantity(Rec, IsHandled);
         if IsHandled then
+            exit;
+
+        if SkipDefaultItemQuantity then
             exit;
 
         GetSalesSetup();
@@ -8626,6 +9273,9 @@ table 37 "Sales Line"
         OnAfterCheckShipmentRelation(Rec, SalesShptLine);
     end;
 
+    /// <summary>
+    /// Checks if the shipment date is before the work date and shows a warning message if applicable.
+    /// </summary>
     procedure CheckShipmentDateBeforeWorkDate()
     var
         IsHandled: Boolean;
@@ -8979,6 +9629,11 @@ table 37 "Sales Line"
         UpdateAmounts();
 
         OnAfterValidateLineDiscountPercent(Rec, CurrFieldNo);
+    end;
+
+    procedure ExcludeDefaultItemQuantity(DefaultItemQuantity: Boolean)
+    begin
+        SkipDefaultItemQuantity := DefaultItemQuantity;
     end;
 
     local procedure ReduceInvoiceDiscValueOnHeader(InvDiscountAmount: Decimal)
@@ -9504,6 +10159,9 @@ table 37 "Sales Line"
         exit('963A9FD3-11E8-4CAA-BE3A-7F8CEC9EF8EC');
     end;
 
+    /// <summary>
+    /// Sends a notification to the user that the item on this line is blocked.
+    /// </summary>
     procedure SendBlockedItemNotification()
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
@@ -9661,6 +10319,12 @@ table 37 "Sales Line"
         OnAfterUpdateLineDiscPct(Rec);
     end;
 
+    /// <summary>
+    /// Updates the base amount fields on the sales line.
+    /// </summary>
+    /// <param name="NewAmount">The new Amount value.</param>
+    /// <param name="NewAmountIncludingVAT">The new Amount Including VAT value.</param>
+    /// <param name="NewVATBaseAmount">The new VAT Base Amount value.</param>
     procedure UpdateBaseAmounts(NewAmount: Decimal; NewAmountIncludingVAT: Decimal; NewVATBaseAmount: Decimal)
     begin
         Amount := NewAmount;
@@ -10368,6 +11032,9 @@ table 37 "Sales Line"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the unit price using the unit of measure coefficient from the related sales invoice line.
+    /// </summary>
     procedure CalcUnitPriceUsingUOMCoef()
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -10472,6 +11139,10 @@ table 37 "Sales Line"
         OnAfterClearVATDifference(Rec);
     end;
 
+    /// <summary>
+    /// Gets the VAT percentage for this sales line.
+    /// </summary>
+    /// <returns>The VAT percentage.</returns>
     procedure GetVATPct() VATPct: Decimal
     begin
         VATPct := "VAT %";
@@ -10512,1648 +11183,3618 @@ table 37 "Sales Line"
         OnCheckReceiptOrderStatus(Rec);
     end;
 
+    /// <summary>
+    /// Raised after initializing default dimension sources on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
+    /// <param name="FieldNo">The field number that triggered the initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var SalesLine: Record "Sales Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning fields for the No. field on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignFieldsForNo(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after applying price to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallFieldNo">The field number that initiated the price calculation.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterApplyPrice(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CallFieldNo: Integer; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning header values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignHeaderValues(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning standard text values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StandardText">The standard text record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignStdTxtValues(var SalesLine: Record "Sales Line"; StandardText: Record "Standard Text"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning G/L account values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="GLAccount">The G/L account record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="TempSalesLine">A temporary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignGLAccountValues(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account"; SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning item values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignItemValues(var SalesLine: Record "Sales Line"; Item: Record Item; SalesHeader: Record "Sales Header"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning item charge values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemCharge">The item charge record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignItemChargeValues(var SalesLine: Record "Sales Line"; ItemCharge: Record "Item Charge"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning resource values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Resource">The resource record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignResourceValues(var SalesLine: Record "Sales Line"; Resource: Record Resource; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning fixed asset values to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FixedAsset">The fixed asset record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignFixedAssetValues(var SalesLine: Record "Sales Line"; FixedAsset: Record "Fixed Asset"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning item unit of measure to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignItemUOM(var SalesLine: Record "Sales Line"; Item: Record Item; CurrentFieldNo: Integer; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning resource unit of measure to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Resource">The resource record.</param>
+    /// <param name="ResourceUOM">The resource unit of measure record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignResourceUOM(var SalesLine: Record "Sales Line"; Resource: Record Resource; ResourceUOM: Record "Resource Unit of Measure")
     begin
     end;
 
+    /// <summary>
+    /// Raised after auto-reserving inventory for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAutoReserve(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking item availability for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the availability check.</param>
+    /// <param name="HideValidationDialog">Specifies whether to hide the validation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckItemAvailable(var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; HideValidationDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the shipment relation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being checked.</param>
+    /// <param name="SalesShipmentLine">The related sales shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckShipmentRelation(SalesLine: Record "Sales Line"; SalesShipmentLine: Record "Sales Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the return receipt relation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being checked.</param>
+    /// <param name="ReturnReceiptLine">The related return receipt line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckRetRcptRelation(SalesLine: Record "Sales Line"; ReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating dimensions from default dimensions on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the dimension creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimFromDefaultDim(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; CurrFieldNo: Integer; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying values from an item to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record being copied from.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromItem(var SalesLine: Record "Sales Line"; Item: Record Item; CurrentFieldNo: Integer; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying values from another sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FromSalesLine">The sales line being copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromSalesLine(var SalesLine: Record "Sales Line"; FromSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying values from a sales shipment line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FromSalesShipmentLine">The sales shipment line being copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromSalesShptLine(var SalesLine: Record "Sales Line"; FromSalesShipmentLine: Record "Sales Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying unit price and line discount percentage from a blanket order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line being copied from.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the copy.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyUnitPriceAndLineDiscountPct(var SalesLine: Record "Sales Line"; BlanketOrderSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after deleting item charge assignments from the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteChargeChargeAssgnt(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after deleting an item charge assignment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="DocType">The document type.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="DocLineNo">The document line number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteItemChargeAssignment(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; DocType: Enum "Sales Document Type"; DocNo: Code[20];
                                                                                                                                                                  DocLineNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filtering sales lines with items to plan.
+    /// </summary>
+    /// <param name="SalesLine">The sales line filter being applied.</param>
+    /// <param name="Item">The item being planned.</param>
+    /// <param name="DocumentType">The document type option.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterLinesWithItemToPlan(var SalesLine: Record "Sales Line"; var Item: Record Item; DocumentType: Option)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filtering sales lines for reservation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line filter being applied.</param>
+    /// <param name="ReservationEntry">The reservation entry.</param>
+    /// <param name="DocumentType">The document type.</param>
+    /// <param name="AvailabilityFilter">The availability filter text.</param>
+    /// <param name="Positive">Specifies whether to filter for positive entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterLinesForReservation(var SalesLine: Record "Sales Line"; ReservationEntry: Record "Reservation Entry"; DocumentType: Enum "Sales Document Type"; AvailabilityFilter: Text;
                                                                                                                                                          Positive: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding the resource unit cost.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ResourceCost">The resource cost record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindResUnitCost(var SalesLine: Record "Sales Line"; var ResourceCost: Record "Resource Cost")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the fixed asset posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="GLAccount">The G/L account record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetFAPostingGroup(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the VAT base discount percentage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Result">The calculated VAT base discount percentage.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVatBaseDiscountPct(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var Result: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the item translation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="ItemTranslation">The item translation record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetItemTranslation(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; ItemTranslation: Record "Item Translation")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the sales header for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the unit cost for an item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetUnitCost(var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the default bin for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetDefaultBin(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if the sales line has a type that requires filling mandatory fields.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ReturnValue">The result indicating whether mandatory fields must be filled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasTypeToFillMandatoryFields(var SalesLine: Record "Sales Line"; var ReturnValue: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the quantity to assemble on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the initialization.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="ShouldUpdateQtyToAsm">Specifies whether to update the quantity to assemble.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToAsm(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer; xSalesLine: Record "Sales Line"; ShouldUpdateQtyToAsm: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the sales and receivables setup.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesSetup(var SalesLine: Record "Sales Line"; var SalesSetup: Record "Sales & Receivables Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if assemble-to-order is allowed for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result indicating whether assemble-to-order is allowed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsAsmToOrderAllowed(SalesLine: Record "Sales Line"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if the sales line is a credit document type.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CreditDocType">The result indicating whether it is a credit document type.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsCreditDocType(SalesLine: Record "Sales Line"; var CreditDocType: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after opening item tracking lines for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOpenItemTrackingLines(SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after picking the discount during price calculation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PriceCalculation">The price calculation interface.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPickDiscount(var SalesLine: Record "Sales Line"; var PriceCalculation: Interface "Price Calculation")
     begin
     end;
 
+    /// <summary>
+    /// Raised after picking the price during price calculation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PriceCalculation">The price calculation interface.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPickPrice(var SalesLine: Record "Sales Line"; var PriceCalculation: Interface "Price Calculation")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the sales header on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The sales header that was set.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing a nonstock item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NonstockItem">The nonstock item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowNonStock(var SalesLine: Record "Sales Line"; NonstockItem: Record "Nonstock Item")
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing item charge assignment for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemChargeAssignmentSales">The item charge assignment sales record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowItemChargeAssgnt(var SalesLine: Record "Sales Line"; var ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the line discount percentage on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateLineDiscPct(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating prepayment amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePrePaymentAmounts(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the VAT percent on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVATPercent(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the unit price when updating by field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
+    /// <param name="Handled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateUnitPriceByFieldOnBeforeValidateUnitPrice(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the unit price on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateUnitPrice(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after adding an item to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="LastSalesLine">The last sales line before the addition.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddItem(var SalesLine: Record "Sales Line"; LastSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before adding items to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SelectionFilter">The selection filter text.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddItems(var SalesLine: Record "Sales Line"; SelectionFilter: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before auto-reserving inventory for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="FullAutoReservation">Specifies whether full auto reservation is requested.</param>
+    /// <param name="ReserveSalesLine">The sales line reserve codeunit.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserve(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; FullAutoReservation: Boolean; var ReserveSalesLine: Codeunit "Sales Line-Reserve")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the base quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Qty">The quantity to convert.</param>
+    /// <param name="FromFieldName">The source field name.</param>
+    /// <param name="ToFieldName">The target field name.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcBaseQty(var SalesLine: Record "Sales Line"; Qty: Decimal; FromFieldName: Text; ToFieldName: Text);
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the invoice discount to invoice.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcInvDiscToInvoice(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the planned shipment date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PlannedShipmentDate">The calculated planned shipment date.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcPlannedShptDate(var SalesLine: Record "Sales Line"; var PlannedShipmentDate: Date; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the prepayment to deduct.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcPrepmtToDeduct(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="QtyType">The quantity type option.</param>
+    /// <param name="IncludePrepayments">Specifies whether to include prepayments.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcVATAmountLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; var IsHandled: Boolean; QtyType: Option General,Invoicing,Shipping; IncludePrepayments: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calling item tracking for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCallItemTracking(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the associated purchase order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TheFieldCaption">The field caption being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAssocPurchOrder(var SalesLine: Record "Sales Line"; TheFieldCaption: Text[250]; var IsHandled: Boolean; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the assemble-to-order configuration.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="AsmHeader">The assembly header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAsmToOrder(var SalesLine: Record "Sales Line"; AsmHeader: Record "Assembly Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking prepayment amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtAmounts(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; CurrFieldNo: Integer; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the application from item ledger entry.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="ItemLedgerEntry">The item ledger entry to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckApplFromItemLedgEntry(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the bin code relation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBinCodeRelation(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item availability for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the check.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemAvailable(var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; var IsHandled: Boolean; CurrentFieldNo: Integer; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking linked blanket order line on delete.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being deleted.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckLinkedBlanketOrderLineOnDelete(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before cleaning special order fields and checking the associated purchase order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCleanSpecialOrderFieldsAndCheckAssocPurchOrder(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before cleaning purchase line special order fields.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result of the operation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCleanPurchaseLineSpecialOrderFields(SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying values from an item to the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record to copy from.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyFromItem(var SalesLine: Record "Sales Line"; Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding a record by description.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindNoByDescription(SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding or creating a record by number.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindOrCreateRecordByNo(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before formatting the line type.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FormattedType">The formatted type text.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer posting group invoice rounding account.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="AccountNo">The account number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCPGInvRoundAcc(SalesHeader: Record "Sales Header"; Customer: Record Customer; var AccountNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the absolute minimum quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="QtyHandled">The quantity already handled.</param>
+    /// <param name="Result">The calculated result.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAbsMin(SalesLine: Record "Sales Line"; QtyToHandle: Decimal; QtyHandled: Decimal; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the fixed asset posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetFAPostingGroup(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the default bin for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDefaultBin(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the item translation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetItemTranslation(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the sales header for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The sales header to get.</param>
+    /// <param name="IsHanded">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHanded: Boolean; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the unit cost for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeGetUnitCost(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the deferral amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="DeferralAmount">The calculated deferral amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDeferralAmount(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var DeferralAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the reservation quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyReserved">The reserved quantity.</param>
+    /// <param name="QtyReservedBase">The reserved quantity in base unit.</param>
+    /// <param name="QtyToReserve">The quantity to reserve.</param>
+    /// <param name="QtyToReserveBase">The quantity to reserve in base unit.</param>
+    /// <param name="Result">The calculated result.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetReservationQty(var SalesLine: Record "Sales Line"; var QtyReserved: Decimal; var QtyReservedBase: Decimal; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the header location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitHeaderLocactionCode(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the outstanding amount on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitOutstandingAmount(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the quantity on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsAsmToOrderAlwd">Specifies whether assemble-to-order is allowed.</param>
+    /// <param name="IsAsmToOrderRqd">Specifies whether assemble-to-order is required.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="ShouldInitQty">Specifies whether the quantity should be initialized.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitQty(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; IsAsmToOrderAlwd: Boolean; IsAsmToOrderRqd: Boolean; var IsHandled: Boolean; var ShouldInitQty: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the quantity to assemble.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitQtyToAsm(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the quantity to receive.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FieldNo">The field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitQtyToReceive(var SalesLine: Record "Sales Line"; FieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FieldNo">The field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitQtyToShip(var SalesLine: Record "Sales Line"; FieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the type on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitType(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if assemble-to-order is required.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result indicating whether assemble-to-order is required.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsAsmToOrderRequired(SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up a shortcut dimension code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="FieldNumber">The dimension field number.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupShortcutDimCode(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the maximum quantity to invoice.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="MaxQty">The calculated maximum quantity.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMaxQtyToInvoice(SalesLine: Record "Sales Line"; var MaxQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the maximum quantity to invoice in base unit.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="MaxQty">The calculated maximum quantity in base unit.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMaxQtyToInvoiceBase(SalesLine: Record "Sales Line"; var MaxQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before selecting multiple items.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectMultipleItems(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default G/L account quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultGLAccountQuantity(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default item quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultItemQuantity(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultQuantity(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the IC partner reference type.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NewType">The new IC partner reference type.</param>
+    /// <param name="FieldNo">The field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetICPartnerRefType(var SalesLine: Record "Sales Line"; NewType: Enum "IC Partner Reference Type"; FieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSalesHeader(SalesHeader: record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing dimensions for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="IsChanged">Indicates whether dimensions were changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDimensions(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean; var IsChanged: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before applying the signed value calculation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Value">The value to sign.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSignedXX(var SalesLine: Record "Sales Line"; var Value: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing item substitution.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowItemSub(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing reservation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowReservation(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing reservation entries for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowReservationEntries(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the job planning line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestJobPlanningLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing if the status is open.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the test.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether the status check is suspended.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestStatusOpen(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var StatusCheckSuspended: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the quantity from line discount amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestQtyFromLindDiscountAmount(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before throwing a wrong amount error.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeThrowWrongAmountError(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating dates on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="PlannedShipmentDateCalculated">Indicates whether the planned shipment date was calculated.</param>
+    /// <param name="PlannedDeliveryDateCalculated">Indicates whether the planned delivery date was calculated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDates(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var PlannedShipmentDateCalculated: Boolean; var PlannedDeliveryDateCalculated: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating prepayment amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="FieldNo">The field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtAmounts(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; FieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating prepayment setup fields.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtSetupFields(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the line discount percentage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateLineDiscPct(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the unit price.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
+    /// <param name="Handled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateUnitPrice(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the update unit price procedure.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateUnitPriceProcedure(var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAmounts(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating VAT amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateVATAmounts(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="QtyType">The quantity type.</param>
+    /// <param name="LineWasModified">Indicates whether the line was modified.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="PrepaymentLineAmountEntered">Indicates whether a prepayment line amount was entered.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateVATOnLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; var IsHandled: Boolean; QtyType: Integer; var LineWasModified: Boolean; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var PrepaymentLineAmountEntered: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating with warehouse ship information.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateWithWarehouseShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating quantity from unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQuantityFromUOMCode(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating quantity to assemble from quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the drop shipment field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDropShipment(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the return reason code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateReturnReasonCode(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePurchasingCode(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the unit of measure code from the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitOfMeasureCodeFromNo(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the line amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateLineAmount(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment amount to deduct.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtAmttoDeduct(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment line amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PrePaymentLineAmountEntered">Indicates whether a prepayment line amount was entered.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="FieldNo">The field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtLineAmount(var SalesLine: Record "Sales Line"; PrePaymentLineAmountEntered: Boolean; var IsHandled: Boolean; FieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the blanket order number.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBlanketOrderNo(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the type field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateType(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity to assemble to order base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQtytoAsmtoOrderBase(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity to invoice base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQtyToInvoiceBase(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity to ship base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQtyToShipBase(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the return quantity to receive base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateReturnQtyToReceiveBase(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying the reserved quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyReservedQty(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the line has zero amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyType">The quantity type option.</param>
+    /// <param name="Result">The result indicating whether the line has zero amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeZeroAmountLine(var SalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting load fields when checking if a blanket order is related.
+    /// </summary>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBlanketOrderIsRelatedOnAfterSetLoadFields(var BlanketOrderSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning amount to handle when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="IncludePrepayments">Specifies whether to include prepayments.</param>
+    /// <param name="QtyType">The quantity type option.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="AmtToHandle">The amount to handle.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeAssignAmtToHandle(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; IncludePrepayments: Boolean; QtyType: Option; var QtyToHandle: Decimal; var AmtToHandle: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the general case when calculating VAT amount lines by quantity type.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="IncludePrepayments">Specifies whether to include prepayments.</param>
+    /// <param name="QtyType">The quantity type option.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="AmtToHandle">The amount to handle.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeQtyTypeGeneralCase(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; IncludePrepayments: Boolean; QtyType: Option; var QtyToHandle: Decimal; var AmtToHandle: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning quantities when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeAssignQuantities(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: record "VAT Amount Line"; var QtyToHandle: Decimal; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before the quantity type case when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeQtyTypeCase(var VATAmountLine: Record "VAT Amount Line"; var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing header defaults on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitHeaderDefaults(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing outstanding values on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitOutstanding(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing outstanding quantity on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitOutstandingQty(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing outstanding amount on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitOutstandingAmount(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the quantity to invoice.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToInvoice(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToShip(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the second initialization of quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToShip2(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the quantity to receive.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToReceive(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the type on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitType(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the line amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="LineAmount">The calculated line amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcLineAmount(var SalesLine: Record "Sales Line"; var LineAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the invoice discount to invoice.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="OldInvDiscAmtToInv">The old invoice discount amount to invoice.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcInvDiscToInvoice(var SalesLine: Record "Sales Line"; OldInvDiscAmtToInv: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="QtyType">The quantity type option.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcVATAmountLines(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; QtyType: Option General,Invoicing,Shipping)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the line amount to handle.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="LineAmount">The calculated line amount.</param>
+    /// <param name="LineDiscAmount">The calculated line discount amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetLineAmountToHandle(SalesLine: Record "Sales Line"; QtyToHandle: Decimal; var LineAmount: Decimal; var LineDiscAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the line with price interface.
+    /// </summary>
+    /// <param name="LineWithPrice">The line with price interface.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetLineWithPrice(var LineWithPrice: Interface "Line With Price")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the stockkeeping unit.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result indicating whether the SKU was found.</param>
+    /// <param name="StockkeepingUnit">The stockkeeping unit record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSKU(SalesLine: Record "Sales Line"; var Result: Boolean; var StockkeepingUnit: Record "Stockkeeping Unit")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating sales tax.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesTaxCalculate(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating sales tax in reverse.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesTaxCalculateReverse(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the reserve field without a purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReserveWithoutPurchasingCode(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing dimensions for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDimensions(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateAmounts(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after completing the update amounts process.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateAmountsDone(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating base amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateBaseAmounts(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating dates on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDates(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating item reference on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateItemReference(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating item reference on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateItemReference(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating VAT amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVATAmounts(var SalesLine: Record "Sales Line"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="QtyType">The quantity type option.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVATOnLines(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; QtyType: Option General,Invoicing,Shipping)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating with warehouse ship information.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateWithWarehouseShip(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating dimensions on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the dimension creation.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDim(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer; xSalesLine: Record "Sales Line"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]);
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting reservation filters.
+    /// </summary>
+    /// <param name="ReservEntry">The reservation entry with filters applied.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReservationFilters(var ReservEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing item substitution.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowItemSub(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the IC partner on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateICPartner(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the return reason code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateReturnReasonCode(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking for inventory conflict during insert.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being inserted.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesLine2">A secondary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertOnAfterCheckInventoryConflict(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var SalesLine2: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the document number when inserting a freight line.
+    /// </summary>
+    /// <param name="SalesLine">The freight line being inserted.</param>
+    /// <param name="SalesLineRec">The sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFreightLineOnAfterCheckDocumentNo(var SalesLine: Record "Sales Line"; var SalesLineRec: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the invoice discount to invoice during the second quantity to ship initialization.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitQtyToShip2OnBeforeCalcInvDiscToInvoice(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to update quantity to assemble during initialization.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the initialization.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="ShouldUpdateQtyToAsm">Specifies whether to update the quantity to assemble.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitQtyToAsmOnAfterCalcShouldUpdateQtyToAsm(var SalesLine: Record "Sales Line"; CallingFieldNo: Integer; xSalesLine: Record "Sales Line"; var ShouldUpdateQtyToAsm: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when showing line comments.
+    /// </summary>
+    /// <param name="SalesCommentLine">The sales comment line with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowLineCommentsOnAfterSetFilters(var SalesCommentLine: Record "Sales Comment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating item charge when showing item charge assignment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemChargeAssgntLineAmt">The item charge assignment line amount.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="ItemChargeAssgntSales">The item charge assignment sales record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowItemChargeAssgntOnBeforeCalcItemCharge(var SalesLine: Record "Sales Line"; var ItemChargeAssgntLineAmt: Decimal; Currency: Record Currency; var IsHandled: Boolean; var ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the currency when showing item charge assignment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowItemChargeAssgntOnAfterCurrencyInitialize(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after verifying the type change during type validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateTypeOnAfterVerifyChange(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether the discount percentage is out of standard range.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsOutOfStandardDiscPctRange">Indicates whether the discount percentage is out of range.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateLineDiscPctOnAfterCalcIsOutOfStandardDiscPctRange(var SalesLine: Record "Sales Line"; var IsOutOfStandardDiscPctRange: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding the price when updating unit price by field.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="CallingFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateUnitPriceByFieldOnAfterFindPrice(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the price when updating unit price.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the update.</param>
+    /// <param name="CallingFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateUnitPriceOnBeforeFindPrice(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CallingFieldNo: Integer; var IsHandled: Boolean; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the shipment date when validating location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnBeforeSetShipmentDate(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the item during type validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateTypeOnAfterCheckItem(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised when copying from a temporary sales line during type validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateTypeOnCopyFromTempSalesLine(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing header defaults when validating the No. field.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterInitHeaderDefaults(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to stop validation when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="ShouldStopValidation">Specifies whether validation should stop.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterCalcShouldStopValidation(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var ShouldStopValidation: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the unit price when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterUpdateUnitPrice(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after verifying the change when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterVerifyChange(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised when copying from a temporary sales line during No. field validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnCopyFromTempSalesLine(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing header defaults when validating the No. field.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeInitHeaderDefaults(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeInitRec(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the shipment date for location when validating the No. field.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnValidateNoOnBeforeCalcShipmentDateForLocation(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating dates when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeUpdateDates(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CallingFieldNo: Integer; var IsHandled: Boolean; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the base quantity when validating the Quantity field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterCalcBaseQty(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking quantity change for price calculation when validating the Quantity field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeCheckQuantityChangeForPriceCalc(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the unit cost when validating the Quantity field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeGetUnitCost(var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised before resetting amounts when validating the Quantity field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeResetAmounts(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing quantity when validating quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToShipAfterInitQty(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the quantity to ship validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToShipOnAfterCheck(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing quantity when validating quantity to return.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToReturnAfterInitQty(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the return quantity to receive validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateReturnQtyToReceiveOnAfterCheck(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after verifying the change when validating the shipment date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="DoCheckReceiptOrderStatus">Specifies whether to check the receipt order status.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateShipmentDateOnAfterSalesLineVerifyChange(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var DoCheckReceiptOrderStatus: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after performing checks when validating the variant code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVariantCodeOnAfterChecks(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the VAT calculation type when validating the VAT product posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATPostingSetup">The VAT posting setup record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeCheckVATCalcType(var SalesLine: Record "Sales Line"; VATPostingSetup: Record "VAT Posting Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the unit price when validating the VAT product posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATPostingSetup">The VAT posting setup record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeUpdateUnitPrice(var SalesLine: Record "Sales Line"; VATPostingSetup: Record "VAT Posting Setup"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing if the status is open.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestStatusOpen(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after selecting multiple items.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSelectMultipleItems(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the default quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDefaultQuantity(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating total amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesLine2">A secondary sales line record.</param>
+    /// <param name="TotalAmount">The total amount.</param>
+    /// <param name="TotalAmountInclVAT">The total amount including VAT.</param>
+    /// <param name="TotalLineAmount">The total line amount.</param>
+    /// <param name="TotalInvDiscAmount">The total invoice discount amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateTotalAmounts(var SalesLine: Record "Sales Line"; SalesLine2: Record "Sales Line"; var TotalAmount: Decimal; var TotalAmountInclVAT: Decimal; var TotalLineAmount: Decimal; var TotalInvDiscAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the location when checking warehouse.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Location2">The location record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckWarehouseOnAfterSetLocation2(var SalesLine: Record "Sales Line"; var Location2: Record Location)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the dialog when checking warehouse.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Location">The location record.</param>
+    /// <param name="ShowDialog">The dialog option to show.</param>
+    /// <param name="DialogText">The dialog text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckWarehouseOnBeforeShowDialog(var SalesLine: Record "Sales Line"; Location: Record Location; var ShowDialog: Option " ",Message,Error; var DialogText: Text[50])
     begin
     end;
 
+    /// <summary>
+    /// Raised when calculating shipment date from planned shipment date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShipmentDate">The calculated shipment date.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcShipmentDateOnPlannedShipmentDate(SalesLine: Record "Sales Line"; var ShipmentDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking when copying from an item.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyFromItemOnAfterCheck(var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the inventory posting setup inventory account when copying from an item.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyFromItemOnAfterCheckInvtPostingSetupInventoryAccount(var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing if a resource is blocked when copying from a resource.
+    /// </summary>
+    /// <param name="Resoiurce">The resource record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyFromResourceOnBeforeTestBlocked(var Resoiurce: Record Resource; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before applying resource unit cost when copying from a resource.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Resource">The resource record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyFromResourceOnBeforeApplyResUnitCost(var SalesLine: Record "Sales Line"; Resource: Record Resource; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating global dimensions from dimension set ID when creating dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnBeforeUpdateGlobalDimFromDimSetID(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised when getting the deferral posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="DeferralPostingDate">The deferral posting date.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDeferralPostDate(SalesHeader: Record "Sales Header"; var DeferralPostingDate: Date; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after auto assemble-to-order processing.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAutoAsmToOrder(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before auto assemble-to-order processing.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="ATOLink">The assemble-to-order link record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoAsmToOrder(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer; var ATOLink: Record "Assemble-to-Order Link")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the blanket order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterBlanketOrderLookup(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the blanket order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBlanketOrderLookup(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the planned delivery date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PlannedDeliveryDate">The planned delivery date.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcPlannedDeliveryDate(var SalesLine: Record "Sales Line"; var PlannedDeliveryDate: Date; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before exiting when getting the fixed asset posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldExit">Specifies whether to exit the procedure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetGetFAPostingGroupOnBeforeExit(var SalesLine: Record "Sales Line"; var ShouldExit: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening item tracking lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenItemTrackingLines(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the credit limit condition.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="RunCheck">Specifies whether to run the credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckCreditLimitCondition(SalesLine: Record "Sales Line"; var RunCheck: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating a shortcut dimension code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="FieldNumber">The dimension field number.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating item charge assignment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="InHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateItemChargeAssgnt(var SalesLine: Record "Sales Line"; var InHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the unit price from a nonstock item.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NonstockItem">The nonstock item record.</param>
+    /// <param name="InHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateUnitPriceFromNonstockItem(var SalesLine: Record "Sales Line"; NonstockItem: Record "Nonstock Item"; var InHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the description field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="InHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDescription(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var InHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the planned delivery date.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidatePlannedDeliveryDate(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the planned shipment date.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidatePlannedShipmentDate(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The calling field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQuantityBase(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a shortcut dimension code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="FieldNumber">The dimension field number.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying the item line dimension.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyItemLineDim(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the line amount when updating amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="LineAmount">The calculated line amount.</param>
     [IntegrationEvent(true, false)]
     local procedure OnUpdateAmountsOnAfterCalcLineAmount(var SalesLine: Record "Sales Line"; var LineAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit when updating amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAmountOnBeforeCheckCreditLimit(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the line amount when updating amounts.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(true, false)]
     local procedure OnUpdateAmountsOnBeforeCheckLineAmount(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the new amount when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="VATAmountLineReminder">The VAT amount line remainder.</param>
+    /// <param name="NewAmount">The new amount.</param>
+    /// <param name="VATAmount">The VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnBeforeCalculateNewAmount(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; VATAmountLine: Record "VAT Amount Line"; VATAmountLineReminder: Record "VAT Amount Line"; var NewAmount: Decimal; var VATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating amounts when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterCalculateAmounts(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the new amount when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="VATAmountLineReminder">The VAT amount line remainder.</param>
+    /// <param name="NewAmountIncludingVAT">The new amount including VAT.</param>
+    /// <param name="VATAmount">The VAT amount.</param>
+    /// <param name="NewAmount">The new amount.</param>
+    /// <param name="NewVATBaseAmount">The new VAT base amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterCalculateNewAmount(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; VATAmountLine: Record "VAT Amount Line"; VATAmountLineReminder: Record "VAT Amount Line"; var NewAmountIncludingVAT: Decimal; VATAmount: Decimal; var NewAmount: Decimal; var NewVATBaseAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the filter on sales lines when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line filter being applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterSalesLineSetFilter(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales line when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmount">The VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnBeforeModifySalesLine(var SalesLine: Record "Sales Line"; VATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating amounts when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnBeforeCalculateAmounts(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the temporary VAT amount line remainder when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempVATAmountLineRemainder">The temporary VAT amount line remainder.</param>
+    /// <param name="VATAmount">The VAT amount.</param>
+    /// <param name="NewVATBaseAmount">The new VAT base amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnBeforeTempVATAmountLineRemainderModify(SalesLine: Record "Sales Line"; var TempVATAmountLineRemainder: Record "VAT Amount Line"; VATAmount: Decimal; NewVATBaseAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the currency when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterCurrencyInitialize(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before throwing a cannot find description error when validating description.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateDescriptionOnBeforeCannotFindDescrError(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the outbound warehouse handling time when validating location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnAfterSetOutboundWhseHandlingTime(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating line totals when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="QtyType">The quantity type option.</param>
+    /// <param name="TotalVATAmount">The total VAT amount.</param>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnAfterCalcLineTotals(var VATAmountLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; Currency: Record Currency; QtyType: Option General,Invoicing,Shipping; var TotalVATAmount: Decimal; QtyToHandle: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line filter being applied.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnAfterSetFilters(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to process rounding when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TotalVATAmount">The total VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnAfterCalcShouldProcessRounding(var VATAmountLine: Record "VAT Amount Line"; Currency: Record Currency; var IsHandled: Boolean; var SalesLine: Record "Sales Line"; var TotalVATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating VAT amount lines when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="TotalVATAmount">The total VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeVATAmountLineUpdateLines(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var VATAmountLine: Record "VAT Amount Line"; var TotalVATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the currency when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnAfterCurrencyInitialize(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting sales line filters during delete.
+    /// </summary>
+    /// <param name="SalesLine">The sales line filter being applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnAfterSetSalesLineFilters(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing status open during delete.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being deleted.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnBeforeTestStatusOpen(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing resource cost when finding resource unit cost.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ResourceCost">The resource cost record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindResUnitCostOnAfterInitResCost(var SalesLine: Record "Sales Line"; var ResourceCost: Record "Resource Cost")
     begin
     end;
 
+    /// <summary>
+    /// Raised for the else case when looking up IC partner reference type.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnLookUpICPartnerReferenceTypeCaseElse()
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters during modify.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being modified.</param>
+    /// <param name="SalesLine2">A secondary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnModifyOnAfterSetFilters(var SalesLine: Record "Sales Line"; var SalesLine2: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting sales line filters when updating VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesLine2">A secondary sales line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountsOnAfterSetSalesLineFilters(var SalesLine: Record "Sales Line"; var SalesLine2: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating line discount percent when updating VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether the status check is suspended.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountsOnBeforeValidateLineDiscountPercent(var SalesLine: Record "Sales Line"; var StatusCheckSuspended: boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating amounts when updating VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesLine2">A secondary sales line record.</param>
+    /// <param name="TotalAmount">The total amount.</param>
+    /// <param name="TotalAmountInclVAT">The total amount including VAT.</param>
+    /// <param name="TotalLineAmount">The total line amount.</param>
+    /// <param name="TotalInvDiscAmount">The total invoice discount amount.</param>
+    /// <param name="TotalVATBaseAmount">The total VAT base amount.</param>
+    /// <param name="TotalQuantityBase">The total quantity in base unit.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="TotalVATDifference">The total VAT difference.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountsOnBeforeCalcAmounts(var SalesLine: Record "Sales Line"; var SalesLine2: Record "Sales Line"; var TotalAmount: Decimal; TotalAmountInclVAT: Decimal; var TotalLineAmount: Decimal; var TotalInvDiscAmount: Decimal; var TotalVATBaseAmount: Decimal; var TotalQuantityBase: Decimal; var IsHandled: Boolean; TotalVATDifference: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when selecting an item entry.
+    /// </summary>
+    /// <param name="ItemLedgEntry">The item ledger entry with filters applied.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSelectItemEntryOnAfterSetFilters(var ItemLedgEntry: Record "Item Ledger Entry"; SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning amounts when validating the amount including VAT.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAmountIncludingVATOnAfterAssignAmounts(var SalesLine: Record "Sales Line"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing unit price when validating line amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLineAmountOnbeforeTestUnitPrice(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating prepayment setup fields when validating prepayment percentage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePrepaymentPercentageOnBeforeUpdatePrepmtSetupFields(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the associated purchase order when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeCheckAssocPurchOrder(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking receipt order status when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether the status check is suspended.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeCheckReceiptOrderStatus(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying sales line change when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether the status check is suspended.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeSalesLineVerifyChange(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating quantity to assemble to order when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether the status check is suspended.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeValidateQtyToAssembleToOrder(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning purchasing fields when validating the purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PurchasingCode">The purchasing code record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePurchasingCodeOnAfterAssignPurchasingFields(var SalesLine: Record "Sales Line"; PurchasingCode: Record Purchasing; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the reserve field without purchasing code when validating the purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePurchasingCodeOnAfterSetReserveWithoutPurchasingCode(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after resetting purchasing fields when validating the purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePurchasingCodeOnAfterResetPurchasingFields(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating amounts when validating the VAT product posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeUpdateAmounts(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing deferrals.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ReturnValue">The return value.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDeferrals(SalesLine: Record "Sales Line"; var ReturnValue: Boolean; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the warehouse.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="ShowDialogMessage">Specifies whether to show a dialog message.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWarehouse(SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ShowDialogMessage: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking warehouse for quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWarehouseForQtyToShip(SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="FieldNo">The field number.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCreateDim(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; FieldNo: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the unit price changed message.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowUnitPriceChangedMsg(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating unit cost LCY when getting unit cost.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateUnitCostLCYOnGetUnitCost(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the work type code.
+    /// </summary>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateWorkTypeCode(var xSalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the job contract entry number.
+    /// </summary>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateJobContractEntryNo(xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateNo(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipment date.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateShipmentDate(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the VAT product posting group.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateVATProdPostingGroup(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the VAT product posting group trigger validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateVATProdPostingGroupTrigger(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the resource unit of measure.
+    /// </summary>
+    /// <param name="ResUnitofMeasure">The resource unit of measure record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeAssignResourceUoM(var ResUnitofMeasure: Record "Resource Unit of Measure"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the promised delivery date.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPromisedDeliveryDate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if prepayment amount invoiced is empty.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtAmtInvEmpty(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the blanket order line number.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateBlanketOrderLineNo(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the shipment relation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckShipmentRelation(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the shipment date is before the work date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="HasBeenShown">Indicates whether the warning has been shown.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckShipmentDateBeforeWorkDate(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var HasBeenShown: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the return receipt relation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckRetRcptRelation(var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking service item creation when initializing quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitQtyToShipOnBeforeCheckServItemCreation(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying change for sales line reserve.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the verification.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyChangeForSalesLineReserve(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking for inventory pick conflict.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckInventoryPickConflict(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the field type when checking application from item ledger entry.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckApplFromItemLedgEntryOnBeforeTestFieldType(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the quantity sign.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckQuantitySign(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the quantity sign on application from.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckQuantitySignOnApplicationFrom(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the reserved quantity base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckReservedQtyBase(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the not invoiced quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNotInvoicedQty(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the returned units error.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemLedgEntry">The item ledger entry.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowReturnedUnitsError(var SalesLine: Record "Sales Line"; var ItemLedgEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing direct posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="GLAccount">The G/L account record.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestDirectPosting(var SalesLine: Record "Sales Line"; var GLAccount: Record "G/L Account"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the line discount percent.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateLineDiscountPercent(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating amounts when validating line discount percent.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLineDiscountPercentOnBeforeUpdateAmounts(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing status open when validating line discount percent.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLineDiscountPercentOnAfterTestStatusOpen(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing a nonstock item.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NonstockItem">The nonstock item record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowNonStock(var SalesLine: Record "Sales Line"; var NonstockItem: Record "Nonstock Item"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the catalog item list when showing nonstock items.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NonstockItem">The nonstock item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowNonstockOnBeforeOpenCatalogItemList(var SalesLine: Record "Sales Line"; var NonstockItem: Record "Nonstock Item")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the associated purchase order when validating location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnAfterCheckAssocPurchOrder(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record when validating type.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateTypeOnBeforeInitRec(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the reservation entry.
+    /// </summary>
+    /// <param name="ReservEntry">The reservation entry being set.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReservationEntry(var ReservEntry: Record "Reservation Entry"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the job number when validating drop shipment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateDropShipmentOnBeforeTestJobNo(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the reservation quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToReserve">The quantity to reserve.</param>
+    /// <param name="QtyToReserveBase">The quantity to reserve in base unit.</param>
+    /// <param name="Result">The calculated result.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetReservationQty(var SalesLine: Record "Sales Line"; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal; var Result: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the unit cost LCY.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitCostLCY(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the IC partner.
+    /// </summary>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldUpdateICPartner">Specifies whether to update the IC partner.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateICPartner(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ShouldUpdateICPartner: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the blanket order line number.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateBlanketOrderLineNo(var SalesLine: Record "Sales Line"; BlanketOrderSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateLocationCode(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the location.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="Location">The location record.</param>
+    /// <param name="LocationCode">The location code.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetLocation(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var Location: Record "Location"; LocationCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the sales line check when checking item availability.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the check.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckItemAvailableOnBeforeSalesLineCheck(var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrentFieldNo: Integer; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the requested delivery date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateRequestedDeliveryDate(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the promised delivery date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePromisedDeliveryDate(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating normal VAT when validating the amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAmountOnAfterCalculateNormalVAT(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating normal VAT when validating the amount including VAT.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAmountIncludingVATOnAfterCalculateNormalVAT(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sell-to customer number when initializing header defaults.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitHeaderDefaultsOnBeforeTestSellToCustomerNo(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the price including VAT field when updating prepayment amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="SalesOrderHeader">The sales order header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePrePaymentAmountsOnBeforeTestFieldPriceIncludingVAT(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; SalesOrderHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing outstanding values when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeInitOutstanding(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting zero amount if the line is an invoice discount amount when updating VAT amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountOnAfterSetZeroAmointIfLineIsInvDiscountAmount(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the VAT posting setup when validating the VAT product posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="VATPostingSetup">The VAT posting setup record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeVATPostingSetupGet(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean; var VATPostingSetup: Record "VAT Posting Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions from default dimensions when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeCreateDimFromDefaultDim(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the general product posting group.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="GenProdPostingGroup">The general product posting group record.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
 #pragma warning disable AS0077
     [IntegrationEvent(false, false)]
     local procedure OnGenProdPostingGroupOnBeforeValidate(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var GenProdPostingGroup: Record "Gen. Product Posting Group"; var IsHandled: Boolean)
@@ -12161,408 +14802,849 @@ table 37 "Sales Line"
     end;
 #pragma warning restore AS0077
 
+    /// <summary>
+    /// Raised after assigning the amount when validating the amount field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAmountOnAfterAssignAmount(var SalesLine: Record "Sales Line"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the line amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="MaxLineAmount">The maximum line amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckLineAmount(var SalesLine: Record "Sales Line"; MaxLineAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before auto assemble-to-order when validating quantity to assemble to order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToAssembleToOrderOnBeforeAutoAsmToOrder(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the unit of measure when validating unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateUnitOfMeasureCodeOnBeforeGetUnitOfMeasure(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting item data when validating unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="Item">The item record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateUnitOfMeasureCodeOnAfterGetItemData(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; Item: Record Item)
     begin
     end;
 
+    /// <summary>
+    /// Raised after deleting all secondary sales lines during delete.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being deleted.</param>
+    /// <param name="SalesLine2">The secondary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnAfterSalesLine2DeleteAll(var SalesLine: Record "Sales Line"; var SalesLine2: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing quantity when validating the Quantity field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterInitQty(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the unit of measure when validating unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateUnitOfMeasureCodeOnAfterGetUnitOfMeasure(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after entering sales item reference when validating unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateUnitOfMeasureCodeOnAfterEnterSalesItemReference(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to plan price calculation when validating unit of measure code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldPlanPriceCalc">Specifies whether to plan price calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateUnitOfMeasureCodeOnAfterCalcShouldPlanPriceCalc(var SalesLine: Record "Sales Line"; var ShouldPlanPriceCalc: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing field for other document types when validating quantity to assemble to order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToAssembleToOrderOnOtherDocTypeBeforeTestField(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking quantity when validating quantity to ship.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToShipOnAfterCheckQuantity(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating invoice discount to invoice when validating quantity to invoice.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQtyToInvoiceOnBeforeCalcInvDiscToInvoice(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to use return quantity received when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldCalcWithReturnQtyReceived">Specifies whether to calculate with return quantity received.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterCalcShouldCalcWithReturnQtyReceived(var SalesLine: Record "Sales Line"; var ShouldCalcWithReturnQtyReceived: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to verify quantity for item when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldVerifyQtyForItem">Specifies whether to verify quantity for item.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterCalcShouldVerifyQtyForItem(var SalesLine: Record "Sales Line"; var ShouldVerifyQtyForItem: Boolean; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to assign values from purchasing code when validating the purchasing code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldAssignValuesFromPurchasingCode">Specifies whether to assign values from purchasing code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePurchasingCodeOnAfterCalcShouldAssignValuesFromPurchasingCode(var SalesLine: Record "Sales Line"; var ShouldAssignValuesFromPurchasingCode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating with quantity shipped when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnBeforeCalcWithQuantityShipped(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the line is an invoice discount amount when updating VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="LineIsInvDiscountAmount">Specifies whether the line is an invoice discount amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountsOnBeforeIfLineIsInvDiscountAmount(var SalesLine: Record "Sales Line"; var LineIsInvDiscountAmount: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing a table value pair for dimensions.
+    /// </summary>
+    /// <param name="TableValuePair">The dictionary containing table and value pairs.</param>
+    /// <param name="FieldNo">The field number triggering the initialization.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitTableValuePair(var TableValuePair: Dictionary of [Integer, Code[20]]; FieldNo: Integer; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing a table value pair for dimensions.
+    /// </summary>
+    /// <param name="TableValuePair">The dictionary containing table and value pairs.</param>
+    /// <param name="FieldNo">The field number that triggered the initialization.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitTableValuePair(var TableValuePair: Dictionary of [Integer, Code[20]]; FieldNo: Integer; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the default bin from WMS.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDefaultBinOnAfterWMSGetDefaultBin(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the deferral code on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitDeferralCode(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the date for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ResultDate">The resulting date value.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDate(var SalesLine: Record "Sales Line"; var ResultDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQuantity(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating prepayment amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrePaymentAmounts(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating dimensions from default dimensions when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterCreateDimFromDefaultDim(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if the sales line represents an inbound document.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsInboundDocument">Specifies whether the document is inbound.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsInbound(SalesLine: Record "Sales Line"; var IsInboundDocument: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if a blanket order is related to the current sales line.
+    /// </summary>
+    /// <param name="CurrentSalesLine">The current sales line being processed.</param>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Result">The result of the check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBlanketOrderIsRelated(var CurrentSalesLine: Record "Sales Line"; var BlanketOrderSalesLine: Record "Sales Line"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when checking if the sales line meets the reserved from stock setting.
+    /// </summary>
+    /// <param name="QtyToPost">The quantity to post.</param>
+    /// <param name="ReservedFromStock">The reservation from stock setting.</param>
+    /// <param name="Result">The result of the check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckIfSalesLineMeetsReservedFromStockSetting(QtyToPost: Decimal; ReservedFromStock: Enum "Reservation From Stock"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the assemble-to-order bin code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Location">The location record.</param>
+    /// <param name="BinCode">The bin code to retrieve.</param>
+    /// <param name="BinCodeNotEmpty">Specifies whether the bin code is not empty.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetATOBin(SalesLine: record "Sales Line"; Location: Record Location; var BinCode: Code[20]; var BinCodeNotEmpty: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions when creating dimensions from default dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="ShouldCreateDim">Specifies whether dimensions should be created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimFromDefaultDimOnBeforeCreateDim(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var ShouldCreateDim: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before attaching to an inventory item line.
+    /// </summary>
+    /// <param name="SelectedSalesLine">The selected sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAttachToInventoryItemLine(var SelectedSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating normal VAT when updating prices including VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record used for calculations.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePricesIncludingVATAmountsOnAfterCalculateNormalVAT(var SalesLine: Record "Sales Line"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating normal VAT when updating VAT amounts.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record used for calculations.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATAmountsOnAfterCalculateNormalVAT(var SalesLine: Record "Sales Line"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when calculating outstanding invoice amount from shipment.
+    /// </summary>
+    /// <param name="SalesLineCopy">The sales line copy used for filtering.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOutstandingInvoiceAmountFromShipmentOnAfterSetFilter(var SalesLineCopy: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the hide validation dialog flag on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="NewHideValidationDialog">The new hide validation dialog value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetHideValidationDialog(var SalesLine: Record "Sales Line"; NewHideValidationDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the line amount to handle.
+    /// </summary>
+    /// <param name="QtyToHandle">The quantity to handle.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Currency">The currency record used for calculations.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetLineAmountToHandle(var QtyToHandle: Decimal; var SalesLine: Record "Sales Line"; Currency: Record Currency; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking posting setups when validating the No. field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeCheckPostingSetups(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before reducing the invoice discount value on the header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="InvDiscountAmount">The invoice discount amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReduceInvoiceDiscValueOnHeader(var SalesHeader: Record "Sales Header"; InvDiscountAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting item charge assignments.
+    /// </summary>
+    /// <param name="SalesDocumentType">The sales document type.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="DocLineNo">The document line number.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteChargeChargeAssgnt(SalesDocumentType: Enum "Sales Document Type"; DocNo: Code[20];
                                                                             DocLineNo: Integer; var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the item variant is blocked when validating the variant code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVariantCodeBeforeCheckBlocked(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing amounts when validating quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterInitializeAmounts(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing fields when validating the bin code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBinCodeOnBeforeTestFields(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying a message when validating the Appl.-to Item Entry field.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplToItemEntryValidateOnBeforeMessage(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessSalesLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the planned flag on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result of the update operation.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePlanned(var SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting an item charge assignment.
+    /// </summary>
+    /// <param name="DocType">The sales document type.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="DocLineNo">The document line number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteItemChargeAssignment(DocType: Enum "Sales Document Type"; DocNo: Code[20];
                                                                     DocLineNo: Integer; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating document charge assignment when showing item charge assignment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="DoCreateDocChargeAssgnForReturnReceiptNo">Specifies whether to create document charge assignment for return receipt.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowItemChargeAssgntOnBeforeCreateDocChargeAssgn(SalesLine: Record "Sales Line"; var DoCreateDocChargeAssgnForReturnReceiptNo: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating deferral amounts on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDeferralAmounts(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after editing the dimension set when showing dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="OldDimensionSet">The old dimension set ID before editing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowDimensionsOnAfterEditDimensionSet(var SalesLine: Record "Sales Line"; OldDimensionSet: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the IC partner on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDoUpdateICPartner(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipping agent service code on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShippingAgentServiceCode(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing reserved quantity base when validating the location code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHanlded">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnBeforeTestReservedQtyBase(SalesLine: Record "Sales Line"; var IsHanlded: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the unit price on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrentFieldNo">The current field number.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitPrice(var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing document type case when checking location on WMS.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="DialogText">The dialog text to display.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckLocationOnWMSOnBeforeCaseDocumentType(var SalesLine: Record "Sales Line"; DialogText: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when checking service item creation for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckServItemCreation(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the shipping time for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetShippingTime(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing the sales line when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeProcessSalesLine(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a new VAT amount line when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnAfterInsertNewVATAmountLine(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating base amounts when updating VAT on lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line record.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
+    /// <param name="Currency">The currency record used for calculations.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterUpdateBaseAmounts(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var VATAmountLine: Record "VAT Amount Line"; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales line when summing VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumVATAmountLineOnBeforeModify(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting when inserting a VAT amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATAmountOnBeforeInsert(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when finding a VAT amount line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindVATAmountLineOnAfterSetFilters(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the shipment date for a location.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcShipmentDateForLocation(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing quantity fields when validating the unit of measure.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestQuantityFieldsOnValidateUnitOfMeasure(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after clearing the VAT percentage on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearVATPct(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after clearing the prepayment VAT percentage on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearPrepaymentVATPct(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after clearing the VAT difference on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearVATDifference(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the VAT percentage from the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATPct">The VAT percentage value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var SalesLine: Record "Sales Line"; var VATPct: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the prepayment VAT percentage from the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PrepaymentVATPct">The prepayment VAT percentage value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPrepaymentVATPct(var SalesLine: Record "Sales Line"; var PrepaymentVATPct: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying values from the VAT posting setup.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATPostingSetupFrom">The VAT posting setup to copy from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromVATPostingSetup(var SalesLine: Record "Sales Line"; var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying prepayment values from the VAT posting setup.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATPostingSetupFrom">The VAT posting setup to copy prepayment values from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyPrepaymentFromVATPostingSetup(var SalesLine: Record "Sales Line"; var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the line discount percentage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="DropInvoiceDiscountAmount">Specifies whether to drop the invoice discount amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateLineDiscountPercentOnBeforeValidateLineDiscountPercent(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var DropInvoiceDiscountAmount: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the unit price using the unit of measure coefficient.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesInvoiceLine">The sales invoice line used for calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcUnitPriceUsingUOMCoef(var SalesLine: Record "Sales Line"; SalesInvoiceLine: Record "Sales Invoice Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the deferral code when initializing the deferral code.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ShouldUpdateDeferralCode">Specifies whether the deferral code should be updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitDeferralCodeOnBeforeUpdateDeferralCode(var SalesLine: Record "Sales Line"; var ShouldUpdateDeferralCode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the job planning line when validating line discount percentage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The sales line before the change.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnValidateLineDiscountPercentOnBeforeTestJobPlanningLine(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when checking the receipt order status for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckReceiptOrderStatus(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating deferral amounts during the insert trigger.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertOnAfterUpdateDeferralAmounts(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after verifying changes for sales line reservation during the modify trigger.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CurrFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterModifyOnAfterVerifyChangeForSalesLineReserve(var SalesLine: Record "Sales Line"; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the deferral amount when calculating VAT amount lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeGetDeferralAmount(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before VAT rounding adjustment to determine if adjustment is required.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="StatusCheckSuspended">Specifies whether status check is suspended.</param>
+    /// <param name="RequiresVATRoundingAdjustment">Specifies whether VAT rounding adjustment is required.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATRoundingAdjustment(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var RequiresVATRoundingAdjustment: Boolean)
     begin

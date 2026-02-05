@@ -88,6 +88,7 @@ page 7305 "Bin Contents List"
                 field(CalcQtyUOM; Rec.CalcQtyUOM())
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item in the bin that corresponds to the line.';
@@ -100,6 +101,7 @@ page 7305 "Bin Contents List"
                 field(CalcQtyAvailToTakeUOM; Rec.CalcQtyAvailToTakeUOM())
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Available Qty. to Take';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that is available in the bin.';

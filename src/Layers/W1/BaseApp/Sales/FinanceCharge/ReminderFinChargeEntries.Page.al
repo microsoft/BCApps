@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays a historical list of reminder and finance charge entries with navigation capabilities.
+/// </summary>
 page 444 "Reminder/Fin. Charge Entries"
 {
     ApplicationArea = Suite;

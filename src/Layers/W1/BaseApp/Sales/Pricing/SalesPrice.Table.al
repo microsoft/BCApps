@@ -11,6 +11,9 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores sales prices for items by customer type, currency, and validity period with support for quantity breaks.
+/// </summary>
 table 7002 "Sales Price"
 {
     Caption = 'Sales Price';
@@ -18,6 +21,9 @@ table 7002 "Sales Price"
 
     fields
     {
+        /// <summary>
+        /// Specifies the item that the sales price applies to.
+        /// </summary>
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
@@ -48,6 +54,9 @@ table 7002 "Sales Price"
                 UpdateValuesFromItem();
             end;
         }
+        /// <summary>
+        /// Specifies the customer, customer price group, or campaign that the sales price applies to.
+        /// </summary>
         field(2; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
@@ -89,11 +98,17 @@ table 7002 "Sales Price"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the currency that the sales price is valid for. A blank value indicates the local currency.
+        /// </summary>
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the date from which the sales price is valid.
+        /// </summary>
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
@@ -111,6 +126,9 @@ table 7002 "Sales Price"
                         Error(Text002, "Sales Type");
             end;
         }
+        /// <summary>
+        /// Specifies the unit price for the item when sold under this pricing agreement.
+        /// </summary>
         field(5; "Unit Price"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -118,20 +136,32 @@ table 7002 "Sales Price"
             Caption = 'Unit Price';
             MinValue = 0;
         }
+        /// <summary>
+        /// Indicates whether the unit price includes VAT.
+        /// </summary>
         field(7; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
         }
+        /// <summary>
+        /// Indicates whether invoice discounts can be applied when this sales price is used.
+        /// </summary>
         field(10; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the VAT business posting group used for price calculations when the price includes VAT.
+        /// </summary>
         field(11; "VAT Bus. Posting Gr. (Price)"; Code[20])
         {
             Caption = 'VAT Bus. Posting Gr. (Price)';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the type of sales target for the price, such as customer, customer price group, all customers, or campaign.
+        /// </summary>
         field(13; "Sales Type"; Enum "Sales Price Type")
         {
             Caption = 'Sales Type';
@@ -144,12 +174,19 @@ table 7002 "Sales Price"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the minimum quantity that must be ordered to qualify for this sales price.
+        /// </summary>
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the last date on which the sales price is valid.
+        /// </summary>
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
@@ -176,6 +213,9 @@ table 7002 "Sales Price"
             ObsoleteTag = '26.0';
         }
 #endif
+        /// <summary>
+        /// Indicates whether the sales price is coupled to a record in Dynamics 365 Sales.
+        /// </summary>
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -183,16 +223,25 @@ table 7002 "Sales Price"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(7002)));
         }
+        /// <summary>
+        /// Specifies the unit of measure that the sales price applies to for the item.
+        /// </summary>
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
+        /// <summary>
+        /// Specifies the item variant that the sales price applies to.
+        /// </summary>
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
+        /// <summary>
+        /// Indicates whether line discounts can be applied when this sales price is used.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
@@ -264,6 +313,11 @@ table 7002 "Sales Price"
         end;
     end;
 
+    /// <summary>
+    /// Copies sales prices to a specific customer by creating customer-specific price records.
+    /// </summary>
+    /// <param name="SalesPrice">The sales price records to copy.</param>
+    /// <param name="CustNo">The customer number to assign to the new sales price records.</param>
     procedure CopySalesPriceToCustomersSalesPrice(var SalesPrice: Record "Sales Price"; CustNo: Code[20])
     var
         NewSalesPrice: Record "Sales Price";

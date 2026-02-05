@@ -3596,7 +3596,7 @@
     end;
 
     [Test]
-    [HandlerFunctions('PurchOrderFromSalesOrderModalPageHandlerSetVendorsOnLine,MessageHandler')]
+    [HandlerFunctions('PurchOrderFromSalesOrderModalPageHandlerNew,MessageHandler')]
     procedure PurchaseOrderMustNotBeCreatedFromDropShipmentSalesOrderMoreThanOnce()
     var
         Item: Record Item;
@@ -3613,14 +3613,15 @@
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [GIVEN] Enqueue "Vendor No.".
-        LibraryVariableStorage.Enqueue(Vendor."No.");
-
         // [GIVEN] Update Purchasing Code on Item.
         UpdatePurchasingCodeOnItem(Item, CreatePurchasingCode(true, false));
 
         // [GIVEN] Create Sales Order with drop shipment.
         CreateSalesOrder(SalesHeader, SalesLine, SalesLine.Type::Item, LibrarySales.CreateCustomerNo(), Item."No.", LibraryRandom.RandDecInRange(10, 20, 2), '');
+
+        // [GIVEN] Enqueue "Vendor No." and "Quantity".
+        LibraryVariableStorage.Enqueue(Vendor."No.");
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
 
         // [GIVEN] Open Sales Order page.
         PurchaseOrder.Trap();
@@ -3633,8 +3634,9 @@
         // [THEN] Verify that Purchase Order is created.
         PurchaseOrder."Sell-to Customer No.".AssertEquals(SalesHeader."Sell-to Customer No.");
 
-        // [GIVEN] Enqueue "Vendor No." and expected messages.
+        // [GIVEN] Enqueue "Vendor No.", "Quantity" and expected messages.
         LibraryVariableStorage.Enqueue(Vendor."No.");
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
         LibraryVariableStorage.Enqueue(StrSubstNo(CannotCreatePurchaseOrderIsAlreadyWithSalesOrderErr, SalesLine."No.", SalesLine."Document No.", SalesLine."Purchase Order No."));
 
         // [WHEN] Create Purchase Order from Sales Order more than once.
@@ -4230,14 +4232,12 @@
         FindPurchaseLine(PurchaseLine, PurchaseHeader);
         VerifyPurchaseLinesCreatedFromSalesLines(PurchaseHeader."No.", SalesLine);
 
-        // [GIVEN] CalculatePlan on OrderPlanning.
+        // [WHEN] CalculatePlan on OrderPlanning.
         LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
 
-        // [WHEN]] Run Make order from Order Planning Worksheet.
-        asserterror MakeSupplyOrdersActiveOrder(SalesHeader."No.");
-
         // [THEN] Verify that purchase order is not created from drop shipment order planning worksheet more than once.
-        Assert.ExpectedError(StrSubstNo(CannotCreatePurchaseOrderIsAlreadyWithSalesOrderErr, SalesLine."No.", SalesLine."Document No.", SalesLine."Purchase Order No."));
+        RequisitionLine.SetRange("Demand Order No.", SalesHeader."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
     end;
 
     [Test]
@@ -4326,6 +4326,59 @@
         PurchaseHeader.SetRange("Sell-to Customer No.", SalesHeader."Sell-to Customer No.");
         Assert.RecordIsEmpty(PurchaseHeader);
         Assert.ExpectedTestFieldError(RequisitionLine.FieldCaption("Supply From"), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('CheckQuantityInPurchOrderFromSalesOrderModalPageHandler')]
+    procedure QtyToPurchaseMustBeZeroWhenPurchaseOrderIsCreatedFromSalesOrder()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 614891] Verify that Qty. to Purchase is zero when purchase order is created from sales order.
+        Initialize();
+
+        // [GIVEN] Create Item and Vendor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Update Purchasing Code on Item.
+        UpdatePurchasingCodeOnItem(Item, CreatePurchasingCode(true, false));
+
+        // [GIVEN] Create Sales Order with drop shipment.
+        CreateSalesOrder(SalesHeader, SalesLine, SalesLine.Type::Item, LibrarySales.CreateCustomerNo(), Item."No.", LibraryRandom.RandDecInRange(10, 20, 2), '');
+
+        // [GIVEN] Enqueue "Vendor No." and "Quantity".
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
+        LibraryVariableStorage.Enqueue(Vendor."No.");
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
+
+        // [GIVEN] Open Sales Order page.
+        PurchaseOrder.Trap();
+        SalesOrder.OpenEdit();
+        SalesOrder.GoToRecord(SalesHeader);
+
+        // [WHEN] Create Purchase Order from Sales Order.
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] Verify that Purchase Order is created.
+        PurchaseOrder."Sell-to Customer No.".AssertEquals(SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Enqueue "Vendor No.", "Quantity" and expected messages.
+        LibraryVariableStorage.Enqueue(0);
+        LibraryVariableStorage.Enqueue(Vendor."No.");
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
+        LibraryVariableStorage.Enqueue(StrSubstNo(CannotCreatePurchaseOrderIsAlreadyWithSalesOrderErr, SalesLine."No.", SalesLine."Document No.", SalesLine."Purchase Order No."));
+
+        // [WHEN] Create Purchase Order from Sales Order more than once.
+        FindSalesLine(SalesLine, SalesHeader);
+        asserterror SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] Verify that purchase order is not created from drop shipment sales order more than once through Handler.
     end;
 
     local procedure Initialize()
@@ -6264,6 +6317,27 @@
     procedure PurchOrderFromSalesOrderModalPageHandlerSetVendorsOnLine(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
     begin
         PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
+        PurchOrderFromSalesOrder.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderModalPageHandlerNew(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    begin
+        PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
+        PurchOrderFromSalesOrder.Quantity.SetValue(LibraryVariableStorage.DequeueDecimal());
+        PurchOrderFromSalesOrder.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure CheckQuantityInPurchOrderFromSalesOrderModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    var
+        ExpectedQuantity: Decimal;
+    begin
+        ExpectedQuantity := LibraryVariableStorage.DequeueDecimal();
+
+        PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
+        PurchOrderFromSalesOrder.Quantity.AssertEquals(ExpectedQuantity);
+        PurchOrderFromSalesOrder.Quantity.SetValue(LibraryVariableStorage.DequeueDecimal());
         PurchOrderFromSalesOrder.OK().Invoke();
     end;
 

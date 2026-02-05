@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +9,9 @@ enum 10862 "Payment Step Action Type"
 {
     Extensible = true;
     AssignmentCompatibility = true;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     value(0; "None") { Caption = 'None'; }
     value(1; "Ledger") { Caption = 'Ledger'; }
@@ -16,3 +20,4 @@ enum 10862 "Payment Step Action Type"
     value(4; "Create New Document") { Caption = 'Create New Document'; }
     value(5; "Cancel File") { Caption = 'Cancel File'; }
 }
+#endif

@@ -39,6 +39,9 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
 
+/// <summary>
+/// Stores header information for posted sales shipments including shipping details and customer information.
+/// </summary>
 table 110 "Sales Shipment Header"
 {
     Caption = 'Sales Shipment Header';
@@ -49,6 +52,9 @@ table 110 "Sales Shipment Header"
 
     fields
     {
+        /// <summary>
+        /// Specifies the customer number who received the shipped items.
+        /// </summary>
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
@@ -60,10 +66,16 @@ table 110 "Sales Shipment Header"
                 UpdateSellToCustomerId();
             end;
         }
+        /// <summary>
+        /// Specifies the unique document number of the posted sales shipment.
+        /// </summary>
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Specifies the customer number to whom the invoice will be sent.
+        /// </summary>
         field(4; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
@@ -75,181 +87,297 @@ table 110 "Sales Shipment Header"
                 UpdateBillToCustomerId();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer receiving the invoice.
+        /// </summary>
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
         }
+        /// <summary>
+        /// Specifies additional name information for the bill-to customer.
+        /// </summary>
         field(6; "Bill-to Name 2"; Text[50])
         {
             Caption = 'Bill-to Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer that you send or sent the invoice or credit memo to.';
         }
+        /// <summary>
+        /// Specifies the street address of the customer receiving the invoice.
+        /// </summary>
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
         }
+        /// <summary>
+        /// Specifies additional street address information for the bill-to customer.
+        /// </summary>
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the customer receiving the invoice.
+        /// </summary>
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the bill-to customer.
+        /// </summary>
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
         }
+        /// <summary>
+        /// Specifies the customer's own reference number for this document.
+        /// </summary>
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
         }
+        /// <summary>
+        /// Specifies the code for an alternate ship-to address.
+        /// </summary>
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
+        /// <summary>
+        /// Specifies the name of the recipient at the ship-to address.
+        /// </summary>
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
         }
+        /// <summary>
+        /// Specifies additional name information for the ship-to address.
+        /// </summary>
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
         }
+        /// <summary>
+        /// Specifies the street address where items were shipped.
+        /// </summary>
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
         }
+        /// <summary>
+        /// Specifies additional street address information for the ship-to address.
+        /// </summary>
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the ship-to address.
+        /// </summary>
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the ship-to address.
+        /// </summary>
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
         }
+        /// <summary>
+        /// Specifies the date when the sales order was created.
+        /// </summary>
         field(19; "Order Date"; Date)
         {
             Caption = 'Order Date';
         }
+        /// <summary>
+        /// Specifies the date when the shipment was posted to the ledger.
+        /// </summary>
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Specifies the date when the items were shipped.
+        /// </summary>
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
         }
+        /// <summary>
+        /// Specifies a description of the posting.
+        /// </summary>
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
         }
+        /// <summary>
+        /// Specifies the code for payment terms.
+        /// </summary>
         field(23; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
             TableRelation = "Payment Terms";
         }
+        /// <summary>
+        /// Specifies the date by which payment is due.
+        /// </summary>
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Specifies the percentage of payment discount given if payment is made on time.
+        /// </summary>
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the last date for taking the payment discount.
+        /// </summary>
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
         }
+        /// <summary>
+        /// Specifies the shipment method used for delivering the items.
+        /// </summary>
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
             TableRelation = "Shipment Method";
         }
+        /// <summary>
+        /// Specifies the warehouse location from which items were shipped.
+        /// </summary>
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+        /// <summary>
+        /// Specifies the first global dimension code used for analysis.
+        /// </summary>
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Specifies the second global dimension code used for analysis.
+        /// </summary>
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Specifies the customer posting group that determines G/L accounts for posting.
+        /// </summary>
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
+        /// <summary>
+        /// Specifies the currency code for amounts on the shipment.
+        /// </summary>
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             Editable = false;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the exchange rate between the document currency and the local currency.
+        /// </summary>
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the customer price group for determining sales prices.
+        /// </summary>
         field(34; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
             TableRelation = "Customer Price Group";
         }
+        /// <summary>
+        /// Indicates whether the unit prices include VAT.
+        /// </summary>
         field(35; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
         }
+        /// <summary>
+        /// Specifies the code used to determine invoice discount terms.
+        /// </summary>
         field(37; "Invoice Disc. Code"; Code[20])
         {
             Caption = 'Invoice Disc. Code';
         }
+        /// <summary>
+        /// Specifies the customer discount group for determining line discounts.
+        /// </summary>
         field(40; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
         }
+        /// <summary>
+        /// Specifies the language code used for printing documents.
+        /// </summary>
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
             TableRelation = Language;
         }
+        /// <summary>
+        /// Specifies the regional format for dates, numbers, and other data on printed documents.
+        /// </summary>
         field(42; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
             TableRelation = "Language Selection"."Language Tag";
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for this sale.
+        /// </summary>
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
             TableRelation = "Salesperson/Purchaser";
         }
+        /// <summary>
+        /// Specifies the sales order number from which this shipment was created.
+        /// </summary>
         field(44; "Order No."; Code[20])
         {
             Caption = 'Order No.';
         }
+        /// <summary>
+        /// Indicates whether comments exist for this shipment.
+        /// </summary>
         field(46; Comment; Boolean)
         {
             CalcFormula = exist("Sales Comment Line" where("Document Type" = const(Shipment),
@@ -259,19 +387,31 @@ table 110 "Sales Shipment Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies how many times the shipment has been printed.
+        /// </summary>
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies a code indicating that processing is on hold.
+        /// </summary>
         field(51; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
         }
+        /// <summary>
+        /// Specifies the type of document this applies to for payment application.
+        /// </summary>
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Specifies the document number this applies to for payment application.
+        /// </summary>
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
@@ -287,6 +427,9 @@ table 110 "Sales Shipment Header"
                 PAGE.Run(0, CustLedgEntry);
             end;
         }
+        /// <summary>
+        /// Specifies the balancing account number used for posting.
+        /// </summary>
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -294,150 +437,243 @@ table 110 "Sales Shipment Header"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number.
+        /// </summary>
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
         }
+        /// <summary>
+        /// Specifies the reason code for the transaction.
+        /// </summary>
         field(73; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Specifies the general business posting group for determining G/L accounts.
+        /// </summary>
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
             TableRelation = "Gen. Business Posting Group";
         }
+        /// <summary>
+        /// Indicates whether this is a three-party trade within the EU.
+        /// </summary>
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
         }
+        /// <summary>
+        /// Specifies the transaction type for Intrastat reporting.
+        /// </summary>
         field(76; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
             TableRelation = "Transaction Type";
         }
+        /// <summary>
+        /// Specifies the transport method for Intrastat reporting.
+        /// </summary>
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
             TableRelation = "Transport Method";
         }
+        /// <summary>
+        /// Specifies the country or region code for VAT purposes.
+        /// </summary>
         field(78; "VAT Country/Region Code"; Code[10])
         {
             Caption = 'VAT Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the name of the sell-to customer.
+        /// </summary>
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
         }
+        /// <summary>
+        /// Specifies additional name information for the sell-to customer.
+        /// </summary>
         field(80; "Sell-to Customer Name 2"; Text[50])
         {
             Caption = 'Sell-to Customer Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer who will receive the products and be billed by default.';
         }
+        /// <summary>
+        /// Specifies the street address of the sell-to customer.
+        /// </summary>
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
         }
+        /// <summary>
+        /// Specifies additional street address information for the sell-to customer.
+        /// </summary>
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the sell-to customer.
+        /// </summary>
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the sell-to customer.
+        /// </summary>
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
         }
+        /// <summary>
+        /// Specifies the postal code of the bill-to customer.
+        /// </summary>
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the bill-to customer.
+        /// </summary>
         field(86; "Bill-to County"; Text[30])
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
         }
+        /// <summary>
+        /// Specifies the country or region of the bill-to customer.
+        /// </summary>
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the postal code of the sell-to customer.
+        /// </summary>
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the sell-to customer.
+        /// </summary>
         field(89; "Sell-to County"; Text[30])
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
         }
+        /// <summary>
+        /// Specifies the country or region of the sell-to customer.
+        /// </summary>
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the postal code of the ship-to address.
+        /// </summary>
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the county or state of the ship-to address.
+        /// </summary>
         field(92; "Ship-to County"; Text[30])
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
         }
+        /// <summary>
+        /// Specifies the country or region of the ship-to address.
+        /// </summary>
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Specifies the type of balancing account used for posting.
+        /// </summary>
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
         {
             Caption = 'Bal. Account Type';
         }
+        /// <summary>
+        /// Specifies the exit point for goods leaving the country for Intrastat reporting.
+        /// </summary>
         field(97; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
             TableRelation = "Entry/Exit Point";
         }
+        /// <summary>
+        /// Indicates whether this shipment is a correction entry.
+        /// </summary>
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
         }
+        /// <summary>
+        /// Specifies the date when the document was created.
+        /// </summary>
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
         }
+        /// <summary>
+        /// Specifies an external document number such as the customer's purchase order number.
+        /// </summary>
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
         }
+        /// <summary>
+        /// Specifies the geographic area for Intrastat reporting.
+        /// </summary>
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
             TableRelation = Area;
         }
+        /// <summary>
+        /// Specifies additional transaction details for Intrastat reporting.
+        /// </summary>
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
             TableRelation = "Transaction Specification";
         }
+        /// <summary>
+        /// Specifies the method of payment.
+        /// </summary>
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
             TableRelation = "Payment Method";
         }
+        /// <summary>
+        /// Specifies the shipping agent used for delivery.
+        /// </summary>
         field(105; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -450,6 +686,9 @@ table 110 "Sales Shipment Header"
                     Validate("Shipping Agent Service Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the tracking number for tracking shipped packages.
+        /// </summary>
 #if not CLEAN27
 #pragma warning disable AS0086
 #endif
@@ -460,79 +699,125 @@ table 110 "Sales Shipment Header"
         {
             Caption = 'Package Tracking No.';
         }
+        /// <summary>
+        /// Specifies the number series used for the posted shipment.
+        /// </summary>
         field(109; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the number series of the original sales order.
+        /// </summary>
         field(110; "Order No. Series"; Code[20])
         {
             Caption = 'Order No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the user who posted the shipment.
+        /// </summary>
         field(112; "User ID"; Code[50])
         {
             Caption = 'User ID';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
+        /// <summary>
+        /// Specifies the source code that identifies where the entry was created.
+        /// </summary>
         field(113; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculation.
+        /// </summary>
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the customer is liable for sales tax.
+        /// </summary>
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for VAT calculation.
+        /// </summary>
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the percentage of payment discount deducted from the VAT base.
+        /// </summary>
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the quote number from which the order originated.
+        /// </summary>
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the company bank account for receiving payment.
+        /// </summary>
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        /// <summary>
+        /// Specifies the phone number of the sell-to customer.
+        /// </summary>
         field(171; "Sell-to Phone No."; Text[30])
         {
             Caption = 'Sell-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
+        /// <summary>
+        /// Specifies the email address of the sell-to customer.
+        /// </summary>
         field(172; "Sell-to E-Mail"; Text[80])
         {
             Caption = 'Email';
             ExtendedDatatype = EMail;
         }
+        /// <summary>
+        /// Contains the work or job description for the shipment.
+        /// </summary>
         field(200; "Work Description"; BLOB)
         {
             Caption = 'Work Description';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the phone number at the ship-to address.
+        /// </summary>
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
+        /// <summary>
+        /// Specifies the unique identifier for the dimension set applied to this document.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -544,62 +829,101 @@ table 110 "Sales Shipment Header"
                 Rec.ShowDimensions();
             end;
         }
+        /// <summary>
+        /// Specifies the marketing campaign associated with this shipment.
+        /// </summary>
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
             TableRelation = Campaign;
         }
+        /// <summary>
+        /// Specifies the contact number for the sell-to customer.
+        /// </summary>
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
             TableRelation = Contact;
         }
+        /// <summary>
+        /// Specifies the contact number for the bill-to customer.
+        /// </summary>
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
             TableRelation = Contact;
         }
+        /// <summary>
+        /// Specifies the sales opportunity associated with this shipment.
+        /// </summary>
         field(5055; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
             TableRelation = Opportunity;
         }
+        /// <summary>
+        /// Specifies the responsibility center for this shipment.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
             TableRelation = "Responsibility Center";
         }
+        /// <summary>
+        /// Specifies the date the customer requested delivery.
+        /// </summary>
         field(5790; "Requested Delivery Date"; Date)
         {
             Caption = 'Requested Delivery Date';
         }
+        /// <summary>
+        /// Specifies the date that was promised for delivery.
+        /// </summary>
         field(5791; "Promised Delivery Date"; Date)
         {
             Caption = 'Promised Delivery Date';
         }
+        /// <summary>
+        /// Specifies the time required for shipping from the shipping agent.
+        /// </summary>
         field(5792; "Shipping Time"; DateFormula)
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Time';
         }
+        /// <summary>
+        /// Specifies the time required for outbound warehouse handling.
+        /// </summary>
         field(5793; "Outbound Whse. Handling Time"; DateFormula)
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Outbound Whse. Handling Time';
         }
+        /// <summary>
+        /// Specifies the shipping agent service level used for delivery.
+        /// </summary>
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
+        /// <summary>
+        /// Specifies the method used for calculating prices.
+        /// </summary>
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
         }
+        /// <summary>
+        /// Indicates whether line discounts are allowed.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
         }
+        /// <summary>
+        /// Stores the unique identifier for the sell-to customer.
+        /// </summary>
         field(9001; "Customer Id"; Guid)
         {
             Caption = 'Customer Id';
@@ -611,6 +935,9 @@ table 110 "Sales Shipment Header"
                 UpdateSellToCustomerNo();
             end;
         }
+        /// <summary>
+        /// Stores the unique identifier for the bill-to customer.
+        /// </summary>
         field(9002; "Bill-to Customer Id"; Guid)
         {
             Caption = 'Bill-to Customer Id';
@@ -695,6 +1022,10 @@ table 110 "Sales Shipment Header"
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         UserSetupMgt: Codeunit "User Setup Management";
 
+    /// <summary>
+    /// Sends the shipment document using the specified document sending profile.
+    /// </summary>
+    /// <param name="DocumentSendingProfile">Specifies the sending profile to use.</param>
     procedure SendProfile(var DocumentSendingProfile: Record "Document Sending Profile")
     var
         DummyReportSelections: Record "Report Selections";
@@ -711,6 +1042,9 @@ table 110 "Sales Shipment Header"
           ReportDistributionMgt.GetFullDocumentTypeText(Rec), FieldNo("Sell-to Customer No."), FieldNo("No."));
     end;
 
+    /// <summary>
+    /// Sends the selected shipment records using the customer's document sending profile.
+    /// </summary>
     procedure SendRecords()
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -725,6 +1059,10 @@ table 110 "Sales Shipment Header"
           FieldNo("Bill-to Customer No."), FieldNo("No."));
     end;
 
+    /// <summary>
+    /// Prints the sales shipment records using the configured report selection.
+    /// </summary>
+    /// <param name="ShowRequestForm">Specifies whether to show the report request page.</param>
     procedure PrintRecords(ShowRequestForm: Boolean)
     var
         ReportSelection: Record "Report Selections";
@@ -739,6 +1077,9 @@ table 110 "Sales Shipment Header"
           ReportSelection.Usage::"S.Shipment", SalesShptHeader, ShowRequestForm, SalesShptHeader.FieldNo("Bill-to Customer No."));
     end;
 
+    /// <summary>
+    /// Validates that the shipment has been printed at least once.
+    /// </summary>
     procedure CheckNoPrinted()
     var
         IsHandled: Boolean;
@@ -751,6 +1092,10 @@ table 110 "Sales Shipment Header"
         Rec.TestField("No. Printed");
     end;
 
+    /// <summary>
+    /// Sends the sales shipment records via email using the configured document sending profile.
+    /// </summary>
+    /// <param name="ShowDialog">Specifies whether to show the email dialog.</param>
     procedure EmailRecords(ShowDialog: Boolean)
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -767,6 +1112,9 @@ table 110 "Sales Shipment Header"
           ReportDistributionMgt.GetFullDocumentTypeText(Rec), FieldNo("Bill-to Customer No."), ShowDialog);
     end;
 
+    /// <summary>
+    /// Opens the Navigate page to show related entries for this sales shipment.
+    /// </summary>
     procedure Navigate()
     var
         NavigatePage: Page Navigate;
@@ -782,6 +1130,9 @@ table 110 "Sales Shipment Header"
         NavigatePage.Run();
     end;
 
+    /// <summary>
+    /// Opens the shipping agent's tracking website for the package.
+    /// </summary>
     procedure StartTrackingSite()
     var
         IsHandled: Boolean;
@@ -796,11 +1147,18 @@ table 110 "Sales Shipment Header"
         HyperLink(ShippingAgent.GetTrackingInternetAddr("Package Tracking No."));
     end;
 
+    /// <summary>
+    /// Opens a page showing the dimension set for this sales shipment.
+    /// </summary>
     procedure ShowDimensions()
     begin
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "No."));
     end;
 
+    /// <summary>
+    /// Checks if all lines in the shipment have been fully invoiced.
+    /// </summary>
+    /// <returns>Returns true if there are no uninvoiced quantities remaining.</returns>
     procedure IsCompletlyInvoiced(): Boolean
     var
         SalesShipmentLine: Record "Sales Shipment Line";
@@ -812,6 +1170,9 @@ table 110 "Sales Shipment Header"
         exit(false);
     end;
 
+    /// <summary>
+    /// Sets a security filter based on the user's responsibility center.
+    /// </summary>
     procedure SetSecurityFilterOnRespCenter()
     var
         IsHandled: Boolean;
@@ -828,6 +1189,10 @@ table 110 "Sales Shipment Header"
         end;
     end;
 
+    /// <summary>
+    /// Gets the customer's VAT registration number.
+    /// </summary>
+    /// <returns>The VAT registration number.</returns>
     procedure GetCustomerVATRegistrationNumber() ReturnValue: Text
     var
         CountryRegion: Record "Country/Region";
@@ -843,6 +1208,10 @@ table 110 "Sales Shipment Header"
         exit("VAT Registration No.");
     end;
 
+    /// <summary>
+    /// Gets the label for the VAT registration number field.
+    /// </summary>
+    /// <returns>The field caption if VAT registration number exists, otherwise empty.</returns>
     procedure GetCustomerVATRegistrationNumberLbl() ReturnValue: Text
     var
         CountryRegion: Record "Country/Region";
@@ -858,6 +1227,10 @@ table 110 "Sales Shipment Header"
         exit(FieldCaption("VAT Registration No."));
     end;
 
+    /// <summary>
+    /// Gets the customer's global location number (GLN).
+    /// </summary>
+    /// <returns>The GLN if customer exists, otherwise empty.</returns>
     procedure GetCustomerGlobalLocationNumber(): Text
     var
         Customer: Record Customer;
@@ -867,6 +1240,10 @@ table 110 "Sales Shipment Header"
         exit('');
     end;
 
+    /// <summary>
+    /// Gets the label for the GLN field.
+    /// </summary>
+    /// <returns>The field caption if customer exists, otherwise empty.</returns>
     procedure GetCustomerGlobalLocationNumberLbl(): Text
     var
         Customer: Record Customer;
@@ -876,6 +1253,10 @@ table 110 "Sales Shipment Header"
         exit('');
     end;
 
+    /// <summary>
+    /// Gets the legal statement from sales setup for printing on shipments.
+    /// </summary>
+    /// <returns>The legal statement text.</returns>
     procedure GetLegalStatement(): Text
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -884,6 +1265,10 @@ table 110 "Sales Shipment Header"
         exit(SalesSetup.GetLegalStatement());
     end;
 
+    /// <summary>
+    /// Gets the work description text from the blob field.
+    /// </summary>
+    /// <returns>The work description text.</returns>
     procedure GetWorkDescription(): Text
     var
         TypeHelper: Codeunit "Type Helper";
@@ -894,6 +1279,10 @@ table 110 "Sales Shipment Header"
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName("Work Description")));
     end;
 
+    /// <summary>
+    /// Prints the shipments and saves them as document attachments.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The shipment records to print and attach.</param>
     procedure PrintToDocumentAttachment(var SalesShipmentHeader: Record "Sales Shipment Header")
     var
         ShowNotificationAction: Boolean;
@@ -964,31 +1353,64 @@ table 110 "Sales Shipment Header"
         "Bill-to Customer No." := Customer."No.";
     end;
 
+    /// <summary>
+    /// Raised before emailing sales shipment records.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header records to email.</param>
+    /// <param name="SendDialog">Specifies whether to show the send dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEmailRecords(var SalesShipmentHeader: Record "Sales Shipment Header"; var SendDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing sales shipment records.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header records to print.</param>
+    /// <param name="ShowDialog">Specifies whether to show the print dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintRecords(var SalesShipmentHeader: Record "Sales Shipment Header"; ShowDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before starting the package tracking site for the shipment.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeStartTrackingSite(var SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending the sales shipment using a document sending profile.
+    /// </summary>
+    /// <param name="DocumentSendingProfile">The document sending profile to use.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendProfile(var DocumentSendingProfile: Record "Document Sending Profile"; var SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the security filter on responsibility center for the sales shipment header.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters during the Applies-to Doc. No. lookup.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry record with filters applied.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustomerVATRegistrationNumber(var SalesShipmentHeader: Record "Sales Shipment Header"; var ReturnValue: Text; var IsHandled: Boolean)
     begin
@@ -1004,11 +1426,21 @@ table 110 "Sales Shipment Header"
     begin
     end;
 
+    /// <summary>
+    /// Raised before navigating to related entries for the sales shipment.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNavigate(SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the number of times the sales shipment has been printed.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoPrinted(var SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin

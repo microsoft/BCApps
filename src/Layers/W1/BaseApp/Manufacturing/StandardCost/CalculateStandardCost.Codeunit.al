@@ -1556,7 +1556,7 @@ codeunit 5812 "Calculate Standard Cost"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Standard Cost Worksheet", 'OnAfterValidateEvent', 'No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Standard Cost Worksheet", 'OnAfterValidateEvent', 'No.', true, false)]
     local procedure OnValidateNoByType(var Rec: Record "Standard Cost Worksheet")
     var
         MachineCenter: Record "Machine Center";

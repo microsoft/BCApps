@@ -21,6 +21,7 @@ page 5757 "Transfer Receipt Statistics"
                 Caption = 'General';
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Location;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -28,6 +29,7 @@ page 5757 "Transfer Receipt Statistics"
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Location;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
@@ -35,6 +37,7 @@ page 5757 "Transfer Receipt Statistics"
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Location;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -42,6 +45,7 @@ page 5757 "Transfer Receipt Statistics"
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Location;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
@@ -49,6 +53,7 @@ page 5757 "Transfer Receipt Statistics"
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Location;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;

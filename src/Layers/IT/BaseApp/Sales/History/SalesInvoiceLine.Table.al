@@ -37,6 +37,9 @@ using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
 
+/// <summary>
+/// Stores line-level details for posted sales invoices including items, quantities, prices, and amounts.
+/// </summary>
 table 113 "Sales Invoice Line"
 {
     Caption = 'Sales Invoice Line';
@@ -48,25 +51,40 @@ table 113 "Sales Invoice Line"
 
     fields
     {
+        /// <summary>
+        /// Specifies the customer number who received the shipped items.
+        /// </summary>
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
             Editable = false;
             TableRelation = Customer;
         }
+        /// <summary>
+        /// Specifies the document number of the posted invoice this line belongs to.
+        /// </summary>
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             TableRelation = "Sales Invoice Header";
         }
+        /// <summary>
+        /// Specifies the line number within the document.
+        /// </summary>
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Specifies the type of entity on the line such as Item, G/L Account, or Resource.
+        /// </summary>
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
         }
+        /// <summary>
+        /// Specifies the number of the item, G/L account, resource, or other entity on the line.
+        /// </summary>
         field(6; "No."; Code[20])
         {
             CaptionClass = GetCaptionClass(FieldNo("No."));
@@ -81,11 +99,17 @@ table 113 "Sales Invoice Line"
             else
             if (Type = const("Charge (Item)")) "Item Charge";
         }
+        /// <summary>
+        /// Specifies the warehouse location from which items were shipped.
+        /// </summary>
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+        /// <summary>
+        /// Specifies the posting group that determines G/L accounts for inventory or fixed assets.
+        /// </summary>
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
@@ -94,27 +118,46 @@ table 113 "Sales Invoice Line"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
+        /// <summary>
+        /// Specifies the date when the items were shipped.
+        /// </summary>
         field(10; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
         }
+        /// <summary>
+        /// Specifies a description of the item or service on the line.
+        /// </summary>
         field(11; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Specifies additional description text for the line.
+        /// </summary>
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
         }
+        /// <summary>
+        /// Specifies the name of the unit of measure for the line.
+        /// </summary>
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
         }
+        /// <summary>
+        /// Specifies the quantity of items or resources invoiced on the line.
+        /// </summary>
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the price per unit of the item or resource.
+        /// </summary>
         field(22; "Unit Price"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -122,222 +165,358 @@ table 113 "Sales Invoice Line"
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
         }
+        /// <summary>
+        /// Specifies the unit cost in local currency.
+        /// </summary>
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
+        /// <summary>
+        /// Specifies the VAT percentage applied to the line.
+        /// </summary>
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the line discount percentage applied.
+        /// </summary>
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the line discount amount in document currency.
+        /// </summary>
         field(28; "Line Discount Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
         }
+        /// <summary>
+        /// Specifies the line amount excluding VAT.
+        /// </summary>
         field(29; Amount; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount';
         }
+        /// <summary>
+        /// Specifies the line amount including VAT.
+        /// </summary>
         field(30; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
         }
+        /// <summary>
+        /// Indicates whether the line can be included in invoice discount calculation.
+        /// </summary>
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the gross weight of the items on the line.
+        /// </summary>
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the net weight of the items on the line.
+        /// </summary>
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the number of units per parcel for shipping.
+        /// </summary>
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the volume of a single unit of the item.
+        /// </summary>
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the item ledger entry number to apply this line to.
+        /// </summary>
         field(38; "Appl.-to Item Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
         }
+        /// <summary>
+        /// Specifies the first global dimension code for analysis.
+        /// </summary>
         field(40; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Specifies the second global dimension code for analysis.
+        /// </summary>
         field(41; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Specifies the customer price group used for pricing.
+        /// </summary>
         field(42; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
             TableRelation = "Customer Price Group";
         }
+        /// <summary>
+        /// Specifies the project number associated with the line.
+        /// </summary>
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
             TableRelation = Job;
         }
+        /// <summary>
+        /// Specifies the work type code for resource pricing.
+        /// </summary>
         field(52; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
             TableRelation = "Work Type";
         }
+        /// <summary>
+        /// Specifies the shipment document number from which this line was invoiced.
+        /// </summary>
         field(63; "Shipment No."; Code[20])
         {
             Caption = 'Shipment No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the line number from the shipment document.
+        /// </summary>
         field(64; "Shipment Line No."; Integer)
         {
             Caption = 'Shipment Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the sales order number from which this invoice was created.
+        /// </summary>
         field(65; "Order No."; Code[20])
         {
             Caption = 'Order No.';
         }
+        /// <summary>
+        /// Specifies the line number from the original sales order.
+        /// </summary>
         field(66; "Order Line No."; Integer)
         {
             Caption = 'Order Line No.';
         }
+        /// <summary>
+        /// Specifies the customer number to whom the invoice was sent.
+        /// </summary>
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
             Editable = false;
             TableRelation = Customer;
         }
+        /// <summary>
+        /// Specifies the invoice discount amount allocated to this line.
+        /// </summary>
         field(69; "Inv. Discount Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
         }
+        /// <summary>
+        /// Indicates whether the items were shipped directly from the vendor to the customer.
+        /// </summary>
         field(73; "Drop Shipment"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Drop Shipment';
         }
+        /// <summary>
+        /// Specifies the general business posting group for determining G/L accounts.
+        /// </summary>
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
             TableRelation = "Gen. Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the general product posting group for determining G/L accounts.
+        /// </summary>
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
             TableRelation = "Gen. Product Posting Group";
         }
+        /// <summary>
+        /// Specifies the method used to calculate VAT for this line.
+        /// </summary>
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
         }
+        /// <summary>
+        /// Specifies the transaction type for Intrastat reporting.
+        /// </summary>
         field(78; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
             TableRelation = "Transaction Type";
         }
+        /// <summary>
+        /// Specifies the transport method for Intrastat reporting.
+        /// </summary>
         field(79; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
             TableRelation = "Transport Method";
         }
+        /// <summary>
+        /// Specifies the line number this line is attached to for extended text or comments.
+        /// </summary>
         field(80; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
             TableRelation = "Sales Invoice Line"."Line No." where("Document No." = field("Document No."));
         }
+        /// <summary>
+        /// Specifies the exit point for Intrastat reporting.
+        /// </summary>
         field(81; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
             TableRelation = "Entry/Exit Point";
         }
+        /// <summary>
+        /// Specifies the area code for Intrastat reporting.
+        /// </summary>
         field(82; "Area"; Code[10])
         {
             Caption = 'Area';
             TableRelation = Area;
         }
+        /// <summary>
+        /// Specifies additional transaction details for Intrastat reporting.
+        /// </summary>
         field(83; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
             TableRelation = "Transaction Specification";
         }
+        /// <summary>
+        /// Specifies the tax category code for tax reporting.
+        /// </summary>
         field(84; "Tax Category"; Code[10])
         {
             Caption = 'Tax Category';
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculation.
+        /// </summary>
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the sale is liable for tax.
+        /// </summary>
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the tax group code for sales tax calculation.
+        /// </summary>
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Specifies the VAT clause code for additional VAT information on documents.
+        /// </summary>
         field(88; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for VAT calculation.
+        /// </summary>
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the VAT product posting group for VAT calculation.
+        /// </summary>
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
             TableRelation = "VAT Product Posting Group";
         }
+        /// <summary>
+        /// Specifies the blanket order number this line originated from.
+        /// </summary>
         field(97; "Blanket Order No."; Code[20])
         {
             Caption = 'Blanket Order No.';
             TableRelation = "Sales Header"."No." where("Document Type" = const("Blanket Order"));
         }
+        /// <summary>
+        /// Specifies the line number from the blanket order.
+        /// </summary>
         field(98; "Blanket Order Line No."; Integer)
         {
             Caption = 'Blanket Order Line No.';
             TableRelation = "Sales Line"."Line No." where("Document Type" = const("Blanket Order"),
                                                            "Document No." = field("Blanket Order No."));
         }
+        /// <summary>
+        /// Specifies the amount used as the base for VAT calculation.
+        /// </summary>
         field(99; "VAT Base Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -345,6 +524,9 @@ table 113 "Sales Invoice Line"
             Caption = 'VAT Base Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unit cost in document currency.
+        /// </summary>
         field(100; "Unit Cost"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -352,11 +534,17 @@ table 113 "Sales Invoice Line"
             Caption = 'Unit Cost';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether the line was created automatically by the system.
+        /// </summary>
         field(101; "System-Created Entry"; Boolean)
         {
             Caption = 'System-Created Entry';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the net amount for the line before invoice discount.
+        /// </summary>
         field(103; "Line Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -364,56 +552,89 @@ table 113 "Sales Invoice Line"
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
         }
+        /// <summary>
+        /// Specifies the difference between calculated and posted VAT amounts.
+        /// </summary>
         field(104; "VAT Difference"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'VAT Difference';
         }
+        /// <summary>
+        /// Specifies the VAT identifier for grouping VAT entries.
+        /// </summary>
         field(106; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the type of intercompany partner reference.
+        /// </summary>
         field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
         }
+        /// <summary>
+        /// Specifies the intercompany partner reference code.
+        /// </summary>
         field(108; "IC Partner Reference"; Code[20])
         {
             Caption = 'IC Partner Reference';
         }
+        /// <summary>
+        /// Indicates whether this is a prepayment line.
+        /// </summary>
         field(123; "Prepayment Line"; Boolean)
         {
             Caption = 'Prepayment Line';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the intercompany partner code for intercompany transactions.
+        /// </summary>
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             TableRelation = "IC Partner";
         }
+        /// <summary>
+        /// Specifies the date when the line was posted.
+        /// </summary>
         field(131; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Specifies the item reference number for intercompany transactions.
+        /// </summary>
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
         }
+        /// <summary>
+        /// Specifies the payment discount amount for the line.
+        /// </summary>
         field(145; "Pmt. Discount Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Pmt. Discount Amount';
         }
+        /// <summary>
+        /// Specifies how the line discount was calculated.
+        /// </summary>
         field(180; "Line Discount Calculation"; Option)
         {
             Caption = 'Line Discount Calculation';
             OptionCaption = 'None,%,Amount';
             OptionMembers = "None","%",Amount;
         }
+        /// <summary>
+        /// Specifies the unique identifier for the dimension set applied to this line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -425,37 +646,58 @@ table 113 "Sales Invoice Line"
                 Rec.ShowDimensions();
             end;
         }
+        /// <summary>
+        /// Specifies the project task number for project-related invoices.
+        /// </summary>
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
             Editable = false;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
+        /// <summary>
+        /// Specifies the project contract entry number for billing.
+        /// </summary>
         field(1002; "Job Contract Entry No."; Integer)
         {
             Caption = 'Project Contract Entry No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the deferral template code for revenue deferral.
+        /// </summary>
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
             TableRelation = "Deferral Template"."Deferral Code";
         }
+        /// <summary>
+        /// Specifies the allocation account number for distributing amounts.
+        /// </summary>
         field(2678; "Allocation Account No."; Code[20])
         {
             Caption = 'Allocation Account No.';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Stores the system ID of the allocation sales line.
+        /// </summary>
         field(2679; "Alloc. Sales Line SystemId"; Guid)
         {
             Caption = 'Allocation Sales Line SystemId';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the item variant code for items with variants.
+        /// </summary>
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
+        /// <summary>
+        /// Specifies the warehouse bin code where items were stored.
+        /// </summary>
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
@@ -463,12 +705,19 @@ table 113 "Sales Invoice Line"
                                             "Item Filter" = field("No."),
                                             "Variant Filter" = field("Variant Code"));
         }
+        /// <summary>
+        /// Specifies the quantity per unit of measure for conversion.
+        /// </summary>
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unit of measure code for the line.
+        /// </summary>
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
@@ -476,99 +725,163 @@ table 113 "Sales Invoice Line"
             else
             "Unit of Measure";
         }
+        /// <summary>
+        /// Specifies the quantity in the base unit of measure.
+        /// </summary>
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Specifies the posting date for fixed asset transactions.
+        /// </summary>
         field(5600; "FA Posting Date"; Date)
         {
             Caption = 'FA Posting Date';
         }
+        /// <summary>
+        /// Specifies the depreciation book for fixed asset posting.
+        /// </summary>
         field(5602; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
             TableRelation = "Depreciation Book";
         }
+        /// <summary>
+        /// Indicates whether to calculate depreciation until the FA posting date.
+        /// </summary>
         field(5605; "Depr. until FA Posting Date"; Boolean)
         {
             Caption = 'Depr. until FA Posting Date';
         }
+        /// <summary>
+        /// Specifies a depreciation book to duplicate the entry to.
+        /// </summary>
         field(5612; "Duplicate in Depreciation Book"; Code[10])
         {
             Caption = 'Duplicate in Depreciation Book';
             TableRelation = "Depreciation Book";
         }
+        /// <summary>
+        /// Indicates whether to use the duplication list for fixed asset posting.
+        /// </summary>
         field(5613; "Use Duplication List"; Boolean)
         {
             Caption = 'Use Duplication List';
         }
+        /// <summary>
+        /// Specifies the responsibility center for the line.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
             TableRelation = "Responsibility Center";
         }
+        /// <summary>
+        /// Specifies the item category code for categorization.
+        /// </summary>
         field(5709; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
             TableRelation = if (Type = const(Item)) "Item Category";
         }
+        /// <summary>
+        /// Indicates whether the item is a catalog item.
+        /// </summary>
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
         }
+        /// <summary>
+        /// Specifies the purchasing code for special order handling.
+        /// </summary>
         field(5711; "Purchasing Code"; Code[10])
         {
             Caption = 'Purchasing Code';
             TableRelation = Purchasing;
         }
+        /// <summary>
+        /// Specifies the item reference number used by the customer.
+        /// </summary>
         field(5725; "Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
         }
+        /// <summary>
+        /// Specifies the unit of measure associated with the item reference.
+        /// </summary>
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
             Caption = 'Unit of Measure (Item Ref.)';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
+        /// <summary>
+        /// Specifies the type of item reference such as customer or vendor.
+        /// </summary>
         field(5727; "Item Reference Type"; Enum "Item Reference Type")
         {
             Caption = 'Item Reference Type';
         }
+        /// <summary>
+        /// Specifies the number associated with the item reference type.
+        /// </summary>
         field(5728; "Item Reference Type No."; Code[30])
         {
             Caption = 'Item Reference Type No.';
         }
+        /// <summary>
+        /// Specifies the item ledger entry to apply from for cost tracking.
+        /// </summary>
         field(5811; "Appl.-from Item Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the reason code if items were returned.
+        /// </summary>
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
             TableRelation = "Return Reason";
         }
+        /// <summary>
+        /// Specifies the method used for price calculation.
+        /// </summary>
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
         }
+        /// <summary>
+        /// Indicates whether line discounts are allowed for this line.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the customer discount group for line discount calculation.
+        /// </summary>
         field(7002; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
         }
+        /// <summary>
+        /// Contains a formatted description of the price calculation.
+        /// </summary>
         field(7004; "Price description"; Text[80])
         {
             Caption = 'Price description';
         }
+        /// <summary>
+        /// Contains the name of the sell-to customer.
+        /// </summary>
         field(7012; "Sell-to Customer Name"; Text[100])
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Sell-to Customer No.")));
@@ -578,6 +891,7 @@ table 113 "Sales Invoice Line"
         }
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -668,17 +982,27 @@ table 113 "Sales Invoice Line"
         PriceDescriptionTxt: Label 'x%1 (%2%3/%4)', Locked = true;
         PriceDescriptionWithLineDiscountTxt: Label 'x%1 (%2%3/%4) - %5%', Locked = true;
 
+    /// <summary>
+    /// Retrieves the currency code from the sales invoice header.
+    /// </summary>
+    /// <returns>The currency code for this invoice line.</returns>
     procedure GetCurrencyCode(): Code[10]
     begin
         GetHeader();
         exit(SalesInvoiceHeader."Currency Code");
     end;
 
+    /// <summary>
+    /// Opens the dimension set entries page for this invoice line.
+    /// </summary>
     procedure ShowDimensions()
     begin
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2 %3', TableCaption(), "Document No.", "Line No."));
     end;
 
+    /// <summary>
+    /// Opens the Item Tracking Lines page showing the tracking for this invoice line.
+    /// </summary>
     procedure ShowItemTrackingLines()
     var
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
@@ -686,6 +1010,11 @@ table 113 "Sales Invoice Line"
         ItemTrackingDocMgt.ShowItemTrackingForInvoiceLine(RowID1());
     end;
 
+    /// <summary>
+    /// Calculates VAT amount lines for the invoice based on the invoice lines.
+    /// </summary>
+    /// <param name="SalesInvHeader">The invoice header to calculate VAT for.</param>
+    /// <param name="TempVATAmountLine">Returns the calculated VAT amount lines.</param>
     procedure CalcVATAmountLines(SalesInvHeader: Record "Sales Invoice Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     var
         IsHandled: Boolean;
@@ -705,6 +1034,10 @@ table 113 "Sales Invoice Line"
             until Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates the line amount excluding VAT.
+    /// </summary>
+    /// <returns>The line amount excluding VAT.</returns>
     procedure GetLineAmountExclVAT(): Decimal
     begin
         GetHeader();
@@ -714,6 +1047,10 @@ table 113 "Sales Invoice Line"
         exit(Round("Line Amount" / (1 + "VAT %" / 100), Currency."Amount Rounding Precision"));
     end;
 
+    /// <summary>
+    /// Calculates the line amount including VAT.
+    /// </summary>
+    /// <returns>The line amount including VAT.</returns>
     procedure GetLineAmountInclVAT(): Decimal
     begin
         GetHeader();
@@ -723,6 +1060,10 @@ table 113 "Sales Invoice Line"
         exit(Round("Line Amount" * (1 + "VAT %" / 100), Currency."Amount Rounding Precision"));
     end;
 
+    /// <summary>
+    /// Retrieves the sales invoice header record for this line.
+    /// </summary>
+    /// <returns>The sales invoice header record.</returns>
     procedure GetInvoiceHeader(): Record "Sales Invoice Header"
     begin
         GetHeader();
@@ -751,6 +1092,11 @@ table 113 "Sales Invoice Line"
         exit(Field."Field Caption");
     end;
 
+    /// <summary>
+    /// Retrieves the caption class for a specified field to handle VAT-inclusive pricing display.
+    /// </summary>
+    /// <param name="FieldNumber">The field number to get the caption class for.</param>
+    /// <returns>The caption class string for the field.</returns>
     procedure GetCaptionClass(FieldNumber: Integer): Text[80]
     begin
         GetHeader();
@@ -765,6 +1111,10 @@ table 113 "Sales Invoice Line"
         end;
     end;
 
+    /// <summary>
+    /// Generates a unique row identifier for item tracking purposes.
+    /// </summary>
+    /// <returns>The row identifier string.</returns>
     procedure RowID1(): Text[250]
     var
         ItemTrackingMgt: Codeunit "Item Tracking Management";
@@ -773,6 +1123,10 @@ table 113 "Sales Invoice Line"
             0, "Document No.", '', 0, "Line No."));
     end;
 
+    /// <summary>
+    /// Retrieves the sales shipment lines associated with this invoice line.
+    /// </summary>
+    /// <param name="TempSalesShipmentLine">Returns the temporary sales shipment lines.</param>
     procedure GetSalesShptLines(var TempSalesShipmentLine: Record "Sales Shipment Line" temporary)
     var
         SalesShipmentLine: Record "Sales Shipment Line";
@@ -797,6 +1151,12 @@ table 113 "Sales Invoice Line"
             end;
     end;
 
+    /// <summary>
+    /// Calculates the shipped sales quantity that has not been returned.
+    /// </summary>
+    /// <param name="ShippedQtyNotReturned">Returns the quantity shipped but not returned.</param>
+    /// <param name="RevUnitCostLCY">Returns the reverse unit cost in local currency.</param>
+    /// <param name="ExactCostReverse">Specifies whether to use exact cost reversing.</param>
     procedure CalcShippedSaleNotReturned(var ShippedQtyNotReturned: Decimal; var RevUnitCostLCY: Decimal; ExactCostReverse: Boolean)
     var
         TempItemLedgEntry: Record "Item Ledger Entry" temporary;
@@ -843,6 +1203,11 @@ table 113 "Sales Invoice Line"
         OnAfterCalcQty(Rec, QtyBase, Result);
     end;
 
+    /// <summary>
+    /// Retrieves item ledger entries associated with this invoice line.
+    /// </summary>
+    /// <param name="TempItemLedgEntry">Returns the temporary item ledger entries.</param>
+    /// <param name="SetQuantity">Indicates whether to set quantities from value entries.</param>
     procedure GetItemLedgEntries(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SetQuantity: Boolean)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -878,6 +1243,10 @@ table 113 "Sales Invoice Line"
             until ValueEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Applies filters to value entries to retrieve entries for this posted document line.
+    /// </summary>
+    /// <param name="ValueEntry">The value entry record to apply filters to.</param>
     procedure FilterPstdDocLineValueEntries(var ValueEntry: Record "Value Entry")
     begin
         ValueEntry.Reset();
@@ -887,6 +1256,9 @@ table 113 "Sales Invoice Line"
         ValueEntry.SetRange("Document Line No.", "Line No.");
     end;
 
+    /// <summary>
+    /// Opens a page displaying the shipment lines for this invoice line.
+    /// </summary>
     procedure ShowItemShipmentLines()
     var
         TempSalesShptLine: Record "Sales Shipment Line" temporary;
@@ -897,6 +1269,9 @@ table 113 "Sales Invoice Line"
         end;
     end;
 
+    /// <summary>
+    /// Opens a page displaying the comments for this invoice line.
+    /// </summary>
     procedure ShowLineComments()
     var
         SalesCommentLine: Record "Sales Comment Line";
@@ -904,11 +1279,20 @@ table 113 "Sales Invoice Line"
         SalesCommentLine.ShowComments(SalesCommentLine."Document Type"::"Posted Invoice".AsInteger(), "Document No.", "Line No.");
     end;
 
+    /// <summary>
+    /// Retrieves the shortcut dimension codes for this invoice line.
+    /// </summary>
+    /// <param name="ShortcutDimCode">Returns the array of shortcut dimension codes.</param>
     procedure ShowShortcutDimCode(var ShortcutDimCode: array[8] of Code[20])
     begin
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Initializes the sales invoice line from a sales line when posting an invoice.
+    /// </summary>
+    /// <param name="SalesInvHeader">The sales invoice header to link to.</param>
+    /// <param name="SalesLine">The sales line to copy data from.</param>
     procedure InitFromSalesLine(SalesInvHeader: Record "Sales Invoice Header"; SalesLine: Record "Sales Line")
     begin
         Init();
@@ -923,6 +1307,9 @@ table 113 "Sales Invoice Line"
         OnAfterInitFromSalesLine(Rec, SalesInvHeader, SalesLine);
     end;
 
+    /// <summary>
+    /// Opens a page displaying the deferral schedule for this invoice line.
+    /// </summary>
     procedure ShowDeferrals()
     var
         IsHandled: Boolean;
@@ -937,6 +1324,9 @@ table 113 "Sales Invoice Line"
             GetDocumentType(), "Document No.", "Line No.");
     end;
 
+    /// <summary>
+    /// Updates the price description field based on current line values.
+    /// </summary>
     procedure UpdatePriceDescription()
     var
         Currency: Record Currency;
@@ -953,6 +1343,10 @@ table 113 "Sales Invoice Line"
                     "Unit Price", "Unit of Measure", "Line Discount %");
     end;
 
+    /// <summary>
+    /// Formats the line type for display, handling blank types specially.
+    /// </summary>
+    /// <returns>Returns the formatted type text.</returns>
     procedure FormatType(): Text
     var
         SalesLine: Record "Sales Line";
@@ -963,6 +1357,10 @@ table 113 "Sales Invoice Line"
         exit(Format(Type));
     end;
 
+    /// <summary>
+    /// Retrieves the document type integer for this posted invoice line.
+    /// </summary>
+    /// <returns>Returns the document type value as an integer.</returns>
     procedure GetDocumentType(): Integer
     var
         SalesCommentLine: Record "Sales Comment Line";
@@ -970,16 +1368,27 @@ table 113 "Sales Invoice Line"
         exit(SalesCommentLine."Document Type"::"Posted Invoice".AsInteger())
     end;
 
+    /// <summary>
+    /// Determines whether the line has a type that requires mandatory fields to be filled.
+    /// </summary>
+    /// <returns>Returns true if the line type is not blank.</returns>
     procedure HasTypeToFillMandatoryFields(): Boolean
     begin
         exit(Type <> Type::" ");
     end;
 
+    /// <summary>
+    /// Checks if the line type supports invoice cancellation.
+    /// </summary>
+    /// <returns>Returns true if the line type can be cancelled.</returns>
     procedure IsCancellationSupported(): Boolean
     begin
         exit(Type in [Type::" ", Type::Item, Type::"G/L Account", Type::"Charge (Item)", Type::Resource]);
     end;
 
+    /// <summary>
+    /// Applies a security filter based on the user's responsibility center setup.
+    /// </summary>
     procedure SetSecurityFilterOnRespCenter()
     var
         UserSetupManagement: Codeunit "User Setup Management";
@@ -997,6 +1406,10 @@ table 113 "Sales Invoice Line"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the date to use for calculations, defaulting to work date if posting date is not set.
+    /// </summary>
+    /// <returns>The calculation date.</returns>
     procedure GetDateForCalculations() CalculationDate: Date;
     begin
         CalculationDate := Rec."Posting Date";
@@ -1010,46 +1423,100 @@ table 113 "Sales Invoice Line"
         OnAfterGetVATPct(Rec, VATPct);
     end;
 
+    /// <summary>
+    /// Raised after calculating the quantity for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line record.</param>
+    /// <param name="QtyBase">The base quantity used in the calculation.</param>
+    /// <param name="Result">The calculated result quantity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcQty(var SalesInvoiceLine: Record "Sales Invoice Line"; QtyBase: Decimal; var Result: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the sales invoice line from a sales line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line being initialized.</param>
+    /// <param name="SalesInvHeader">The sales invoice header record.</param>
+    /// <param name="SalesLine">The source sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromSalesLine(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting item ledger entries for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line record.</param>
+    /// <param name="TempItemLedgEntry">The temporary item ledger entry buffer.</param>
+    /// <param name="SetQuantity">Specifies whether to set the quantity.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetItemLedgEntries(var SalesInvLine: Record "Sales Invoice Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SetQuantity: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating VAT amount lines for the sales invoice.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line record.</param>
+    /// <param name="SalesInvHeader">The sales invoice header record.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line buffer.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcVATAmountLines(SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the temporary item ledger entry during GetItemLedgEntries.
+    /// </summary>
+    /// <param name="TempItemLedgerEntry">The temporary item ledger entry being inserted.</param>
+    /// <param name="ValueEntry">The source value entry record.</param>
+    /// <param name="SetQuantity">Specifies whether to set the quantity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetItemLedgEntriesOnBeforeTempItemLedgEntryInsert(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; ValueEntry: Record "Value Entry"; SetQuantity: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing deferrals for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDeferrals(SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the security filter on responsibility center for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the VAT percentage for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line record.</param>
+    /// <param name="VATPct">The VAT percentage value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var SalesInvoiceLine: Record "Sales Invoice Line"; var VATPct: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the shipped sales quantity not returned.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line record.</param>
+    /// <param name="ShippedQtyNotReturned">The shipped quantity that has not been returned.</param>
+    /// <param name="RevUnitCostLCY">The reverse unit cost in local currency.</param>
+    /// <param name="ExactCostReverse">Specifies whether exact cost reversing is enabled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcShippedSaleNotReturned(var SalesInvoiceLine: Record "Sales Invoice Line"; var ShippedQtyNotReturned: Decimal; var RevUnitCostLCY: Decimal; ExactCostReverse: Boolean)
     begin

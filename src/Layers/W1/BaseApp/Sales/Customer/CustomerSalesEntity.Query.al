@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Provides an API query endpoint for retrieving customer sales amounts with date filtering.
+/// </summary>
 query 5480 "Customer Sales Entity"
 {
     Caption = 'customerSales', Locked = true;

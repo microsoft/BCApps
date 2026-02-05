@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Lists sales analysis views for dimensional analysis of sales data.
+/// </summary>
 page 9371 "Analysis View List Sales"
 {
     ApplicationArea = Dimensions, SalesAnalysis;

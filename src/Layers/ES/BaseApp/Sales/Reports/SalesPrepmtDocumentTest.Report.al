@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Validates sales prepayment documents before posting by checking for errors and missing information.
+/// </summary>
+
 using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Dimension;

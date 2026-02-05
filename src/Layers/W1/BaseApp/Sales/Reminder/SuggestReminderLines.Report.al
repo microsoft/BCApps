@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Populates reminder documents with overdue customer ledger entries based on reminder terms configuration.
+/// </summary>
 report 189 "Suggest Reminder Lines"
 {
     Caption = 'Suggest Reminder Lines';

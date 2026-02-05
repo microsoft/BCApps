@@ -92,6 +92,8 @@ table 12111 "Computed Withholding Tax"
         }
         field(41; "WHT Amount Manual"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'WHT Amount Manual';
             DataClassification = CustomerContent;
         }

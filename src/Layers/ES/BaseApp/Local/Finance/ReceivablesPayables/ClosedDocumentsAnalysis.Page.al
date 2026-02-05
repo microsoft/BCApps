@@ -105,6 +105,7 @@ page 7000044 "Closed Documents Analysis"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Original Amt. (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the initial amount of this closed document, in LCY.';
@@ -114,6 +115,7 @@ page 7000044 "Closed Documents Analysis"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';
@@ -123,6 +125,7 @@ page 7000044 "Closed Documents Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';

@@ -56,6 +56,7 @@ page 35305 "Cartera Payables Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Documents';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -69,6 +70,7 @@ page 35305 "Cartera Payables Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Docs. in Payment Order';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -82,6 +84,7 @@ page 35305 "Cartera Payables Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Docs. in Posted Payment Order';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -95,6 +98,7 @@ page 35305 "Cartera Payables Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Honored Docs. in Posted Payment Order';
                     Editable = false;
                     ToolTip = 'Specifies settled payments.';

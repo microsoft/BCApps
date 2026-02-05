@@ -147,7 +147,7 @@ codeunit 5531 "Calc. Inventory Page Data"
             DATABASE::"Planning Component":
                 TransferPlanningComp(FromInvtEventBuf, InventoryPageData, SourceID, SourceBatchName, SourceProdOrderLine);
             else begin
-                OnTransferToPeriodDetailsElseCase(InventoryPageData, FromInvtEventBuf, IsHandled, SourceType, SourceSubtype, SourceID, SourceRefNo);
+                OnTransferToPeriodDetailsElseCase(InventoryPageData, FromInvtEventBuf, IsHandled, SourceType, SourceSubtype, SourceID, SourceRefNo, SourceBatchName, SourceProdOrderLine);
                 if not IsHandled then
                     Error(UnsupportedEntitySourceErr, SourceType, SourceSubtype);
             end;
@@ -283,7 +283,7 @@ codeunit 5531 "Calc. Inventory Page Data"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; var IsHandled: Boolean; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer)
+    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; var IsHandled: Boolean; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceBatchName: Code[10]; SourceProdOrderLine: Integer)
     begin
     end;
 

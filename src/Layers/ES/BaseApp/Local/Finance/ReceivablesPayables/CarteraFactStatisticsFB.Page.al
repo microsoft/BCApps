@@ -50,6 +50,7 @@ page 35306 "Cartera Fact. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is not processed yet. ';
@@ -63,6 +64,7 @@ page 35306 "Cartera Fact. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Honored';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is settled. ';
@@ -76,6 +78,7 @@ page 35306 "Cartera Fact. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Rejected';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is rejected.';

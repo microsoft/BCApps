@@ -45,6 +45,8 @@ page 1705 "Deferral Schedule View Subform"
                     field(TotalDeferral; TotalDeferral)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Total Amount to Defer';
                         Editable = false;
                         Enabled = false;

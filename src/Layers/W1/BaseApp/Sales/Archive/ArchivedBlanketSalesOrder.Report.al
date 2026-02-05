@@ -21,6 +21,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable document for an archived blanket sales order.
+/// </summary>
 report 5176 "Archived Blanket Sales Order"
 {
     DefaultLayout = RDLC;

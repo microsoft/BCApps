@@ -1,6 +1,8 @@
 namespace System.Security.AccessControl;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Document;
@@ -11,10 +13,14 @@ permissionset 1002 "LOCAL READ"
     Assignable = true;
     Caption = 'Country/region-specific read only access.';
 
-    Permissions = tabledata "Bank Account Buffer" = R,
+    Permissions =
+#if not CLEAN28
+                 tabledata "Bank Account Buffer" = R,
+#endif
                   tabledata "FR Acc. Schedule Line" = R,
                   tabledata "FR Acc. Schedule Name" = R,
-                  tabledata "Payment Address" = R,
+#if not CLEAN28
+                  tabledata "Payment Address" = RIMD,
                   tabledata "Payment Class" = R,
                   tabledata "Payment Header" = R,
                   tabledata "Payment Header Archive" = R,
@@ -24,6 +30,7 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Payment Status" = R,
                   tabledata "Payment Step" = R,
                   tabledata "Payment Step Ledger" = R,
+#endif
                   tabledata "Shipment Invoiced" = R,
                   tabledata "Unreal. CV Ledg. Entry Buffer" = R;
 }

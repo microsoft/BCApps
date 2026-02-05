@@ -61,6 +61,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(OriginalAmountFCY; OriginalAmountFCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Amount';
                     Editable = false;
                     ToolTip = 'Specifies the amount on the employee ledger entry before you post.';
@@ -73,6 +75,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(OriginalAmountLCY; OriginalAmountLCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount, in local currency, on the employee ledger entry before you post.';
@@ -86,6 +90,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(AmountFCY; AmountFCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Amount';
                     Editable = false;
                     ToolTip = 'Specifies the net amount of all the lines in the employee entry.';
@@ -98,6 +104,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(AmountLCY; AmountLCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount, in local currency, relating to the employee ledger entry';
@@ -111,6 +119,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(RemainingAmountFCY; RemainingAmountFCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Remaining Amount';
                     Editable = false;
                     ToolTip = 'Specifies the remaining amount on the employee ledger entry before you post.';
@@ -123,6 +133,8 @@ page 5239 "Empl. Ledger Entries Preview"
                 field(RemainingAmountLCY; RemainingAmountLCY)
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Remaining Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the remaining amount, in local currency, on the employee ledger entry before you post.';

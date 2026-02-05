@@ -15,6 +15,7 @@ page 35563 "ELM Interop Input"
         {
             field(Operand; Operand)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Basic, Suite;
                 Caption = 'Please type a value for the interoperability check';
             }

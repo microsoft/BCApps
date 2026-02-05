@@ -83,16 +83,19 @@ table 5005357 "Posted Phys. Invt. Rec. Line"
         }
         field(41; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(42; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(43; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -152,5 +155,5 @@ table 5005357 "Posted Phys. Invt. Rec. Line"
     }
 }
 
- 
+
 #endif

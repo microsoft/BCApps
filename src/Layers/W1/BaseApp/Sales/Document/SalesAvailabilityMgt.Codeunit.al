@@ -12,6 +12,9 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using System.IO;
 
+/// <summary>
+/// Manages inventory availability checks and warnings for sales documents.
+/// </summary>
 codeunit 99000872 "Sales Availability Mgt."
 {
     var
@@ -38,6 +41,12 @@ codeunit 99000872 "Sales Availability Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Sets the sales header for order promising and populates order promising lines.
+    /// </summary>
+    /// <param name="OrderPromisingLine">The order promising line record to populate.</param>
+    /// <param name="SalesHeader">The sales header to process.</param>
+    /// <param name="CaptionText">Returns the caption text for the page.</param>
     procedure SetSalesHeader(var OrderPromisingLine: Record "Order Promising Line"; var SalesHeader: Record "Sales Header"; var CaptionText: Text)
     var
         SalesLine: Record "Sales Line";
@@ -373,6 +382,11 @@ codeunit 99000872 "Sales Availability Mgt."
 
     // Table "Order Promising Line"
 
+    /// <summary>
+    /// Transfers sales line data to an order promising line record.
+    /// </summary>
+    /// <param name="OrderPromisingLine">The order promising line to populate.</param>
+    /// <param name="SalesLine">The sales line to transfer from.</param>
     procedure TransferToOrderPromisingLine(var OrderPromisingLine: Record "Order Promising Line"; var SalesLine: Record "Sales Line")
     begin
         OrderPromisingLine."Source Type" := OrderPromisingLine."Source Type"::Sales;
@@ -534,6 +548,11 @@ codeunit 99000872 "Sales Availability Mgt."
 
     // Codeunit "Item Availability Forms Mgt"
 
+    /// <summary>
+    /// Shows item availability information from a sales line for the specified availability type.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check availability for.</param>
+    /// <param name="AvailabilityType">The type of availability view to show (Period, Variant, Location, Event, BOM, or UOM).</param>
     procedure ShowItemAvailabilityFromSalesLine(var SalesLine: Record "Sales Line"; AvailabilityType: Enum "Item Availability Type")
     var
         Item: Record Item;
@@ -597,6 +616,10 @@ codeunit 99000872 "Sales Availability Mgt."
     begin
     end;
 
+    /// <summary>
+    /// Shows sales order lines for the specified item.
+    /// </summary>
+    /// <param name="Item">The item to show sales lines for.</param>
     procedure ShowSalesLines(var Item: Record Item)
     var
         SalesLine: Record "Sales Line";
@@ -699,6 +722,11 @@ codeunit 99000872 "Sales Availability Mgt."
     end;
 
 
+    /// <summary>
+    /// Transfers sales line data to an inventory event buffer for availability calculation.
+    /// </summary>
+    /// <param name="InventoryEventBuffer">The inventory event buffer to populate.</param>
+    /// <param name="SalesLine">The sales line to transfer from.</param>
     procedure TransferFromSales(var InventoryEventBuffer: Record "Inventory Event Buffer"; SalesLine: Record "Sales Line")
     var
         SalesLineReserve: Codeunit "Sales Line-Reserve";
@@ -730,6 +758,12 @@ codeunit 99000872 "Sales Availability Mgt."
         OnAfterTransferFromSales(InventoryEventBuffer, SalesLine);
     end;
 
+    /// <summary>
+    /// Transfers blanket sales order line data to an inventory event buffer.
+    /// </summary>
+    /// <param name="InventoryEventBuffer">The inventory event buffer to populate.</param>
+    /// <param name="SalesLine">The blanket sales order line to transfer from.</param>
+    /// <param name="UnconsumedQtyBase">The unconsumed quantity in base unit of measure.</param>
     procedure TransferFromSalesBlanketOrder(var InventoryEventBuffer: Record "Inventory Event Buffer"; SalesLine: Record "Sales Line"; UnconsumedQtyBase: Decimal)
     var
         RecRef: RecordRef;
@@ -753,6 +787,11 @@ codeunit 99000872 "Sales Availability Mgt."
         OnAfterTransferFromSalesBlanketOrder(InventoryEventBuffer, SalesLine);
     end;
 
+    /// <summary>
+    /// Transfers sales return order line data to an inventory event buffer.
+    /// </summary>
+    /// <param name="InventoryEventBuffer">The inventory event buffer to populate.</param>
+    /// <param name="SalesLine">The sales return line to transfer from.</param>
     procedure TransferFromSalesReturn(var InventoryEventBuffer: Record "Inventory Event Buffer"; SalesLine: Record "Sales Line")
     var
         SalesLineReserve: Codeunit "Sales Line-Reserve";

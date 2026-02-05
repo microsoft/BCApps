@@ -80,6 +80,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Amount';
                     DrillDown = true;
@@ -97,6 +98,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Base Amount';
                     DrillDown = true;
@@ -111,6 +113,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'VAT Amount';
                     DrillDown = true;
@@ -125,6 +128,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Unrealized Base Amount';
                     DrillDown = true;
@@ -139,6 +143,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Unrealized VAT Amount';
                     DrillDown = true;

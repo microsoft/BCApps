@@ -294,12 +294,17 @@ page 8907 "Sales & Marketing Manager RC"
                             Caption = 'Customer Trial Balance';
                             RunObject = report "Customer - Trial Balance";
                         }
+#if not CLEAN28
                         action("Customer - Sales List")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - Sales List';
                             RunObject = report "Customer - Sales List";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                     }
                     group("Group6")
                     {
@@ -502,18 +507,26 @@ page 8907 "Sales & Marketing Manager RC"
                         Caption = 'Customer - Order Detail';
                         RunObject = report "Customer - Order Detail";
                     }
+#if not CLEAN28
                     action("Sales Reservation Avail.")
                     {
                         ApplicationArea = Reservation;
                         Caption = 'Sales Reservation Avail.';
                         RunObject = report "Sales Reservation Avail.";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
                     action("Customer - Sales List1")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Sales List';
                         RunObject = report "Customer - Sales List";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Customer/Item Sales2")
                     {
                         ApplicationArea = Basic, Suite;

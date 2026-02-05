@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 
-codeunit 139537 "Shpfy Sync Variant Img Helper"
+codeunit 139557 "Shpfy Sync Variant Img Helper"
 {
     EventSubscriberInstance = Manual;
 

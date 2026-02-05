@@ -22,6 +22,7 @@ page 6032 "Service Shipment Statistics"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of all G/L account entries, costs, items and/or resource hours in the service document that were shipped.';
@@ -29,6 +30,7 @@ page 6032 "Service Shipment Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total quantity of parcels shipped from the service document.';
@@ -36,6 +38,7 @@ page 6032 "Service Shipment Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total net weight of the items shipped from the service document.';
@@ -43,6 +46,7 @@ page 6032 "Service Shipment Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total gross weight of the items shipped from the service document.';
@@ -50,6 +54,7 @@ page 6032 "Service Shipment Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total volume of the items shipped from the service document.';

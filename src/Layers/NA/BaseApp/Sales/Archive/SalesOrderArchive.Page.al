@@ -15,6 +15,9 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Security.User;
 
+/// <summary>
+/// Displays the details of an archived sales order document.
+/// </summary>
 page 5159 "Sales Order Archive"
 {
     Caption = 'Sales Order Archive';

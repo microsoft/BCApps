@@ -479,12 +479,6 @@ report 1408 "Bank Acc. Recon. - Test"
                     StatementEndingBalanceLbl += CalculatedFieldCaptionLbl;
 
                 ErrorLabel := 1;
-                if PrintOutstandingTransactions then begin
-                    OutstandingBankTransaction.DeleteAll();
-                    OutstandingPayment.DeleteAll();
-                    CreateOutstandingBankTransactions();
-                end;
-                TotalOutstdBankTransac := BankAccReconTest.TotalOutstandingBankTransactions("Bank Acc. Reconciliation");
 
                 BankAccReconLine.FilterBankRecLines("Bank Acc. Reconciliation");
                 BankAccReconLine.CalcSums("Statement Amount", Difference);
@@ -542,6 +536,12 @@ report 1408 "Bank Acc. Recon. - Test"
                     CheckForDirectEntries(BankAcc, BankAccPostingGroup, "Statement Date");
                 end;
                 BankAcc.CalcFields("Balance at Date", "Balance at Date (LCY)");
+                if PrintOutstandingTransactions then begin
+                    OutstandingBankTransaction.DeleteAll();
+                    OutstandingPayment.DeleteAll();
+                    CreateOutstandingBankTransactions();
+                end;
+                TotalOutstdBankTransac := BankAccReconTest.TotalOutstandingBankTransactions("Bank Acc. Reconciliation");
                 TotalOutstdPayments := BankAccReconTest.TotalOutstandingPayments("Bank Acc. Reconciliation");
                 EndingGLBalance := BankAcc."Balance at Date";
                 // Notice that BankAccReconLine had the sum of fields computed with CalcSums

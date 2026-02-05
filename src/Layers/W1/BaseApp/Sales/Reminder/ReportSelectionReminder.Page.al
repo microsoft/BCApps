@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+/// <summary>
+/// Configures which reports are used when printing or emailing reminders and finance charges.
+/// </summary>
 page 524 "Report Selection - Reminder"
 {
     ApplicationArea = Suite;

@@ -347,6 +347,7 @@ report 99001043 "Exchange Production BOM Item"
                     field(MultiplyQtyWith; QtyMultiply)
                     {
                         ApplicationArea = Manufacturing;
+                        AutoFormatType = 0;
                         Caption = 'Multiply Qty. with';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies the value of a quantity change here. If the quantity is to remain the same, enter 1 here. If you enter 2, the new quantities doubled in comparison with original quantity.';

@@ -443,9 +443,38 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     local procedure InitPath(AccountId: Guid; var Path: Text)
     var
         SharePointAccount: Record "Ext. SharePoint Account";
+        SitePath: Text;
     begin
         SharePointAccount.Get(AccountId);
+
+        // Extract site path from SharePoint URL
+        SitePath := GetSitePathFromUrl(SharePointAccount."SharePoint Url");
+
+        // Combine base folder path with the file path
         Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
+
+        // Ensure path starts with forward slash
+        if not Path.StartsWith('/') then
+            Path := '/' + Path;
+
+        // Prepend site path if it exists and path doesn't already include it
+        if (SitePath <> '') and (not Path.StartsWith(SitePath)) then
+            Path := SitePath + Path;
+    end;
+
+    local procedure GetSitePathFromUrl(SharePointUrl: Text): Text
+    var
+        Uri: Codeunit Uri;
+        PathSegment: Text;
+    begin
+        Uri.Init(SharePointUrl);
+        PathSegment := Uri.GetAbsolutePath();
+
+        // Remove trailing slash if present
+        if PathSegment.EndsWith('/') then
+            PathSegment := PathSegment.TrimEnd('/');
+
+        exit(PathSegment);
     end;
 
     local procedure CombinePath(Parent: Text; Child: Text): Text

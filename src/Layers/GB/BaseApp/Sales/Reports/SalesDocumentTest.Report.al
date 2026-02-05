@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Validates sales documents before posting by checking for errors, warnings, and missing information.
+/// </summary>
+
 using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
@@ -2215,6 +2219,10 @@ report 202 "Sales Document - Test"
         end;
     end;
 
+    /// <summary>
+    /// Adds default dimensions to a temporary sales line for testing purposes.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to add dimensions to.</param>
     procedure AddDimToTempLine(SalesLine: Record "Sales Line")
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -2232,6 +2240,13 @@ report 202 "Sales Document - Test"
         OnAfterAddDimToTempLine(SalesLine);
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the Sales Document Test report.
+    /// </summary>
+    /// <param name="NewShipReceiveOnNextPostReq">True to include ship/receive on next post check.</param>
+    /// <param name="NewInvOnNextPostReq">True to include invoice on next post check.</param>
+    /// <param name="NewShowDim">True to show dimensions on the test report.</param>
+    /// <param name="NewShowCostAssignment">True to show cost assignment details.</param>
     procedure InitializeRequest(NewShipReceiveOnNextPostReq: Boolean; NewInvOnNextPostReq: Boolean; NewShowDim: Boolean; NewShowCostAssignment: Boolean)
     begin
         ShipReceiveOnNextPostReq := NewShipReceiveOnNextPostReq;

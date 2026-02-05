@@ -12,6 +12,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Security.User;
 
+/// <summary>
+/// Displays the details of an archived sales return order document.
+/// </summary>
 page 6627 "Sales Return Order Archive"
 {
     Caption = 'Sales Return Order Archive';

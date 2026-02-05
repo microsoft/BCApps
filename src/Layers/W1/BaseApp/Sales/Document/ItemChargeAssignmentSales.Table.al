@@ -9,6 +9,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Stores item charge allocation data linking charges to specific sales shipment or return receipt lines.
+/// </summary>
 table 5809 "Item Charge Assignment (Sales)"
 {
     Caption = 'Item Charge Assignment (Sales)';
@@ -16,40 +19,64 @@ table 5809 "Item Charge Assignment (Sales)"
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of sales document for this item charge assignment.
+        /// </summary>
         field(1; "Document Type"; Enum "Sales Document Type")
         {
             Caption = 'Document Type';
         }
+        /// <summary>
+        /// Specifies the sales document number containing the item charge line.
+        /// </summary>
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             TableRelation = "Sales Header"."No." where("Document Type" = field("Document Type"));
         }
+        /// <summary>
+        /// Specifies the line number of the item charge on the sales document.
+        /// </summary>
         field(3; "Document Line No."; Integer)
         {
             Caption = 'Document Line No.';
             TableRelation = "Sales Line"."Line No." where("Document Type" = field("Document Type"),
                                                            "Document No." = field("Document No."));
         }
+        /// <summary>
+        /// Specifies the unique line number for this charge assignment entry.
+        /// </summary>
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Specifies the item charge number being assigned to sales lines.
+        /// </summary>
         field(5; "Item Charge No."; Code[20])
         {
             Caption = 'Item Charge No.';
             NotBlank = true;
             TableRelation = "Item Charge";
         }
+        /// <summary>
+        /// Specifies the item number that receives the allocated charge.
+        /// </summary>
         field(6; "Item No."; Code[20])
         {
             Caption = 'Item No.';
             TableRelation = Item;
         }
+        /// <summary>
+        /// Contains a description of the item charge assignment.
+        /// </summary>
         field(7; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Specifies the quantity of the item charge to be assigned to the target document line.
+        /// </summary>
         field(8; "Qty. to Assign"; Decimal)
         {
             AutoFormatType = 0;
@@ -75,6 +102,9 @@ table 5809 "Item Charge Assignment (Sales)"
                 Validate("Amount to Assign");
             end;
         }
+        /// <summary>
+        /// Specifies the quantity of the item charge that has already been assigned.
+        /// </summary>
         field(9; "Qty. Assigned"; Decimal)
         {
             AutoFormatType = 0;
@@ -83,6 +113,9 @@ table 5809 "Item Charge Assignment (Sales)"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unit cost of the item charge for assignment calculations.
+        /// </summary>
         field(10; "Unit Cost"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -94,6 +127,9 @@ table 5809 "Item Charge Assignment (Sales)"
                 Validate("Amount to Assign");
             end;
         }
+        /// <summary>
+        /// Specifies the total amount of the item charge to be assigned, calculated from quantity and unit cost.
+        /// </summary>
         field(11; "Amount to Assign"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -109,10 +145,16 @@ table 5809 "Item Charge Assignment (Sales)"
                 ItemChargeAssgntSales.SuggestAssignmentFromLine(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the type of document to which this item charge is applied.
+        /// </summary>
         field(12; "Applies-to Doc. Type"; Enum "Sales Applies-to Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Specifies the document number to which this item charge is applied.
+        /// </summary>
         field(13; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
@@ -128,6 +170,9 @@ table 5809 "Item Charge Assignment (Sales)"
             else
             if ("Applies-to Doc. Type" = const("Return Receipt")) "Return Receipt Header"."No.";
         }
+        /// <summary>
+        /// Specifies the document line number to which this item charge is applied.
+        /// </summary>
         field(14; "Applies-to Doc. Line No."; Integer)
         {
             Caption = 'Applies-to Doc. Line No.';
@@ -147,14 +192,21 @@ table 5809 "Item Charge Assignment (Sales)"
             else
             if ("Applies-to Doc. Type" = const("Return Receipt")) "Return Receipt Line"."Line No." where("Document No." = field("Applies-to Doc. No."));
         }
+        /// <summary>
+        /// Specifies the amount of the document line to which the charge is applied.
+        /// </summary>
         field(15; "Applies-to Doc. Line Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Applies-to Doc. Line Amount';
         }
+        /// <summary>
+        /// Specifies the quantity of item charges to handle when posting.
+        /// </summary>
         field(16; "Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Handle';
             DecimalPlaces = 0 : 5;
@@ -166,6 +218,9 @@ table 5809 "Item Charge Assignment (Sales)"
                 Validate("Amount to Handle");
             end;
         }
+        /// <summary>
+        /// Specifies the amount of item charges to handle when posting.
+        /// </summary>
         field(17; "Amount to Handle"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -227,6 +282,10 @@ table 5809 "Item Charge Assignment (Sales)"
             exit(SalesLine."Currency Code");
     end;
 
+    /// <summary>
+    /// Checks whether the applied-to sales line is fully invoiced.
+    /// </summary>
+    /// <returns>True if the sales line is fully invoiced.</returns>
     procedure SalesLineInvoiced() Result: Boolean
     begin
         if "Applies-to Doc. Type" <> "Document Type" then
@@ -236,6 +295,12 @@ table 5809 "Item Charge Assignment (Sales)"
         OnAfterSalesLineInvoiced(Rec, SalesLine, Result);
     end;
 
+    /// <summary>
+    /// Checks if item charge assignments exist for the specified document line and raises an error if found.
+    /// </summary>
+    /// <param name="AppliesToDocumentType">The document type to check.</param>
+    /// <param name="AppliesToDocumentNo">The document number to check.</param>
+    /// <param name="AppliesToDocumentLineNo">The document line number to check.</param>
     procedure CheckAssignment(AppliesToDocumentType: Enum "Sales Applies-to Document Type"; AppliesToDocumentNo: Code[20]; AppliesToDocumentLineNo: Integer)
     begin
         Reset();

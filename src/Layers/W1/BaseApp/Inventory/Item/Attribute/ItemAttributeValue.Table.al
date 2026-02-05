@@ -56,6 +56,7 @@ table 7501 "Item Attribute Value"
         }
         field(4; "Numeric Value"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Numeric Value';
 

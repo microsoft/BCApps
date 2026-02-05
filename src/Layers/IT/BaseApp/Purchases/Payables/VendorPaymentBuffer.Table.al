@@ -64,6 +64,7 @@ table 475 "Vendor Payment Buffer"
         field(8; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

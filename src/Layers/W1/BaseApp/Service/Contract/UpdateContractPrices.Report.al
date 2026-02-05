@@ -151,6 +151,7 @@ report 6031 "Update Contract Prices"
                     field("Price Update %"; PriceUpdPct)
                     {
                         ApplicationArea = Service;
+                        AutoFormatType = 0;
                         Caption = 'Price Update %';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies the price update for the service item contract values in percentages.';

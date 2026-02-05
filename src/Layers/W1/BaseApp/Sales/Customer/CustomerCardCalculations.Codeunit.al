@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Finance.ReceivablesPayables;
 
+/// <summary>
+/// Calculates customer card statistics as a background task including invoices, payments, and profit.
+/// </summary>
 codeunit 32 "Customer Card Calculations"
 {
     trigger OnRun()

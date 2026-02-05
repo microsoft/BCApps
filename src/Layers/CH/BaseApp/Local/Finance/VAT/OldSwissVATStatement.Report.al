@@ -1075,18 +1075,21 @@ report 11518 "Old Swiss VAT Statement"
                     }
                     field(NormalRatePerc; NormalRatePerc)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Normal rate VAT %';
                         ToolTip = 'Specifies the standard VAT rate that applies to the time period.';
                     }
                     field(ReducedRatePerc; ReducedRatePerc)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Reduced rate VAT %';
                         ToolTip = 'Specifies the reduced VAT for certain goods and services.';
                     }
                     field(SpecialRatePerc; SpecialRatePerc)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Special rate VAT %';
                         ToolTip = 'Specifies the current special tax rates used to assign the correct rates to the business and product groups defined in the VAT settings.';

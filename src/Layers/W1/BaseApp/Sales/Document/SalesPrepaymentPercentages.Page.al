@@ -9,6 +9,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using System.Text;
 
+/// <summary>
+/// Displays and manages prepayment percentage configurations for sales transactions.
+/// </summary>
 page 664 "Sales Prepayment Percentages"
 {
     Caption = 'Sales Prepayment Percentages';
@@ -220,6 +223,9 @@ page 664 "Sales Prepayment Percentages"
         end;
     end;
 
+    /// <summary>
+    /// Sets filters on the record based on the current filter values for sales type, sales code, item, and starting date.
+    /// </summary>
     procedure SetRecFilters()
     begin
         SalesCodeFilterCtrlEnable := true;
@@ -253,6 +259,10 @@ page 664 "Sales Prepayment Percentages"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Returns a descriptive caption for the page based on current filter settings.
+    /// </summary>
+    /// <returns>Returns a text caption combining item and sales code filter information.</returns>
     procedure Caption(): Text
     var
         Item: Record Item;

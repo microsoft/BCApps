@@ -7,13 +7,13 @@ namespace Microsoft.Finance.GeneralLedger.Preview;
 codeunit 99000796 "Mfg. Posting Preview Binding"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterBindSubscription', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterBindSubscription', '', true, false)]
     local procedure BindPostPrevEventHandlerOnAfterBindSubscription()
     begin
         TryBindPostingPreviewHandler();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterUnbindSubscription', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterUnbindSubscription', '', true, false)]
     local procedure UnbindPostPrecEventHandlerOnAfterUnbindSubscription()
     begin
         TryUnbindPostingPreviewHandler();

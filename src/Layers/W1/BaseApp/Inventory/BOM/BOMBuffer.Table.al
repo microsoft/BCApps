@@ -75,6 +75,7 @@ table 5870 "BOM Buffer"
         }
         field(20; "Lot Size"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Lot Size';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -86,47 +87,56 @@ table 5870 "BOM Buffer"
         }
         field(22; "Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rounding Precision';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(30; "Qty. per Parent"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Parent';
             DecimalPlaces = 0 : 5;
         }
         field(31; "Qty. per Top Item"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Top Item';
             DecimalPlaces = 0 : 5;
         }
         field(32; "Able to Make Top Item"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Able to Make Top Item';
             DecimalPlaces = 0 : 5;
         }
         field(33; "Able to Make Parent"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Able to Make Parent';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Available Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Available Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Gross Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Requirement';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Scheduled Receipts"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Receipts';
             DecimalPlaces = 0 : 5;
         }
         field(38; "Unused Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unused Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -153,30 +163,35 @@ table 5870 "BOM Buffer"
         field(50; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
         }
         field(52; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
         }
         field(54; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
         }
         field(55; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Scrap %';
         }
         field(56; "Scrap Qty. per Parent"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Qty. per Parent';
             DecimalPlaces = 0 : 5;
         }
         field(57; "Scrap Qty. per Top Item"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Qty. per Top Item';
             DecimalPlaces = 0 : 5;
         }
@@ -189,6 +204,7 @@ table 5870 "BOM Buffer"
         field(61; "Single-Level Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Material Cost';
             DecimalPlaces = 2 : 5;
@@ -196,6 +212,7 @@ table 5870 "BOM Buffer"
         field(62; "Single-Level Capacity Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Capacity Cost';
             DecimalPlaces = 2 : 5;
@@ -203,6 +220,7 @@ table 5870 "BOM Buffer"
         field(64; "Single-Level Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Cap. Ovhd Cost';
             DecimalPlaces = 2 : 5;
@@ -210,6 +228,7 @@ table 5870 "BOM Buffer"
         field(63; "Single-Level Subcontrd. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Subcontrd. Cost';
             DecimalPlaces = 2 : 5;
@@ -217,12 +236,15 @@ table 5870 "BOM Buffer"
         field(65; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Mfg. Ovhd Cost';
             DecimalPlaces = 2 : 5;
         }
         field(66; "Single-Level Scrap Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Scrap Cost';
             DecimalPlaces = 2 : 5;
@@ -230,6 +252,7 @@ table 5870 "BOM Buffer"
         field(71; "Rolled-up Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Material Cost';
             DecimalPlaces = 2 : 5;
@@ -238,6 +261,7 @@ table 5870 "BOM Buffer"
         field(72; "Rolled-up Capacity Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Capacity Cost';
             DecimalPlaces = 2 : 5;
@@ -246,6 +270,7 @@ table 5870 "BOM Buffer"
         field(74; "Rolled-up Capacity Ovhd. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Capacity Ovhd. Cost';
             Editable = false;
@@ -253,6 +278,7 @@ table 5870 "BOM Buffer"
         field(73; "Rolled-up Subcontracted Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Subcontracted Cost';
             Editable = false;
@@ -260,12 +286,15 @@ table 5870 "BOM Buffer"
         field(75; "Rolled-up Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Mfg. Ovhd Cost';
             Editable = false;
         }
         field(76; "Rolled-up Scrap Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Scrap Cost';
             DecimalPlaces = 2 : 5;
@@ -273,6 +302,7 @@ table 5870 "BOM Buffer"
         field(77; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Material Non-Inventory Cost';
             DecimalPlaces = 2 : 5;
@@ -280,6 +310,7 @@ table 5870 "BOM Buffer"
         field(78; "Rolled-up Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Material Non-Inventory Cost';
             DecimalPlaces = 2 : 5;
@@ -287,6 +318,8 @@ table 5870 "BOM Buffer"
         }
         field(81; "Total Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Total Cost';
             DecimalPlaces = 2 : 5;
@@ -300,6 +333,7 @@ table 5870 "BOM Buffer"
         }
         field(83; "Qty. per BOM Line"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per BOM Line';
             DecimalPlaces = 0 : 5;
         }

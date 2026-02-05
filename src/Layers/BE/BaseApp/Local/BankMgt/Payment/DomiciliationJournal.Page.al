@@ -261,6 +261,7 @@ page 2000022 "Domiciliation Journal"
                         field(BalanceRem; Amt + Rec.Amount - xRec.Amount)
                         {
                             ApplicationArea = All;
+                            AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
                             Caption = 'Total Customer';
                             Editable = false;
@@ -274,6 +275,7 @@ page 2000022 "Domiciliation Journal"
                         field(TotalBalance; TotalAmount + Rec.Amount - xRec.Amount)
                         {
                             ApplicationArea = All;
+                            AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
                             Caption = 'Total Balance';
                             Editable = false;

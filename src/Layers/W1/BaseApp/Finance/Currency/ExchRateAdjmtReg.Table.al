@@ -124,6 +124,8 @@ table 86 "Exch. Rate Adjmt. Reg."
         }
         field(23; "Adjustment Amount"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Adjustment Amount';
             CalcFormula = sum("Exch. Rate Adjmt. Ledg. Entry"."Adjustment Amount" where("Register No." = field("No.")));
             Editable = false;

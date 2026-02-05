@@ -74,32 +74,38 @@ table 203 "Res. Ledger Entry"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(12; "Direct Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
         }
         field(13; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
         }
         field(14; "Total Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost';
         }
         field(15; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
         }
         field(16; "Total Price"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price';
         }
         field(17; "Global Dimension 1 Code"; Code[20])
@@ -175,10 +181,12 @@ table 203 "Res. Ledger Entry"
         }
         field(32; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
         }
         field(33; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
         }
         field(34; "Resource Register No."; Integer)

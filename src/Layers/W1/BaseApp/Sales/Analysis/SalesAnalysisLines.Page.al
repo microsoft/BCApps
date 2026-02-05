@@ -8,6 +8,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Allows configuration of lines for sales analysis reports including items and customers.
+/// </summary>
 page 7120 "Sales Analysis Lines"
 {
     AutoSplitKey = true;
@@ -337,6 +340,10 @@ page 7120 "Sales Analysis Lines"
         end;
     end;
 
+    /// <summary>
+    /// Sets the current analysis line template name for the page.
+    /// </summary>
+    /// <param name="AnalysisLineTemlName">The analysis line template name to set.</param>
     procedure SetCurrentAnalysisLineTempl(AnalysisLineTemlName: Code[10])
     begin
         CurrentAnalysisLineTempl := AnalysisLineTemlName;
@@ -362,6 +369,12 @@ page 7120 "Sales Analysis Lines"
         DescriptionIndent := Rec.Indentation;
     end;
 
+    /// <summary>
+    /// Raised before inserting analysis lines of the specified type.
+    /// </summary>
+    /// <param name="AnalysisLine">The analysis line record being processed.</param>
+    /// <param name="Type">The type of analysis line to insert.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertAnalysisLine(var AnalysisLine: Record "Analysis Line"; Type: Enum "Analysis Line Type"; var IsHandled: Boolean)
     begin

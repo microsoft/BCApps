@@ -17,41 +17,54 @@ table 10704 "Sales/Purch. Book VAT Buffer"
     {
         field(1; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DataClassification = SystemMetadata;
         }
         field(2; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = SystemMetadata;
         }
         field(3; Base; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base';
             DataClassification = SystemMetadata;
         }
         field(4; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(5; "EC Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'EC Amount';
             DataClassification = SystemMetadata;
         }
         field(6; "Non-Deductible VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non-Deductible VAT %';
             DataClassification = SystemMetadata;
         }
         field(7; "Non-Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Base';
             DataClassification = SystemMetadata;
         }
         field(8; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Amount';
             DataClassification = SystemMetadata;
         }

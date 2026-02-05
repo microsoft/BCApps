@@ -353,6 +353,7 @@ report 11503 "Item ABC Analysis"
                         field(RatioCatA; Apct)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'A';
                             DecimalPlaces = 0 : 0;
                             MaxValue = 100;
@@ -367,6 +368,7 @@ report 11503 "Item ABC Analysis"
                         field(Bpct; Bpct)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'B';
                             DecimalPlaces = 0 : 0;
                             MaxValue = 100;
@@ -381,6 +383,7 @@ report 11503 "Item ABC Analysis"
                         field(Cpct; Cpct)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'C';
                             DecimalPlaces = 0 : 0;
                             MaxValue = 100;

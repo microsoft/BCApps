@@ -33,6 +33,7 @@ page 5117 "Salesperson Statistics"
                 {
                     ApplicationArea = RelationshipMgmt;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Avg. Cost per Response';
                     ToolTip = 'Specifies the cost of the campaign per response.';
                 }
@@ -44,7 +45,7 @@ page 5117 "Salesperson Statistics"
                 field(AvgDurationPerResp; AvgDurationPerResp)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    AutoFormatType = 1;
+                    AutoFormatType = 0;
                     Caption = 'Avg. Duration per Response';
                     ToolTip = 'Specifies how long the campaign took per response.';
                 }

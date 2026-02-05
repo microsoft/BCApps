@@ -955,12 +955,13 @@ codeunit 134480 "ERM Dimension General Part 2"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         AccScheduleLine.Validate("Row No.", Format(LibraryRandom.RandInt(5)));
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate(Totaling, Totaling);
         AccScheduleLine.Modify(true);
         LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
         LibraryERM.CreateColumnLayout(ColumnLayout, ColumnLayoutName.Name);
         LibraryVariableStorage.Enqueue(ColumnLayoutName.Name);
-        LibraryVariableStorage.Enqueue(AccScheduleLine."Row No.");
+        LibraryVariableStorage.Enqueue(AccScheduleLine.Description);
         LibraryVariableStorage.Enqueue(UseAdditionalCurrency);
         LibraryVariableStorage.Enqueue(ExpectedAmount);
 
@@ -3599,14 +3600,14 @@ codeunit 134480 "ERM Dimension General Part 2"
     [Scope('OnPrem')]
     procedure AccScheduleOverviewPageHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
-        RowNo: Variant;
+        Description: Variant;
         CurrentColumnName: Variant;
     begin
         LibraryVariableStorage.Dequeue(CurrentColumnName);
-        LibraryVariableStorage.Dequeue(RowNo);
+        LibraryVariableStorage.Dequeue(Description);
         AccScheduleOverview.CurrentColumnName.SetValue(CurrentColumnName);
         AccScheduleOverview.UseAmtsInAddCurr.SetValue(LibraryVariableStorage.DequeueBoolean());
-        AccScheduleOverview."Row No.".AssertEquals(RowNo);
+        AccScheduleOverview.Description.AssertEquals(Description);
         AccScheduleOverview.ColumnValues1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
         AccScheduleOverview.UseAmtsInAddCurr.SetValue(false);
         AccScheduleOverview.OK().Invoke();

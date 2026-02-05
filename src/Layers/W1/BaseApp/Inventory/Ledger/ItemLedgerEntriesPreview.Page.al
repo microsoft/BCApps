@@ -149,6 +149,8 @@ page 167 "Item Ledger Entries Preview"
                 field(SalesAmountExpected; SalesAmountExpected)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales Amount (Expected)';
                     ToolTip = 'Specifies the expected sales amount in LCY. Choose the field to see the value entries that make up this amount.';
                     Visible = false;
@@ -156,12 +158,16 @@ page 167 "Item Ledger Entries Preview"
                 field(SalesAmountActual; SalesAmountActual)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales Amount (Actual)';
                     ToolTip = 'Specifies the sum of the actual sales amounts if you post.';
                 }
                 field(CostAmountExpected; CostAmountExpected)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Expected)';
                     ToolTip = 'Specifies the expected cost amount of the item. Expected costs are calculated from yet non-invoiced documents.';
                     Visible = false;
@@ -169,18 +175,24 @@ page 167 "Item Ledger Entries Preview"
                 field(CostAmountActual; CostAmountActual)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Actual)';
                     ToolTip = 'Specifies the sum of the actual cost amounts if you post.';
                 }
                 field(CostAmountNonInvtbl; CostAmountNonInvtbl)
                 {
                     ApplicationArea = ItemCharges;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Non-Invtbl.)';
                     ToolTip = 'Specifies the sum of the non-inventoriable cost amounts if you post. Typical non-inventoriable costs come from item charges.';
                 }
                 field(CostAmountExpectedACY; CostAmountExpectedACY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Expected) (ACY)';
                     ToolTip = 'Specifies the expected cost amount of the item. Expected costs are calculated from yet non-invoiced documents.';
                     Visible = false;
@@ -188,6 +200,8 @@ page 167 "Item Ledger Entries Preview"
                 field(CostAmountActualACY; CostAmountActualACY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Actual) (ACY)';
                     ToolTip = 'Specifies the actual cost amount of the item.';
                     Visible = false;
@@ -195,6 +209,8 @@ page 167 "Item Ledger Entries Preview"
                 field(CostAmountNonInvtblACY; CostAmountNonInvtblACY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Amount (Non-Invtbl.) (ACY)';
                     ToolTip = 'Specifies the sum of the non-inventoriable cost amounts if you post. Typical non-inventoriable costs come from item charges.';
                     Visible = false;

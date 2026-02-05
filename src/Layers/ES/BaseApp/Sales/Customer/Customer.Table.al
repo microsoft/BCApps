@@ -60,6 +60,9 @@ using System.Reflection;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Stores customer master data including contact information, financial settings, and sales preferences.
+/// </summary>
 table 18 Customer
 {
     Caption = 'Customer';
@@ -87,6 +90,9 @@ table 18 Customer
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier for the customer record.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
@@ -103,6 +109,9 @@ table 18 Customer
                 "Non-Paymt. Periods Code" := "No.";
             end;
         }
+        /// <summary>
+        /// Specifies the customer's name as it appears on sales documents and reports.
+        /// </summary>
         field(2; Name; Text[100])
         {
             Caption = 'Name';
@@ -117,30 +126,45 @@ table 18 Customer
                 UpdateMyCustomer(FieldNo(Name));
             end;
         }
+        /// <summary>
+        /// Specifies an alternate name used for searching and filtering customers.
+        /// </summary>
         field(3; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies an alternate name that you can use to search for a customer.';
         }
+        /// <summary>
+        /// Specifies additional name information for the customer.
+        /// </summary>
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies an additional part of the name.';
         }
+        /// <summary>
+        /// Specifies the customer's street address for correspondence and shipping.
+        /// </summary>
         field(5; Address; Text[100])
         {
             Caption = 'Address';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the customer''s address. This address will appear on all sales documents for the customer.';
         }
+        /// <summary>
+        /// Specifies additional address details such as suite or building information.
+        /// </summary>
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies additional address information.';
         }
+        /// <summary>
+        /// Specifies the city where the customer is located.
+        /// </summary>
         field(7; City; Text[30])
         {
             Caption = 'City';
@@ -174,6 +198,9 @@ table 18 Customer
                 OnAfterValidateCity(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Specifies the name of the primary contact person for this customer.
+        /// </summary>
         field(8; Contact; Text[100])
         {
             Caption = 'Contact';
@@ -204,6 +231,9 @@ table 18 Customer
                         end
             end;
         }
+        /// <summary>
+        /// Specifies the customer's primary telephone number.
+        /// </summary>
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
@@ -226,33 +256,51 @@ table 18 Customer
                 UpdateMyCustomer(FieldNo("Phone No."));
             end;
         }
+        /// <summary>
+        /// Specifies the customer's telex number for legacy communication.
+        /// </summary>
         field(10; "Telex No."; Text[20])
         {
             Caption = 'Telex No.';
             OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Specifies the preferred method for sending sales documents to this customer.
+        /// </summary>
         field(11; "Document Sending Profile"; Code[20])
         {
             Caption = 'Document Sending Profile';
             TableRelation = "Document Sending Profile".Code;
             ToolTip = 'Specifies the preferred method of sending documents to this customer, so that you do not have to select a sending option every time that you post and send a document to the customer. Sales documents to this customer will be sent using the specified sending profile and will override the default document sending profile.';
         }
+        /// <summary>
+        /// Specifies the default ship-to address code for deliveries to this customer.
+        /// </summary>
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("No."));
             ToolTip = 'Specifies the code for another shipment address than the customer''s own address, which is entered by default.';
         }
+        /// <summary>
+        /// Specifies this company's account number as known by the customer.
+        /// </summary>
         field(14; "Our Account No."; Text[20])
         {
             Caption = 'Our Account No.';
             OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Specifies the sales territory code assigned to this customer.
+        /// </summary>
         field(15; "Territory Code"; Code[10])
         {
             Caption = 'Territory Code';
             TableRelation = Territory;
         }
+        /// <summary>
+        /// Specifies the first global dimension code assigned to this customer for analysis.
+        /// </summary>
         field(16; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -265,6 +313,9 @@ table 18 Customer
                 Rec.ValidateShortcutDimCode(1, "Global Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the second global dimension code assigned to this customer for analysis.
+        /// </summary>
         field(17; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -277,28 +328,44 @@ table 18 Customer
                 Rec.ValidateShortcutDimCode(2, "Global Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the retail chain or franchise this customer belongs to.
+        /// </summary>
         field(18; "Chain Name"; Code[10])
         {
             Caption = 'Chain Name';
         }
+        /// <summary>
+        /// Specifies the budgeted sales amount for this customer.
+        /// </summary>
         field(19; "Budgeted Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Budgeted Amount';
         }
+        /// <summary>
+        /// Specifies the maximum credit amount in local currency extended to this customer.
+        /// </summary>
         field(20; "Credit Limit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Credit Limit (LCY)';
             Tooltip = 'Specifies the maximum amount of credit that you extend to the customer for their purchases before you issue warnings. The value 0 represents unlimited credit.';
         }
+        /// <summary>
+        /// Specifies the posting group that determines G/L accounts for customer transactions.
+        /// </summary>
         field(21; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
             TableRelation = "Customer Posting Group";
             ToolTip = 'Specifies the customer''s market type to link business transactions to.';
         }
+        /// <summary>
+        /// Specifies the default currency code for transactions with this customer.
+        /// </summary>
         field(22; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -310,12 +377,18 @@ table 18 Customer
                 UpdateCurrencyId();
             end;
         }
+        /// <summary>
+        /// Specifies the price group used to determine special sales prices for this customer.
+        /// </summary>
         field(23; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
             TableRelation = "Customer Price Group";
             ToolTip = 'Specifies the customer price group code, which you can use to set up special sales prices in the Sales Prices window.';
         }
+        /// <summary>
+        /// Specifies the language code used for documents sent to this customer.
+        /// </summary>
         field(24; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
@@ -327,6 +400,9 @@ table 18 Customer
                 UpdateFormatRegion();
             end;
         }
+        /// <summary>
+        /// Specifies the customer's official registration number.
+        /// </summary>
         field(25; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
@@ -345,11 +421,17 @@ table 18 Customer
                     FieldError("Registration Number", FieldLengthErr);
             end;
         }
+        /// <summary>
+        /// Specifies a statistics group code for categorizing the customer in reports.
+        /// </summary>
         field(26; "Statistics Group"; Integer)
         {
             Caption = 'Statistics Group';
             ToolTip = 'Specifies the statistics group.';
         }
+        /// <summary>
+        /// Specifies the default payment terms for invoices to this customer.
+        /// </summary>
         field(27; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
@@ -361,12 +443,18 @@ table 18 Customer
                 UpdatePaymentTermsId();
             end;
         }
+        /// <summary>
+        /// Specifies the finance charge terms applied to overdue invoices for this customer.
+        /// </summary>
         field(28; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
             TableRelation = "Finance Charge Terms";
             ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for this customer account.
+        /// </summary>
         field(29; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
@@ -378,6 +466,9 @@ table 18 Customer
                 ValidateSalesPersonCode();
             end;
         }
+        /// <summary>
+        /// Specifies the default shipment method for deliveries to this customer.
+        /// </summary>
         field(30; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
@@ -389,6 +480,9 @@ table 18 Customer
                 UpdateShipmentMethodId();
             end;
         }
+        /// <summary>
+        /// Specifies the default shipping agent for deliveries to this customer.
+        /// </summary>
         field(31; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -402,10 +496,16 @@ table 18 Customer
                     Validate("Shipping Agent Service Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the place of export for customs documentation purposes.
+        /// </summary>
         field(32; "Place of Export"; Code[20])
         {
             Caption = 'Place of Export';
         }
+        /// <summary>
+        /// Specifies the code used to calculate invoice discounts for this customer.
+        /// </summary>
         field(33; "Invoice Disc. Code"; Code[20])
         {
             Caption = 'Invoice Disc. Code';
@@ -413,12 +513,18 @@ table 18 Customer
             ValidateTableRelation = false;
             ToolTip = 'Specifies a code for the invoice discount terms that you have defined for the customer.';
         }
+        /// <summary>
+        /// Specifies the discount group used to determine line discounts for this customer.
+        /// </summary>
         field(34; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
             ToolTip = 'Specifies the customer discount group code, which you can use as a criterion to set up special discounts in the Sales Line Discounts window.';
         }
+        /// <summary>
+        /// Specifies the country or region code for the customer's address.
+        /// </summary>
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -434,16 +540,25 @@ table 18 Customer
                 AltCustVATRegFacade.CheckCustomerConsistency(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the method used for collecting payments from this customer.
+        /// </summary>
         field(36; "Collection Method"; Code[20])
         {
             Caption = 'Collection Method';
         }
+        /// <summary>
+        /// Contains the total amount from customer ledger entries within the date filter.
+        /// </summary>
         field(37; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
         }
+        /// <summary>
+        /// Indicates whether comments exist for this customer record.
+        /// </summary>
         field(38; Comment; Boolean)
         {
             CalcFormula = exist("Comment Line" where("Table Name" = const(Customer),
@@ -452,6 +567,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies whether the customer is blocked for transactions.
+        /// </summary>
         field(39; Blocked; Enum "Customer Blocked")
         {
             Caption = 'Blocked';
@@ -483,16 +601,25 @@ table 18 Customer
 #endif
         }
 #endif
+        /// <summary>
+        /// Specifies the number of the last printed customer statement.
+        /// </summary>
         field(41; "Last Statement No."; Integer)
         {
             Caption = 'Last Statement No.';
             ToolTip = 'Specifies the number of the last statement that was printed for this customer.';
         }
+        /// <summary>
+        /// Indicates whether to include this customer when printing statements.
+        /// </summary>
         field(42; "Print Statements"; Boolean)
         {
             Caption = 'Print Statements';
             ToolTip = 'Specifies whether to include this customer when you print the Statement report.';
         }
+        /// <summary>
+        /// Specifies a different customer to receive invoices for sales to this customer.
+        /// </summary>
         field(45; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
@@ -500,11 +627,17 @@ table 18 Customer
             ToolTip = 'Specifies a different customer who will be invoiced for products that you sell to the customer in the Name field on the customer card.';
             OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Specifies the priority level assigned to this customer for order processing.
+        /// </summary>
         field(46; Priority; Integer)
         {
             Caption = 'Priority';
             ToolTip = 'Specifies a number that corresponds to the priority you give the customer. The higher the number, the higher the priority.';
         }
+        /// <summary>
+        /// Specifies the default payment method for this customer.
+        /// </summary>
         field(47; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
@@ -521,6 +654,9 @@ table 18 Customer
                 UpdateDirectDebitPmtTermsCode();
             end;
         }
+        /// <summary>
+        /// Specifies the regional format used for dates and numbers on documents for this customer.
+        /// </summary>
         field(48; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
@@ -529,6 +665,9 @@ table 18 Customer
             ToolTip = 'Specifies the Format Region to be used on printouts for this customer.';
         }
 #pragma warning disable AA0232
+        /// <summary>
+        /// Contains the date of the first transaction with this customer.
+        /// </summary>
         field(52; "First Transaction Date"; Date)
         {
             Caption = 'Customer Since';
@@ -537,22 +676,34 @@ table 18 Customer
             CalcFormula = min("Cust. Ledger Entry"."Posting Date" where("Customer No." = field("No.")));
         }
 #pragma warning restore AA0232
+        /// <summary>
+        /// Indicates the date and time when this customer record was last modified.
+        /// </summary>
         field(53; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates the date when this customer record was last modified.
+        /// </summary>
         field(54; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
             Editable = false;
             ToolTip = 'Specifies when the customer card was last modified.';
         }
+        /// <summary>
+        /// Specifies a date range filter for calculating FlowFields.
+        /// </summary>
         field(55; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Specifies a filter for the first global dimension in FlowField calculations.
+        /// </summary>
         field(56; "Global Dimension 1 Filter"; Code[20])
         {
             CaptionClass = '1,3,1';
@@ -560,6 +711,9 @@ table 18 Customer
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Specifies a filter for the second global dimension in FlowField calculations.
+        /// </summary>
         field(57; "Global Dimension 2 Filter"; Code[20])
         {
             CaptionClass = '1,3,2';
@@ -567,6 +721,9 @@ table 18 Customer
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Contains the customer's current outstanding balance in the customer's currency.
+        /// </summary>
         field(58; Balance; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -580,9 +737,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the customer's current outstanding balance in local currency.
+        /// </summary>
         field(59; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -593,6 +754,9 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies the total amount the customer owes you, or you owe them, based on all sales and credits for the customer. A positive amount means they owe you, and a negative amount means you owe them. The amount isn''t necessarily due today though. The customer''s payment terms determine due dates. Select the amount to explore the ledger entries behind it.';
         }
+        /// <summary>
+        /// Contains the net change in the customer's balance within the date filter period.
+        /// </summary>
         field(60; "Net Change"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -607,9 +771,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the net change in the customer's balance in local currency within the date filter period.
+        /// </summary>
         field(61; "Net Change (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -620,9 +788,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total sales amount in local currency for this customer within the date filter.
+        /// </summary>
         field(62; "Sales (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Cust. Ledger Entry"."Sales (LCY)" where("Customer No." = field("No."),
                                                                         "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -633,9 +805,13 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies the total net amount of sales to the customer in LCY.';
         }
+        /// <summary>
+        /// Contains the total profit in local currency from sales to this customer.
+        /// </summary>
         field(63; "Profit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Cust. Ledger Entry"."Profit (LCY)" where("Customer No." = field("No."),
                                                                          "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                          "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -645,9 +821,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total invoice discounts in local currency given to this customer.
+        /// </summary>
         field(64; "Inv. Discounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Cust. Ledger Entry"."Inv. Discount (LCY)" where("Customer No." = field("No."),
                                                                                 "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                 "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -657,9 +837,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total payment discounts in local currency taken by this customer.
+        /// </summary>
         field(65; "Pmt. Discounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Discount" .. "Payment Discount (VAT Adjustment)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -670,6 +854,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the overdue balance in the customer's currency that is past due date.
+        /// </summary>
         field(66; "Balance Due"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -684,9 +871,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the overdue balance in local currency that the customer has not yet paid.
+        /// </summary>
         field(67; "Balance Due (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                  "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -698,6 +889,9 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies the total amount that''s due from the customer as of today. Consider using reminders to minimize late payments and optimize cashflow.';
         }
+        /// <summary>
+        /// Contains the total payments received from this customer within the date filter.
+        /// </summary>
         field(69; Payments; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -713,6 +907,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total invoice amounts for this customer within the date filter.
+        /// </summary>
         field(70; "Invoice Amounts"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -728,6 +925,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total credit memo amount issued to this customer within the date filter.
+        /// </summary>
         field(71; "Cr. Memo Amounts"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -743,6 +943,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total finance charge memo amount for this customer within the date filter.
+        /// </summary>
         field(72; "Finance Charge Memo Amounts"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -758,9 +961,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total payments in local currency received from this customer.
+        /// </summary>
         field(74; "Payments (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Payment),
                                                                                   "Entry Type" = const("Initial Entry"),
                                                                                   "Customer No." = field("No."),
@@ -773,9 +980,13 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies the sum of payments received from the customer.';
         }
+        /// <summary>
+        /// Contains the total invoice amounts in local currency for this customer.
+        /// </summary>
         field(75; "Inv. Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Invoice),
                                                                                  "Entry Type" = const("Initial Entry"),
                                                                                  "Customer No." = field("No."),
@@ -787,9 +998,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total credit memo amount in local currency issued to this customer.
+        /// </summary>
         field(76; "Cr. Memo Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const("Credit Memo"),
                                                                                   "Entry Type" = const("Initial Entry"),
                                                                                   "Customer No." = field("No."),
@@ -801,9 +1016,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total finance charge memo amount in local currency for this customer.
+        /// </summary>
         field(77; "Fin. Charge Memo Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const("Finance Charge Memo"),
                                                                                  "Entry Type" = const("Initial Entry"),
                                                                                  "Customer No." = field("No."),
@@ -815,6 +1034,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total value of outstanding sales orders for this customer.
+        /// </summary>
         field(78; "Outstanding Orders"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -829,6 +1051,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total value of shipped but not yet invoiced items for this customer.
+        /// </summary>
         field(79; "Shipped Not Invoiced"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -843,33 +1068,51 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the method used to apply payments to customer ledger entries.
+        /// </summary>
         field(80; "Application Method"; Enum "Application Method")
         {
             Caption = 'Application Method';
             ToolTip = 'Specifies how to apply payments to entries for this customer.';
         }
+        /// <summary>
+        /// Indicates whether prices on sales documents include VAT for this customer.
+        /// </summary>
         field(82; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
             ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
         }
+        /// <summary>
+        /// Specifies the default warehouse location for shipments to this customer.
+        /// </summary>
         field(83; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
             ToolTip = 'Specifies from which location sales to this customer will be processed by default.';
         }
+        /// <summary>
+        /// Specifies the customer's fax number for document transmission.
+        /// </summary>
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the customer''s fax number.';
         }
+        /// <summary>
+        /// Specifies the customer's telex answer back code for legacy communication.
+        /// </summary>
         field(85; "Telex Answer Back"; Text[20])
         {
             Caption = 'Telex Answer Back';
             OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number for tax reporting.
+        /// </summary>
         field(86; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
@@ -890,12 +1133,18 @@ table 18 Customer
                     VATRegistrationValidation();
             end;
         }
+        /// <summary>
+        /// Indicates whether multiple shipments can be combined on a single invoice for this customer.
+        /// </summary>
         field(87; "Combine Shipments"; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Combine Sales Shipments';
             ToolTip = 'Specifies if several orders delivered to the customer can appear on the same sales invoice.';
         }
+        /// <summary>
+        /// Specifies the general business posting group for determining G/L accounts.
+        /// </summary>
         field(88; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -909,6 +1158,9 @@ table 18 Customer
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the customer's Global Location Number for electronic document exchange.
+        /// </summary>
         field(90; GLN; Code[13])
         {
             Caption = 'GLN';
@@ -923,6 +1175,9 @@ table 18 Customer
                     GLNCalculator.AssertValidCheckDigit13(GLN);
             end;
         }
+        /// <summary>
+        /// Specifies the postal code for the customer's address.
+        /// </summary>
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
@@ -955,6 +1210,9 @@ table 18 Customer
                 OnAfterValidatePostCode(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Specifies the state, province, or county for the customer's address.
+        /// </summary>
         field(92; County; Text[30])
         {
             CaptionClass = '5,1,' + "Country/Region Code";
@@ -962,17 +1220,26 @@ table 18 Customer
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
+        /// <summary>
+        /// Specifies the customer's Economic Operators Registration and Identification number for customs.
+        /// </summary>
         field(93; "EORI Number"; Text[40])
         {
             Caption = 'EORI Number';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the Economic Operators Registration and Identification number that is used when you exchange information with the customs authorities due to trade into or out of the European Union.';
         }
+        /// <summary>
+        /// Indicates whether the GLN is used as party identification in electronic documents.
+        /// </summary>
         field(95; "Use GLN in Electronic Document"; Boolean)
         {
             Caption = 'Use GLN in Electronic Documents';
             ToolTip = 'Specifies whether the GLN is used in electronic documents as a party identification number.';
         }
+        /// <summary>
+        /// Contains the total debit amount from customer ledger entries within the date filter.
+        /// </summary>
         field(97; "Debit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -988,6 +1255,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total credit amount from customer ledger entries within the date filter.
+        /// </summary>
         field(98; "Credit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1003,9 +1273,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total debit amount in local currency from customer ledger entries.
+        /// </summary>
         field(99; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Debit Amount (LCY)" where("Customer No." = field("No."),
                                                                                        "Entry Type" = filter(<> Application),
@@ -1017,9 +1291,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total credit amount in local currency from customer ledger entries.
+        /// </summary>
         field(100; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Credit Amount (LCY)" where("Customer No." = field("No."),
                                                                                         "Entry Type" = filter(<> Application),
@@ -1031,6 +1309,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the customer's email address for electronic communication.
+        /// </summary>
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
@@ -1043,6 +1324,9 @@ table 18 Customer
                 ValidateEmail();
             end;
         }
+        /// <summary>
+        /// Specifies the customer's website URL.
+        /// </summary>
 #if not CLEAN27
 #pragma warning disable AS0086
 #endif
@@ -1056,6 +1340,9 @@ table 18 Customer
             ExtendedDatatype = URL;
             ToolTip = 'Specifies the customer''s home page address.';
         }
+        /// <summary>
+        /// Specifies the terms used to generate payment reminders for this customer.
+        /// </summary>
         field(104; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
@@ -1063,6 +1350,9 @@ table 18 Customer
             ToolTip = 'Specifies how reminders about late payments are handled for this customer.';
 
         }
+        /// <summary>
+        /// Contains the total amount of reminders issued to this customer.
+        /// </summary>
         field(105; "Reminder Amounts"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1078,9 +1368,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total reminder amounts in local currency issued to this customer.
+        /// </summary>
         field(106; "Reminder Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Reminder),
                                                                                  "Entry Type" = const("Initial Entry"),
                                                                                  "Customer No." = field("No."),
@@ -1092,12 +1386,18 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number series used to assign the customer number.
+        /// </summary>
         field(107; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the tax area code for calculating sales tax for this customer.
+        /// </summary>
         field(108; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
@@ -1109,11 +1409,17 @@ table 18 Customer
                 UpdateTaxAreaId();
             end;
         }
+        /// <summary>
+        /// Indicates whether sales to this customer are subject to sales tax.
+        /// </summary>
         field(109; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
             ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for determining VAT rates.
+        /// </summary>
         field(110; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -1125,16 +1431,23 @@ table 18 Customer
                 UpdateTaxAreaId();
             end;
         }
+        /// <summary>
+        /// Specifies a currency filter for calculating FlowFields.
+        /// </summary>
         field(111; "Currency Filter"; Code[10])
         {
             Caption = 'Currency Filter';
             FieldClass = FlowFilter;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Contains the total outstanding sales orders in local currency for this customer.
+        /// </summary>
         field(113; "Outstanding Orders (LCY)"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Sales Line"."Outstanding Amount (LCY)" where("Document Type" = const(Order),
                                                                              "Bill-to Customer No." = field("No."),
                                                                              "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -1145,10 +1458,14 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies your expected sales income from the customer in LCY based on ongoing sales orders.';
         }
+        /// <summary>
+        /// Contains the total shipped but not invoiced amount in local currency for this customer.
+        /// </summary>
         field(114; "Shipped Not Invoiced (LCY)"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Sales Line"."Shipped Not Invoiced (LCY)" where("Document Type" = const(Order),
                                                                                "Bill-to Customer No." = field("No."),
                                                                                "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -1159,6 +1476,9 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies your expected sales income from the customer in LCY based on ongoing sales orders where items have been shipped.';
         }
+        /// <summary>
+        /// Specifies the default inventory reservation method for sales to this customer.
+        /// </summary>
         field(115; Reserve; Enum "Reserve Method")
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1166,6 +1486,9 @@ table 18 Customer
             InitValue = Optional;
             ToolTip = 'Specifies whether items will never, automatically (Always), or optionally be reserved for this customer. Optional means that you must manually reserve items for this customer.';
         }
+        /// <summary>
+        /// Indicates whether payment tolerance is blocked for this customer.
+        /// </summary>
         field(116; "Block Payment Tolerance"; Boolean)
         {
             Caption = 'Block Payment Tolerance';
@@ -1176,9 +1499,13 @@ table 18 Customer
                 UpdatePaymentTolerance((CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Contains the total payment discount tolerance amounts in local currency for this customer.
+        /// </summary>
         field(117; "Pmt. Disc. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Discount Tolerance" | "Payment Discount Tolerance (VAT Adjustment)" | "Payment Discount Tolerance (VAT Excl.)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -1189,9 +1516,13 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total payment tolerance amounts in local currency for this customer.
+        /// </summary>
         field(118; "Pmt. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Tolerance" | "Payment Tolerance (VAT Adjustment)" | "Payment Tolerance (VAT Excl.)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -1202,6 +1533,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the intercompany partner code for transactions between related companies.
+        /// </summary>
         field(119; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -1249,8 +1583,13 @@ table 18 Customer
                 end;
             end;
         }
+        /// <summary>
+        /// Contains the total refund amounts for this customer within the date filter.
+        /// </summary>
         field(120; Refunds; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Initial Document Type" = const(Refund),
                                                                          "Entry Type" = const("Initial Entry"),
                                                                          "Customer No." = field("No."),
@@ -1261,6 +1600,9 @@ table 18 Customer
             Caption = 'Refunds';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total refund amounts in local currency for this customer.
+        /// </summary>
         field(121; "Refunds (LCY)"; Decimal)
         {
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Refund),
@@ -1274,7 +1616,11 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies the sum of refunds received from the customer.';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
+        /// <summary>
+        /// Contains other miscellaneous amounts for this customer within the date filter.
+        /// </summary>
         field(122; "Other Amounts"; Decimal)
         {
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Initial Document Type" = const(" "),
@@ -1286,7 +1632,11 @@ table 18 Customer
                                                                          "Currency Code" = field("Currency Filter")));
             Caption = 'Other Amounts';
             FieldClass = FlowField;
+            AutoFormatType = 0;
         }
+        /// <summary>
+        /// Contains other miscellaneous amounts in local currency for this customer.
+        /// </summary>
         field(123; "Other Amounts (LCY)"; Decimal)
         {
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(" "),
@@ -1299,19 +1649,28 @@ table 18 Customer
             Caption = 'Other Amounts (LCY)';
             FieldClass = FlowField;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
+        /// <summary>
+        /// Specifies the default prepayment percentage required for sales orders.
+        /// </summary>
         field(124; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
             ToolTip = 'Specifies a prepayment percentage that applies to all orders for this customer, regardless of the items or services on the order lines.';
         }
+        /// <summary>
+        /// Contains the total outstanding invoices in local currency for this customer.
+        /// </summary>
         field(125; "Outstanding Invoices (LCY)"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Sales Line"."Outstanding Amount (LCY)" where("Document Type" = const(Invoice),
                                                                              "Bill-to Customer No." = field("No."),
                                                                              "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -1322,6 +1681,9 @@ table 18 Customer
             FieldClass = FlowField;
             ToolTip = 'Specifies your expected sales income from the customer in LCY based on unpaid sales invoices.';
         }
+        /// <summary>
+        /// Contains the total outstanding invoices for this customer.
+        /// </summary>
         field(126; "Outstanding Invoices"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1336,6 +1698,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of archived documents where this customer is the bill-to customer.
+        /// </summary>
         field(130; "Bill-to No. Of Archived Doc."; Integer)
         {
             CalcFormula = count("Sales Header Archive" where("Document Type" = const(Order),
@@ -1343,6 +1708,9 @@ table 18 Customer
             Caption = 'Bill-to No. Of Sales Archived Doc.';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of archived documents where this customer is the sell-to customer.
+        /// </summary>
         field(131; "Sell-to No. Of Archived Doc."; Integer)
         {
             CalcFormula = count("Sales Header Archive" where("Document Type" = const(Order),
@@ -1350,27 +1718,42 @@ table 18 Customer
             Caption = 'Sell-to No. Of Sales Archived Doc.';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies whether the customer is a person or company for direct debit collections.
+        /// </summary>
         field(132; "Partner Type"; Enum "Partner Type")
         {
             Caption = 'Partner Type';
             ToolTip = 'Specifies for direct debit collections if the customer that the payment is collected from is a person or a company.';
         }
+        /// <summary>
+        /// Specifies whether the customer is a person or company for Intrastat reporting.
+        /// </summary>
         field(133; "Intrastat Partner Type"; Enum "Partner Type")
         {
             Caption = 'Intrastat Partner Type';
             ToolTip = 'Specifies for Intrastat reporting if the customer is a person or a company.';
         }
+        /// <summary>
+        /// Indicates whether to exclude this customer from payment practices calculations.
+        /// </summary>
         field(134; "Exclude from Pmt. Practices"; Boolean)
         {
             Caption = 'Exclude from Payment Practices';
             ToolTip = 'Specifies that the customer must be excluded from Payment Practices calculations.';
         }
+        /// <summary>
+        /// Stores an image such as a logo for the customer.
+        /// </summary>
         field(140; Image; Media)
         {
             Caption = 'Image';
             ExtendedDatatype = Person;
             ToolTip = 'Specifies the picture of the customer, for example, a logo.';
         }
+        /// <summary>
+        /// Indicates whether access to this customer's data is blocked for privacy protection.
+        /// </summary>
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
@@ -1384,18 +1767,27 @@ table 18 Customer
                     Blocked := Blocked::" ";
             end;
         }
+        /// <summary>
+        /// Indicates whether searching by name is disabled, allowing name changes on open documents.
+        /// </summary>
         field(160; "Disable Search by Name"; Boolean)
         {
             Caption = 'Disable Search by Name';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies that you can change the customer name on open sales documents. The change applies only to the documents.';
         }
+        /// <summary>
+        /// Indicates whether multiple posting groups can be used for this customer.
+        /// </summary>
         field(175; "Allow Multiple Posting Groups"; Boolean)
         {
             Caption = 'Allow Multiple Posting Groups';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies if multiple posting groups can be used for posting business transactions for this customer.';
         }
+        /// <summary>
+        /// Specifies the customer's preferred bank account for refunds and direct debit collections.
+        /// </summary>
         field(288; "Preferred Bank Account Code"; Code[20])
         {
             Caption = 'Preferred Bank Account Code';
@@ -1403,6 +1795,9 @@ table 18 Customer
             ToolTip = 'Specifies the customer''s bank account that will be used by default when you process refunds to the customer and direct debit collections.';
         }
 #if not CLEANSCHEMA26
+        /// <summary>
+        /// Indicates whether this customer is coupled to a Dataverse account. Obsolete field.
+        /// </summary>
         field(720; "Coupled to CRM"; Boolean)
         {
             Caption = 'Coupled to Dataverse';
@@ -1412,6 +1807,9 @@ table 18 Customer
             ObsoleteTag = '26.0';
         }
 #endif
+        /// <summary>
+        /// Indicates whether this customer is coupled to a Dataverse account for data synchronization.
+        /// </summary>
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -1420,12 +1818,18 @@ table 18 Customer
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Customer)));
             ToolTip = 'Specifies that the customer is coupled to an account in Dataverse.';
         }
+        /// <summary>
+        /// Specifies alternative payment terms used for cash flow forecasting.
+        /// </summary>
         field(840; "Cash Flow Payment Terms Code"; Code[10])
         {
             Caption = 'Cash Flow Payment Terms Code';
             TableRelation = "Payment Terms";
             ToolTip = 'Specifies a payment term that will be used to calculate cash flow for the customer.';
         }
+        /// <summary>
+        /// Specifies the primary contact person linked to this customer.
+        /// </summary>
         field(5049; "Primary Contact No."; Code[20])
         {
             Caption = 'Primary Contact No.';
@@ -1470,10 +1874,16 @@ table 18 Customer
                         Clear(Image);
             end;
         }
+        /// <summary>
+        /// Specifies whether the customer contact is a person or a company.
+        /// </summary>
         field(5050; "Contact Type"; Enum "Contact Type")
         {
             Caption = 'Contact Type';
         }
+        /// <summary>
+        /// Specifies the customer's mobile phone number.
+        /// </summary>
         field(5061; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
@@ -1491,24 +1901,36 @@ table 18 Customer
                         FieldError("Mobile Phone No.", PhoneNoCannotContainLettersErr);
             end;
         }
+        /// <summary>
+        /// Specifies the responsibility center that manages this customer account.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
             TableRelation = "Responsibility Center";
             ToolTip = 'Specifies the code for the responsibility center that will administer this customer by default.';
         }
+        /// <summary>
+        /// Specifies whether the customer requires complete or allows partial shipment of orders.
+        /// </summary>
         field(5750; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Shipping Advice';
             ToolTip = 'Specifies if the customer accepts partial shipment of orders.';
         }
+        /// <summary>
+        /// Specifies the default shipping time from warehouse to customer delivery.
+        /// </summary>
         field(5790; "Shipping Time"; DateFormula)
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Time';
             ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
         }
+        /// <summary>
+        /// Specifies the default shipping agent service level for deliveries to this customer.
+        /// </summary>
         field(5792; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
@@ -1526,6 +1948,9 @@ table 18 Customer
                         Evaluate("Shipping Time", '<>');
             end;
         }
+        /// <summary>
+        /// Specifies the method used to calculate sales prices for this customer.
+        /// </summary>
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
@@ -1540,12 +1965,18 @@ table 18 Customer
                     PriceCalculationMgt.VerifyMethodImplemented("Price Calculation Method", PriceType::Sale);
             end;
         }
+        /// <summary>
+        /// Indicates whether line discounts can be applied to sales for this customer.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
             InitValue = true;
             ToolTip = 'Specifies if a sales line discount is calculated when a special sales price is offered according to setup in the Sales Prices window.';
         }
+        /// <summary>
+        /// Contains the count of open sales quotes for this customer.
+        /// </summary>
         field(7171; "No. of Quotes"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const(Quote),
@@ -1554,6 +1985,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of open blanket orders for this customer.
+        /// </summary>
         field(7172; "No. of Blanket Orders"; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1563,6 +1997,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of open sales orders for this customer.
+        /// </summary>
         field(7173; "No. of Orders"; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1572,6 +2009,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of open sales invoices for this customer.
+        /// </summary>
         field(7174; "No. of Invoices"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const(Invoice),
@@ -1580,6 +2020,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of open sales return orders for this customer.
+        /// </summary>
         field(7175; "No. of Return Orders"; Integer)
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
@@ -1589,6 +2032,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of open sales credit memos for this customer.
+        /// </summary>
         field(7176; "No. of Credit Memos"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const("Credit Memo"),
@@ -1597,6 +2043,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted sales shipments for this customer.
+        /// </summary>
         field(7177; "No. of Pstd. Shipments"; Integer)
         {
             CalcFormula = count("Sales Shipment Header" where("Sell-to Customer No." = field("No.")));
@@ -1604,6 +2053,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted sales invoices for this customer.
+        /// </summary>
         field(7178; "No. of Pstd. Invoices"; Integer)
         {
             CalcFormula = count("Sales Invoice Header" where("Sell-to Customer No." = field("No.")));
@@ -1611,6 +2063,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted return receipts for this customer.
+        /// </summary>
         field(7179; "No. of Pstd. Return Receipts"; Integer)
         {
             CalcFormula = count("Return Receipt Header" where("Sell-to Customer No." = field("No.")));
@@ -1618,6 +2073,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted sales credit memos for this customer.
+        /// </summary>
         field(7180; "No. of Pstd. Credit Memos"; Integer)
         {
             CalcFormula = count("Sales Cr.Memo Header" where("Sell-to Customer No." = field("No.")));
@@ -1625,6 +2083,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of ship-to addresses defined for this customer.
+        /// </summary>
         field(7181; "No. of Ship-to Addresses"; Integer)
         {
             CalcFormula = count("Ship-to Address" where("Customer No." = field("No.")));
@@ -1632,6 +2093,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of quotes where this customer is the bill-to customer.
+        /// </summary>
         field(7182; "Bill-To No. of Quotes"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const(Quote),
@@ -1640,6 +2104,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of blanket orders where this customer is the bill-to customer.
+        /// </summary>
         field(7183; "Bill-To No. of Blanket Orders"; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1649,6 +2116,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of orders where this customer is the bill-to customer.
+        /// </summary>
         field(7184; "Bill-To No. of Orders"; Integer)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -1658,6 +2128,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of invoices where this customer is the bill-to customer.
+        /// </summary>
         field(7185; "Bill-To No. of Invoices"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const(Invoice),
@@ -1666,6 +2139,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of return orders where this customer is the bill-to customer.
+        /// </summary>
         field(7186; "Bill-To No. of Return Orders"; Integer)
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
@@ -1675,6 +2151,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of credit memos where this customer is the bill-to customer.
+        /// </summary>
         field(7187; "Bill-To No. of Credit Memos"; Integer)
         {
             CalcFormula = count("Sales Header" where("Document Type" = const("Credit Memo"),
@@ -1683,6 +2162,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted shipments where this customer is the bill-to customer.
+        /// </summary>
         field(7188; "Bill-To No. of Pstd. Shipments"; Integer)
         {
             CalcFormula = count("Sales Shipment Header" where("Bill-to Customer No." = field("No.")));
@@ -1690,6 +2172,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted invoices where this customer is the bill-to customer.
+        /// </summary>
         field(7189; "Bill-To No. of Pstd. Invoices"; Integer)
         {
             CalcFormula = count("Sales Invoice Header" where("Bill-to Customer No." = field("No.")));
@@ -1697,6 +2182,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted return receipts where this customer is the bill-to customer.
+        /// </summary>
         field(7190; "Bill-To No. of Pstd. Return R."; Integer)
         {
             CalcFormula = count("Return Receipt Header" where("Bill-to Customer No." = field("No.")));
@@ -1704,6 +2192,9 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the count of posted credit memos where this customer is the bill-to customer.
+        /// </summary>
         field(7191; "Bill-To No. of Pstd. Cr. Memos"; Integer)
         {
             CalcFormula = count("Sales Cr.Memo Header" where("Bill-to Customer No." = field("No.")));
@@ -1711,22 +2202,34 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the base calendar used for calculating working days and delivery dates.
+        /// </summary>
         field(7600; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
             TableRelation = "Base Calendar";
             ToolTip = 'Specifies a customizable calendar for shipment planning that holds the customer''s working days and holidays.';
         }
+        /// <summary>
+        /// Specifies whether to copy the sell-to address from the company or person contact on quotes.
+        /// </summary>
         field(7601; "Copy Sell-to Addr. to Qte From"; Enum "Contact Type")
         {
             AccessByPermission = TableData Contact = R;
             Caption = 'Copy Sell-to Addr. to Qte From';
             ToolTip = 'Specifies which customer address is inserted on sales quotes that you create for the customer.';
         }
+        /// <summary>
+        /// Indicates whether to validate the EU VAT registration number for this customer.
+        /// </summary>
         field(7602; "Validate EU Vat Reg. No."; Boolean)
         {
             Caption = 'Validate EU VAT Reg. No.';
         }
+        /// <summary>
+        /// Specifies the GUID of the currency for API integration.
+        /// </summary>
         field(8001; "Currency Id"; Guid)
         {
             Caption = 'Currency Id';
@@ -1737,6 +2240,9 @@ table 18 Customer
                 UpdateCurrencyCode();
             end;
         }
+        /// <summary>
+        /// Specifies the GUID of the payment terms for API integration.
+        /// </summary>
         field(8002; "Payment Terms Id"; Guid)
         {
             Caption = 'Payment Terms Id';
@@ -1747,6 +2253,9 @@ table 18 Customer
                 UpdatePaymentTermsCode();
             end;
         }
+        /// <summary>
+        /// Specifies the GUID of the shipment method for API integration.
+        /// </summary>
         field(8003; "Shipment Method Id"; Guid)
         {
             Caption = 'Shipment Method Id';
@@ -1757,6 +2266,9 @@ table 18 Customer
                 UpdateShipmentMethodCode();
             end;
         }
+        /// <summary>
+        /// Specifies the GUID of the payment method for API integration.
+        /// </summary>
         field(8004; "Payment Method Id"; Guid)
         {
             Caption = 'Payment Method Id';
@@ -1767,6 +2279,9 @@ table 18 Customer
                 UpdatePaymentMethodCode();
             end;
         }
+        /// <summary>
+        /// Specifies the GUID of the tax area for API integration.
+        /// </summary>
         field(9003; "Tax Area ID"; Guid)
         {
             Caption = 'Tax Area ID';
@@ -1776,10 +2291,16 @@ table 18 Customer
                 UpdateTaxAreaCode();
             end;
         }
+        /// <summary>
+        /// Specifies the GUID of the contact for API integration.
+        /// </summary>
         field(9005; "Contact ID"; Guid)
         {
             Caption = 'Contact ID';
         }
+        /// <summary>
+        /// Specifies the Microsoft Graph identifier for the contact.
+        /// </summary>
         field(9006; "Contact Graph Id"; Text[250])
         {
             Caption = 'Contact Graph Id';
@@ -2045,6 +2566,11 @@ table 18 Customer
         FieldLengthErr: Label 'must not have the length more than 20 symbols';
         DocumentTypeFilterTxt: Label '<=%1', Locked = true, Comment = '%1 = document type';
 
+    /// <summary>
+    /// Assists the user in selecting or generating a new customer number from the configured number series.
+    /// </summary>
+    /// <param name="OldCust">The customer record containing the current number series to look up related series.</param>
+    /// <returns>True if a new customer number was selected; otherwise, false.</returns>
     procedure AssistEdit(OldCust: Record Customer): Boolean
     var
         Cust: Record Customer;
@@ -2116,6 +2642,11 @@ table 18 Customer
         OnAfterDeleteRelatedData(Rec);
     end;
 
+    /// <summary>
+    /// Validates and saves the specified shortcut dimension code for the customer.
+    /// </summary>
+    /// <param name="FieldNumber">The dimension field number (1 or 2 for global dimensions).</param>
+    /// <param name="ShortcutDimCode">The dimension value code to validate and assign.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         IsHandled: Boolean;
@@ -2134,6 +2665,9 @@ table 18 Customer
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Opens the contact card or contact list for the customer's associated contact.
+    /// </summary>
     procedure ShowContact()
     var
         ContBusRel: Record "Contact Business Relation";
@@ -2174,6 +2708,9 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Opens a lookup page for selecting a contact associated with the customer.
+    /// </summary>
     procedure LookupContactList()
     var
         ContactBusinessRelation: Record "Contact Business Relation";
@@ -2187,9 +2724,13 @@ table 18 Customer
             exit;
 
         ContactForLookup.FilterGroup(2);
-        if ContactBusinessRelation.FindByRelation(ContactBusinessRelation."Link to Table"::Customer, "No.") then
-            ContactForLookup.SetRange("Company No.", ContactBusinessRelation."Contact No.")
-        else
+        if ContactBusinessRelation.FindByRelation(ContactBusinessRelation."Link to Table"::Customer, "No.") then begin
+            if ContactForLookup.Get(ContactBusinessRelation."Contact No.") and (ContactForLookup.Type = ContactForLookup.Type::Person) then begin
+                ContactForLookup.SetRange(Type, ContactForLookup.Type::Person);
+                ContactForLookup.SetRange("No.", ContactBusinessRelation."Contact No.");
+            end else
+                ContactForLookup.SetRange("Company No.", ContactBusinessRelation."Contact No.")
+        end else
             ContactForLookup.SetRange("Company No.", '');
 
         if "Primary Contact No." <> '' then
@@ -2202,11 +2743,22 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Sets whether the customer is being inserted from a contact record.
+    /// </summary>
+    /// <param name="FromContact">True if the customer is being created from a contact; otherwise, false.</param>
     procedure SetInsertFromContact(FromContact: Boolean)
     begin
         InsertFromContact := FromContact;
     end;
 
+    /// <summary>
+    /// Checks if the customer is blocked for the specified document type and raises an error if blocked.
+    /// </summary>
+    /// <param name="Cust2">The customer record to check for blocked status.</param>
+    /// <param name="DocType">The type of sales document being processed.</param>
+    /// <param name="Shipment">Indicates whether the operation involves a shipment.</param>
+    /// <param name="Transaction">Indicates whether this is a posting transaction.</param>
     procedure CheckBlockedCustOnDocs(Cust2: Record Customer; DocType: Enum "Sales Document Type"; Shipment: Boolean; Transaction: Boolean)
     var
         Source: Option Journal,Document;
@@ -2228,6 +2780,12 @@ table 18 Customer
             Cust2.CustBlockedErrorMessage(Cust2, Transaction);
     end;
 
+    /// <summary>
+    /// Checks if the customer is blocked for the specified journal document type and raises an error if blocked.
+    /// </summary>
+    /// <param name="Cust2">The customer record to check for blocked status.</param>
+    /// <param name="DocType">The type of general journal document being processed.</param>
+    /// <param name="Transaction">Indicates whether this is a posting transaction.</param>
     procedure CheckBlockedCustOnJnls(Cust2: Record Customer; DocType: Enum "Gen. Journal Document Type"; Transaction: Boolean)
     var
         Source: Option Journal,Document;
@@ -2244,6 +2802,12 @@ table 18 Customer
             Cust2.CustBlockedErrorMessage(Cust2, Transaction)
     end;
 
+    /// <summary>
+    /// Checks if the customer is blocked for the specified general journal line and raises an error if blocked.
+    /// </summary>
+    /// <param name="Cust2">The customer record to check for blocked status.</param>
+    /// <param name="GenJnlLine">The general journal line being validated.</param>
+    /// <param name="Transaction">Indicates whether this is a posting transaction.</param>
     procedure CheckBlockedCustOnJnls(Cust2: Record Customer; var GenJnlLine: Record "Gen. Journal Line"; Transaction: Boolean)
     var
         IsHandled: Boolean;
@@ -2256,6 +2820,11 @@ table 18 Customer
         CheckBlockedCustOnJnls(Cust2, GenJnlLine."Document Type", Transaction);
     end;
 
+    /// <summary>
+    /// Raises an error message indicating that the customer is blocked.
+    /// </summary>
+    /// <param name="Cust2">The blocked customer record.</param>
+    /// <param name="Transaction">Indicates whether this is a posting transaction to determine the error message.</param>
     procedure CustBlockedErrorMessage(Cust2: Record Customer; Transaction: Boolean)
     var
         "Action": Text[30];
@@ -2279,6 +2848,11 @@ table 18 Customer
                 Cust2.FieldNo(Blocked)));
     end;
 
+    /// <summary>
+    /// Raises an error message indicating that the customer is blocked for privacy reasons.
+    /// </summary>
+    /// <param name="Cust2">The privacy-blocked customer record.</param>
+    /// <param name="Transaction">Indicates whether this is a posting transaction to determine the error message.</param>
     procedure CustPrivacyBlockedErrorMessage(Cust2: Record Customer; Transaction: Boolean)
     var
         "Action": Text[30];
@@ -2296,11 +2870,19 @@ table 18 Customer
                 Cust2));
     end;
 
+    /// <summary>
+    /// Gets a generic error text for a privacy-blocked customer.
+    /// </summary>
+    /// <param name="Cust2">The privacy-blocked customer record.</param>
+    /// <returns>The error text indicating the customer is blocked for privacy.</returns>
     procedure GetPrivacyBlockedGenericErrorText(Cust2: Record Customer): Text[250]
     begin
         exit(StrSubstNo(PrivacyBlockedGenericTxt, Cust2."No."));
     end;
 
+    /// <summary>
+    /// Displays the customer's address on an online map service.
+    /// </summary>
     procedure DisplayMap()
     var
         OnlineMapManagement: Codeunit "Online Map Management";
@@ -2308,6 +2890,10 @@ table 18 Customer
         OnlineMapManagement.MakeSelectionIfMapEnabled(Database::Customer, GetPosition());
     end;
 
+    /// <summary>
+    /// Gets the price calculation method for the customer, considering customer price group and sales setup defaults.
+    /// </summary>
+    /// <returns>The applicable price calculation method.</returns>
     procedure GetPriceCalculationMethod() Method: Enum "Price Calculation Method";
     begin
         if "Price Calculation Method" <> Method::" " then
@@ -2321,6 +2907,11 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Gets the primary contact for the specified customer.
+    /// </summary>
+    /// <param name="CustomerNo">The customer number to find the primary contact for.</param>
+    /// <param name="PrimaryContact">Returns the primary contact record if found.</param>
     procedure GetPrimaryContact(CustomerNo: Code[20]; var PrimaryContact: Record Contact)
     var
         Customer: Record Customer;
@@ -2354,6 +2945,10 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
+    /// <summary>
+    /// Calculates the total amount in local currency including balance, outstanding orders, shipped not invoiced, and outstanding invoices.
+    /// </summary>
+    /// <returns>The total amount in local currency.</returns>
     procedure GetTotalAmountLCY() TotalAmountLCY: Decimal
     var
         xSecurityFilter: SecurityFilter;
@@ -2374,6 +2969,10 @@ table 18 Customer
         exit(GetTotalAmountLCYCommon());
     end;
 
+    /// <summary>
+    /// Calculates the total amount in local currency for UI display purposes using auto-calculated fields.
+    /// </summary>
+    /// <returns>The total amount in local currency.</returns>
     procedure GetTotalAmountLCYUI(): Decimal
     begin
         OnBeforeGetTotalAmountLCYUI(Rec);
@@ -2419,6 +3018,10 @@ table 18 Customer
         exit(TotalAmountLCY);
     end;
 
+    /// <summary>
+    /// Gets the total sales in local currency for the current fiscal year.
+    /// </summary>
+    /// <returns>The total sales amount in local currency for the fiscal year.</returns>
     procedure GetSalesLCY() SalesLCY: Decimal
     var
         CustomerSalesYTD: Record Customer;
@@ -2440,6 +3043,10 @@ table 18 Customer
         exit(CustomerSalesYTD."Sales (LCY)");
     end;
 
+    /// <summary>
+    /// Gets the document type filter for the top customer headline query.
+    /// </summary>
+    /// <returns>The document type filter text.</returns>
     procedure GetTopCustomerHeadlineQueryDocumentTypeFilter() DocumentTypeFilter: Text
     var
         DummyCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -2450,11 +3057,19 @@ table 18 Customer
         OnAfterGetTopCustomerHeadlineQueryDocumentTypeFilter(DocumentTypeFilter);
     end;
 
+    /// <summary>
+    /// Calculates the available credit for the customer based on their credit limit and total outstanding amount.
+    /// </summary>
+    /// <returns>The available credit amount in local currency.</returns>
     procedure CalcAvailableCredit(): Decimal
     begin
         exit(CalcAvailableCreditCommon(false));
     end;
 
+    /// <summary>
+    /// Calculates the available credit for UI display using auto-calculated fields.
+    /// </summary>
+    /// <returns>The available credit amount in local currency.</returns>
     procedure CalcAvailableCreditUI(): Decimal
     begin
         exit(CalcAvailableCreditCommon(true));
@@ -2478,6 +3093,10 @@ table 18 Customer
         exit(CreditLimitLCY - GetTotalAmountLCY());
     end;
 
+    /// <summary>
+    /// Calculates the total overdue balance in local currency for the customer.
+    /// </summary>
+    /// <returns>The overdue balance amount in local currency.</returns>
     procedure CalcOverdueBalance() OverDueBalance: Decimal
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -2498,16 +3117,28 @@ table 18 Customer
             OverDueBalance := CustLedgEntryRemainAmtQuery.Sum_Remaining_Amt_LCY;
     end;
 
+    /// <summary>
+    /// Gets the legal entity type as text from the Partner Type field.
+    /// </summary>
+    /// <returns>The partner type as formatted text.</returns>
     procedure GetLegalEntityType(): Text
     begin
         exit(Format("Partner Type"));
     end;
 
+    /// <summary>
+    /// Gets the label for the legal entity type field.
+    /// </summary>
+    /// <returns>The field caption for Partner Type.</returns>
     procedure GetLegalEntityTypeLbl(): Text
     begin
         exit(FieldCaption("Partner Type"));
     end;
 
+    /// <summary>
+    /// Determines the display style for the customer based on available credit.
+    /// </summary>
+    /// <returns>Unfavorable if credit is exceeded; otherwise, empty string.</returns>
     procedure SetStyle(): Text
     begin
         if CalcAvailableCredit() < 0 then
@@ -2515,6 +3146,11 @@ table 18 Customer
         exit('');
     end;
 
+    /// <summary>
+    /// Checks if the customer has a valid SEPA direct debit mandate for the specified date.
+    /// </summary>
+    /// <param name="Date">The date to check for a valid mandate.</param>
+    /// <returns>True if a valid direct debit mandate exists; otherwise, false.</returns>
     procedure HasValidDDMandate(Date: Date): Boolean
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
@@ -2522,6 +3158,10 @@ table 18 Customer
         exit(SEPADirectDebitMandate.GetDefaultMandate("No.", Date) <> '');
     end;
 
+    /// <summary>
+    /// Gets the total return received not invoiced amount in local currency for the customer.
+    /// </summary>
+    /// <returns>The return received not invoiced amount in local currency.</returns>
     procedure GetReturnRcdNotInvAmountLCY(): Decimal
     var
         [SecurityFiltering(SecurityFilter::Ignored)]
@@ -2535,6 +3175,10 @@ table 18 Customer
         exit(SalesLine."Return Rcd. Not Invd. (LCY)");
     end;
 
+    /// <summary>
+    /// Gets the total invoiced prepayment amount in local currency for the customer.
+    /// </summary>
+    /// <returns>The invoiced prepayment amount in local currency.</returns>
     procedure GetInvoicedPrepmtAmountLCY() InvoicedPrepmtAmountLCY: Decimal
     var
         [SecurityFiltering(SecurityFilter::Ignored)]
@@ -2554,6 +3198,10 @@ table 18 Customer
         exit(SalesLine."Prepmt. Amount Inv. (LCY)" + SalesLine."Prepmt. VAT Amount Inv. (LCY)");
     end;
 
+    /// <summary>
+    /// Calculates the percentage of the credit limit that has been used.
+    /// </summary>
+    /// <returns>The credit limit usage percentage multiplied by 100 (0-10000).</returns>
     procedure CalcCreditLimitLCYExpendedPct(): Decimal
     begin
         if "Credit Limit (LCY)" = 0 then
@@ -2568,6 +3216,9 @@ table 18 Customer
         exit(Round("Balance (LCY)" / "Credit Limit (LCY)" * 10000, 1));
     end;
 
+    /// <summary>
+    /// Creates a new sales invoice for the customer and opens the Sales Invoice page.
+    /// </summary>
     procedure CreateAndShowNewInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -2580,6 +3231,9 @@ table 18 Customer
         PAGE.Run(PAGE::"Sales Invoice", SalesHeader)
     end;
 
+    /// <summary>
+    /// Creates a new sales order for the customer and opens the Sales Order page.
+    /// </summary>
     procedure CreateAndShowNewOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -2592,6 +3246,9 @@ table 18 Customer
         PAGE.Run(PAGE::"Sales Order", SalesHeader)
     end;
 
+    /// <summary>
+    /// Creates a new sales credit memo for the customer and opens the Sales Credit Memo page.
+    /// </summary>
     procedure CreateAndShowNewCreditMemo()
     var
         SalesHeader: Record "Sales Header";
@@ -2603,6 +3260,9 @@ table 18 Customer
         PAGE.Run(PAGE::"Sales Credit Memo", SalesHeader)
     end;
 
+    /// <summary>
+    /// Creates a new sales quote for the customer and opens the Sales Quote page.
+    /// </summary>
     procedure CreateAndShowNewQuote()
     var
         SalesHeader: Record "Sales Header";
@@ -2629,6 +3289,10 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Gets the bill-to customer number, returning the current customer number if no bill-to is specified.
+    /// </summary>
+    /// <returns>The bill-to customer number or the customer number if not specified.</returns>
     procedure GetBillToCustomerNo(): Code[20]
     begin
         if "Bill-to Customer No." <> '' then
@@ -2636,6 +3300,10 @@ table 18 Customer
         exit("No.");
     end;
 
+    /// <summary>
+    /// Checks if the customer has address fields populated, excluding the country/region code.
+    /// </summary>
+    /// <returns>True if any address field (except country/region) has a value; otherwise, false.</returns>
     procedure HasAddressIgnoreCountryCode() Result: Boolean
     begin
         Result := (Address <> '') or
@@ -2647,11 +3315,20 @@ table 18 Customer
         OnAfterHasAddressIgnoreCountryCode(Rec, Result);
     end;
 
+    /// <summary>
+    /// Checks if the customer has any address fields populated, including country/region code.
+    /// </summary>
+    /// <returns>True if any address field has a value; otherwise, false.</returns>
     procedure HasAddress(): Boolean
     begin
         exit(HasAddressIgnoreCountryCode() or ("Country/Region Code" <> ''));
     end;
 
+    /// <summary>
+    /// Compares the customer's address with another customer's address.
+    /// </summary>
+    /// <param name="OtherCustomer">The customer record to compare addresses with.</param>
+    /// <returns>True if any address field differs; otherwise, false.</returns>
     procedure HasDifferentAddress(OtherCustomer: Record Customer) Result: Boolean
     begin
         Result := (Address <> OtherCustomer.Address) or
@@ -2663,6 +3340,11 @@ table 18 Customer
         OnAfterHasDifferentAddress(Rec, OtherCustomer, Result)
     end;
 
+    /// <summary>
+    /// Gets the balance in local currency from the linked vendor account.
+    /// </summary>
+    /// <param name="LinkedVendorNo">Returns the linked vendor number.</param>
+    /// <returns>The vendor balance in local currency.</returns>
     procedure GetBalanceAsVendor(var LinkedVendorNo: Code[20]) BalanceAsVendor: Decimal;
     var
         Vendor: Record Vendor;
@@ -2676,6 +3358,10 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Gets the vendor number linked to this customer through the contact business relation.
+    /// </summary>
+    /// <returns>The linked vendor number or empty if no link exists.</returns>
     procedure GetLinkedVendor(): Code[20];
     var
         ContBusRel: Record "Contact Business Relation";
@@ -2686,11 +3372,23 @@ table 18 Customer
                 Enum::"Contact Business Relation Link To Table"::Vendor))
     end;
 
+    /// <summary>
+    /// Finds a customer number by text, showing card options if no exact match is found.
+    /// </summary>
+    /// <param name="CustomerText">The text to search for (customer number or name).</param>
+    /// <returns>The found or selected customer number.</returns>
     procedure GetCustNo(CustomerText: Text): Text
     begin
         exit(GetCustNoOpenCard(CustomerText, true, true));
     end;
 
+    /// <summary>
+    /// Finds a customer number by text with options for displaying customer card and creation options.
+    /// </summary>
+    /// <param name="CustomerText">The text to search for (customer number or name).</param>
+    /// <param name="ShowCustomerCard">Indicates whether to show the customer card if a selection is needed.</param>
+    /// <param name="ShowCreateCustomerOption">Indicates whether to show the option to create a new customer.</param>
+    /// <returns>The found, selected, or created customer number.</returns>
     procedure GetCustNoOpenCard(CustomerText: Text; ShowCustomerCard: Boolean; ShowCreateCustomerOption: Boolean): Code[20]
     var
         Customer: Record Customer;
@@ -2822,6 +3520,12 @@ table 18 Customer
         Customer.MarkedOnly(true);
     end;
 
+    /// <summary>
+    /// Creates a new customer with the specified name, optionally from a template, and displays the customer card.
+    /// </summary>
+    /// <param name="CustomerName">The name for the new customer.</param>
+    /// <param name="ShowCustomerCard">Indicates whether to open the customer card after creation.</param>
+    /// <returns>The new customer number.</returns>
     procedure CreateNewCustomer(CustomerName: Text[100]; ShowCustomerCard: Boolean) NewCustomerCode: Code[20]
     var
         Customer: Record Customer;
@@ -2876,6 +3580,11 @@ table 18 Customer
         exit(Customer."No.");
     end;
 
+    /// <summary>
+    /// Opens a customer lookup page for the user to select a customer.
+    /// </summary>
+    /// <param name="Customer">The selected customer record, or empty if cancelled.</param>
+    /// <returns>True if a customer was selected; otherwise, false.</returns>
     procedure SelectCustomer(var Customer: Record Customer): Boolean
     var
         CustomerLookup: Page "Customer Lookup";
@@ -2904,6 +3613,10 @@ table 18 Customer
         Customer.MarkedOnly := true;
     end;
 
+    /// <summary>
+    /// Initializes a price source record for this customer.
+    /// </summary>
+    /// <param name="PriceSource">Returns the initialized price source for sales pricing.</param>
     procedure ToPriceSource(var PriceSource: Record "Price Source")
     begin
         PriceSource.Init();
@@ -2930,6 +3643,10 @@ table 18 Customer
             end;
     end;
 
+    /// <summary>
+    /// Opens the customer ledger entries page with optional filtering on due entries.
+    /// </summary>
+    /// <param name="FilterOnDueEntries">Indicates whether to filter on due entries only.</param>
     procedure OpenCustomerLedgerEntries(FilterOnDueEntries: Boolean)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -2952,17 +3669,29 @@ table 18 Customer
         CustLedgerEntry.DrillDownOnEntries(DetailedCustLedgEntry);
     end;
 
+    /// <summary>
+    /// Sets whether the customer is being inserted from a template.
+    /// </summary>
+    /// <param name="FromTemplate">True if the customer is being created from a template; otherwise, false.</param>
     procedure SetInsertFromTemplate(FromTemplate: Boolean)
     begin
         InsertFromTemplate := FromTemplate;
     end;
 
+    /// <summary>
+    /// Checks if a lookup was requested during the last customer number search operation.
+    /// </summary>
+    /// <returns>True if a lookup was requested; otherwise, false.</returns>
     procedure IsLookupRequested() Result: Boolean
     begin
         Result := LookupRequested;
         LookupRequested := false;
     end;
 
+    /// <summary>
+    /// Checks if the associated contact record needs to be updated based on changed customer fields.
+    /// </summary>
+    /// <returns>True if contact update is needed; otherwise, false.</returns>
     procedure IsContactUpdateNeeded(): Boolean
     var
         CustContUpdate: Codeunit "CustCont-Update";
@@ -3003,6 +3732,10 @@ table 18 Customer
         exit(UpdateNeeded);
     end;
 
+    /// <summary>
+    /// Checks if the customer is blocked or privacy-blocked.
+    /// </summary>
+    /// <returns>True if the customer is blocked or privacy-blocked; otherwise, false.</returns>
     procedure IsBlocked(): Boolean
     begin
         if Blocked <> Blocked::" " then
@@ -3014,6 +3747,10 @@ table 18 Customer
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks if the customer has any open sales documents or posted ledger entries.
+    /// </summary>
+    /// <returns>True if open or posted documents exist; otherwise, false.</returns>
     procedure HasAnyOpenOrPostedDocuments(): Boolean
     var
         SalesHeader: Record "Sales Header";
@@ -3044,6 +3781,10 @@ table 18 Customer
         exit(HasAnyDocs);
     end;
 
+    /// <summary>
+    /// Copies field values from the specified customer template to this customer record.
+    /// </summary>
+    /// <param name="CustomerTemplate">The customer template to copy values from.</param>
     procedure CopyFromNewCustomerTemplate(CustomerTemplate: Record "Customer Templ.")
     begin
         "Territory Code" := CustomerTemplate."Territory Code";
@@ -3089,11 +3830,19 @@ table 18 Customer
         if FileManagement.DeleteServerFile(TempNameValueBuffer.Name) then;
     end;
 
+    /// <summary>
+    /// Gets whether the customer is being inserted from a contact record.
+    /// </summary>
+    /// <returns>True if the customer is being created from a contact; otherwise, false.</returns>
     procedure GetInsertFromContact(): Boolean
     begin
         exit(InsertFromContact);
     end;
 
+    /// <summary>
+    /// Gets whether the customer is being inserted from a template.
+    /// </summary>
+    /// <returns>True if the customer is being created from a template; otherwise, false.</returns>
     procedure GetInsertFromTemplate(): Boolean
     begin
         exit(InsertFromTemplate);
@@ -3123,6 +3872,9 @@ table 18 Customer
         OnAfterSetLastModifiedDateTime(Rec);
     end;
 
+    /// <summary>
+    /// Validates the VAT registration number format and optionally verifies it against the VIES service.
+    /// </summary>
     procedure VATRegistrationValidation()
     var
         VATRegistrationNoFormat: Record "VAT Registration No. Format";
@@ -3174,6 +3926,16 @@ table 18 Customer
         MailManagement.CheckValidEmailAddresses("E-Mail");
     end;
 
+    /// <summary>
+    /// Sets the customer's address fields and updates the associated contact.
+    /// </summary>
+    /// <param name="CustomerAddress">The primary address line.</param>
+    /// <param name="CustomerAddress2">The secondary address line.</param>
+    /// <param name="CustomerPostCode">The postal code.</param>
+    /// <param name="CustomerCity">The city.</param>
+    /// <param name="CustomerCounty">The state, province, or county.</param>
+    /// <param name="CustomerCountryCode">The country/region code.</param>
+    /// <param name="CustomerContact">The contact name.</param>
     procedure SetAddress(CustomerAddress: Text[100]; CustomerAddress2: Text[50]; CustomerPostCode: Code[20]; CustomerCity: Text[30]; CustomerCounty: Text[30]; CustomerCountryCode: Code[10]; CustomerContact: Text[100])
     begin
         Address := CustomerAddress;
@@ -3186,6 +3948,12 @@ table 18 Customer
         Contact := CustomerContact;
     end;
 
+    /// <summary>
+    /// Finds a customer by email address, searching both the customer and contact records.
+    /// </summary>
+    /// <param name="Customer">Returns the found customer record.</param>
+    /// <param name="Email">The email address to search for.</param>
+    /// <returns>True if a customer was found; otherwise, false.</returns>
     procedure FindByEmail(var Customer: Record Customer; Email: Text): Boolean
     var
         LocalContact: Record Contact;
@@ -3209,6 +3977,9 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Updates all API-related reference IDs for currency, payment terms, shipment method, payment method, and tax area.
+    /// </summary>
     procedure UpdateReferencedIds()
     var
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
@@ -3226,6 +3997,10 @@ table 18 Customer
         UpdateTaxAreaId();
     end;
 
+    /// <summary>
+    /// Gets the list of fields that contain referenced IDs for API integration.
+    /// </summary>
+    /// <param name="TempField">Returns the list of reference ID fields.</param>
     procedure GetReferencedIds(var TempField: Record "Field" temporary)
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -3237,6 +4012,10 @@ table 18 Customer
         DataTypeManagement.InsertFieldToBuffer(TempField, DATABASE::Customer, FieldNo("Tax Area ID"));
     end;
 
+    /// <summary>
+    /// Sets whether to force an update of the associated contact record regardless of field changes.
+    /// </summary>
+    /// <param name="NewForceUpdateContact">True to force contact update; otherwise, false.</param>
     procedure SetForceUpdateContact(NewForceUpdateContact: Boolean)
     begin
         ForceUpdateContact := NewForceUpdateContact;
@@ -3286,6 +4065,9 @@ table 18 Customer
         Validate("Payment Method Code", PaymentMethod.Code);
     end;
 
+    /// <summary>
+    /// Updates the Currency Id field based on the current Currency Code.
+    /// </summary>
     procedure UpdateCurrencyId()
     var
         Currency: Record Currency;
@@ -3302,6 +4084,9 @@ table 18 Customer
         "Currency Id" := Currency.SystemId;
     end;
 
+    /// <summary>
+    /// Updates the Payment Terms Id field based on the current Payment Terms Code.
+    /// </summary>
     procedure UpdatePaymentTermsId()
     var
         PaymentTerms: Record "Payment Terms";
@@ -3318,6 +4103,9 @@ table 18 Customer
         "Payment Terms Id" := PaymentTerms.SystemId;
     end;
 
+    /// <summary>
+    /// Updates the Shipment Method Id field based on the current Shipment Method Code.
+    /// </summary>
     procedure UpdateShipmentMethodId()
     var
         ShipmentMethod: Record "Shipment Method";
@@ -3334,6 +4122,9 @@ table 18 Customer
         "Shipment Method Id" := ShipmentMethod.SystemId;
     end;
 
+    /// <summary>
+    /// Updates the Payment Method Id field based on the current Payment Method Code.
+    /// </summary>
     procedure UpdatePaymentMethodId()
     var
         PaymentMethod: Record "Payment Method";
@@ -3367,6 +4158,9 @@ table 18 Customer
 
     end;
 
+    /// <summary>
+    /// Updates the Tax Area ID based on the VAT Business Posting Group or Tax Area Code depending on tax type.
+    /// </summary>
     procedure UpdateTaxAreaId()
     var
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
@@ -3468,6 +4262,9 @@ table 18 Customer
         CustomerTempl.ModifyAll("Invoice Disc. Code", "No.");
     end;
 
+    /// <summary>
+    /// Checks if multiple posting groups are allowed and validates that the customer has the required setting enabled.
+    /// </summary>
     procedure CheckAllowMultiplePostingGroups()
     var
         IsHandled: Boolean;
@@ -3496,6 +4293,10 @@ table 18 Customer
             Rec.Validate("Format Region", LanguageSelection."Language Tag");
     end;
 
+    /// <summary>
+    /// Gets the customer's VAT registration number.
+    /// </summary>
+    /// <returns>The VAT registration number.</returns>
     procedure GetVATRegistrationNo() VATRegNo: Text[20]
     begin
         VATRegNo := "VAT Registration No.";
@@ -3504,6 +4305,10 @@ table 18 Customer
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Gets the outstanding amount in LCY for shipped sales invoice lines.
+    /// </summary>
+    /// <returns>The outstanding amount in LCY for shipped invoices.</returns>
     [Obsolete('It is no longer used in GetTotalAmountLCYCommon procedure.', '28.0')]
     procedure GetShippedOutstandingInvoicesAmountLCY(): Decimal
     var
@@ -3517,6 +4322,10 @@ table 18 Customer
         exit(SalesLine."Outstanding Amount (LCY)");
     end;
 
+    /// <summary>
+    /// Gets the shipped but not invoiced amount in LCY from sales orders.
+    /// </summary>
+    /// <returns>The shipped but not invoiced amount in LCY.</returns>
     [Obsolete('It is no longer used in GetTotalAmountLCYCommon procedure.', '28.0')]
     procedure GetShippedFromOrderLCYAmountLCY(): Decimal
     var
@@ -3540,6 +4349,10 @@ table 18 Customer
     end;
 #endif
 
+    /// <summary>
+    /// Gets the default location code based on ship-to address, customer location, and user setup.
+    /// </summary>
+    /// <returns>The resolved location code.</returns>
     procedure GetDefaultLocation() ReturnLocationCode: Code[10]
     var
         ShipToAddress: Record "Ship-to Address";
@@ -3577,76 +4390,153 @@ table 18 Customer
         end;
     end;
 
+    /// <summary>
+    /// Raised before determining if the associated contact needs to be updated.
+    /// </summary>
+    /// <param name="Customer">The current customer record.</param>
+    /// <param name="xCustomer">The previous customer record before changes.</param>
+    /// <param name="UpdateNeeded">Set to true to indicate contact update is needed.</param>
+    /// <param name="ForceUpdateContact">Indicates if contact update is being forced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsContactUpdateNeeded(Customer: Record Customer; xCustomer: Record Customer; var UpdateNeeded: Boolean; ForceUpdateContact: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying field values from a customer template to the customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record that received template values.</param>
+    /// <param name="CustomerTemplate">The customer template that provided the values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromNewCustomerTemplate(var Customer: Record Customer; CustomerTemplate: Record "Customer Templ.")
     begin
     end;
 
+    /// <summary>
+    /// Raised after deleting all related data for the customer.
+    /// </summary>
+    /// <param name="Customer">The customer record being deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteRelatedData(Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the document type filter for the top customer headline query.
+    /// </summary>
+    /// <param name="DocumentTypeFilter">The document type filter text to modify.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetTopCustomerHeadlineQueryDocumentTypeFilter(var DocumentTypeFilter: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the customer has any open or posted documents.
+    /// </summary>
+    /// <param name="Customer">The customer record being checked.</param>
+    /// <param name="HasAnyDocs">Set to true if additional document types exist.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasAnyOpenOrPostedDocuments(var Customer: Record Customer; var HasAnyDocs: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the customer has address fields populated (excluding country/region).
+    /// </summary>
+    /// <param name="Customer">The customer record being checked.</param>
+    /// <param name="Result">Set to true to indicate address exists.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasAddressIgnoreCountryCode(Customer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after comparing the customer's address with another customer.
+    /// </summary>
+    /// <param name="Customer">The customer record being compared.</param>
+    /// <param name="OtherCustomer">The other customer record to compare against.</param>
+    /// <param name="Result">Set to true if addresses differ.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasDifferentAddress(Customer: Record Customer; OtherCustomer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the city from the post code table.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="PostCodeRec">The post code record used in the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupCity(var Customer: Record Customer; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the post code.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="xCustomer">The previous customer record before changes.</param>
+    /// <param name="PostCodeRec">The post code record used in the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupPostCode(var Customer: Record Customer; xCustomer: Record Customer; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a new customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record that was inserted.</param>
+    /// <param name="xCustomer">The customer record before insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnInsert(var Customer: Record Customer; xCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the last modified date and time on the customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record with updated timestamp.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetLastModifiedDateTime(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the city field on the customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record after city validation.</param>
+    /// <param name="xCustomer">The customer record before city validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCity(var Customer: Record Customer; xCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the post code field on the customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record after post code validation.</param>
+    /// <param name="xCustomer">The customer record before post code validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidatePostCode(var Customer: Record Customer; xCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating and saving a shortcut dimension code.
+    /// </summary>
+    /// <param name="Customer">The customer record after dimension validation.</param>
+    /// <param name="xCustomer">The customer record before dimension validation.</param>
+    /// <param name="FieldNumber">The dimension field number that was validated.</param>
+    /// <param name="ShortcutDimCode">The dimension value code that was assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var Customer: Record Customer; var xCustomer: Record Customer; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before exiting the AssistEdit procedure after selecting a number series.
+    /// </summary>
+    /// <param name="Customer">The customer record with the new number series assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAssistEditOnBeforeExit(var Customer: Record Customer)
     begin
@@ -3657,231 +4547,488 @@ table 18 Customer
         OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled)
     end;
 
+    /// <summary>
+    /// Raised before checking if a customer is blocked for documents or journals.
+    /// </summary>
+    /// <param name="Customer">The customer record to check.</param>
+    /// <param name="Source">The source type (Journal or Document).</param>
+    /// <param name="DocType">The document type being checked.</param>
+    /// <param name="Shipment">Indicates if this is a shipment operation.</param>
+    /// <param name="Transaction">Indicates if this is a posting transaction.</param>
+    /// <param name="IsHandled">Set to true to skip the default blocked check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBlockedCust(Customer: Record Customer; Source: Option Journal,Document; DocType: Option; Shipment: Boolean; Transaction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if a customer is blocked for journal lines.
+    /// </summary>
+    /// <param name="Customer">The customer record to check.</param>
+    /// <param name="GenJnlLine">The general journal line being validated.</param>
+    /// <param name="Transaction">Indicates if this is a posting transaction.</param>
+    /// <param name="IsHandled">Set to true to skip the default blocked check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBlockedCustOnJnls(Customer: Record Customer; var GenJnlLine: Record "Gen. Journal Line"; Transaction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if sales order lines exist for the customer.
+    /// </summary>
+    /// <param name="Customer">The customer record to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfOrderSalesLinesExist(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a new customer record.
+    /// </summary>
+    /// <param name="CustomerName">The name for the new customer.</param>
+    /// <param name="ShowCustomerCard">Indicates whether to show the customer card.</param>
+    /// <param name="NewCustomerCode">Set to the new customer code to override creation.</param>
+    /// <param name="IsHandled">Set to true to skip the default creation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateNewCustomer(CustomerName: Text[100]; ShowCustomerCard: Boolean; var NewCustomerCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer number with card display options.
+    /// </summary>
+    /// <param name="CustomerText">The text to search for.</param>
+    /// <param name="ShowCustomerCard">Indicates whether to show the customer card.</param>
+    /// <param name="ShowCreateCustomerOption">Indicates whether to show the create customer option.</param>
+    /// <param name="CustomerNo">Set to the customer number to override the lookup.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustNoOpenCard(CustomerText: Text; ShowCustomerCard: Boolean; var ShowCreateCustomerOption: Boolean; var CustomerNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the overdue balance.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="OverdueBalance">Set to the overdue balance to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcOverdueBalance(var Customer: Record Customer; var OverdueBalance: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the invoiced prepayment amount in local currency.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="InvoicedPrepmtAmountLCY">Set to the amount to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetInvoicedPrepmtAmountLCY(var Customer: Record Customer; var InvoicedPrepmtAmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the total amount in local currency.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="TotalAmountLCY">Set to the total amount to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetTotalAmountLCY(var Customer: Record Customer; var TotalAmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the total amount in local currency for UI display.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetTotalAmountLCYUI(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the common total amount in local currency calculation.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="AdditionalAmountLCY">Set to include additional amounts in the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetTotalAmountLCYCommon(var Customer: Record Customer; var AdditionalAmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the sales in local currency for the fiscal year.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="CustomerSalesYTD">The customer record for year-to-date sales calculation.</param>
+    /// <param name="SalesLCY">Set to the sales amount to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLCY(var Customer: Record Customer; var CustomerSalesYTD: Record Customer; var SalesLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a new customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record to be inserted.</param>
+    /// <param name="IsHandled">Set to true to skip the default insert logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsert(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the city from the post code table.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="PostCodeRec">The post code record for the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupCity(var Customer: Record Customer; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the contact list for the customer.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup.</param>
+    /// <param name="FieldNumber">The field number that triggered the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupContactList(var Customer: Record Customer; var IsHandled: Boolean; FieldNumber: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the post code.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="PostCodeRec">The post code record for the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupPostCode(var Customer: Record Customer; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening customer ledger entries.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry record for filtering.</param>
+    /// <param name="FilterOnDueEntries">Indicates whether to filter on due entries.</param>
+    /// <param name="IsHandled">Set to true to skip the default open logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenCustomerLedgerEntries(var Customer: Record Customer; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; FilterOnDueEntries: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting a customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record to be deleted.</param>
+    /// <param name="IsHandled">Set to true to skip the default delete logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnDelete(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before renaming a customer record.
+    /// </summary>
+    /// <param name="Customer">The customer record being renamed.</param>
+    /// <param name="xCustomer">The customer record before renaming.</param>
+    /// <param name="IsHandled">Set to true to skip the default rename logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRename(var Customer: Record Customer; xCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default salesperson for a new customer.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default salesperson assignment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultSalesperson(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the number series configuration.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="xCustomer">The previous customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default number series test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestNoSeries(var Customer: Record Customer; xCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the payment terms code for direct debit.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDirectDebitPmtTermsCode(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the city field.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCity(var Customer: Record Customer; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the VAT registration number.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="xCustomer">The previous customer record.</param>
+    /// <param name="FieldNumber">The field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateVATRegistrationNo(var Customer: Record "Customer"; xCustomer: Record "Customer"; FieldNumber: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the post code field.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostCode(var Customer: Record Customer; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a shortcut dimension code.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="xCustomer">The previous customer record.</param>
+    /// <param name="FieldNumber">The dimension field number.</param>
+    /// <param name="ShortcutDimCode">The dimension value code to validate.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var Customer: Record Customer; var xCustomer: Record Customer; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the VAT registration number format and VIES service.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default VAT validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATRegistrationValidation(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the customer find set operation in GetCustNoOpenCard.
+    /// </summary>
+    /// <param name="Customer">The customer record to be searched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnBeforeCustomerFindSet(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before filtering the customer in GetCustNoOpenCard.
+    /// </summary>
+    /// <param name="Customer">The customer record to be filtered.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnBeforeFilterCustomer(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting customer filters in GetCustNoOpenCard.
+    /// </summary>
+    /// <param name="Customer">The customer record with filters applied.</param>
+    /// <param name="CustomerFilterContains">The filter text containing the search criteria.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnAfterSetCustomerFilters(var Customer: Record Customer; var CustomerFilterContains: Text);
     begin
     end;
 
+    /// <summary>
+    /// Raised before searching for customers with similar names.
+    /// </summary>
+    /// <param name="Customer">The customer record to be searched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMarkCustomersWithSimilarNameOnBeforeCustomerFindSet(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the customer-contact business relation.
+    /// </summary>
+    /// <param name="Cont">The contact record.</param>
+    /// <param name="ContBusRel">The contact business relation record.</param>
+    /// <param name="IsHandled">Set to true to skip the default check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerContactRelation(Cont: Record Contact; ContBusRel: Record "Contact Business Relation"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the Contact field.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
+    /// <param name="Customer">The customer record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateContact(var IsHandled: Boolean; var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the email address field.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
+    /// <param name="xCustomer">The previous customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateEmail(var Customer: Record Customer; var IsHandled: Boolean; xCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the contact card from ShowContact.
+    /// </summary>
+    /// <param name="Contact">The contact record to display.</param>
+    /// <param name="ContactPageID">The page ID to use for displaying the contact.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowContactOnBeforeOpenContactCard(var Contact: Record Contact; var ContactPageID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the contact list from ShowContact.
+    /// </summary>
+    /// <param name="Contact">The contact record for the list.</param>
+    /// <param name="ContactPageID">The page ID to use for displaying the contact list.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowContactOnBeforeOpenContactList(var Contact: Record Contact; var ContactPageID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after applying the initial customer filter from start in GetCustNoOpenCard.
+    /// </summary>
+    /// <param name="Customer">The customer record with the initial filter applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnAfterOnAfterCustomerFilterFromStart(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying the customer blocked error message.
+    /// </summary>
+    /// <param name="Cust2">The blocked customer record.</param>
+    /// <param name="Transaction">Indicates if this is a posting transaction.</param>
+    /// <param name="IsHandled">Set to true to skip the default error message.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCustBlockedErrorMessage(Cust2: Record Customer; Transaction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating available credit.
+    /// </summary>
+    /// <param name="Rec">The customer record.</param>
+    /// <param name="CalledFromUI">Indicates if called from UI context.</param>
+    /// <param name="CreditLimitLCY">The credit limit in local currency to use.</param>
+    /// <param name="Result">Set to the result to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcAvailableCreditCommon(var Rec: Record Customer; CalledFromUI: Boolean; var CreditLimitLCY: Decimal; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the balance from the linked vendor.
+    /// </summary>
+    /// <param name="Vendor">The linked vendor record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetBalanceAsVendorOnBeforeCalcBalance(var Vendor: Record Vendor)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the registration number.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateRegistrationNumber(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if multiple posting groups are allowed.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAllowMultiplePostingGroups(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after marking customers with similar names in GetCustNoOpenCard.
+    /// </summary>
+    /// <param name="Customer">The customer record with marked similar names.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnAfterMarkCustomersWithSimilarName(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating fields in GetTotalAmountLCY.
+    /// </summary>
+    /// <param name="Customer">The customer record with calculated fields.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetTotalAmountLCYOnAfterCalcFields(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting auto-calculated fields in GetTotalAmountLCYUI.
+    /// </summary>
+    /// <param name="Customer">The customer record with auto-calculated fields set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetTotalAmountLCYUIOnAfterSetAutoCalcFields(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the common total amount in local currency.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="TotalAmountLCY">The calculated total amount that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetTotalAmountLCYCommon(var Customer: Record Customer; var TotalAmountLCY: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the VAT registration number.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="VATRegNo">The VAT registration number that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATRegistrationNo(var Customer: Record Customer; var VATRegNo: Text[20]);
     begin

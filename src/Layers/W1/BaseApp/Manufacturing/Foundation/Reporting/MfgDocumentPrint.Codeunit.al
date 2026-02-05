@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Reports;
 codeunit 99000797 "Mfg. Document Print"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnAfterInitReportSelectionProd', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnAfterInitReportSelectionProd', '', true, false)]
     local procedure OnAfterInitReportSelectionProd()
     begin
         InsertRepSelection("Report Selection Usage"::"Prod.Order", '1', REPORT::"Prod. Order - Job Card");
@@ -20,7 +20,7 @@ codeunit 99000797 "Mfg. Document Print"
         InsertRepSelection("Report Selection Usage"::"Prod. Output Item Label", '1', REPORT::"Output Item Label");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnInitReportUsage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnInitReportUsage', '', true, false)]
     local procedure OnInitReportUsage(ReportUsage: Integer)
     begin
         case "Report Selection Usage".FromInteger(ReportUsage) of

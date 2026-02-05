@@ -124,16 +124,22 @@ table 12184 "Posted Vendor Bill Line"
         }
         field(61; "Withholding Tax Amount"; Decimal)
         {
+            AutoFormatExpression = GetCurrCode();
+            AutoFormatType = 1;
             Caption = 'Withholding Tax Amount';
             Editable = false;
         }
         field(62; "Social Security Amount"; Decimal)
         {
+            AutoFormatExpression = GetCurrCode();
+            AutoFormatType = 1;
             Caption = 'Social Security Amount';
             Editable = false;
         }
         field(63; "Gross Amount to Pay"; Decimal)
         {
+            AutoFormatExpression = GetCurrCode();
+            AutoFormatType = 1;
             Caption = 'Gross Amount to Pay';
             Editable = false;
         }

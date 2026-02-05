@@ -75,6 +75,8 @@ page 654 "Requests to Approve"
                 field("Amount (LCY)"; Rec."Amount (LCY)")
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the total amount in LCY (excl. VAT) on the document awaiting approval.';
                 }
                 field("Currency Code"; Rec."Currency Code")

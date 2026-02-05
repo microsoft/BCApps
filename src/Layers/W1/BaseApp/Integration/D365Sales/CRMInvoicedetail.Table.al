@@ -66,6 +66,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(7; QuantityBackordered; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Back Ordered';
             Description = 'Type the amount or quantity of the product that is back ordered for the invoice.';
             ExternalName = 'quantitybackordered';
@@ -96,6 +97,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Description = 'Type the amount or quantity of the product included in the invoice''s total amount due.';
             ExternalName = 'quantity';
@@ -103,6 +105,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(12; ManualDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Manual Discount';
             Description = 'Type the manual discount amount for the invoice product to deduct any negotiated or other savings from the product total.';
             ExternalName = 'manualdiscountamount';
@@ -117,6 +120,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(14; VolumeDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume Discount';
             Description = 'Shows the discount amount per unit if a specified volume is purchased. Configure volume discounts in the Product Catalog in the Settings area.';
             ExternalAccess = Read;
@@ -125,6 +129,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(15; PricePerUnit; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price Per Unit';
             Description = 'Type the price per unit of the invoice product. The default is the value in the price list specified on the parent invoice for existing products.';
             ExternalName = 'priceperunit';
@@ -132,6 +137,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(16; BaseAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             Description = 'Shows the total price of the invoice product, based on the price per unit, volume discount, and quantity.';
             ExternalAccess = Modify;
@@ -140,6 +146,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(17; QuantityCancelled; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Canceled';
             Description = 'Type the amount or quantity of the product that was canceled for the invoice line item.';
             ExternalName = 'quantitycancelled';
@@ -154,6 +161,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(19; ExtendedAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Extended Amount';
             Description = 'Shows the total amount due for the invoice product, based on the sum of the unit price, quantity, discounts, and tax.';
             ExternalAccess = Modify;
@@ -195,6 +203,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(24; Tax; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax';
             Description = 'Type the tax amount for the invoice product.';
             ExternalName = 'tax';
@@ -317,6 +326,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(40; QuantityShipped; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Shipped';
             Description = 'Type the amount or quantity of the product that was shipped.';
             ExternalName = 'quantityshipped';
@@ -413,6 +423,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(51; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -462,6 +473,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(57; VolumeDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume Discount (Base)';
             Description = 'Shows the Volume Discount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -470,6 +482,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(58; BaseAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount (Base)';
             Description = 'Shows the Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -478,6 +491,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(59; PricePerUnit_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price Per Unit (Base)';
             Description = 'Shows the Price Per Unit field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -495,6 +509,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(61; Tax_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax (Base)';
             Description = 'Shows the Tax field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -503,6 +518,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(62; ExtendedAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Extended Amount (Base)';
             Description = 'Shows the Extended Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -511,6 +527,7 @@ table 5356 "CRM Invoicedetail"
         }
         field(63; ManualDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Manual Discount (Base)';
             Description = 'Shows the Manual Discount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

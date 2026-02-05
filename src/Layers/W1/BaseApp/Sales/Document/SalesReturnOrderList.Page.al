@@ -23,6 +23,9 @@ using System.Automation;
 using System.Text;
 using System.Threading;
 
+/// <summary>
+/// Displays a list of sales return orders for managing customer returns and refunds.
+/// </summary>
 page 9304 "Sales Return Order List"
 {
     ApplicationArea = SalesReturnOrder;

@@ -1287,6 +1287,7 @@ table 98 "General Ledger Setup"
         }
         field(10501; "Threshold Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Threshold Amount';
             MinValue = 0;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';

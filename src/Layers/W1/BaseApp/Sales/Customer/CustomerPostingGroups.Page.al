@@ -8,6 +8,9 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Lists customer posting groups with their associated general ledger accounts for receivables.
+/// </summary>
 page 110 "Customer Posting Groups"
 {
     ApplicationArea = Basic, Suite;

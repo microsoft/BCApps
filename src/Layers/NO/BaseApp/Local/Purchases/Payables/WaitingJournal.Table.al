@@ -90,6 +90,7 @@ table 15000004 "Waiting Journal"
         }
         field(10; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -142,16 +143,19 @@ table 15000004 "Waiting Journal"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(17; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Balance (LCY)';
             Editable = false;
         }
         field(18; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -160,16 +164,19 @@ table 15000004 "Waiting Journal"
         field(19; "Sales/Purch. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales/Purch. (LCY)';
         }
         field(20; "Profit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Profit (LCY)';
         }
         field(21; "Inv. Discount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Discount (LCY)';
         }
         field(22; "Sell-to/Buy-from No."; Code[20])
@@ -260,6 +267,7 @@ table 15000004 "Waiting Journal"
         }
         field(40; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -278,6 +286,7 @@ table 15000004 "Waiting Journal"
         }
         field(43; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -336,6 +345,7 @@ table 15000004 "Waiting Journal"
         field(56; "Allocated Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Gen. Jnl. Allocation".Amount where("Journal Template Name" = field("Journal Template Name"),
                                                                    "Journal Batch Name" = field("Journal Batch Name"),
                                                                    "Journal Line No." = field("Line No.")));
@@ -401,6 +411,7 @@ table 15000004 "Waiting Journal"
         }
         field(68; "Bal. VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Bal. VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -536,6 +547,7 @@ table 15000004 "Waiting Journal"
         }
         field(98; "FA Add.-Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'FA Add.-Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -549,23 +561,27 @@ table 15000004 "Waiting Journal"
         field(100; "Source Currency Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Source Currency Code";
             Caption = 'Source Currency Amount';
             Editable = false;
         }
         field(101; "Source Curr. VAT Base Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Source Currency Code";
             Caption = 'Source Curr. VAT Base Amount';
             Editable = false;
         }
         field(102; "Source Curr. VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Source Currency Code";
             Caption = 'Source Curr. VAT Amount';
             Editable = false;
         }
         field(103; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -575,24 +591,28 @@ table 15000004 "Waiting Journal"
         field(104; "VAT Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount (LCY)';
             Editable = false;
         }
         field(105; "VAT Base Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base Amount (LCY)';
             Editable = false;
         }
         field(106; "Bal. VAT Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Bal. VAT Amount (LCY)';
             Editable = false;
         }
         field(107; "Bal. VAT Base Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Bal. VAT Base Amount (LCY)';
             Editable = false;
         }
@@ -680,6 +700,7 @@ table 15000004 "Waiting Journal"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Salvage Value';
         }
         field(5604; "No. of Depreciation Days"; Integer)
@@ -808,6 +829,7 @@ table 15000004 "Waiting Journal"
         }
         field(15000008; "Agreed Exch. Rate"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Agreed Exch. Rate';
             DecimalPlaces = 5 : 5;
@@ -822,6 +844,7 @@ table 15000004 "Waiting Journal"
         }
         field(15000011; "Futures Contract Exch. Rate"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Futures Contract Exch. Rate';
             DecimalPlaces = 5 : 5;

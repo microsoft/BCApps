@@ -28,6 +28,7 @@ page 6532 "Continuous Item Tracking"
 
                     trigger OnValidate()
                     begin
+                        OnBeforeValidateScanningAreaInput(LastInput, SourceItemTrackingEntryType);
                         if ContinuousScanningMode then
                             CurrPage.Close();
                     end;
@@ -35,6 +36,7 @@ page 6532 "Continuous Item Tracking"
                 field("Available Qty."; AvailableQty)
                 {
                     Caption = 'Available Qty.';
+                    AutoFormatType = 0;
                     DecimalPlaces = 0 : 5;
                     Visible = true;
                     Editable = false;
@@ -97,5 +99,10 @@ page 6532 "Continuous Item Tracking"
         SourceItemTrackingEntryType := ItemTrackingEntryType;
         TempTrackSpecificationFromSourcePage.Copy(NewTrackSpecificationFromSourcePage, true);
         ContinuousScanningMode := DestMode;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateScanningAreaInput(var Input: Text; ItemTrackingEntryType: Enum "Item Tracking Entry Type")
+    begin
     end;
 }

@@ -29,6 +29,7 @@ table 10016 "IRS 1099 Adjustment"
         }
         field(4; Amount; Decimal)
         {
+            AutoFormatType = 0;
         }
     }
 
@@ -44,5 +45,5 @@ table 10016 "IRS 1099 Adjustment"
     {
     }
 }
- 
+
 #endif

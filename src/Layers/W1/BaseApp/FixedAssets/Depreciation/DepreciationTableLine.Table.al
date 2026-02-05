@@ -25,6 +25,7 @@ table 5643 "Depreciation Table Line"
         }
         field(3; "Period Depreciation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Period Depreciation %';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
@@ -39,6 +40,7 @@ table 5643 "Depreciation Table Line"
         }
         field(4; "No. of Units in Period"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'No. of Units in Period';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

@@ -80,6 +80,8 @@ table 10124 "Posted Bank Rec. Line"
         }
         field(11; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(12; Cleared; Boolean)
@@ -88,6 +90,8 @@ table 10124 "Posted Bank Rec. Line"
         }
         field(13; "Cleared Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Cleared Amount';
         }
         field(14; "Bal. Account Type"; enum "Gen. Journal Account Type")
@@ -114,6 +118,7 @@ table 10124 "Posted Bank Rec. Line"
         }
         field(17; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(18; "External Document No."; Code[35])

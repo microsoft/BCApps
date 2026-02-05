@@ -675,7 +675,7 @@ codeunit 134014 "ERM Unreal VAT Option First"
 
         // Verify: Verify the Amount in VAT Entry and Amount in G/L Entry.
         VerifyGLEntryVATAmount(GenJournalLine, CurrencyCode, -GenJournalLine.Amount);
-        VerifyVATEntry(GenJournalLine, CurrencyCode, Round(PurchInvLine.Amount * VATPostingSetup."VAT %" / 100 - HalfVATAmount));
+        VerifyVATEntry(GenJournalLine, CurrencyCode, (PurchInvLine."Amount Including VAT" - PurchInvLine.Amount - HalfVATAmount));
     end;
 
     local procedure ApplyCreditMemoTwice(CurrencyCode: Code[10])

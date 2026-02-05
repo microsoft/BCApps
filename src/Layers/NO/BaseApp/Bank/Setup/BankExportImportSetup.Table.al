@@ -158,6 +158,8 @@ table 1200 "Bank Export/Import Setup"
         }
         field(10601; "Reg.Reporting Thresh.Amt (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
     }
 

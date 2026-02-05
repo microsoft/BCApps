@@ -219,6 +219,7 @@ table 6420 "FS Customer Asset"
         }
         field(38; Latitude; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_latitude';
             ExternalType = 'Double';
             Description = '';
@@ -227,6 +228,7 @@ table 6420 "FS Customer Asset"
         }
         field(39; Longitude; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_longitude';
             ExternalType = 'Double';
             Description = '';
@@ -421,5 +423,5 @@ table 6420 "FS Customer Asset"
         {
         }
     }
-} 
+}
 #endif

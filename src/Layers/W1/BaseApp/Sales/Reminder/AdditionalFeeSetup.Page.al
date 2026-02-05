@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Environment;
 
+/// <summary>
+/// Provides a list page for configuring additional fee rules based on reminder levels and remaining amounts.
+/// </summary>
 page 1050 "Additional Fee Setup"
 {
     Caption = 'Additional Fee Setup';

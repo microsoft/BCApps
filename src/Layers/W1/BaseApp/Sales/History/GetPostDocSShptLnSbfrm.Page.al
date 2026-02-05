@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays posted sales shipment lines as a subform for line selection during document retrieval.
+/// </summary>
 page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
 {
     Caption = 'Lines';
@@ -136,6 +139,7 @@ page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
                 field(QtyNotReturned; QtyNotReturned)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Qty. Not Returned';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity from the posted document line that has been shipped to the customer and not returned by the customer.';
@@ -143,6 +147,7 @@ page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
                 field(QtyReturned; GetQtyReturned())
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Qty. Returned';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity that was returned.';
@@ -163,6 +168,7 @@ page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
                 {
                     ApplicationArea = SalesReturnOrder;
                     AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Reverse Unit Cost (LCY)';
                     ToolTip = 'Specifies the unit cost that will appear on the new document lines.';
                     Visible = false;
@@ -388,6 +394,12 @@ page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
         exit(0);
     end;
 
+    /// <summary>
+    /// Initializes the subform with filter and visibility settings.
+    /// </summary>
+    /// <param name="NewRevQtyFilter">Specifies whether to filter for reversible quantities.</param>
+    /// <param name="NewFillExactCostReverse">Specifies whether to fill exact cost reverse.</param>
+    /// <param name="NewVisible">Specifies whether the subform is visible.</param>
     procedure Initialize(NewRevQtyFilter: Boolean; NewFillExactCostReverse: Boolean; NewVisible: Boolean)
     begin
         RevQtyFilter := NewRevQtyFilter;
@@ -400,6 +412,10 @@ page 5851 "Get Post.Doc - S.ShptLn Sbfrm"
         end;
     end;
 
+    /// <summary>
+    /// Gets the currently selected shipment line with selection filter applied.
+    /// </summary>
+    /// <param name="FromSalesShptLine">Returns the selected sales shipment line.</param>
     procedure GetSelectedLine(var FromSalesShptLine: Record "Sales Shipment Line")
     begin
         FromSalesShptLine.Copy(Rec);

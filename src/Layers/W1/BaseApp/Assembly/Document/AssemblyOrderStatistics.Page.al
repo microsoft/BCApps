@@ -34,6 +34,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Material Cost';
                             Editable = false;
                             ToolTip = 'Specifies the material cost amount of all assembly order lines of type Item in the assembly order.';
@@ -42,6 +43,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Resource Cost';
                             Editable = false;
                             ToolTip = 'Specifies the material cost amount of all assembly order lines of type Resource in the assembly order.';
@@ -50,6 +52,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Resource Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the resource overhead amount of all assembly order lines of type Resource.';
@@ -58,6 +61,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Assembly Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the overhead amount of the entire assembly order.';
@@ -66,6 +70,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             Editable = false;
                             ToolTip = 'Specifies the sum of the lines in each column.';
@@ -78,6 +83,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -85,6 +91,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -92,12 +99,15 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(ExpAsmOvhd; Value[ColIdx::ExpCost, RowIdx::AsmOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                             ToolTip = 'Specifies the expected overhead cost of the assembly order.';
@@ -106,6 +116,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -117,6 +128,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -124,6 +136,7 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -131,12 +144,15 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(ActAsmOvhd; Value[ColIdx::ActCost, RowIdx::AsmOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -144,100 +160,116 @@ page 916 "Assembly Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
-                    }
-                    group("Dev. %")
-                    {
-                        Caption = 'Dev. %';
-                        field(DevMatCost; Value[ColIdx::Dev, RowIdx::MatCost])
+                        group("Dev. %")
                         {
-                            ApplicationArea = Assembly;
-                            DecimalPlaces = 0 : 5;
-                            Editable = false;
-                            ShowCaption = false;
+                            Caption = 'Dev. %';
+                            field(DevMatCost; Value[ColIdx::Dev, RowIdx::MatCost])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                DecimalPlaces = 0 : 5;
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(DevResCost; Value[ColIdx::Dev, RowIdx::ResCost])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                DecimalPlaces = 0 : 5;
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(DevResOvhd; Value[ColIdx::Dev, RowIdx::ResOvhd])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                DecimalPlaces = 0 : 5;
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(DevAsmOvhd; Value[ColIdx::Dev, RowIdx::AsmOvhd])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                DecimalPlaces = 0 : 5;
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(DevTotalCost; Value[ColIdx::Dev, RowIdx::Total])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                DecimalPlaces = 0 : 5;
+                                Editable = false;
+                                ShowCaption = false;
+                            }
                         }
-                        field(DevResCost; Value[ColIdx::Dev, RowIdx::ResCost])
+                        group(Variance)
                         {
-                            ApplicationArea = Assembly;
-                            DecimalPlaces = 0 : 5;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(DevResOvhd; Value[ColIdx::Dev, RowIdx::ResOvhd])
-                        {
-                            ApplicationArea = Assembly;
-                            DecimalPlaces = 0 : 5;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(DevAsmOvhd; Value[ColIdx::Dev, RowIdx::AsmOvhd])
-                        {
-                            ApplicationArea = Assembly;
-                            DecimalPlaces = 0 : 5;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(DevTotalCost; Value[ColIdx::Dev, RowIdx::Total])
-                        {
-                            ApplicationArea = Assembly;
-                            DecimalPlaces = 0 : 5;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                    }
-                    group(Variance)
-                    {
-                        Caption = 'Variance';
-                        field(VarMatCost; Value[ColIdx::"Var", RowIdx::MatCost])
-                        {
-                            ApplicationArea = Assembly;
-                            AutoFormatType = 1;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(VarResCost; Value[ColIdx::"Var", RowIdx::ResCost])
-                        {
-                            ApplicationArea = Assembly;
-                            AutoFormatType = 1;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(VarResOvhd; Value[ColIdx::"Var", RowIdx::ResOvhd])
-                        {
-                            ApplicationArea = Assembly;
-                            AutoFormatType = 1;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(VarAsmOvhd; Value[ColIdx::"Var", RowIdx::AsmOvhd])
-                        {
-                            ApplicationArea = Assembly;
-                            AutoFormatType = 1;
-                            Editable = false;
-                            ShowCaption = false;
-                        }
-                        field(VarTotalCost; Value[ColIdx::"Var", RowIdx::Total])
-                        {
-                            ApplicationArea = Assembly;
-                            AutoFormatType = 1;
-                            Editable = false;
-                            ShowCaption = false;
+                            Caption = 'Variance';
+                            field(VarMatCost; Value[ColIdx::"Var", RowIdx::MatCost])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(VarResCost; Value[ColIdx::"Var", RowIdx::ResCost])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(VarResOvhd; Value[ColIdx::"Var", RowIdx::ResOvhd])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(VarAsmOvhd; Value[ColIdx::"Var", RowIdx::AsmOvhd])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                Editable = false;
+                                ShowCaption = false;
+                            }
+                            field(VarTotalCost; Value[ColIdx::"Var", RowIdx::Total])
+                            {
+                                ApplicationArea = Assembly;
+                                AutoFormatType = 1;
+                                AutoFormatExpression = '';
+                                Editable = false;
+                                ShowCaption = false;
+                            }
                         }
                     }
                 }
-            }
-            group(Components)
-            {
-                Caption = 'Components';
-
-                field("Reserved From Stock"; Rec.GetQtyReservedFromStockState())
+                group(Components)
                 {
-                    ApplicationArea = Reservation;
-                    Editable = false;
-                    Caption = 'Reserved from stock';
-                    ToolTip = 'Specifies what part of the component items is reserved from inventory.';
+                    Caption = 'Components';
+
+                    field("Reserved From Stock"; Rec.GetQtyReservedFromStockState())
+                    {
+                        ApplicationArea = Reservation;
+                        Editable = false;
+                        Caption = 'Reserved from stock';
+                        ToolTip = 'Specifies what part of the component items is reserved from inventory.';
+                    }
                 }
             }
         }

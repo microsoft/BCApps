@@ -11,17 +11,17 @@ codeunit 134451 "ERM Fixed Assets"
 
     var
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryERM: Codeunit "Library - ERM";
-        LibraryFixedAsset: Codeunit "Library - Fixed Asset";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryUtility: Codeunit "Library - Utility";
         LibraryDimension: Codeunit "Library - Dimension";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryErrorMessage: Codeunit "Library - Error Message";
+        LibraryFixedAsset: Codeunit "Library - Fixed Asset";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         isInitialized: Boolean;
@@ -56,6 +56,7 @@ codeunit 134451 "ERM Fixed Assets"
         DepreciationBookCodeMustMatchErr: Label 'Depreciation Book Code must match.';
         FixedAssetCountError: Label 'New fixed assets were not created.';
         DimValueError: Label 'Dimension values are not equal on the copied Fixed Asset.';
+        NoSeriesNotConsumedErr: Label 'Number series should not be consumed during preview posting';
 
     [Test]
     [Scope('OnPrem')]
@@ -3627,6 +3628,53 @@ codeunit 134451 "ERM Fixed Assets"
         Assert.AreEqual(DefaultDimension.Count, DefaultDimension2.Count, DimValueError);
     end;
 
+    [Test]
+    [HandlerFunctions('GLPostingPreviewPageHandler')]
+    procedure PreviewPostingDoesNotConsumeNumberSeries()
+    var
+        FixedAsset: Record "Fixed Asset";
+        NoSeriesLine: Record "No. Series Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        LastNoUsedBeforePreview, LastNoUsedAfterPreview, FANoSeriesCode, VendorNo : Code[20];
+        NoOfFACard: Integer;
+    begin
+        // [SCENARIO 616791] Preview posting should not consume FA number series, and actual posting should use consecutive numbers.
+        Initialize();
+        FANoSeriesCode := LibraryUtility.GetGlobalNoSeriesCode();
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Create FA and FA Depreciation Book.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", GetDefaultDepreciationBook(), FixedAsset."FA Posting Group");
+
+        // [GIVEN] Get the Last No. Used value bfore Purchase invoice Preview.
+        LibraryUtility.GetNoSeriesLine(FANoSeriesCode, NoSeriesLine);
+        LastNoUsedBeforePreview := NoSeriesLine."Last No. Used";
+
+        // [GIVEN] Create Purchase Invoice with multiple FA cards.
+        NoOfFACard := LibraryRandom.RandIntInRange(5, 10);
+        CreatePurchaseInvoiceWithNoOfFixedAssetCards(PurchaseHeader, VendorNo, FixedAsset."No.", NoOfFACard);
+
+        // [WHEN] Preview posting the Purchase Invoice
+        Commit();
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GoToRecord(PurchaseHeader);
+        PurchaseInvoice.Preview.Invoke();
+        PurchaseInvoice.Close();
+
+        // [THEN] Verify number series was not consumed during preview.
+        LibraryUtility.GetNoSeriesLine(FANoSeriesCode, NoSeriesLine);
+        LastNoUsedAfterPreview := NoSeriesLine."Last No. Used";
+        Assert.AreEqual(LastNoUsedBeforePreview, LastNoUsedAfterPreview, NoSeriesNotConsumedErr);
+
+        // [WHEN] Post the Purchase Invoice.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Verify that the fixed asset is created with a consecutive number from the No. Series.
+        VerifyFixedAssetCreatedWithConsecutiveNoSeries(NoOfFACard, LastNoUsedBeforePreview);
+    end;
+
     local procedure Initialize()
     var
         DimValue: Record "Dimension Value";
@@ -4740,6 +4788,30 @@ codeunit 134451 "ERM Fixed Assets"
         until FixedAsset.Next() = 0;
     end;
 
+    local procedure CreatePurchaseInvoiceWithNoOfFixedAssetCards(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; FANo: Code[20]; NoOfCards: Integer)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Fixed Asset", FANo, NoOfCards);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(1000, 2000));
+        PurchaseLine.Validate("No. of Fixed Asset Cards", NoOfCards);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure VerifyFixedAssetCreatedWithConsecutiveNoSeries(NoOfCards: Integer; LastNoUsedBeforePreview: Code[20])
+    var
+        FixedAsset: Record "Fixed Asset";
+        i: Integer;
+    begin
+        for i := 1 to NoOfCards do begin
+            if i <> NoOfCards then
+                LastNoUsedBeforePreview := IncStr(LastNoUsedBeforePreview);
+            FixedAsset.SetRange("No.", LastNoUsedBeforePreview);
+            Assert.IsFalse(FixedAsset.IsEmpty(), NoSeriesNotConsumedErr);
+        end;
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure FADepreciationBooksHandler(var CreateFADepreciationBooks: TestRequestPage "Create FA Depreciation Books")
@@ -4818,5 +4890,10 @@ codeunit 134451 "ERM Fixed Assets"
     procedure EnqueueMessageSendNotificationHandler(var Notification: Notification): Boolean
     begin
         LibraryVariableStorage.Enqueue(Notification.Message);
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewPageHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    begin
     end;
 }

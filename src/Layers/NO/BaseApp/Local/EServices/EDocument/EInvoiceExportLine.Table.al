@@ -50,38 +50,52 @@ table 10605 "E-Invoice Export Line"
         }
         field(14; "Remaining Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Remaining Amount';
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
         }
         field(22; "Unit Price"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Price';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
         }
         field(28; "Line Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Line Discount Amount';
         }
         field(29; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount';
         }
         field(30; "Amount Including VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount Including VAT';
         }
         field(69; "Inv. Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Inv. Discount Amount';
         }
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
@@ -121,5 +135,19 @@ table 10605 "E-Invoice Export Line"
     fieldgroups
     {
     }
+
+    var
+        EInvoiceExportHeader: Record "E-Invoice Export Header";
+        HeaderRead: Boolean;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        if not HeaderRead then begin
+            EInvoiceExportHeader.Get("Document No.");
+            HeaderRead := true;
+        end;
+        exit(EInvoiceExportHeader."Currency Code");
+
+    end;
 }
 

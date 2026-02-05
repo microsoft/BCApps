@@ -159,6 +159,7 @@ table 1001 "Job Task"
         field(10; "Schedule (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -172,6 +173,7 @@ table 1001 "Job Task"
         field(11; "Schedule (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                              "Job Task No." = field("Job Task No."),
@@ -185,6 +187,7 @@ table 1001 "Job Task"
         field(12; "Usage (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Ledger Entry"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                            "Job Task No." = field("Job Task No."),
@@ -198,6 +201,7 @@ table 1001 "Job Task"
         field(13; "Usage (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Ledger Entry"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -211,6 +215,7 @@ table 1001 "Job Task"
         field(14; "Contract (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -224,6 +229,7 @@ table 1001 "Job Task"
         field(15; "Contract (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                              "Job Task No." = field("Job Task No."),
@@ -237,6 +243,7 @@ table 1001 "Job Task"
         field(16; "Contract (Invoiced Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = - sum("Job Ledger Entry"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                              "Job Task No." = field("Job Task No."),
@@ -250,6 +257,7 @@ table 1001 "Job Task"
         field(17; "Contract (Invoiced Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             CalcFormula = - sum("Job Ledger Entry"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -336,12 +344,16 @@ table 1001 "Job Task"
         }
         field(34; "Recognized Sales Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Sales Amount';
             Editable = false;
         }
         field(37; "Recognized Costs Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Costs Amount';
             Editable = false;
@@ -354,12 +366,16 @@ table 1001 "Job Task"
         }
         field(56; "Recognized Sales G/L Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Sales G/L Amount';
             Editable = false;
         }
         field(57; "Recognized Costs G/L Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Costs G/L Amount';
             Editable = false;
@@ -390,6 +406,8 @@ table 1001 "Job Task"
         }
         field(62; "Outstanding Orders"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             CalcFormula = sum("Purchase Line"."Outstanding Amt. Ex. VAT (LCY)" where("Document Type" = const(Order),
                                                                                       "Job No." = field("Job No."),
@@ -400,6 +418,8 @@ table 1001 "Job Task"
         }
         field(63; "Amt. Rcd. Not Invoiced"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             CalcFormula = sum("Purchase Line"."A. Rcd. Not Inv. Ex. VAT (LCY)" where("Document Type" = const(Order),
                                                                                       "Job No." = field("Job No."),
@@ -411,6 +431,7 @@ table 1001 "Job Task"
         field(64; "Remaining (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Remaining Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                                       "Job Task No." = field("Job Task No."),
@@ -424,6 +445,7 @@ table 1001 "Job Task"
         field(65; "Remaining (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line"."Remaining Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                                        "Job Task No." = field("Job Task No."),

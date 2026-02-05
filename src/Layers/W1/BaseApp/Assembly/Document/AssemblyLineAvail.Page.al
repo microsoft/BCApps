@@ -35,6 +35,7 @@ page 909 "Assembly Line Avail."
                 }
                 field(Inventory; Inventory)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Inventory';
                     DecimalPlaces = 0 : 5;
@@ -43,6 +44,7 @@ page 909 "Assembly Line Avail."
                 }
                 field(GrossRequirement; GrossRequirement)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Gross Requirement';
                     DecimalPlaces = 0 : 5;
@@ -50,6 +52,7 @@ page 909 "Assembly Line Avail."
                 }
                 field(ScheduledReceipt; ScheduledRcpt)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Scheduled Receipt';
                     DecimalPlaces = 0 : 5;
@@ -57,6 +60,7 @@ page 909 "Assembly Line Avail."
                 }
                 field(ExpectedAvailableInventory; ExpectedInventory)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Expected Available Inventory';
                     DecimalPlaces = 0 : 5;
@@ -89,6 +93,7 @@ page 909 "Assembly Line Avail."
                 }
                 field(AbleToAssemble; AbleToAssemble)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Able to Assemble';
                     DecimalPlaces = 0 : 5;

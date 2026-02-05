@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 99000767 "Mfg. Whse. Worksheet Line"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Whse. Worksheet Line", 'OnUpdateQtyHandledForProdOrderOutput', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Whse. Worksheet Line", 'OnUpdateQtyHandledForProdOrderOutput', '', true, false)]
     local procedure OnUpdateQtyHandledForProdOrderOutput(var WhseWorksheetLine: Record "Whse. Worksheet Line")
     var
         ProdOrderLine: Record "Prod. Order Line";

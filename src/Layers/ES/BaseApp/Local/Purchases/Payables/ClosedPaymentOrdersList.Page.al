@@ -51,6 +51,8 @@ page 7000061 "Closed Payment Orders List"
                 field("Amount Grouped (LCY)"; Rec."Amount Grouped (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the grouped amount for this closed payment order.';
                 }
             }

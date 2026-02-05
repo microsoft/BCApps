@@ -289,6 +289,7 @@ table 167 Job
         }
         field(49; "Scheduled Res. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line"."Quantity (Base)" where("Job No." = field("No."),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -318,6 +319,7 @@ table 167 Job
         }
         field(56; "Scheduled Res. Gr. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line"."Quantity (Base)" where("Job No." = field("No."),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -599,6 +601,7 @@ table 167 Job
         field(1005; "Total WIP Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                          "Job Complete" = const(false),
                                                                          Type = filter("Accrued Costs" | "Applied Costs" | "Recognized Costs")));
@@ -609,6 +612,7 @@ table 167 Job
         field(1006; "Total WIP Cost G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                              Reversed = const(false),
                                                                              "Job Complete" = const(false),
@@ -680,6 +684,7 @@ table 167 Job
         field(1017; "Recog. Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                          Type = filter("Recognized Sales")));
             Caption = 'Recog. Sales Amount';
@@ -689,6 +694,7 @@ table 167 Job
         field(1018; "Recog. Sales G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                              Reversed = const(false),
                                                                              Type = filter("Recognized Sales")));
@@ -699,6 +705,7 @@ table 167 Job
         field(1019; "Recog. Costs Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job WIP Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                         Type = filter("Recognized Costs")));
             Caption = 'Recog. Costs Amount';
@@ -708,6 +715,7 @@ table 167 Job
         field(1020; "Recog. Costs G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                             Reversed = const(false),
                                                                             Type = filter("Recognized Costs")));
@@ -718,6 +726,7 @@ table 167 Job
         field(1021; "Total WIP Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job WIP Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                         "Job Complete" = const(false),
                                                                         Type = filter("Accrued Sales" | "Applied Sales" | "Recognized Sales")));
@@ -728,6 +737,7 @@ table 167 Job
         field(1022; "Total WIP Sales G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                             Reversed = const(false),
                                                                             "Job Complete" = const(false),
@@ -833,6 +843,7 @@ table 167 Job
         field(1028; "Applied Costs G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                              Reverse = const(false),
                                                                              "Job Complete" = const(false),
@@ -844,6 +855,7 @@ table 167 Job
         field(1029; "Applied Sales G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
                                                                              Reverse = const(false),
                                                                              "Job Complete" = const(false),
@@ -855,6 +867,7 @@ table 167 Job
         field(1030; "Calc. Recog. Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job Task"."Recognized Sales Amount" where("Job No." = field("No.")));
             Caption = 'Calc. Recog. Sales Amount';
             Editable = false;
@@ -863,6 +876,7 @@ table 167 Job
         field(1031; "Calc. Recog. Costs Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job Task"."Recognized Costs Amount" where("Job No." = field("No.")));
             Caption = 'Calc. Recog. Costs Amount';
             Editable = false;
@@ -871,6 +885,7 @@ table 167 Job
         field(1032; "Calc. Recog. Sales G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job Task"."Recognized Sales G/L Amount" where("Job No." = field("No.")));
             Caption = 'Calc. Recog. Sales G/L Amount';
             Editable = false;
@@ -879,6 +894,7 @@ table 167 Job
         field(1033; "Calc. Recog. Costs G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Job Task"."Recognized Costs G/L Amount" where("Job No." = field("No.")));
             Caption = 'Calc. Recog. Costs G/L Amount';
             Editable = false;

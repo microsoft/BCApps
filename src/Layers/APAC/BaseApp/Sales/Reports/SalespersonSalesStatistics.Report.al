@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates sales statistics by salesperson showing sales amounts, profits, discounts, and adjusted profit calculations.
+/// </summary>
+
 using Microsoft.CRM.Team;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Costing;

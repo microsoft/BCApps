@@ -76,6 +76,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
         if not QltyInspectionTemplateLine.FindFirst() then
             Error(RecreateInspectionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Test Code", QltyInspectionTemplateLine.GetFilters());
 
+        if QltyInspectionTemplateLine."Expression Formula" = '' then
+            exit('');
+
         Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionHeader, QltyInspectionLine);
         OnEvaluateTextExpressionOnInspectionLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
 

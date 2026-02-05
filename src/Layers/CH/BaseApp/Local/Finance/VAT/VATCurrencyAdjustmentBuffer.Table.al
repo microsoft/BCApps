@@ -25,18 +25,22 @@ table 11501 "VAT Currency Adjustment Buffer"
         }
         field(3; "VAT Sales Base Amt."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Sales Base Amt.';
         }
         field(4; "VAT Sales Base Amt. Adj."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Sales Base Amt. Adj.';
         }
         field(5; "VAT Purch. Base Amt."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Purch. Base Amt.';
         }
         field(6; "VAT Purch. Base Amt. Adj."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Purch. Base Amt. Adj.';
         }
     }

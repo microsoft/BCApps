@@ -18,6 +18,7 @@ table 12194 "Blacklist Comm. Amount"
         }
         field(2; "Threshold Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Threshold Amount';
         }
     }

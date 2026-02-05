@@ -66,6 +66,7 @@ table 99000772 "Production BOM Line"
                         begin
                             Item.Get("No.");
                             Description := Item.Description;
+                            "Description 2" := Item."Description 2";
                             Item.TestField("Base Unit of Measure");
                             "Unit of Measure Code" := Item."Base Unit of Measure";
                             "Scrap %" := Item."Scrap %";
@@ -78,6 +79,7 @@ table 99000772 "Production BOM Line"
                             ProductionBOMHeader.Get("No.");
                             ProductionBOMHeader.TestField("Unit of Measure Code");
                             Description := ProductionBOMHeader.Description;
+                            "Description 2" := ProductionBOMHeader."Description 2";
                             "Unit of Measure Code" := ProductionBOMHeader."Unit of Measure Code";
                             OnValidateNoOnAfterAssignProdBOMFields(Rec, ProductionBOMHeader, xRec, CurrFieldNo);
                         end;
@@ -106,6 +108,7 @@ table 99000772 "Production BOM Line"
         }
         field(14; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -153,6 +156,7 @@ table 99000772 "Production BOM Line"
         }
         field(20; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankNumbers = BlankNeg;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 5;
@@ -176,9 +180,10 @@ table 99000772 "Production BOM Line"
                     exit;
                 TestField(Type, Type::Item);
                 TestField("No.");
-                ItemVariant.SetLoadFields(Description);
+                ItemVariant.SetLoadFields(Description, "Description 2");
                 ItemVariant.Get("No.", "Variant Code");
                 Description := ItemVariant.Description;
+                "Description 2" := ItemVariant."Description 2";
             end;
         }
         field(22; Comment; Boolean)
@@ -189,6 +194,12 @@ table 99000772 "Production BOM Line"
             Caption = 'Comment';
             Editable = false;
             FieldClass = FlowField;
+        }
+        field(23; "Description 2"; Text[50])
+        {
+            Caption = 'Description 2';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies additional description text.';
         }
         field(28; "Starting Date"; Date)
         {
@@ -222,6 +233,7 @@ table 99000772 "Production BOM Line"
         }
         field(40; Length; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Length';
             DecimalPlaces = 0 : 5;
 
@@ -232,6 +244,7 @@ table 99000772 "Production BOM Line"
         }
         field(41; Width; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Width';
             DecimalPlaces = 0 : 5;
 
@@ -242,6 +255,7 @@ table 99000772 "Production BOM Line"
         }
         field(42; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
 
@@ -252,6 +266,7 @@ table 99000772 "Production BOM Line"
         }
         field(43; Depth; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Depth';
             DecimalPlaces = 0 : 5;
 
@@ -293,6 +308,7 @@ table 99000772 "Production BOM Line"
         }
         field(45; "Quantity per"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity per';
             DecimalPlaces = 0 : 5;
 

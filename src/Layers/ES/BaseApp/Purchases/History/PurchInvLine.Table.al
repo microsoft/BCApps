@@ -111,6 +111,7 @@ table 123 "Purch. Inv. Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -124,16 +125,19 @@ table 123 "Purch. Inv. Line"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -160,6 +164,7 @@ table 123 "Purch. Inv. Line"
         field(31; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
         }
         field(32; "Allow Invoice Disc."; Boolean)
@@ -169,21 +174,25 @@ table 123 "Purch. Inv. Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -211,6 +220,7 @@ table 123 "Purch. Inv. Line"
         }
         field(54; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -424,11 +434,15 @@ table 123 "Purch. Inv. Line"
         }
         field(1003; "Job Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Job Currency Code";
             BlankZero = true;
             Caption = 'Project Unit Price';
         }
         field(1004; "Job Total Price"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             BlankZero = true;
             Caption = 'Project Total Price';
         }
@@ -448,6 +462,7 @@ table 123 "Purch. Inv. Line"
         }
         field(1007; "Job Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Project Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -459,27 +474,32 @@ table 123 "Purch. Inv. Line"
             BlankZero = true;
             Caption = 'Project Unit Price (LCY)';
             AutoFormatType = 2;
+            AutoFormatExpression = '';
         }
         field(1009; "Job Total Price (LCY)"; Decimal)
         {
             BlankZero = true;
             Caption = 'Project Total Price (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1010; "Job Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Project Line Amount (LCY)';
         }
         field(1011; "Job Line Disc. Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Project Line Disc. Amount (LCY)';
         }
         field(1012; "Job Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Project Currency Factor';
         }
@@ -508,6 +528,14 @@ table 123 "Purch. Inv. Line"
             Caption = 'Allocation Purchase Line SystemId';
             DataClassification = SystemMetadata;
         }
+        field(2701; "Matched Order Lines"; Integer)
+        {
+            BlankZero = true;
+            CalcFormula = count("Posted Matched Order Line" where("Document Line SystemId" = field(SystemId), "Matched Rcpt./Shpt. Line SysId" = const('00000000-0000-0000-0000-000000000000')));
+            Caption = 'Matched Order Lines';
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
@@ -522,6 +550,7 @@ table 123 "Purch. Inv. Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -535,6 +564,7 @@ table 123 "Purch. Inv. Line"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -554,6 +584,7 @@ table 123 "Purch. Inv. Line"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -627,19 +658,26 @@ table 123 "Purch. Inv. Line"
         }
         field(6200; "Non-Deductible VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non-Deductible VAT %';
             DecimalPlaces = 0 : 5;
         }
         field(6201; "Non-Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             Caption = 'Non-Deductible VAT Base';
         }
         field(6202; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             Caption = 'Non-Deductible VAT Amount';
         }
         field(6203; "Non-Deductible VAT Diff."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             Caption = 'Non-Deductible VAT Difference';
             Editable = false;
         }
@@ -661,6 +699,7 @@ table 123 "Purch. Inv. Line"
         }
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
         }
         field(10702; "EC Difference"; Decimal)
@@ -682,6 +721,7 @@ table 123 "Purch. Inv. Line"
         }
         field(99000755; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
         }
@@ -721,6 +761,7 @@ table 123 "Purch. Inv. Line"
     var
         PurchDocLineComments: Record "Purch. Comment Line";
         PostedDeferralHeader: Record "Posted Deferral Header";
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
     begin
         PurchDocLineComments.SetRange("Document Type", PurchDocLineComments."Document Type"::"Posted Invoice");
         PurchDocLineComments.SetRange("No.", "Document No.");
@@ -731,6 +772,8 @@ table 123 "Purch. Inv. Line"
         PostedDeferralHeader.DeleteHeader(
             "Deferral Document Type"::Purchase.AsInteger(), '', '',
             PurchDocLineComments."Document Type"::"Posted Invoice".AsInteger(), "Document No.", "Line No.");
+
+        MatchedOrderLineMgmt.DeleteMatchedLinesFromPostedPurchaseInvoice(Rec);
     end;
 
     var

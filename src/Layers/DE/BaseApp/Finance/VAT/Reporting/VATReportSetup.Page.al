@@ -67,35 +67,57 @@ page 743 "VAT Report Setup"
                     ToolTip = 'Specifies the number series that will be used for standard VAT reports.';
                 }
             }
+#if not CLEAN28
             group(ZIVIT)
             {
                 Caption = 'ZIVIT';
+                Visible = false;
+                ObsoleteReason = 'This group is no longer used in the new VIES ELMA XML export format.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '28.0';
+
                 field("Source Identifier"; Rec."Source Identifier")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the 11 character alphabetic ID that is provided when you register at the processing agency (ZIVIT).';
+                    ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
                 field("Transmission Process ID"; Rec."Transmission Process ID")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the 3 character alphanumeric ID of the transmission process.';
+                    ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
                 field("Supplier ID"; Rec."Supplier ID")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the 3 character alphanumeric ID of the supplier.';
+                    ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
                 field(Codepage; Rec.Codepage)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code page for the formats in which you can submit a dataset for a VAT report.';
+                    ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
                 field("Registration ID"; Rec."Registration ID")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the registration ID of the EU Sales List document.';
+                    ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
             }
+#endif
         }
     }
 

@@ -1,7 +1,11 @@
+#if not CLEAN28
 codeunit 144055 "ERM Payment Management II"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -1025,4 +1029,4 @@ codeunit 144055 "ERM Payment Management II"
         DraftNotice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif

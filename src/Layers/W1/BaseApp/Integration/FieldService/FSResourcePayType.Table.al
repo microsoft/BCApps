@@ -239,6 +239,7 @@ table 6206 "FS Resource Pay Type"
         }
         field(35; msdyn_HourlyMarkup; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_hourlymarkup';
             ExternalType = 'Double';
             Description = 'Enter the markup percentage on the resource hourly cost. Use a value greater than 100% to mark it up and a value less than 100% to mark it down.';
@@ -262,5 +263,5 @@ table 6206 "FS Resource Pay Type"
         {
         }
     }
-} 
+}
 #endif

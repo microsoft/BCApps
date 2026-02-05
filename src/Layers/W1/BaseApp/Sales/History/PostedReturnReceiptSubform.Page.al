@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item.Catalog;
 
+/// <summary>
+/// Displays the line items of a posted sales return receipt as a subform on the document page.
+/// </summary>
 page 6661 "Posted Return Receipt Subform"
 {
     AutoSplitKey = true;
@@ -270,6 +273,9 @@ page 6661 "Posted Return Receipt Subform"
         Rec.ShowItemSalesCrMemoLines();
     end;
 
+    /// <summary>
+    /// Opens the document line tracking page for this return receipt line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

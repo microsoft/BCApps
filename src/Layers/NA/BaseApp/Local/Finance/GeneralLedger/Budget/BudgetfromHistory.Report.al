@@ -150,6 +150,7 @@ report 10031 "Budget from History"
                     field(PercentChg; PercentChg)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Percent Change';
                         ToolTip = 'Specifies if you want the budget to increase in relation to the corresponding historical period. The budget created will be that percentage over (under if negative) the actual amounts existing in the corresponding historical period. For example, if the historical amount for a period is $100, and the percent change is 10, then the budget for the corresponding period will be $110.';
                     }

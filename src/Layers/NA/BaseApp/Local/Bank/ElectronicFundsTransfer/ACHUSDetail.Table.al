@@ -35,6 +35,7 @@ table 10301 "ACH US Detail"
         }
         field(5; "Payment Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Amount';
             Description = 'Checkbook Transaction Electronic Funds Transfer Checkbook Amount';
         }

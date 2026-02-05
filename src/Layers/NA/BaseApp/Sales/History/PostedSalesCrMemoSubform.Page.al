@@ -11,6 +11,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Displays the line items of a posted sales credit memo as a subform on the document page.
+/// </summary>
 page 135 "Posted Sales Cr. Memo Subform"
 {
     AutoSplitKey = true;
@@ -511,6 +514,9 @@ page 135 "Posted Sales Cr. Memo Subform"
         Rec.ShowItemReturnRcptLines();
     end;
 
+    /// <summary>
+    /// Opens the document line tracking page for this credit memo line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

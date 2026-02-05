@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Telemetry;
 
+/// <summary>
+/// Executes the batch posting of reminder documents based on configured setup parameters.
+/// </summary>
 codeunit 6757 "Issue Reminder Action Job"
 {
     TableNo = "Reminder Action";
@@ -26,6 +29,11 @@ codeunit 6757 "Issue Reminder Action Job"
         IssueReminders(Rec, ErrorsOccured);
     end;
 
+    /// <summary>
+    /// Issues all reminder documents matching the configured filters and reports errors.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action containing the issue configuration.</param>
+    /// <param name="ErrorsOccured">Returns true if errors occurred during execution; otherwise, false.</param>
     procedure IssueReminders(var ReminderAction: Record "Reminder Action"; var ErrorsOccured: Boolean)
     var
         DummyReminderActionGroup: Record "Reminder Action Group";

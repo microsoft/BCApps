@@ -164,7 +164,9 @@ table 270 "Bank Account"
 
             trigger OnValidate()
             begin
+#if not CLEAN28                
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif                
                 OnValidateBankAccount(Rec, 'Bank Account No.');
             end;
         }
@@ -668,7 +670,9 @@ table 270 "Bank Account"
 
             trigger OnValidate()
             begin
+#if not CLEAN28                
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif                
                 OnValidateBankAccount(Rec, 'Bank Branch No.');
             end;
         }
@@ -971,10 +975,19 @@ table 270 "Bank Account"
                         FieldError("Mobile Phone No.", PhoneNoCannotContainLettersErr);
             end;
         }
+#if not CLEANSCHEMA31
         field(10851; "Agency Code"; Text[5])
         {
             Caption = 'Agency Code';
             InitValue = '00000';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
 
             trigger OnValidate()
             begin
@@ -982,20 +995,40 @@ table 270 "Bank Account"
                     "Agency Code" := PadStr('', 5 - StrLen("Agency Code"), '0') + "Agency Code";
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(10852; "RIB Key"; Integer)
         {
             Caption = 'RIB Key';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
 
             trigger OnValidate()
             begin
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(10853; "RIB Checked"; Boolean)
         {
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#endif
             Caption = 'RIB Checked';
             Editable = false;
+#endif
         }
         field(10854; "National Issuer No."; Code[6])
         {
@@ -1111,7 +1144,9 @@ table 270 "Bank Account"
         MoveEntries: Codeunit MoveEntries;
         UpdateContFromBank: Codeunit "BankCont-Update";
         DimMgt: Codeunit DimensionManagement;
+#if not CLEAN28        
         RIBKey: Codeunit "RIB Key";
+#endif        
         InsertFromContact: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470

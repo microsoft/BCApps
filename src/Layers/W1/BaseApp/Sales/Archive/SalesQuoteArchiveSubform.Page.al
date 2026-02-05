@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Archive;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
 
+/// <summary>
+/// Displays line items for an archived sales quote document.
+/// </summary>
 page 5163 "Sales Quote Archive Subform"
 {
     Caption = 'Lines';

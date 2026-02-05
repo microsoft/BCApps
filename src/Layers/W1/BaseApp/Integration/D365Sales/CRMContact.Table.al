@@ -272,6 +272,7 @@ table 5342 "CRM Contact"
         }
         field(33; AnnualIncome; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Annual Income';
             Description = 'Type the contact''s annual income for use in profiling and financial analysis.';
             ExternalName = 'annualincome';
@@ -451,6 +452,7 @@ table 5342 "CRM Contact"
         }
         field(55; CreditLimit; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Credit Limit';
             Description = 'Type the credit limit of the contact for reference when you address invoice and accounting issues with the customer.';
             ExternalName = 'creditlimit';
@@ -565,6 +567,7 @@ table 5342 "CRM Contact"
         }
         field(70; Aging30; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 30';
             Description = 'For system use only.';
             ExternalAccess = Read;
@@ -585,6 +588,7 @@ table 5342 "CRM Contact"
         }
         field(72; Aging60; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 60';
             Description = 'For system use only.';
             ExternalAccess = Read;
@@ -604,6 +608,7 @@ table 5342 "CRM Contact"
         }
         field(74; Aging90; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 90';
             Description = 'For system use only.';
             ExternalAccess = Read;
@@ -759,6 +764,7 @@ table 5342 "CRM Contact"
         }
         field(95; Address1_Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 1: Latitude';
             Description = 'Type the latitude value for the primary address for use in mapping and other applications.';
             ExternalName = 'address1_latitude';
@@ -773,6 +779,7 @@ table 5342 "CRM Contact"
         }
         field(97; Address1_Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 1: Longitude';
             Description = 'Type the longitude value for the primary address for use in mapping and other applications.';
             ExternalName = 'address1_longitude';
@@ -923,6 +930,7 @@ table 5342 "CRM Contact"
         }
         field(118; Address2_Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 2: Latitude';
             Description = 'Type the latitude value for the secondary address for use in mapping and other applications.';
             ExternalName = 'address2_latitude';
@@ -937,6 +945,7 @@ table 5342 "CRM Contact"
         }
         field(120; Address2_Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 2: Longitude';
             Description = 'Type the longitude value for the secondary address for use in mapping and other applications.';
             ExternalName = 'address2_longitude';
@@ -1133,6 +1142,7 @@ table 5342 "CRM Contact"
         }
         field(143; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -1165,6 +1175,7 @@ table 5342 "CRM Contact"
         }
         field(147; AnnualIncome_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Annual Income (Base)';
             Description = 'Shows the Annual Income field converted to the system''s default base currency. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -1173,6 +1184,7 @@ table 5342 "CRM Contact"
         }
         field(148; CreditLimit_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Credit Limit (Base)';
             Description = 'Shows the Credit Limit field converted to the system''s default base currency for reporting purposes. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -1181,6 +1193,7 @@ table 5342 "CRM Contact"
         }
         field(149; Aging60_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 60 (Base)';
             Description = 'Shows the Aging 60 field converted to the system''s default base currency. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -1189,6 +1202,7 @@ table 5342 "CRM Contact"
         }
         field(150; Aging90_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 90 (Base)';
             Description = 'Shows the Aging 90 field converted to the system''s default base currency. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -1197,6 +1211,7 @@ table 5342 "CRM Contact"
         }
         field(151; Aging30_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Aging 30 (Base)';
             Description = 'Shows the Aging 30 field converted to the system''s default base currency. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -1424,6 +1439,7 @@ table 5342 "CRM Contact"
         }
         field(180; Address3_Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 3: Latitude';
             Description = 'Type the latitude value for the third address for use in mapping and other applications.';
             ExternalName = 'address3_latitude';
@@ -1431,6 +1447,7 @@ table 5342 "CRM Contact"
         }
         field(181; Address3_Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 3: Longitude';
             Description = 'Type the longitude value for the third address for use in mapping and other applications.';
             ExternalName = 'address3_longitude';

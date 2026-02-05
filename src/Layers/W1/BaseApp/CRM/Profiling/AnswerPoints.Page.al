@@ -48,6 +48,7 @@ page 5172 "Answer Points"
                 field(Points; Points)
                 {
                     ApplicationArea = RelationshipMgmt;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     Caption = 'Points';
                     DecimalPlaces = 0 : 0;

@@ -12,6 +12,9 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Displays financial statistics and totals for a sales order including prepayment information.
+/// </summary>
 page 402 "Sales Order Statistics"
 {
     Caption = 'Sales Order Statistics';
@@ -100,6 +103,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -109,6 +113,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -116,6 +121,7 @@ page 402 "Sales Order Statistics"
                 }
                 field("ProfitPct[1]"; ProfitPct[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -125,6 +131,7 @@ page 402 "Sales Order Statistics"
                 }
                 field("AdjProfitPct[1]"; AdjProfitPct[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -200,6 +207,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -211,6 +219,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -312,6 +321,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -321,6 +331,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -328,6 +339,7 @@ page 402 "Sales Order Statistics"
                 }
                 field("ProfitPct[2]"; ProfitPct[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -337,6 +349,7 @@ page 402 "Sales Order Statistics"
                 }
                 field("AdjProfitPct[2]"; AdjProfitPct[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -412,6 +425,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -423,6 +437,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -534,6 +549,7 @@ page 402 "Sales Order Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -541,6 +557,7 @@ page 402 "Sales Order Statistics"
                 }
                 field("ProfitPct[3]"; ProfitPct[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
@@ -668,6 +685,7 @@ page 402 "Sales Order Statistics"
                 }
                 field(PrepmtInvPct; PrepmtInvPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Prepayments;
                     Caption = 'Invoiced % of Prepayment Amt.';
                     ExtendedDatatype = Ratio;
@@ -685,6 +703,7 @@ page 402 "Sales Order Statistics"
                 }
                 field(PrepmtDeductedPct; PrepmtDeductedPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Prepayments;
                     Caption = 'Deducted % of Prepayment Amt. to Deduct';
                     ExtendedDatatype = Ratio;
@@ -738,6 +757,7 @@ page 402 "Sales Order Statistics"
                 }
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
@@ -915,8 +935,7 @@ page 402 "Sales Order Statistics"
               Rec, TempSalesLine, i - 1, TotalSalesLine[i], TotalSalesLineLCY[i],
               VATAmount[i], VATAmountText[i], ProfitLCY[i], ProfitPct[i], TotalAdjCostLCY[i], false);
 
-            if i = 3 then
-                TotalAdjCostLCY[i] := TotalSalesLineLCY[i]."Unit Cost (LCY)";
+            TotalAdjCostLCY[i] := TotalSalesLineLCY[i]."Unit Cost (LCY)";
 
             AdjProfitLCY[i] := TotalSalesLineLCY[i].Amount - TotalAdjCostLCY[i];
             if TotalSalesLineLCY[i].Amount <> 0 then
@@ -979,6 +998,11 @@ page 402 "Sales Order Statistics"
         UpdateHeaderInfo(2, TempVATAmountLine2);
     end;
 
+    /// <summary>
+    /// Updates the header information for the statistics page based on VAT amount lines.
+    /// </summary>
+    /// <param name="IndexNo">The index number for the totals arrays (1-4 for different tabs).</param>
+    /// <param name="VATAmountLine">The VAT amount line record containing totals to display.</param>
     procedure UpdateHeaderInfo(IndexNo: Integer; var VATAmountLine: Record "VAT Amount Line")
     var
         CurrExchRate: Record "Currency Exchange Rate";

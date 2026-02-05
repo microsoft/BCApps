@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Provides editing capabilities for specific fields on posted sales credit memos that can be modified after posting.
+/// </summary>
 page 1354 "Pstd. Sales Cr. Memo - Update"
 {
     Caption = 'Posted Sales Cr. Memo - Update';
@@ -138,6 +141,10 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
         OnAfterRecordChanged(Rec, xSalesCrMemoHeader, IsChanged);
     end;
 
+    /// <summary>
+    /// Sets the record for this page to edit.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to edit.</param>
     procedure SetRec(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         Rec := SalesCrMemoHeader;

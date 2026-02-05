@@ -15,6 +15,9 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Issues reminder documents by posting fees and interest to the general ledger and creating issued reminder records.
+/// </summary>
 codeunit 393 "Reminder-Issue"
 {
     Permissions = TableData "Cust. Ledger Entry" = rm,
@@ -242,6 +245,14 @@ codeunit 393 "Reminder-Issue"
         MissingJournalFieldErr: Label 'Please enter a %1 when posting Additional Fees or Interest.', Comment = '%1 - field caption';
 
 
+    /// <summary>
+    /// Initializes the reminder issuing parameters including VAT date options.
+    /// </summary>
+    /// <param name="NewReminderHeader">Specifies the reminder header to issue.</param>
+    /// <param name="NewReplacePostingDate">Specifies whether to replace the posting date.</param>
+    /// <param name="NewPostingDate">Specifies the new posting date to use.</param>
+    /// <param name="NewReplaceVATDate">Specifies whether to replace the VAT date.</param>
+    /// <param name="NewVATDate">Specifies the new VAT date to use.</param>
     procedure Set(var NewReminderHeader: Record "Reminder Header"; NewReplacePostingDate: Boolean; NewPostingDate: Date; NewReplaceVATDate: Boolean; NewVATDate: Date)
     begin
         Set(NewReminderHeader, NewReplacePostingDate, NewPostingDate);
@@ -249,6 +260,12 @@ codeunit 393 "Reminder-Issue"
         VATDate := NewVATDate;
     end;
 
+    /// <summary>
+    /// Initializes the reminder issuing parameters with posting date options.
+    /// </summary>
+    /// <param name="NewReminderHeader">Specifies the reminder header to issue.</param>
+    /// <param name="NewReplacePostingDate">Specifies whether to replace the posting date.</param>
+    /// <param name="NewPostingDate">Specifies the new posting date to use.</param>
     procedure Set(var NewReminderHeader: Record "Reminder Header"; NewReplacePostingDate: Boolean; NewPostingDate: Date)
     begin
         GlobalReminderHeader := NewReminderHeader;
@@ -256,6 +273,10 @@ codeunit 393 "Reminder-Issue"
         PostingDate := NewPostingDate;
     end;
 
+    /// <summary>
+    /// Sets the general journal batch to use for posting reminder entries.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">Specifies the general journal batch for posting.</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
@@ -290,6 +311,10 @@ codeunit 393 "Reminder-Issue"
             Error(ThereIsNothingToIssueLbl);
     end;
 
+    /// <summary>
+    /// Retrieves the issued reminder header that was created during the issuing process.
+    /// </summary>
+    /// <param name="NewIssuedReminderHeader">Returns the issued reminder header record.</param>
     procedure GetIssuedReminder(var NewIssuedReminderHeader: Record "Issued Reminder Header")
     begin
         NewIssuedReminderHeader := GlobalIssuedReminderHeader;
@@ -336,6 +361,10 @@ codeunit 393 "Reminder-Issue"
         OnAfterInitGenJnlLine(TempGenJnlLine, GlobalReminderHeader, SrcCode, AccNo);
     end;
 
+    /// <summary>
+    /// Deletes all issued reminder lines for the specified issued reminder header.
+    /// </summary>
+    /// <param name="ParentIssuedReminderHeader">Specifies the issued reminder header whose lines should be deleted.</param>
     procedure DeleteIssuedReminderLines(ParentIssuedReminderHeader: Record "Issued Reminder Header")
     var
         IssuedReminderLineToDelete: Record "Issued Reminder Line";
@@ -344,6 +373,10 @@ codeunit 393 "Reminder-Issue"
         IssuedReminderLineToDelete.DeleteAll();
     end;
 
+    /// <summary>
+    /// Increments the number of times the issued reminder has been printed.
+    /// </summary>
+    /// <param name="IssuedReminderHeaderToIncrement">Specifies the issued reminder header to update the print count for.</param>
     procedure IncrNoPrinted(var IssuedReminderHeaderToIncrement: Record "Issued Reminder Header")
     begin
         IssuedReminderHeaderToIncrement.Find();
@@ -353,6 +386,11 @@ codeunit 393 "Reminder-Issue"
         Commit();
     end;
 
+    /// <summary>
+    /// Prepares the issued reminder header record for deletion by transferring fields from the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeaderToDelete">Specifies the reminder header being deleted.</param>
+    /// <param name="IssuedReminderHeaderToDelete">Returns the issued reminder header with transferred fields.</param>
     procedure TestDeleteHeader(ReminderHeaderToDelete: Record "Reminder Header"; var IssuedReminderHeaderToDelete: Record "Issued Reminder Header")
     begin
         Clear(IssuedReminderHeaderToDelete);
@@ -375,6 +413,11 @@ codeunit 393 "Reminder-Issue"
         end;
     end;
 
+    /// <summary>
+    /// Deletes a reminder header and creates a corresponding issued reminder header record for tracking.
+    /// </summary>
+    /// <param name="ReminderHeader">Specifies the reminder header to delete.</param>
+    /// <param name="IssuedReminderHeader">Returns the issued reminder header created for tracking the deletion.</param>
     procedure DeleteHeader(ReminderHeader: Record "Reminder Header"; var IssuedReminderHeader: Record "Issued Reminder Header")
     var
         IsHandled: Boolean;
@@ -398,6 +441,12 @@ codeunit 393 "Reminder-Issue"
         end;
     end;
 
+    /// <summary>
+    /// Changes the due date of a reminder or finance charge entry.
+    /// </summary>
+    /// <param name="ReminderEntry2">Specifies the reminder entry to modify.</param>
+    /// <param name="NewDueDate">Specifies the new due date to set.</param>
+    /// <param name="OldDueDate">Specifies the previous due date for reference.</param>
     procedure ChangeDueDate(var ReminderEntry2: Record "Reminder/Fin. Charge Entry"; NewDueDate: Date; OldDueDate: Date)
     var
         IsHandled: Boolean;
@@ -567,6 +616,10 @@ codeunit 393 "Reminder-Issue"
         OnAfterProcessReminderLines(ReminderHeader, ReminderLine, ReminderInterestAmount, ReminderInterestVATAmount);
     end;
 
+    /// <summary>
+    /// Updates the last issued reminder level on the customer ledger entry based on the reminder entry.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">Specifies the reminder entry containing the reminder level information.</param>
     procedure UpdateCustLedgEntryLastIssuedReminderLevel(ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -598,46 +651,100 @@ codeunit 393 "Reminder-Issue"
         CustLedgerEntry2.ModifyAll("Closing Interest Calculated", true);
     end;
 
+    /// <summary>
+    /// Raised after a general journal line is initialized for reminder posting.
+    /// </summary>
+    /// <param name="GenJournalLine">The initialized general journal line.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="SrcCode">The source code for the posting.</param>
+    /// <param name="AccNo">The account number for the journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; ReminderHeader: Record "Reminder Header"; var SrcCode: Code[10]; AccNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after a reminder is successfully issued.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header that was issued.</param>
+    /// <param name="IssuedReminderNo">The document number of the issued reminder.</param>
+    /// <param name="GenJnlPostLine">The general journal posting codeunit used for posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIssueReminder(var ReminderHeader: Record "Reminder Header"; IssuedReminderNo: Code[20]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after all reminder lines are processed for issuing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines that were processed.</param>
+    /// <param name="InterestAmount">The total interest amount calculated.</param>
+    /// <param name="InterestVATAmount">The total interest VAT amount calculated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessReminderLines(ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var InterestAmount: Decimal; var InterestVATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after dimension values are set on the general journal line for posting.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="GenJnlLine2">The general journal line with dimensions set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetGenJnlLine2Dim(ReminderHeader: Record "Reminder Header"; var GenJnlLine2: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing if a reminder header can be deleted.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header prepared for deletion tracking.</param>
+    /// <param name="ReminderHeader">The reminder header being deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestDeleteHeader(var IssuedReminderHeader: Record "Issued Reminder Header"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before issuing a reminder document.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to issue.</param>
+    /// <param name="ReplacePostingDate">Indicates whether to replace the posting date.</param>
+    /// <param name="PostingDate">The posting date to use.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="IssuedReminderHeader">The issued reminder header to be created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIssueReminder(var ReminderHeader: Record "Reminder Header"; var ReplacePostingDate: Boolean; var PostingDate: Date; var IsHandled: Boolean; var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the issued reminder header record.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header to insert.</param>
+    /// <param name="ReminderHeader">The source reminder header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIssuedReminderHeaderInsert(var IssuedReminderHeader: Record "Issued Reminder Header"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting an issued reminder line record.
+    /// </summary>
+    /// <param name="IssuedReminderLine">The issued reminder line to insert.</param>
+    /// <param name="ReminderLine">The source reminder line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIssuedReminderLineInsert(var IssuedReminderLine: Record "Issued Reminder Line"; ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder entry record.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">The reminder entry to insert.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderEntryInsert(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line")
     begin
@@ -662,156 +769,333 @@ codeunit 393 "Reminder-Issue"
             Error(CustomerBlockedErr, Customer.FieldCaption(Blocked), Customer.Blocked, Customer.TableCaption(), CustomerNo);
     end;
 
+    /// <summary>
+    /// Raised before checking dimension values on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to check dimensions for.</param>
+    /// <param name="IsHandled">Set to true to skip default dimension checking.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDimensions(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the general journal posting for a journal line.
+    /// </summary>
+    /// <param name="GenJnlLine2">The general journal line to be posted.</param>
+    /// <param name="GenJnlLine">The temporary general journal line source.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlPostLineRun(var GenJnlLine2: Record "Gen. Journal Line"; GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a general journal line for a reminder fee.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line containing the fee.</param>
+    /// <param name="GenJnlLine">The general journal line that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertGenJnlLineForFee(var ReminderLine: Record "Reminder Line"; var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a general journal line for a reminder fee.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line containing the fee.</param>
+    /// <param name="GenJnlLine">The general journal line to be inserted.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGenJnlLineForFee(var ReminderLine: Record "Reminder Line"; var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a general journal line for a fee in the InsertGenJnlLineForFee procedure.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder line containing the fee.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertGenJnlLineForFeeOnBeforeGenJnlLineInsert(var GenJnlLine: Record "Gen. Journal Line"; ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a reminder entry record.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">The reminder entry that was inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder line being processed.</param>
+    /// <param name="NextEntryNo">The entry number assigned to the reminder entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertReminderEntry(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; NextEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the customer ledger entry with the last issued reminder level.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry to be modified.</param>
+    /// <param name="ReminderFinChargeEntry">The reminder entry containing the reminder level.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustLedgEntryLastIssuedReminderLevelOnBeforeModify(var CustLedgEntry: Record "Cust. Ledger Entry"; ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a customer ledger entry to update interest calculation settings.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustLedgEntriesCalculateInterestOnBeforeCustLedgerEntryModify(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying all related customer ledger entries to set closing interest calculated.
+    /// </summary>
+    /// <param name="CustLedgEntry2">The customer ledger entries to be modified.</param>
+    /// <param name="CustLedgEntry">The parent customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustLedgEntriesCalculateInterestOnBeforeCustLedgerEntry2ModifyAll(var CustLedgEntry2: Record "Cust. Ledger Entry"; CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating and ensuring reminder amounts are not empty.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to validate.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcAndEnsureAmountsNotEmpty(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer is blocked.
+    /// </summary>
+    /// <param name="Customer">The customer record to check.</param>
+    /// <param name="IsHandled">Set to true to skip default blocked check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerIsBlocked(Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the issued reminder header to increment the print count.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnIncrNoPrintedOnBeforeModify(var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing reminder lines for issuing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines to be processed.</param>
+    /// <param name="DocumentNo">The document number for the issued reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessReminderLines(ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; DocumentNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating interest amounts for a customer ledger entry line.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder line with the calculated interest.</param>
+    /// <param name="ReminderInterestAmount">The cumulative interest amount.</param>
+    /// <param name="ReminderInterestVATAmount">The cumulative interest VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessReminderLinesOnAfterCalcInterestAmounts(ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; var ReminderInterestAmount: Decimal; var ReminderInterestVATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after running the general journal posting codeunit for a line.
+    /// </summary>
+    /// <param name="GenJnlLine2">The general journal line that was posted.</param>
+    /// <param name="GenJnlLine">The temporary general journal line source.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
+    /// <param name="GenJnlPostLine">The general journal posting codeunit.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGenJnlPostLineRun(var GenJnlLine2: Record "Gen. Journal Line"; var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing a general journal line for posting interest.
+    /// </summary>
+    /// <param name="GenJnlLine">The initialized general journal line.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterInitGenJnlLinePostInterest(var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a general journal line for posting interest.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGenJnlLineInsertPostInterest(var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether a reminder entry should be inserted.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder line being evaluated.</param>
+    /// <param name="ShouldInsertReminderEntry">Indicates whether a reminder entry should be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterCalcShouldInsertReminderEntry(ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; var ShouldInsertReminderEntry: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a general journal line for posting interest.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeGenJnlLineInsertPostInterest(var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a general journal line for the total customer amount.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGenJnlLineInsertTotalAmount(var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a general journal line for the total customer amount.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be inserted.</param>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeGenJnlLineInsertTotalAmount(var GenJnlLine: Record "Gen. Journal Line"; var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting all reminder lines after issuing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being deleted.</param>
+    /// <param name="IssuedReminderHeader">The issued reminder header that was created.</param>
+    /// <param name="NextEntryNo">The next entry number for reminder entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeReminderLineDeleteAll(var ReminderHeader: Record "Reminder Header"; var IssuedReminderHeader: Record "Issued Reminder Header"; NextEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the line balance on a general journal line for interest.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to update.</param>
+    /// <param name="ReminderInterestVATAmount">The interest VAT amount.</param>
+    /// <param name="TotalAmount">The cumulative total amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeGenJnlLineUpdateLineBalance(var GenJnlLine: Record "Gen. Journal Line"; ReminderInterestVATAmount: Decimal; var TotalAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether to post interest.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines being processed.</param>
+    /// <param name="TempGenJnlLine">The temporary general journal lines.</param>
+    /// <param name="GenJnlBatch">The general journal batch for posting.</param>
+    /// <param name="ReminderInterestAmount">The calculated interest amount.</param>
+    /// <param name="IsHandled">Set to true to skip default interest posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostInterestCheck(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; GenJnlBatch: Record "Gen. Journal Batch"; var ReminderInterestAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the reminder header validation checks are completed.
+    /// </summary>
+    /// <param name="ReminderHeader">The validated reminder header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGlobalReminderHeaderChecks(var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after removing the type filter from reminder lines.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder lines with filter removed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterRemoveReminderLineFilter(var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the type filter on reminder lines to customer ledger entry.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder lines with filter applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterSetReminderLineFilter(var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after completing the interest calculation update loops for customer ledger entries.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderLine">The reminder lines that were processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterUpdateCustLedgEntriesCalculateInterestLoops(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting an issued reminder line when deleting a reminder header.
+    /// </summary>
+    /// <param name="IssuedReminderLine">The issued reminder line to be inserted.</param>
+    /// <param name="IssuedReminderHeader">The issued reminder header being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteHeaderOnBeforeIssuedReminderLineInsert(var IssuedReminderLine: Record "Issued Reminder Line"; IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before changing the due date on a reminder entry.
+    /// </summary>
+    /// <param name="ReminderEntry2">The reminder entry to modify.</param>
+    /// <param name="NewDueDate">The new due date to set.</param>
+    /// <param name="OldDueDate">The previous due date.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeChangeDueDate(var ReminderEntry2: Record "Reminder/Fin. Charge Entry"; NewDueDate: Date; OldDueDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting a reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to delete.</param>
+    /// <param name="IssuedReminderHeader">The issued reminder header for tracking deletion.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteHeader(ReminderHeader: Record "Reminder Header"; var IssuedReminderHeader: Record "Issued Reminder Header"; var IsHandled: Boolean)
     begin

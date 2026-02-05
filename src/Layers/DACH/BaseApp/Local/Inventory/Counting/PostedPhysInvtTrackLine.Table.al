@@ -50,6 +50,7 @@ table 5005359 "Posted Phys. Invt. Track. Line"
         }
         field(14; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -114,5 +115,5 @@ table 5005359 "Posted Phys. Invt. Track. Line"
     }
 }
 
- 
+
 #endif

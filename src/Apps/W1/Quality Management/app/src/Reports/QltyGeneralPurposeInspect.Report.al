@@ -22,7 +22,6 @@ report 20405 "Qlty. General Purpose Inspect."
     Description = 'A printable general purpose inspection report.';
     DefaultRenderingLayout = QltyGeneralPurposeInspectionDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'NCR,CAR,Printable Quality Inspection';
 
     dataset
     {

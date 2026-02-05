@@ -68,6 +68,7 @@ table 5629 "Ins. Coverage Ledger Entry"
         field(14; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(16; Description; Text[100])

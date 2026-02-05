@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 
 /// <summary>
 /// Prepares direct debit collection entry data for SEPA XML export by copying and organizing
@@ -22,8 +24,10 @@ codeunit 1232 "SEPA DD-Prepare Source"
         CopyLines(DirectDebitCollectionEntry, Rec);
     end;
 
+#if not CLEAN28
     var
         HasErrorsErr: Label 'The file export has one or more errors. For each of the lines to be exported, resolve any errors that are displayed in the File Export Errors FactBox.';
+#endif
 
     /// <summary>
     /// Copies eligible direct debit collection entries to a temporary table for processing.
@@ -53,11 +57,13 @@ codeunit 1232 "SEPA DD-Prepare Source"
     /// <param name="ToDirectDebitCollectionEntry">Target temporary table to populate with generated entries.</param>
     local procedure CreateTempCollectionEntries(var FromDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var ToDirectDebitCollectionEntry: Record "Direct Debit Collection Entry")
     var
+#if not CLEAN28
         DirectDebitCollection: Record "Direct Debit Collection";
         PaymentHeader: Record "Payment Header";
         PaymentLine: Record "Payment Line";
         SEPADDCheckLine: Codeunit "SEPA DD-Check Line";
         AppliesToEntryNo: Integer;
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -65,6 +71,7 @@ codeunit 1232 "SEPA DD-Prepare Source"
         if IsHandled then
             exit;
 
+#if not CLEAN28
         ToDirectDebitCollectionEntry.Reset();
         DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
         PaymentHeader.Get(DirectDebitCollection.Identifier);
@@ -92,6 +99,9 @@ codeunit 1232 "SEPA DD-Prepare Source"
             Commit();
             Error(HasErrorsErr);
         end;
+#else
+        ToDirectDebitCollectionEntry := FromDirectDebitCollectionEntry;
+#endif
 
         OnAfterCreateTempCollectionEntries(FromDirectDebitCollectionEntry, ToDirectDebitCollectionEntry);
     end;
@@ -119,9 +129,12 @@ codeunit 1232 "SEPA DD-Prepare Source"
     begin
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCreateTempCollectionEntriesOnBeforeInsert(var ToDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; PaymentHeader: Record "Payment Header"; PaymentLine: Record "Payment Line")
     begin
     end;
+#endif
 }
 

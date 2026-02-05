@@ -193,6 +193,7 @@ table 5878 "Phys. Invt. Record Line"
         }
         field(33; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             DataClassification = SystemMetadata;
             InitValue = 0;
@@ -203,6 +204,7 @@ table 5878 "Phys. Invt. Record Line"
         }
         field(34; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             DataClassification = SystemMetadata;
             InitValue = 0;
@@ -229,6 +231,7 @@ table 5878 "Phys. Invt. Record Line"
         }
         field(41; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -260,6 +263,7 @@ table 5878 "Phys. Invt. Record Line"
         }
         field(42; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -272,6 +276,7 @@ table 5878 "Phys. Invt. Record Line"
         }
         field(43; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

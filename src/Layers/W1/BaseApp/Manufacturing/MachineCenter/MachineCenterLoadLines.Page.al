@@ -43,6 +43,7 @@ page 99000890 "Machine Center Load Lines"
                 }
                 field(Capacity; Rec.Capacity)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Caption = 'Capacity';
                     DecimalPlaces = 0 : 5;
@@ -61,6 +62,7 @@ page 99000890 "Machine Center Load Lines"
                 }
                 field(AllocatedQty; Rec."Allocated Qty.")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Caption = 'Allocated Qty.';
                     DecimalPlaces = 0 : 5;
@@ -80,6 +82,7 @@ page 99000890 "Machine Center Load Lines"
                 }
                 field(CapacityAvailable; Rec."Availability After Orders")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Planning;
                     Caption = 'Availability After Orders';
                     DecimalPlaces = 0 : 5;
@@ -87,6 +90,7 @@ page 99000890 "Machine Center Load Lines"
                 }
                 field(CapacityEfficiency; Rec.Load)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Caption = 'Load';
                     DecimalPlaces = 0 : 5;

@@ -93,6 +93,7 @@ report 12176 "Suggest Customer Bills"
                     {
                         ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         BlankZero = true;
                         Caption = 'Max Amount';
                         ToolTip = 'Specifies the maximum amount.';

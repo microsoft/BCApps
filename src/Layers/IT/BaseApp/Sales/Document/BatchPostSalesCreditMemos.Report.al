@@ -11,6 +11,9 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using System.Environment;
 
+/// <summary>
+/// Processes multiple sales credit memos for posting in a single batch operation.
+/// </summary>
 report 298 "Batch Post Sales Credit Memos"
 {
     Caption = 'Batch Post Sales Credit Memos';

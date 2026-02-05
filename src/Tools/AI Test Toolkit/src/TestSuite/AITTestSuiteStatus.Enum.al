@@ -6,7 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// This enum has the Status of the AI Test Suite.
+/// This enum has the Status of the AI Eval Suite.
 /// </summary>
 enum 149030 "AIT Test Suite Status"
 {
@@ -21,7 +21,7 @@ enum 149030 "AIT Test Suite Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Suite state is Running.
+    /// Specifies that the AI Eval Suite state is Running.
     /// </summary>
     value(20; Running)
     {
@@ -29,7 +29,7 @@ enum 149030 "AIT Test Suite Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Suite state is Completed.
+    /// Specifies that the AI Eval Suite state is Completed.
     /// </summary>
     value(30; Completed)
     {
@@ -37,7 +37,7 @@ enum 149030 "AIT Test Suite Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Suite state is Cancelled.
+    /// Specifies that the AI Eval Suite state is Cancelled.
     /// </summary>
     value(40; Cancelled)
     {

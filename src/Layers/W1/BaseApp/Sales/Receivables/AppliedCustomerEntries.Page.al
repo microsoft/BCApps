@@ -10,6 +10,9 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Sales.FinanceCharge;
 using System.Security.User;
 
+/// <summary>
+/// Displays customer ledger entries that have been applied to a specific entry, showing the application history and closed amounts.
+/// </summary>
 page 61 "Applied Customer Entries"
 {
     Caption = 'Applied Customer Entries';
@@ -378,6 +381,10 @@ page 61 "Applied Customer Entries"
             until DtldCustLedgEntry1.Next() = 0;
     end;
 
+    /// <summary>
+    /// Filters the page to show a specific customer ledger entry by entry number.
+    /// </summary>
+    /// <param name="NewTempCustLedgEntryNo">The entry number of the customer ledger entry to filter to.</param>
     procedure SetTempCustLedgEntry(NewTempCustLedgEntryNo: Integer)
     begin
         if NewTempCustLedgEntryNo <> 0 then begin
@@ -386,6 +393,10 @@ page 61 "Applied Customer Entries"
         end;
     end;
 
+    /// <summary>
+    /// Gets the customer ledger entry that was set when the page was opened.
+    /// </summary>
+    /// <returns>The customer ledger entry record used to create the applied entries view.</returns>
     procedure GetCreateCustLedgerEntry(): Record "Cust. Ledger Entry"
     begin
         exit(CreateCustLedgEntry);

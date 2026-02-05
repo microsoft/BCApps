@@ -10,6 +10,9 @@ using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 
+/// <summary>
+/// Provides availability calculations and item information for sales document factboxes.
+/// </summary>
 codeunit 7171 "Sales Info-Pane Management"
 {
 
@@ -22,6 +25,11 @@ codeunit 7171 "Sales Info-Pane Management"
         AvailableToPromise: Codeunit "Available to Promise";
         UOMMgt: Codeunit "Unit of Measure Management";
 
+    /// <summary>
+    /// Calculates the available quantity to promise for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate availability for.</param>
+    /// <returns>The available quantity in the sales line's unit of measure.</returns>
     procedure CalcAvailability(var SalesLine: Record "Sales Line"): Decimal
     var
         LookaheadDateformula: DateFormula;
@@ -52,6 +60,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the availability date based on the shipment date or work date.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to get the date from.</param>
+    /// <returns>The shipment date if specified, otherwise the work date.</returns>
     procedure CalcAvailabilityDate(var SalesLine: Record "Sales Line") AvailabilityDate: Date
     var
         IsHandled: Boolean;
@@ -67,6 +80,11 @@ codeunit 7171 "Sales Info-Pane Management"
         exit(WorkDate());
     end;
 
+    /// <summary>
+    /// Calculates the available inventory for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate for.</param>
+    /// <returns>The available inventory in the sales line's unit of measure.</returns>
     procedure CalcAvailableInventory(var SalesLine: Record "Sales Line"): Decimal
     begin
         if GetItem(SalesLine) then begin
@@ -80,6 +98,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the scheduled receipt quantity for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate for.</param>
+    /// <returns>The scheduled receipt quantity in the sales line's unit of measure.</returns>
     procedure CalcScheduledReceipt(var SalesLine: Record "Sales Line"): Decimal
     begin
         if GetItem(SalesLine) then begin
@@ -93,6 +116,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the gross requirement for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate for.</param>
+    /// <returns>The gross requirement in the sales line's unit of measure.</returns>
     procedure CalcGrossRequirements(var SalesLine: Record "Sales Line"): Decimal
     begin
         if GetItem(SalesLine) then begin
@@ -106,6 +134,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the reserved receipt for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate for.</param>
+    /// <returns>The reserved receipt in the sales line's unit of measure.</returns>
     procedure CalcReservedRequirements(var SalesLine: Record "Sales Line"): Decimal
     begin
         if GetItem(SalesLine) then begin
@@ -119,6 +152,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the reserved requirement for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to calculate for.</param>
+    /// <returns>The reserved requirement in the sales line's unit of measure.</returns>
     procedure CalcReservedDemand(SalesLine: Record "Sales Line"): Decimal
     begin
         if GetItem(SalesLine) then begin
@@ -132,6 +170,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Gets the reservation from stock state for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>None, Partial, or Full depending on reservation status.</returns>
     procedure GetQtyReservedFromStockState(SalesLine: Record "Sales Line") Result: Enum "Reservation From Stock"
     var
         SalesLineReserve: Codeunit "Sales Line-Reserve";
@@ -154,6 +197,11 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the number of item substitutes available for the sales line item.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>The number of substitutes.</returns>
     procedure CalcNoOfSubstitutions(var SalesLine: Record "Sales Line"): Integer
     begin
         if GetItem(SalesLine) then begin
@@ -162,11 +210,21 @@ codeunit 7171 "Sales Info-Pane Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates the number of sales prices available for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>The number of available prices.</returns>
     procedure CalcNoOfSalesPrices(var SalesLine: Record "Sales Line"): Integer
     begin
         exit(SalesLine.CountPrice(true));
     end;
 
+    /// <summary>
+    /// Calculates the number of sales line discounts available for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>The number of available line discounts.</returns>
     procedure CalcNoOfSalesLineDisc(var SalesLine: Record "Sales Line"): Integer
     begin
         exit(SalesLine.CountDiscount(true));
@@ -180,6 +238,10 @@ codeunit 7171 "Sales Info-Pane Management"
         OnAfterConvertQty(Qty, PerUoMQty, Result);
     end;
 
+    /// <summary>
+    /// Opens the Item Card page for the item on the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item to look up.</param>
     procedure LookupItem(var SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -194,11 +256,19 @@ codeunit 7171 "Sales Info-Pane Management"
         PAGE.RunModal(PAGE::"Item Card", Item);
     end;
 
+    /// <summary>
+    /// Resets the cached item number in the Available to Promise codeunit.
+    /// </summary>
     procedure ResetItemNo()
     begin
         AvailableToPromise.ResetItemNo();
     end;
 
+    /// <summary>
+    /// Gets the item record for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to get the item for.</param>
+    /// <returns>True if the item was found, otherwise false.</returns>
     procedure GetItem(var SalesLine: Record "Sales Line") Result: Boolean
     var
         IsHandled: Boolean;

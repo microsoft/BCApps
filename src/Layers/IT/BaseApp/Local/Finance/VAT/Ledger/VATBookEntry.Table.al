@@ -58,6 +58,7 @@ table 12142 "VAT Book Entry"
         field(8; Base; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry".Base where("Document No." = field("Document No."),
                                                       Type = field(Type),
                                                       "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -74,6 +75,7 @@ table 12142 "VAT Book Entry"
         field(9; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry".Amount where("Document No." = field("Document No."),
                                                         Type = field(Type),
                                                         "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -176,6 +178,7 @@ table 12142 "VAT Book Entry"
         }
         field(51; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             Editable = false;
             MaxValue = 100;
@@ -184,6 +187,7 @@ table 12142 "VAT Book Entry"
         field(52; "Nondeductible Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry"."Nondeductible Amount" where("Document No." = field("Document No."),
                                                                         Type = field(Type),
                                                                         "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -219,12 +223,15 @@ table 12142 "VAT Book Entry"
         }
         field(56; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             Editable = false;
             MinValue = 0;
         }
         field(57; "VAT Difference"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry"."VAT Difference" where("Document No." = field("Document No."),
                                                                   Type = field(Type),
                                                                   "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -240,6 +247,7 @@ table 12142 "VAT Book Entry"
         field(59; "Nondeductible Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry"."Nondeductible Base" where("Document No." = field("Document No."),
                                                                       Type = field(Type),
                                                                       "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -256,6 +264,7 @@ table 12142 "VAT Book Entry"
         field(61; "Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry"."Unrealized Base" where("Document No." = field("Document No."),
                                                                    Type = field(Type),
                                                                    "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -272,6 +281,7 @@ table 12142 "VAT Book Entry"
         field(62; "Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("VAT Entry"."Unrealized Amount" where("Document No." = field("Document No."),
                                                                      Type = field(Type),
                                                                      "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -313,6 +323,8 @@ table 12142 "VAT Book Entry"
         }
         field(68; "Additional-Currency Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             CalcFormula = sum("VAT Entry"."Additional-Currency Amount" where("Document No." = field("Document No."),
                                                                               Type = field(Type),
                                                                               "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -328,6 +340,8 @@ table 12142 "VAT Book Entry"
         }
         field(69; "Additional-Currency Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             CalcFormula = sum("VAT Entry"."Additional-Currency Base" where("Document No." = field("Document No."),
                                                                             Type = field(Type),
                                                                             "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -343,6 +357,8 @@ table 12142 "VAT Book Entry"
         }
         field(72; "Add. Curr. Nondeductible Amt."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             CalcFormula = sum("VAT Entry"."Add. Curr. Nondeductible Amt." where("Document No." = field("Document No."),
                                                                                  Type = field(Type),
                                                                                  "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -358,6 +374,8 @@ table 12142 "VAT Book Entry"
         }
         field(73; "Add. Curr. Nondeductible Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             CalcFormula = sum("VAT Entry"."Add. Curr. Nondeductible Base" where("Document No." = field("Document No."),
                                                                                  Type = field(Type),
                                                                                  "VAT Bus. Posting Group" = field("VAT Bus. Posting Group"),
@@ -390,5 +408,13 @@ table 12142 "VAT Book Entry"
     fieldgroups
     {
     }
+
+    local procedure GetAdditionalCurrencyCode(): Code[10]
+    var
+        GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
+    begin
+        GLSetup.Get();
+        exit(GLSetup."Additional Reporting Currency");
+    end;
 }
 

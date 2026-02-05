@@ -494,6 +494,8 @@ page 256 "Payment Journal"
                 }
                 field(TotalExportedAmount; Rec.TotalExportedAmount())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Exported Amount';
                     DrillDown = true;
@@ -690,6 +692,7 @@ page 256 "Payment Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the payment journal on the line where the cursor is.';
@@ -703,6 +706,7 @@ page 256 "Payment Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the payment journal.';

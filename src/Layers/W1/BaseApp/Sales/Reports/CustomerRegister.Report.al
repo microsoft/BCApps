@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Displays customer ledger entries grouped by G/L register showing posting details and amounts.
+/// </summary>
+
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
@@ -264,6 +268,10 @@ report 103 "Customer Register"
         CustCreditAmountLCY_Control68CaptionLbl: Label 'Credit (LCY)';
         CustAmountLCY_Control71CaptionLbl: Label 'Total (LCY)';
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Register report.
+    /// </summary>
+    /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
     procedure InitializeRequest(ShowAmountInLCY: Boolean)
     begin
         PrintAmountsInLCY := ShowAmountInLCY;

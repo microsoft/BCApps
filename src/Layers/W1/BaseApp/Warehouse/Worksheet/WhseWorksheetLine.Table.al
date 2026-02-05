@@ -183,6 +183,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(17; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -202,12 +203,14 @@ table 7326 "Whse. Worksheet Line"
         }
         field(18; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(19; "Qty. Outstanding"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -220,12 +223,14 @@ table 7326 "Whse. Worksheet Line"
         }
         field(20; "Qty. Outstanding (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(21; "Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -288,6 +293,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(22; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -299,6 +305,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(23; "Qty. Handled"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -315,6 +322,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(24; "Qty. Handled (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -350,6 +358,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(28; "Qty. per From Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per From Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -378,6 +387,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -498,6 +508,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(50; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -507,6 +518,7 @@ table 7326 "Whse. Worksheet Line"
         }
         field(51; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;

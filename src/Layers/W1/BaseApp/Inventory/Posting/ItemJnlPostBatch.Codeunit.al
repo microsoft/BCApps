@@ -644,10 +644,17 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     local procedure IncludeEntryInCalc(ItemLedgEntry: Record "Item Ledger Entry"; PostingDate: Date; IncludeExpectedCost: Boolean): Boolean
+    var
+        ShouldIncludeEntryInCalc: Boolean;
     begin
         if IncludeExpectedCost then
-            exit(ItemLedgEntry."Posting Date" in [0D .. PostingDate]);
-        exit(ItemLedgEntry."Completely Invoiced" and (ItemLedgEntry."Last Invoice Date" in [0D .. PostingDate]));
+            ShouldIncludeEntryInCalc := ItemLedgEntry."Posting Date" in [0D .. PostingDate]
+        else
+            ShouldIncludeEntryInCalc := ItemLedgEntry."Completely Invoiced" and (ItemLedgEntry."Last Invoice Date" in [0D .. PostingDate]);
+
+        OnAfterIncludeEntryInCalc(ItemLedgEntry, PostingDate, IncludeExpectedCost, ShouldIncludeEntryInCalc);
+
+        exit(ShouldIncludeEntryInCalc);
     end;
 
     local procedure UpdateStdCost()
@@ -972,8 +979,10 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]
-    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean)
+    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean; PostToGL: Boolean)
     begin
+        if not PostToGL then
+            exit;
         if InvtSetup.UseLegacyPosting() then
             exit;
         PostponedValueEntries.Add(ValueEntry."Entry No.");
@@ -1310,6 +1319,11 @@ codeunit 23 "Item Jnl.-Post Batch"
 
     [InternalEvent(false)]
     local procedure OnCheckItemAvailabilityOnAfterSetAvailableQty(var TempSKU: Record "Stockkeeping Unit" temporary; var ItemJnlLine: Record "Item Journal Line"; var AvailableQty: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIncludeEntryInCalc(ItemLedgEntry: Record "Item Ledger Entry"; PostingDate: Date; IncludeExpectedCost: Boolean; var ShouldIncludeEntryInCalc: Boolean)
     begin
     end;
 }

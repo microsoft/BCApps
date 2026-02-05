@@ -35,7 +35,9 @@ codeunit 137350 "SCM Inventory Reports - III"
         isInitialized: Boolean;
         RecordCountError: Label 'Record count should be greater than 1.';
         RegisteringDateError: Label 'Enter the Registering Date.';
+#if not CLEAN28
         SalesLinesShownError: Label 'Sales lines must be shown.';
+#endif
         UndoShipmentConfirmMessage: Label 'Do you really want to undo the selected Shipment lines?';
         ValueNotMatchedError: Label 'Value not matched';
         ValidationError: Label '%1 must be %2 in Report.';
@@ -283,6 +285,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         Assert.ExpectedError(ValuationDateError);
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesReservationAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -305,7 +309,10 @@ codeunit 137350 "SCM Inventory Reports - III"
         SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
         VerifySalesReservationAvailReport(SalesLine);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesReservationAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -329,6 +336,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         // Verify.
         Assert.ExpectedError(SalesLinesShownError);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ReservationPageHandler,PurchaseReservationAvailRequestPageHandler')]
@@ -1453,6 +1461,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         end;
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesReservationAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1504,6 +1514,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         SalesLine.FindFirst();
         Assert.AreEqual(0, SalesLine."Qty. to Ship", 'Expected qty. to be updated for line without location.');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ItemRegisterValueRequestPageHandler')]
@@ -2006,6 +2017,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
     end;
 
+#if not CLEAN28
     local procedure CreateSalesOrderAndModifyQuantity(var SalesLine: Record "Sales Line"; ItemNo: Code[20]; Quantity: Decimal)
     var
         SalesHeader: Record "Sales Header";
@@ -2015,6 +2027,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         LibrarySales.ReopenSalesDocument(SalesHeader);
         OpenSalesOrderToEnterQuantity(SalesHeader."No.", Quantity);
     end;
+#endif
 
     local procedure CreateWhseJournalBatch(var WarehouseJournalBatch: Record "Warehouse Journal Batch"; LocationCode: Code[10])
     var
@@ -2100,6 +2113,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         PurchaseOrder.PurchLines.Reserve.Invoke();
     end;
 
+#if not CLEAN28
     local procedure OpenSalesOrderToEnterQuantity(No: Code[20]; Quantity: Decimal)
     var
         SalesOrder: TestPage "Sales Order";
@@ -2109,6 +2123,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         SalesOrder.SalesLines.Quantity.SetValue(Quantity);
         SalesOrder.OK().Invoke();
     end;
+#endif
 
     local procedure PostItemJournalAndUndoShipment(var SalesLine: Record "Sales Line") DocumentNo: Code[20]
     var
@@ -2363,6 +2378,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         REPORT.Run(REPORT::"Phys. Inventory List", true, false, ItemJournalBatch);
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     local procedure RunSalesReservationAvailReport(No: Code[20])
     var
         SalesLine: Record "Sales Line";
@@ -2375,6 +2392,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         Commit();
         REPORT.Run(REPORT::"Sales Reservation Avail.", true, false, SalesLine);
     end;
+#endif
 
     local procedure RunPostInventoryCostToGL(var PostValueEntryToGL: Record "Post Value Entry to G/L"; PostToGLMethod: Option; DocumentNo: Code[20]; ExpectedResult: Text)
     begin
@@ -2665,6 +2683,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         LibraryReportDataset.AssertCurrentRowValueEquals('RemainingQty', Item.Inventory);
     end;
 
+#if not CLEAN28
     local procedure VerifySalesReservationAvailReport(SalesLine: Record "Sales Line")
     begin
         LibraryReportDataset.LoadDataSetFile();
@@ -2673,6 +2692,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         SalesLine.CalcFields("Reserved Quantity");
         LibraryReportDataset.AssertCurrentRowValueEquals('ResrvdQtyBase_SalesLine', SalesLine."Reserved Quantity");
     end;
+#endif
 
     local procedure VerifyPurchaseReservationAvailReport(PurchaseLine: Record "Purchase Line")
     begin
@@ -2880,6 +2900,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         Reservation."Reserve from Current Line".Invoke();
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SalesReservationAvailRequestPageHandler(var SalesReservationAvail: TestRequestPage "Sales Reservation Avail.")
@@ -2898,6 +2920,7 @@ codeunit 137350 "SCM Inventory Reports - III"
 
         SalesReservationAvail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

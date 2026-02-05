@@ -34,6 +34,7 @@ page 985 "Document Search"
                 field(Amount; Amount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     Caption = 'Amount';
                     ToolTip = 'Specifies the amounts that you want to search for when you search open documents.';
@@ -46,6 +47,7 @@ page 985 "Document Search"
                 field(AmountTolerance; AmountTolerance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     Caption = 'Amount Tolerance %';
                     MaxValue = 100;

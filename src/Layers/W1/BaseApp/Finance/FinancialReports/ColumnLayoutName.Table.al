@@ -56,7 +56,13 @@ table 333 "Column Layout Name"
         /// <summary>
         /// Extended internal description for additional context and documentation of column layout usage.
         /// </summary>
-        field(5; "Internal Description"; Text[250])
+#if not CLEAN28
+#pragma warning disable AS0086
+#endif
+        field(5; "Internal Description"; Text[500])
+#if not CLEAN28
+#pragma warning restore AS0086
+#endif
         {
             Caption = 'Internal Description';
             ToolTip = 'Specifies the internal description of the column definition. The internal description is not shown on the final report but is used to provide more context when using the definition.';

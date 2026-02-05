@@ -177,6 +177,7 @@ page 7000067 "Posted Bills"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total Remaining Amt. (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the sum of amounts that remain to be paid.';

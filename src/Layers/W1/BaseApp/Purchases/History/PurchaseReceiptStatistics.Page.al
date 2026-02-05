@@ -22,6 +22,7 @@ page 399 "Purchase Receipt Statistics"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total quantity of items received from the purchase document.';
@@ -29,6 +30,7 @@ page 399 "Purchase Receipt Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total number of parcels received from the purchase document.';
@@ -36,6 +38,7 @@ page 399 "Purchase Receipt Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total net weight of the items received from the purchase document.';
@@ -43,6 +46,7 @@ page 399 "Purchase Receipt Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total gross weight of the items received from the purchase document.';
@@ -50,6 +54,7 @@ page 399 "Purchase Receipt Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total volume of the items received from the purchase document.';

@@ -182,6 +182,8 @@ page 1001 "Job Task Lines Subform"
                 }
                 field("EAC (Total Cost)"; Rec.CalcEACTotalCost())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Suite;
                     Caption = 'EAC (Total Cost)';
                     ToolTip = 'Specifies the estimate at completion (EAC) total cost for a project task line. If the Apply Usage Link check box on the project is selected, then the EAC (Total Cost) field is calculated as follows: Usage (Total Cost) + Remaining (Total Cost).';
@@ -189,6 +191,8 @@ page 1001 "Job Task Lines Subform"
                 }
                 field("EAC (Total Price)"; Rec.CalcEACTotalPrice())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Suite;
                     Caption = 'EAC (Total Price)';
                     ToolTip = 'Specifies the estimate at completion (EAC) total price for a project task line. If the Apply Usage Link check box on the project is selected, then the EAC (Total Price) field is calculated as follows: Usage (Total Price) + Remaining (Total Price).';

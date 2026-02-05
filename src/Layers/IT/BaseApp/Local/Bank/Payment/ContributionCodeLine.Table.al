@@ -31,6 +31,7 @@ table 12107 "Contribution Code Line"
         }
         field(21; "Social Security %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Social Security %';
             DecimalPlaces = 0 : 4;
             MaxValue = 100;
@@ -38,6 +39,7 @@ table 12107 "Contribution Code Line"
         }
         field(22; "Free-Lance Amount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Free-Lance Amount %';
             DecimalPlaces = 0 : 4;
             MaxValue = 100;

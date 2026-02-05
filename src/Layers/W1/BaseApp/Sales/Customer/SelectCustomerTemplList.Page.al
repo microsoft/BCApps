@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides a selection page for choosing a customer template when creating new customers.
+/// </summary>
 page 1380 "Select Customer Templ. List"
 {
     Caption = 'Select a template for a new customer';

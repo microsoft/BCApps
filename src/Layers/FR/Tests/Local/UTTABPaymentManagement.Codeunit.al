@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144046 "UT TAB Payment Management"
 {
     // // [FEATURE] [Payment Slip] [UT]
@@ -41,6 +42,9 @@ codeunit 144046 "UT TAB Payment Management"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -891,4 +895,4 @@ codeunit 144046 "UT TAB Payment Management"
         Response := ACTION::LookupOK;
     end;
 }
-
+#endif

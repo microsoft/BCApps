@@ -9,6 +9,9 @@ using Microsoft.Sales.Customer;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Displays detailed customer ledger entries related to an application and enables users to reverse (unapply) the application.
+/// </summary>
 page 623 "Unapply Customer Entries"
 {
     Caption = 'Unapply Customer Entries';
@@ -237,6 +240,10 @@ page 623 "Unapply Customer Entries"
         PostingDate: Date;
         CustLedgEntryNo: Integer;
 
+    /// <summary>
+    /// Sets the detailed customer ledger entry to be unapplied and initializes related page variables.
+    /// </summary>
+    /// <param name="EntryNo">The entry number of the detailed customer ledger entry to unapply.</param>
     procedure SetDtldCustLedgEntry(EntryNo: Integer)
     begin
         DtldCustLedgEntry2.Get(EntryNo);
@@ -280,6 +287,10 @@ page 623 "Unapply Customer Entries"
         exit(CustLedgEntry."Document No.");
     end;
 
+    /// <summary>
+    /// Generates the page caption showing customer information and entry number.
+    /// </summary>
+    /// <returns>The formatted caption text containing customer number, name, and entry number.</returns>
     procedure Caption(): Text
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -292,11 +303,22 @@ page 623 "Unapply Customer Entries"
             CustLedgEntryNo));
     end;
 
+    /// <summary>
+    /// Raised before inserting a detailed customer ledger entry into the temporary table for display.
+    /// </summary>
+    /// <param name="RecDtldCustLedgEntry">The record to be inserted into the temporary table.</param>
+    /// <param name="DtldCustLedgEntry">The source detailed customer ledger entry.</param>
+    /// <param name="DtldCustLedgEntry2">The original detailed customer ledger entry being unapplied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRecInsert(var RecDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set when inserting entries into the page data source.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters applied.</param>
+    /// <param name="DetailedCustLedgEntry2">The original detailed customer ledger entry being unapplied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertEntriesOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin

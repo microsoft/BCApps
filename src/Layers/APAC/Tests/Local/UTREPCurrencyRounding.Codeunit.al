@@ -18,7 +18,9 @@ codeunit 141046 "UT REP Currency Rounding"
         ColumnAmountCap: Label 'ColumnAmountText_1_';
         ColumnAmountTwoCap: Label 'ColumnAmountText_2_';
         CurrentYTDNetChangeCap: Label 'CurrentYTDNetChange';
+#if not CLEAN28
         CustSalesLCYCap: Label 'CustSalesLCY2';
+#endif
         DateFilterTxt: Label '%1..%2';
         FiscalYearBalanceCap: Label 'FiscalYearBalance';
         GLAccNoCap: Label 'No_GLAcc';
@@ -728,10 +730,12 @@ codeunit 141046 "UT REP Currency Rounding"
         VerifyXMLValuesOnReport(RoundingCap, SalespersonCodeCap, AmountsInWhole, CustLedgerEntry."Salesperson Code");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReptAmtsInWholeBlankSalesStatistics()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -744,6 +748,7 @@ codeunit 141046 "UT REP Currency Rounding"
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReptAmtsInWholeTensSalesStatistics()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -756,6 +761,7 @@ codeunit 141046 "UT REP Currency Rounding"
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReportAmountsInWholeHundredsSalesStatistics()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -768,6 +774,7 @@ codeunit 141046 "UT REP Currency Rounding"
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReportAmountsInWholeThousandsSalesStatistics()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -780,6 +787,7 @@ codeunit 141046 "UT REP Currency Rounding"
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReptAmtsInWholeHundredThousandsSalesStats()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -792,6 +800,7 @@ codeunit 141046 "UT REP Currency Rounding"
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure OnPreReptAmtsInWholeMillionsSalesStatistics()
     var
         AmountsInWhole: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
@@ -800,6 +809,7 @@ codeunit 141046 "UT REP Currency Rounding"
         AmountsInWholeSalesStatistics(AmountsInWhole::Millions);
     end;
 
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     local procedure AmountsInWholeSalesStatistics(AmountsInWhole: Option)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -816,6 +826,7 @@ codeunit 141046 "UT REP Currency Rounding"
         VerifyXMLValuesOnReport(
           RoundingCap, CustSalesLCYCap, AmountsInWhole, ReportManagement.RoundAmount(CustLedgerEntry."Sales (LCY)", AmountsInWhole));
     end;
+#endif
 
     local procedure Initialize()
     begin
@@ -1057,8 +1068,10 @@ codeunit 141046 "UT REP Currency Rounding"
         SalespersonSalesStatistics.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure SalesStatisticsRequestPageHandler(var SalesStatistics: TestRequestPage "Sales Statistics")
     var
         AmountsInWhole: Variant;
@@ -1071,5 +1084,6 @@ codeunit 141046 "UT REP Currency Rounding"
         SalesStatistics.AmountsInWhole.SetValue(AmountsInWhole);
         SalesStatistics.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 }
 

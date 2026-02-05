@@ -110,21 +110,25 @@ table 5110 "Purchase Line Archive"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(17; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Qty. to Receive"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Qty. to Receive';
             DecimalPlaces = 0 : 5;
@@ -139,15 +143,18 @@ table 5110 "Purchase Line Archive"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
         }
         field(26; "Quantity Disc. %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Disc. %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -155,6 +162,7 @@ table 5110 "Purchase Line Archive"
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -181,6 +189,7 @@ table 5110 "Purchase Line Archive"
         field(31; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
         }
         field(32; "Allow Invoice Disc."; Boolean)
@@ -190,21 +199,25 @@ table 5110 "Purchase Line Archive"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -232,6 +245,7 @@ table 5110 "Purchase Line Archive"
         }
         field(54; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -244,6 +258,7 @@ table 5110 "Purchase Line Archive"
         }
         field(58; "Qty. Rcd. Not Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rcd. Not Invoiced';
             DecimalPlaces = 0 : 5;
         }
@@ -255,12 +270,14 @@ table 5110 "Purchase Line Archive"
         }
         field(60; "Quantity Received"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Quantity Received';
             DecimalPlaces = 0 : 5;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
         }
@@ -274,6 +291,7 @@ table 5110 "Purchase Line Archive"
         }
         field(67; "Profit %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Profit %';
             DecimalPlaces = 0 : 5;
         }
@@ -392,11 +410,13 @@ table 5110 "Purchase Line Archive"
         field(92; "Outstanding Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Outstanding Amount (LCY)';
         }
         field(93; "Amt. Rcd. Not Invoiced (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amt. Rcd. Not Invoiced (LCY)';
         }
         field(97; "Blanket Order No."; Code[20])
@@ -459,6 +479,7 @@ table 5110 "Purchase Line Archive"
         }
         field(109; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -503,6 +524,7 @@ table 5110 "Purchase Line Archive"
         }
         field(115; "Prepayment VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -600,28 +622,35 @@ table 5110 "Purchase Line Archive"
         }
         field(1003; "Job Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Job Currency Code";
             AccessByPermission = TableData Job = R;
             Caption = 'Project Unit Price';
         }
         field(1004; "Job Total Price"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             AccessByPermission = TableData Job = R;
             Caption = 'Project Total Price';
         }
         field(1005; "Job Line Amount"; Decimal)
         {
             AccessByPermission = TableData Job = R;
+            AutoFormatType = 1;
             AutoFormatExpression = "Job Currency Code";
             Caption = 'Project Line Amount';
         }
         field(1006; "Job Line Discount Amount"; Decimal)
         {
             AccessByPermission = TableData Job = R;
+            AutoFormatType = 1;
             AutoFormatExpression = "Job Currency Code";
             Caption = 'Project Line Discount Amount';
         }
         field(1007; "Job Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -631,27 +660,32 @@ table 5110 "Purchase Line Archive"
             AccessByPermission = TableData Job = R;
             Caption = 'Project Unit Price (LCY)';
             AutoFormatType = 2;
+            AutoFormatExpression = '';
         }
         field(1009; "Job Total Price (LCY)"; Decimal)
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project Total Price (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1010; "Job Line Amount (LCY)"; Decimal)
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Amount (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1011; "Job Line Disc. Amount (LCY)"; Decimal)
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Disc. Amount (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1012; "Job Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Project Currency Factor';
         }
         field(1013; "Job Currency Code"; Code[20])
@@ -666,12 +700,14 @@ table 5110 "Purchase Line Archive"
         }
         field(1030; "Job Remaining Qty."; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Job = R;
             Caption = 'Project Remaining Qty.';
             DecimalPlaces = 0 : 5;
         }
         field(1031; "Job Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Project Remaining Qty. (Base)';
         }
         field(1700; "Deferral Code"; Code[10])
@@ -703,6 +739,7 @@ table 5110 "Purchase Line Archive"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -716,36 +753,43 @@ table 5110 "Purchase Line Archive"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5416; "Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5417; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5418; "Qty. to Receive (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Receive (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5458; "Qty. Rcd. Not Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rcd. Not Invoiced (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5460; "Qty. Received (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Received (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -765,6 +809,7 @@ table 5110 "Purchase Line Archive"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -889,21 +934,25 @@ table 5110 "Purchase Line Archive"
         }
         field(5803; "Return Qty. to Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. to Ship';
             DecimalPlaces = 0 : 5;
         }
         field(5804; "Return Qty. to Ship (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. to Ship (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5805; "Return Qty. Shipped Not Invd."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Shipped Not Invd.';
             DecimalPlaces = 0 : 5;
         }
         field(5806; "Ret. Qty. Shpd Not Invd.(Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Ret. Qty. Shpd Not Invd.(Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -916,35 +965,43 @@ table 5110 "Purchase Line Archive"
         field(5808; "Return Shpd. Not Invd. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Return Shpd. Not Invd. (LCY)';
         }
         field(5809; "Return Qty. Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Shipped';
             DecimalPlaces = 0 : 5;
         }
         field(5810; "Return Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Shipped (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(6200; "Non-Deductible VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non-Deductible VAT %';
             DecimalPlaces = 0 : 5;
         }
         field(6201; "Non-Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Non-Deductible VAT Base';
         }
         field(6202; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Non-Deductible VAT Amount';
         }
         field(6203; "Non-Deductible VAT Diff."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Non-Deductible VAT Difference';
         }
         field(6600; "Return Shipment No."; Code[20])
@@ -974,6 +1031,7 @@ table 5110 "Purchase Line Archive"
         }
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -981,6 +1039,7 @@ table 5110 "Purchase Line Archive"
         }
         field(12102; "Prepayment Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment Deductible %';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
@@ -1032,6 +1091,7 @@ table 5110 "Purchase Line Archive"
 #if not CLEAN27
         field(12182; "WIP Qty at Subc.Loc. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum(Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"."WIP Item Qty." where("Subcontr. Purch. Order No." = field("Document No."),
                                                                              "Subcontr. Purch. Order Line" = field("Line No.")));
             Caption = 'WIP Qty at Subc.Loc. (Base)';
@@ -1045,6 +1105,7 @@ table 5110 "Purchase Line Archive"
 #endif
         field(12183; "Not Proc. WIP Qty to Receive"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Not Proc. WIP Qty to Receive';
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
@@ -1058,6 +1119,7 @@ table 5110 "Purchase Line Archive"
         }
         field(12184; "Base UM Qty/Pricelist UM Qty"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Base UM Qty/Pricelist UM Qty';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1087,6 +1149,7 @@ table 5110 "Purchase Line Archive"
         }
         field(12186; "Pricelist UM Qty/Base UM Qty"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pricelist UM Qty/Base UM Qty';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1116,6 +1179,7 @@ table 5110 "Purchase Line Archive"
 #endif
         field(99000755; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
         }

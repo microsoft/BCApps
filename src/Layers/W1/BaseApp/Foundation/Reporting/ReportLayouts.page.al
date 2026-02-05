@@ -498,6 +498,7 @@ page 9660 "Report Layouts"
             ReportLayoutsImpl.GetDefaultReportLayoutSelection(Rec."Report ID", DefaultReportLayoutList);
 
         IsDefaultLayout := (DefaultReportLayoutList."Report ID" = Rec."Report ID") and (DefaultReportLayoutList.Name = Rec.Name) and (DefaultReportLayoutList."Application ID" = Rec."Application ID");
+        UpdateUserDisplayName();
     end;
 
     local procedure UpdateUserDisplayName()

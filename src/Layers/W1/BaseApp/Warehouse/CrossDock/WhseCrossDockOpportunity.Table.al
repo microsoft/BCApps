@@ -129,6 +129,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(20; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -142,18 +143,21 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(24; "Qty. Needed"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Needed';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(25; "Qty. Needed (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Needed (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(26; "Qty. to Cross-Dock"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Cross-Dock';
             DecimalPlaces = 0 : 5;
 
@@ -169,6 +173,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(27; "Qty. to Cross-Dock (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Cross-Dock (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -180,6 +185,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(28; "Qty. Cross-Docked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Whse. Cross-Dock Opportunity"."Qty. to Cross-Dock (Base)" where("Source Template Name" = field("Source Template Name"),
                                                                                                 "Source Name/No." = field("Source Name/No."),
                                                                                                 "Source Line No." = field("Source Line No."),
@@ -191,6 +197,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(29; "Total Qty. Needed (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Whse. Cross-Dock Opportunity"."Qty. Needed (Base)" where("Source Template Name" = field("Source Template Name"),
                                                                                          "Source Name/No." = field("Source Name/No."),
                                                                                          "Source Line No." = field("Source Line No."),
@@ -200,6 +207,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(36; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("To Source No."),
                                                                    "Source Ref. No." = field("To Source Line No."),
                                                                    "Source Type" = field("To Source Type"),
@@ -213,6 +221,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(37; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("To Source No."),
                                                                    "Source Ref. No." = field("To Source Line No."),
                                                                    "Source Type" = field("To Source Type"),
@@ -232,6 +241,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(40; "To-Src. Qty. per Unit of Meas."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'To-Src. Qty. per Unit of Meas.';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -244,6 +254,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(42; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty.';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -251,6 +262,7 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(43; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -258,12 +270,14 @@ table 5768 "Whse. Cross-Dock Opportunity"
         }
         field(44; "Picked Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Picked Qty.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(45; "Picked Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Picked Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;

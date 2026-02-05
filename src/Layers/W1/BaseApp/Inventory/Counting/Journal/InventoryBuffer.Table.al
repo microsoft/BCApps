@@ -30,6 +30,7 @@ table 307 "Inventory Buffer"
         }
         field(5; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

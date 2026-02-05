@@ -141,6 +141,7 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
         }
@@ -184,6 +185,7 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -480,6 +482,7 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -531,6 +534,8 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry"."Remaining Unrealized Amount" where("Document Type" = const(Invoice),
                                                                                "Document No." = field("No.")));
             Caption = 'Rem. WHT Prepaid Amount (LCY)';
@@ -538,6 +543,8 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(28042; "Paid WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry".Amount where("Document Type" = const(Payment),
                                                         "Document No." = field("No.")));
             Caption = 'Paid WHT Prepaid Amount (LCY)';
@@ -545,6 +552,8 @@ table 28071 "Sales Tax Invoice Header"
         }
         field(28043; "Total WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry"."Unrealized Amount" where("Document Type" = const(Invoice),
                                                                      "Document No." = field("No.")));
             Caption = 'Total WHT Prepaid Amount (LCY)';

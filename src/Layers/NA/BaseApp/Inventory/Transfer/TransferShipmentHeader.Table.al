@@ -346,6 +346,7 @@ table 5744 "Transfer Shipment Header"
         }
         field(10047; "Transit Distance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Transit Distance';
         }
         field(10048; "Insurer Name"; Text[50])
@@ -395,6 +396,7 @@ table 5744 "Transfer Shipment Header"
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DecimalPlaces = 0 : 6;
         }

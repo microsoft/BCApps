@@ -206,6 +206,17 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
+    internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        if AgentTask.Get(TaskId) then
+            if Agent.Get(AgentTask."Agent User Security ID") then
+                exit(true);
+
+        exit(false);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]
     local procedure OnGetAgentTaskMessagePageId(var PageId: Integer)
     begin

@@ -193,6 +193,8 @@ table 3010541 "DTA Setup"
         }
         field(41; "Credit Limit"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "DTA Currency Code";
             Caption = 'Credit Limit';
             MinValue = 0;
         }

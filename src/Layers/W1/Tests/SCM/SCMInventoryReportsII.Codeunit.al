@@ -1,4 +1,4 @@
-﻿codeunit 137302 "SCM Inventory Reports - II"
+codeunit 137302 "SCM Inventory Reports - II"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -33,11 +33,15 @@
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
         FullShipmentValueTxt: Label 'Full Shipment';
+#if not CLEAN28
         NoShipmentValueTxt: Label 'No Shipment';
         PartialShipmentValueTxt: Label 'Partial Shipment';
+#endif
         DirectUnitCostErr: Label 'Direct Unit Cost must match.';
+#if not CLEAN28
         MsgQtytoShipErr: Label 'Qty. to Ship  must match.';
         MsgQtytoReceiveErr: Label 'Qty. to Receive  must match.';
+#endif
         StatusConstantCap: Label 'Finished';
         ReportQtyErr: Label 'Wrong Quantity on Report';
         ValueEntriesWerePostedTxt: Label 'value entries have been posted to the general ledger.';
@@ -423,6 +427,8 @@
         LibraryReportDataset.AssertCurrentRowValueEquals('OutstQtyBase_PurchLine', PurchaseLine."Outstanding Qty. (Base)")
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -442,7 +448,10 @@
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('ShipmentDt_SalesHeader', Format(SalesHeader."Shipment Date"));
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -464,7 +473,10 @@
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('OutstdngQtyBase_SalesLine', SalesLine."Outstanding Qty. (Base)")
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -501,6 +513,7 @@
         LibraryReportDataset.AssertCurrentRowValueEquals('Qty_ReservationEntry', -SalesLine."Reserved Qty. (Base)");
         LibraryReportDataset.AssertCurrentRowValueEquals('ResrvdQtyBase_SalesLine', SalesLine."Reserved Qty. (Base)");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
@@ -746,6 +759,8 @@
         VerifyCostPostedToGL(ProductionOrder."No.", ItemJournalLine."Document No.");
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -781,7 +796,10 @@
         // Verify: Check Qty. to Ship in Sales Line.
         Assert.AreEqual(ExpectedPurchQty, SalesLine."Qty. to Ship", MsgQtytoShipErr);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler,PurchResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -821,7 +839,10 @@
         // Verify: Check Qty. to Ship in Purchase Line.
         VerifyQtyToReceiveInPurchLine(PurchHeader);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [Test]
     [HandlerFunctions('SalesResAvailRequestPageHandler,PurchResAvailRequestPageHandler')]
     [Scope('OnPrem')]
@@ -866,6 +887,7 @@
         // Verify: Check Qty. to Receive in Purchase Line.
         VerifyQtyToReceiveInPurchLine(PurchHeader[3]);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('PriceListRequestPageHandler')]
@@ -2237,6 +2259,7 @@
         VerifyComponentItem(Item."Production BOM No.", ProductionBOMVersion."Version Code");
     end;
 
+#if not CLEAN28
     local procedure RunPurchReserveAvailReport(PurchHeaderNo: Code[20]; ShowPurchLines: Boolean; ShowReservationEntries: Boolean; ShowModifyQtytoReceive: Boolean)
     var
         PurchLine: Record "Purchase Line";
@@ -2248,6 +2271,7 @@
         LibraryVariableStorage.Enqueue(ShowModifyQtytoReceive);
         REPORT.Run(REPORT::"Purchase Reservation Avail.", true, false, PurchLine);
     end;
+#endif
 
     local procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal)
     var
@@ -2259,6 +2283,8 @@
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     local procedure SalesReserveAvailReport(var SalesHeader: Record "Sales Header"; ItemNo: Code[20]; ShowSalesLines: Boolean)
     begin
         CreateSalesOrder(SalesHeader, ItemNo, LibraryRandom.RandDec(10, 2));  // Random Values not important.
@@ -2267,6 +2293,7 @@
         Commit();
         RunSalesReservationAvail(SalesHeader."No.", ShowSalesLines, false);
     end;
+#endif
 
     local procedure CreateSalesOrder(var SalesHeader: Record "Sales Header"; ItemNo: Code[20]; Quantity: Decimal)
     var
@@ -2276,6 +2303,7 @@
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
     end;
 
+#if not CLEAN28
     local procedure AutoReserveForSalesOrder(var SalesHeader: Record "Sales Header"; ItemNo: Code[20]; ShipmentDate: Date; SalesQty: Decimal)
     var
         SalesLine: Record "Sales Line";
@@ -2286,7 +2314,10 @@
         SalesLine.Modify(true);
         LibrarySales.AutoReserveSalesLine(SalesLine);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     local procedure RunSalesReservationAvail(SalesHeaderNo: Code[20]; ShowSalesLines: Boolean; ShowReservationEntries: Boolean)
     var
         SalesLine: Record "Sales Line";
@@ -2298,7 +2329,10 @@
         LibraryVariableStorage.Enqueue(false);
         REPORT.Run(REPORT::"Sales Reservation Avail.", true, false, SalesLine);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     local procedure RunSalesReservationAvailReport(SalesHeaderNo: Code[20]; ShowSalesLines: Boolean; ShowReservationEntries: Boolean; ModifyQtyToShip: Boolean)
     var
         SalesLine: Record "Sales Line";
@@ -2317,6 +2351,7 @@
         SalesLine.SetRange("Document No.", DocumentNo);
         SalesLine.FindFirst();
     end;
+#endif
 
     local procedure CreateProdItemSetup(var Item3: Record Item)
     var
@@ -2628,6 +2663,7 @@
             LibraryReportDataset.AssertCurrentRowValueEquals('ValueEntryCostPostedtoGL', GLEntry.Amount);
     end;
 
+#if not CLEAN28
     local procedure VerifySalesReservationAvailReport(var SalesLine: Record "Sales Line"; SalesHeaderNo: Code[20]; LineQtyOnHand: Decimal; LineStatus: Text)
     var
         DocTypeAndNo: Text;
@@ -2639,7 +2675,9 @@
         LibraryReportDataset.AssertElementWithValueExists('LineQuantityOnHand', LineQtyOnHand);
         LibraryReportDataset.AssertElementWithValueExists('LineStatus', LineStatus);
     end;
+#endif
 
+#if not CLEAN28
     local procedure VerifyQtyToReceiveInPurchLine(var PurchHeader: Record "Purchase Header")
     var
         PurchLine: Record "Purchase Line";
@@ -2647,6 +2685,7 @@
         FindPurchaseOrderLine(PurchLine, PurchHeader."No.");
         Assert.AreEqual(0, PurchLine."Qty. to Receive", MsgQtytoReceiveErr);
     end;
+#endif
 
     local procedure ValidateInventoryValuationWIPReport(var ProdOrderArray: array[3] of Code[10])
     begin
@@ -2767,6 +2806,8 @@
         PurchaseReservationAvail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SalesResAvailRequestPageHandler(var SalesReservationAvail: TestRequestPage "Sales Reservation Avail.")
@@ -2783,6 +2824,7 @@
         SalesReservationAvail.ModifyQuantityToShip.SetValue(ModifyQtyToShip);
         SalesReservationAvail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

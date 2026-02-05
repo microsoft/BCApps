@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Finance.Currency;
 using System.Utilities;
 
+/// <summary>
+/// Stores reusable standard sales transaction templates with predefined lines.
+/// </summary>
 table 170 "Standard Sales Code"
 {
     Caption = 'Standard Sales Code';
@@ -16,15 +19,24 @@ table 170 "Standard Sales Code"
 
     fields
     {
+        /// <summary>
+        /// Specifies a unique code to identify the standard sales code template.
+        /// </summary>
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Contains a description of the standard sales code template.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Specifies the currency code for amounts in the standard sales code lines.
+        /// </summary>
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';

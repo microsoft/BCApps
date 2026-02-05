@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Calculates outstanding sales amounts grouped by document type, customer, and VAT percentage.
+/// </summary>
 query 1302 "Sales Outstd. Amount On VAT"
 {
     QueryType = Normal;

@@ -15,7 +15,7 @@ codeunit 99000867 "Mfg. Order Planning Mgt."
     var
         ProdOrderComp: Record "Prod. Order Component";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnInsertAltSupplyLocationOnAfterSelectSubstitution', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnInsertAltSupplyLocationOnAfterSelectSubstitution', '', true, false)]
     local procedure OnInsertAltSupplyLocationOnAfterSelectSubstitution(var RequisitionLine: Record "Requisition Line"; var TempItemSub: Record "Item Substitution" temporary)
     var
         MfgItemSubstitution: Codeunit "Mfg. Item Substitution";
@@ -26,7 +26,7 @@ codeunit 99000867 "Mfg. Order Planning Mgt."
         ProdOrderComp.AutoReserve();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnInsertAltSupplyLocationOnUpdateReqLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnInsertAltSupplyLocationOnUpdateReqLine', '', true, false)]
     local procedure OnInsertAltSupplyLocationOnUpdateReqLine(var RequisitionLine: Record "Requisition Line"; var TempItemSub: Record "Item Substitution" temporary)
     var
         TempReqLine2: Record "Requisition Line" temporary;
@@ -61,7 +61,7 @@ codeunit 99000867 "Mfg. Order Planning Mgt."
         PlanningLineMgt.Calculate(RequisitionLine, 1, true, true, 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnSubstitutionPossibleOnAfterCheckReqLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Order Planning Mgt.", 'OnSubstitutionPossibleOnAfterCheckReqLine', '', true, false)]
     local procedure OnSubstitutionPossibleOnAfterCheckReqLine(var RequisitionLine: Record "Requisition Line"; var ShouldExit: Boolean)
     begin
         if ProdOrderComp.Get(

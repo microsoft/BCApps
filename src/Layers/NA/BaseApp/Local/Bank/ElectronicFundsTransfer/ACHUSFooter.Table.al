@@ -26,17 +26,20 @@ table 10302 "ACH US Footer"
         }
         field(3; "File Hash Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'File Hash Total';
             Description = 'File Hash Total';
         }
         field(4; "Total File Debit Amount"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Total File Debit Amount';
             Description = 'Total File Debit Amount';
         }
         field(5; "Total File Credit Amount"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Total File Credit Amount';
             Description = 'Total File Credit Amount';
@@ -84,11 +87,13 @@ table 10302 "ACH US Footer"
         }
         field(17; "Total Batch Debit Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Batch Debit Amount';
             Description = 'Total Batch Debit Amount';
         }
         field(18; "Total Batch Credit Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Batch Credit Amount';
             Description = 'Total Batch Credit Amount';
         }
@@ -98,6 +103,7 @@ table 10302 "ACH US Footer"
         }
         field(20; "Batch Hash Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Batch Hash Total';
             Description = 'Batch Hash Total';
         }

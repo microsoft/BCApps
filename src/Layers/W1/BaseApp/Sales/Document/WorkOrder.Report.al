@@ -8,6 +8,9 @@ using Microsoft.Foundation.Address;
 using Microsoft.Sales.Comment;
 using System.Utilities;
 
+/// <summary>
+/// Generates a work order document for internal use in processing sales orders.
+/// </summary>
 report 752 "Work Order"
 {
     DefaultLayout = RDLC;

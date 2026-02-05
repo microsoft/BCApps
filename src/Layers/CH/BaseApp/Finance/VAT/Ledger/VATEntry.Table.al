@@ -847,16 +847,20 @@ table 254 "VAT Entry"
 #endif
         field(11500; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             Editable = false;
         }
         field(11501; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             Editable = false;
         }
         field(11502; "Amount (FCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount (FCY)';
             Editable = false;
         }
@@ -872,6 +876,8 @@ table 254 "VAT Entry"
         }
         field(11510; "Base (FCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Base (FCY)';
             Editable = false;
         }

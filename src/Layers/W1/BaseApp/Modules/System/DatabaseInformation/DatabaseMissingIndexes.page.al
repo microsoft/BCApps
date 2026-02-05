@@ -72,18 +72,21 @@ page 9521 "Database Missing Indexes"
                 field("Average Total Cost"; Rec."Average Total User Cost")
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Average Total Cost';
                     ToolTip = 'Average cost of the queries that could be reduced by the index.';
                 }
                 field("Average Impact"; Rec."Average User Impact")
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Average Impact';
                     ToolTip = 'Average percentage benefit that queries could experience if this missing index is added.';
                 }
                 field("Estimated Benefit"; Rec."Estimated Benefit")
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Estimated Benefit';
                     ToolTip = 'The estimated benefit gained by adding the missing index.';
                 }

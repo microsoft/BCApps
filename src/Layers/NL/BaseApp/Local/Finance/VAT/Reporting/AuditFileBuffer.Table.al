@@ -100,11 +100,15 @@ table 11404 "Audit File Buffer"
         }
         field(70; DebitAmount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'DebitAmount';
             DataClassification = SystemMetadata;
         }
         field(75; CreditAmount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'CreditAmount';
             DataClassification = SystemMetadata;
         }
@@ -125,6 +129,7 @@ table 11404 "Audit File Buffer"
         }
         field(81; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -134,6 +139,7 @@ table 11404 "Audit File Buffer"
         field(82; VATAmount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VATAmount';
             DataClassification = SystemMetadata;
         }

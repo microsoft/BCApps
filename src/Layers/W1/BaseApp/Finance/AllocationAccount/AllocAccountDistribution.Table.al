@@ -50,6 +50,7 @@ table 2671 "Alloc. Account Distribution"
         /// </summary>
         field(6; Share; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Share';
             DecimalPlaces = 2 : 5;
             MinValue = 0;
@@ -65,6 +66,7 @@ table 2671 "Alloc. Account Distribution"
         /// </summary>
         field(7; Percent; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Percent';
             DecimalPlaces = 2 : 5;
             Editable = false;

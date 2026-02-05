@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// Displays the line items of a reminder document as an editable subpage part.
+/// </summary>
 page 435 "Reminder Lines"
 {
     AutoSplitKey = true;
@@ -200,6 +203,10 @@ page 435 "Reminder Lines"
         TypeIsGLAccount: Boolean;
         TypeIsCustomerLedgerEntry: Boolean;
 
+    /// <summary>
+    /// Inserts extended text for the current reminder line if available.
+    /// </summary>
+    /// <param name="Unconditionally">True to insert extended text without conditions.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec);

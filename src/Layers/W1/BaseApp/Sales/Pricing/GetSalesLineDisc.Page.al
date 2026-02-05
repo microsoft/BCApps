@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Pricing;
 
+/// <summary>
+/// Provides a read-only view of sales line discounts for lookup and selection purposes.
+/// </summary>
 page 7009 "Get Sales Line Disc."
 {
     Caption = 'Get Sales Line Disc.';

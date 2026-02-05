@@ -130,6 +130,7 @@ table 10810 "EFT Export"
         field(38; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(40; "Foreign Exchange Reference"; Code[20])

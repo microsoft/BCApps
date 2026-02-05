@@ -47,7 +47,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
     // Consumption Posting
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostConsumption', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostConsumption', '', true, false)]
     local procedure OnPostConsumption(
         var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary;
         var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer; var sender: Codeunit "Item Jnl.-Post Line")
@@ -404,7 +404,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
     // Output Posting
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostOutput', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostOutput', '', true, false)]
     local procedure OnPostOutput(
         var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingCode: Record "Item Tracking Code";
         var GlobalItemLedgerEntry: Record "Item Ledger Entry"; var LastOperation: Boolean; var sender: Codeunit "Item Jnl.-Post Line")
@@ -471,14 +471,14 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
         sender.CalcDirAndIndirCostAmts(DirCostAmt, IndirCostAmt, ValuedQty, ItemJnlLine);
 
-        OnPostOutputOnBeforeInsertCostValueEntries(ItemJnlLine, CapLedgEntry, ValuedQty, DirCostAmt, IndirCostAmt);
+        OnPostOutputOnBeforeInsertCostValueEntries(ItemJnlLine, CapLedgEntry, ValuedQty, DirCostAmt, IndirCostAmt, sender);
 #if not CLEAN27
         sender.RunOnPostOutputOnBeforeInsertCostValueEntries(ItemJnlLine, CapLedgEntry, ValuedQty, DirCostAmt, IndirCostAmt);
 #endif
         sender.InsertCapValueEntry(ItemJnlLine, CapLedgEntry, ItemJnlLine."Value Entry Type"::"Direct Cost", ValuedQty, ValuedQty, DirCostAmt);
         sender.InsertCapValueEntry(ItemJnlLine, CapLedgEntry, ItemJnlLine."Value Entry Type"::"Indirect Cost", ValuedQty, 0, IndirCostAmt);
 
-        OnPostOutputOnAfterInsertCostValueEntries(ItemJnlLine, CapLedgEntry, sender.GetCalledFromAdjustment(), sender.GetPostToGL());
+        OnPostOutputOnAfterInsertCostValueEntries(ItemJnlLine, CapLedgEntry, sender.GetCalledFromAdjustment(), sender.GetPostToGL(), sender);
 #if not CLEAN27
         sender.RunOnPostOutputOnAfterInsertCostValueEntries(ItemJnlLine, CapLedgEntry, sender.GetCalledFromAdjustment(), sender.GetPostToGL());
 #endif
@@ -1126,7 +1126,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         exit(0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetOrderAdjmtPropertiesForProduction', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetOrderAdjmtPropertiesForProduction', '', true, false)]
     local procedure OnSetOrderAdjmtPropertiesForProduction(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; OrderNo: Code[20]; OrderLineNo: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -1150,7 +1150,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ProdOrderLine.Get(ProdOrderLine.Status::Released, OrderNo, OrderLineNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnCorrectOutputValuationDateOnCheckProduction', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnCorrectOutputValuationDateOnCheckProduction', '', true, false)]
     local procedure OnCorrectOutputValuationDateOnCheckProduction(ItemLedgerEntry: Record "Item Ledger Entry"; var ShouldExit: Boolean; var TempValueEntry: Record "Value Entry" temporary; var ValuationDate: Date; var sender: Codeunit "Item Jnl.-Post Line")
     var
         ValueEntry: Record "Value Entry";
@@ -1235,12 +1235,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostOutputOnBeforeInsertCostValueEntries(var ItemJournalLine: Record "Item Journal Line"; var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var ValuedQty: Decimal; var DirCostAmt: Decimal; var IndirCostAmt: Decimal)
+    local procedure OnPostOutputOnBeforeInsertCostValueEntries(var ItemJournalLine: Record "Item Journal Line"; var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var ValuedQty: Decimal; var DirCostAmt: Decimal; var IndirCostAmt: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterInsertCostValueEntries(ItemJournalLine: Record "Item Journal Line"; var CapLedgEntry: Record "Capacity Ledger Entry"; CalledFromAdjustment: Boolean; PostToGL: Boolean)
+    local procedure OnPostOutputOnAfterInsertCostValueEntries(ItemJournalLine: Record "Item Journal Line"; var CapLedgEntry: Record "Capacity Ledger Entry"; CalledFromAdjustment: Boolean; PostToGL: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
@@ -1429,7 +1429,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnCodeOnAfterCalcQtyPerUnitOfMeasure', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnCodeOnAfterCalcQtyPerUnitOfMeasure', '', true, false)]
     local procedure OnCodeOnAfterCalcQtyPerUnitOfMeasure(var ItemJnlLine: Record "Item Journal Line")
     begin
         ItemJnlLine."Setup Time" := ItemJnlLine."Setup Time (Base)";
@@ -1439,7 +1439,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ItemJnlLine."Scrap Quantity" := ItemJnlLine."Scrap Quantity (Base)";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforeInsertCapLedgEntry', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforeInsertCapLedgEntry', '', true, false)]
     local procedure OnBeforeInsertCapLedgEntry(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
     begin
         CapLedgEntry."Setup Time" := ItemJournalLine."Setup Time";
@@ -1464,7 +1464,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             UpdateReversedCapacityLedgerEntry(ItemJournalLine, CapLedgEntry);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupTempSplitItemJnlLineOnAfterDeductNonDistr', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupTempSplitItemJnlLineOnAfterDeductNonDistr', '', true, false)]
     local procedure OnSetupTempSplitItemJnlLineOnAfterDeductNonDistr(var TempSplitItemJnlLine: Record "Item Journal Line")
     begin
         TempSplitItemJnlLine."Setup Time" := 0;
@@ -1480,19 +1480,19 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         TempSplitItemJnlLine."Concurrent Capacity" := 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnSetDisableItemTracking', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnSetDisableItemTracking', '', true, false)]
     local procedure OnSetupSplitJnlLineOnSetDisableItemTracking(var ItemJournalLine: Record "Item Journal Line"; var DisableItemTracking: Boolean)
     begin
         DisableItemTracking := not ItemJournalLine.ItemPosting();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnCheckOperationNo', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnCheckOperationNo', '', true, false)]
     local procedure OnSetupSplitJnlLineOnCheckOperationNo(var ItemJournalLine: Record "Item Journal Line")
     begin
         Error(MustNotDefineItemTrackingErr, ItemJournalLine.FieldCaption("Operation No."), ItemJournalLine."Operation No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterPrepareItem', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterPrepareItem', '', true, false)]
     local procedure OnAfterPrepareItem(var ItemJnlLineToPost: Record "Item Journal Line")
     begin
         CheckItemAndItemVariantProductionBlocked(ItemJnlLineToPost);
@@ -1508,7 +1508,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterSetupTempSplitItemJnlLineSetQty', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterSetupTempSplitItemJnlLineSetQty', '', true, false)]
     local procedure OnAfterSetupTempSplitItemJnlLineSetQty(var TempSplitItemJnlLine: Record "Item Journal Line" temporary; ItemJournalLine: Record "Item Journal Line")
     begin
         if ItemJournalLine."Output Quantity" <> 0 then begin
@@ -1517,20 +1517,20 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInitItemLedgEntry', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInitItemLedgEntry', '', true, false)]
     local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
     begin
         NewItemLedgEntry."Prod. Order Comp. Line No." := ItemJournalLine."Prod. Order Comp. Line No.";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnInsertCapValueEntryOnBeforeCapLedgEntryModify', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnInsertCapValueEntryOnBeforeCapLedgEntryModify', '', true, false)]
     local procedure OnInsertCapValueEntryOnBeforeCapLedgEntryModify(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin
         if ItemJournalLine.Subcontracting then
             CapLedgEntry."Completely Invoiced" := CapLedgEntry."Invoiced Quantity" = CapLedgEntry."Output Quantity"
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterGetUpdatedAppliedQtyForConsumption', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterGetUpdatedAppliedQtyForConsumption', '', true, false)]
     local procedure OnAfterGetUpdatedAppliedQtyForConsumption(OldItemLedgerEntry: Record "Item Ledger Entry"; ItemLedgerEntry: Record "Item Ledger Entry"; ReservationEntry2: Record "Reservation Entry"; SourceType: Integer; var AppliedQty: Decimal)
     begin
         if SourceType = Database::"Prod. Order Component" then begin

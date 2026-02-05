@@ -186,6 +186,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -203,6 +204,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -220,6 +222,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(21; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -239,6 +242,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(24; "Qty. Outstanding"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -261,6 +265,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(25; "Qty. Outstanding (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -273,6 +278,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(26; "Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -347,6 +353,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(27; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -358,6 +365,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(28; "Qty. Handled"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -371,6 +379,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(29; "Qty. Handled (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -425,6 +434,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(50; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -434,6 +444,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(51; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -776,11 +787,13 @@ table 5767 "Warehouse Activity Line"
         }
         field(7310; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
         }
         field(7311; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
         }
@@ -820,6 +833,7 @@ table 5767 "Warehouse Activity Line"
         }
         field(7319; "Over-Receipt Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Over-Receipt Quantity';
             DecimalPlaces = 0 : 5;
             BlankZero = false;
@@ -3498,7 +3512,7 @@ table 5767 "Warehouse Activity Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeLookUpTrackingSummary(WhseActivLine: Record "Warehouse Activity Line"; TrackingType: Enum "Item Tracking Type"; var IsHandled: Boolean)
+    local procedure OnBeforeLookUpTrackingSummary(var WhseActivLine: Record "Warehouse Activity Line"; TrackingType: Enum "Item Tracking Type"; var IsHandled: Boolean)
     begin
     end;
 

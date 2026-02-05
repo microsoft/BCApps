@@ -126,6 +126,7 @@ page 7000065 "Posted Payment Orders Select."
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total Rmg. Amt. (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the sum of amounts that remain to be paid.';

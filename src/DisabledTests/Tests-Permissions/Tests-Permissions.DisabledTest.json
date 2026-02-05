@@ -133,5 +133,10 @@
     "codeunitId": 139452,
     "codeunitName": "O365 Vendor Permission Test",
     "method": "TestO365VendorView"
+  },
+  {
+    "method": "TestO365ItemView",
+    "codeunitId": 139451,
+    "codeunitName": "O365 Item Permission Test"
   }
 ]

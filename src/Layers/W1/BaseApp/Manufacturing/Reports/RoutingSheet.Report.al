@@ -305,6 +305,7 @@ report 99000787 "Routing Sheet"
                     field(ProductionQuantity; ProductionQuantity)
                     {
                         ApplicationArea = Manufacturing;
+                        AutoFormatType = 0;
                         Caption = 'Production Quantity';
                         DecimalPlaces = 0 : 5;
                         MinValue = 0;

@@ -77,10 +77,14 @@ table 28160 "GST Purchase Entry"
         }
         field(13; "GST Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'GST Base';
         }
         field(14; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(15; "VAT Calculation Type"; Enum "Tax Calculation Type")

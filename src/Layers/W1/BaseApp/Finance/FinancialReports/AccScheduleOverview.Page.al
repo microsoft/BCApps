@@ -626,6 +626,7 @@ page 490 "Acc. Schedule Overview"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a number that identifies the line.';
+                    Visible = false;
                 }
                 field(Description; Rec.Description)
                 {

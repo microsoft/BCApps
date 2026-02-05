@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.IO;
+using System.Utilities;
+
 /// <summary>
 /// Provides export functionality for VAT reports with automatic release capability.
 /// Handles export operations based on report status and ensures proper workflow progression.
@@ -53,10 +56,38 @@ codeunit 743 "VAT Report Export"
 
     local procedure ExportReleased(VATReportHeader: Record "VAT Report Header")
     begin
-        ExportReport(VATReportHeader);
+        ExportVIESELMAReport(VATReportHeader);
     end;
 
-    local procedure ExportReport(VATReportHeader: Record "VAT Report Header")
+    procedure CreateVIESELMAXml(VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob")
+    var
+        VIESELMAXml: Codeunit "VIES ELMA Xml";
+    begin
+        VIESELMAXml.Create(VATReportHeader, TempBlob);
+    end;
+
+    procedure GetVIESELMAFileName(VATReportHeader: Record "VAT Report Header"): Text
+    var
+        VIESELMAXml: Codeunit "VIES ELMA Xml";
+    begin
+        exit(VIESELMAXml.MakeFileName(VATReportHeader));
+    end;
+
+    local procedure ExportVIESELMAReport(VATReportHeader: Record "VAT Report Header")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileMgt: Codeunit "File Management";
+        XmlInStream: InStream;
+        FileName: Text;
+    begin
+        CreateVIESELMAXml(VATReportHeader, TempBlob);
+        TempBlob.CreateInStream(XmlInStream);
+        FileName := GetVIESELMAFileName(VATReportHeader);
+        FileMgt.DownloadFromStreamHandler(XmlInStream, '', '', '', FileName);
+    end;
+
+#if not CLEAN28
+    local procedure ExportLegacyReport(VATReportHeader: Record "VAT Report Header")
     var
         VATReportHeader2: Record "VAT Report Header";
     begin
@@ -65,5 +96,34 @@ codeunit 743 "VAT Report Export"
         Commit();
         REPORT.Run(REPORT::"Export VIES Report", true, false, VATReportHeader2);
     end;
+
+    /// <summary>
+    /// Exports VAT report using the legacy report format based on current status with automatic release if needed.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report to export</param>
+    internal procedure ExportLegacy(VATReportHeader: Record "VAT Report Header")
+    begin
+        case VATReportHeader.Status of
+            VATReportHeader.Status::Open:
+                ExportLegacyOpen(VATReportHeader);
+            VATReportHeader.Status::Released:
+                ExportLegacyReport(VATReportHeader);
+            VATReportHeader.Status::Exported:
+                ExportLegacyReport(VATReportHeader);
+            VATReportHeader.Status::Submitted:
+                Error(Text002);
+        end;
+    end;
+
+    local procedure ExportLegacyOpen(var VATReportHeader: Record "VAT Report Header")
+    begin
+        VATReportHeader.TestField(Status, VATReportHeader.Status::Open);
+
+        if Confirm(Text001, true) then begin
+            VATReportReleaseReopen.Release(VATReportHeader);
+            ExportLegacyReport(VATReportHeader);
+        end;
+    end;
+#endif
 }
 

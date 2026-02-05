@@ -1,7 +1,10 @@
+#if not CLEAN28
 codeunit 143000 "Library - FR Localization"
 {
     // Library containing functions specific to FR Localization objects, hence meant to be kept at FR Branch Only.
-
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -91,4 +94,4 @@ codeunit 143000 "Library - FR Localization"
         CODEUNIT.Run(CODEUNIT::"Payment Management");
     end;
 }
-
+#endif

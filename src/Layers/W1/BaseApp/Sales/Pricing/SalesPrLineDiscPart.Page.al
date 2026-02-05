@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Pricing;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays sales prices and line discounts as a factbox part for items or customers.
+/// </summary>
 page 1347 "Sales Pr. & Line Disc. Part"
 {
     Caption = 'Sales Prices';
@@ -299,6 +302,10 @@ page 1347 "Sales Pr. & Line Disc. Part"
         SalesPriceIsEnabled: Boolean;
         MaxRowsLoadedMsg: Label 'Showing the first %1 prices and discounts. To view all prices and discounts, choose Refresh Data.', Comment = '%1=a number, e.g. 50';
 
+    /// <summary>
+    /// Initializes the page layout based on whether it is displayed for an item or a customer.
+    /// </summary>
+    /// <param name="ForItem">True if the page is being displayed for an item, false for a customer.</param>
     procedure InitPage(ForItem: Boolean)
     begin
         if ForItem then begin
@@ -310,6 +317,10 @@ page 1347 "Sales Pr. & Line Disc. Part"
         end;
     end;
 
+    /// <summary>
+    /// Loads price and line discount data for the specified item.
+    /// </summary>
+    /// <param name="Item">The item record to load prices and discounts for.</param>
     procedure LoadItem(Item: Record Item)
     begin
         Clear(Rec);
@@ -320,6 +331,10 @@ page 1347 "Sales Pr. & Line Disc. Part"
         Rec.LoadDataForItem(Item);
     end;
 
+    /// <summary>
+    /// Loads price and line discount data for the specified customer.
+    /// </summary>
+    /// <param name="Customer">The customer record to load prices and discounts for.</param>
     procedure LoadCustomer(var Customer: Record Customer)
     var
         MaxNoOfLinesToLoad: Integer;
@@ -340,11 +355,19 @@ page 1347 "Sales Pr. & Line Disc. Part"
         end;
     end;
 
+    /// <summary>
+    /// Gets the item number that was loaded for this page.
+    /// </summary>
+    /// <returns>The loaded item number.</returns>
     procedure GetLoadedItemNo(): Code[20]
     begin
         exit(loadedItemNo)
     end;
 
+    /// <summary>
+    /// Sets the loaded customer number and clears existing data if it differs from the current value.
+    /// </summary>
+    /// <param name="NewCustomerNo">The new customer number to set.</param>
     procedure SetLoadedCustno(NewCustomerNo: Code[20]);
     begin
         if loadedCustNo = NewCustomerNo then
@@ -355,6 +378,10 @@ page 1347 "Sales Pr. & Line Disc. Part"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Gets the customer number that was loaded for this page.
+    /// </summary>
+    /// <returns>The loaded customer number.</returns>
     procedure GetLoadedCustNo(): Code[20]
     begin
         exit(loadedCustNo)
@@ -370,6 +397,10 @@ page 1347 "Sales Pr. & Line Disc. Part"
         exit(loadedPriceGroup)
     end;
 
+    /// <summary>
+    /// Updates the price includes VAT flag and recalculates prices for the loaded item.
+    /// </summary>
+    /// <param name="IncludesVat">True if prices should include VAT, otherwise false.</param>
     procedure RunUpdatePriceIncludesVatAndPrices(IncludesVat: Boolean)
     var
         Item: Record Item;

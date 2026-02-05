@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144010 "UT BANKACC"
 {
     // 1. Purpose of the test is to validate test RIB Checked is True by filling Bank Branch No.,Agency Code,Bank Account No. and RIB Key. on Bank Account Table.
@@ -23,6 +24,10 @@ codeunit 144010 "UT BANKACC"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
+
 
     trigger OnRun()
     begin
@@ -281,4 +286,4 @@ codeunit 144010 "UT BANKACC"
         VendorBankAccount.Modify();
     end;
 }
-
+#endif

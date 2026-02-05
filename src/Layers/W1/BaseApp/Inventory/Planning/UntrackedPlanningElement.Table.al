@@ -62,19 +62,23 @@ table 99000855 "Untracked Planning Element"
         }
         field(70; "Parameter Value"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Parameter Value';
         }
         field(71; "Untracked Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Untracked Quantity';
         }
         field(72; "Track Quantity From"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Track Quantity From';
         }
         field(73; "Track Quantity To"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Track Quantity To';
         }
         field(74; Source; Text[200])

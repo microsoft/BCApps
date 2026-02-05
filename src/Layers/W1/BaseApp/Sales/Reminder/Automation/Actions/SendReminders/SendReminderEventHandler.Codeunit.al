@@ -9,6 +9,9 @@ using Microsoft.Sales.History;
 using System.EMail;
 using System.Utilities;
 
+/// <summary>
+/// Handles events during automated reminder sending to track progress and log email delivery results.
+/// </summary>
 codeunit 6753 "Send Reminder Event Handler"
 {
     EventSubscriberInstance = Manual;
@@ -114,16 +117,27 @@ codeunit 6753 "Send Reminder Event Handler"
         Handled := true;
     end;
 
+    /// <summary>
+    /// Retrieves the list of issued reminder numbers that were successfully emailed.
+    /// </summary>
+    /// <returns>A list of successfully sent reminder document numbers.</returns>
     procedure GetEmailsSent(): List of [Text]
     begin
         exit(EmailsSentSuccessfully);
     end;
 
+    /// <summary>
+    /// Retrieves the list of issued reminder numbers that failed to send via email.
+    /// </summary>
+    /// <returns>A list of reminder document numbers that failed to email.</returns>
     procedure GetEmailsFailed(): List of [Text]
     begin
         exit(EmailsFailed);
     end;
 
+    /// <summary>
+    /// Updates the action log status and summary after the reminder sending process completes.
+    /// </summary>
     procedure UpdateStatusAfterRun()
     var
         ReminderActionLog: Record "Reminder Action Log";
@@ -210,6 +224,7 @@ codeunit 6753 "Send Reminder Event Handler"
 
             if AttachRelatedDocument then
                 AttachDocument(TempEmailItem, SourceTableID, SourceRelationID, SourceID);
+            OnAttachRelatedDocumentsBeforeEmailFileInternalOnAfterAttachRelatedDocument(TempEmailItem, PostedDocNo, SendRemindersSetup, SourceTableID, SourceRelationID, SourceID, ReportUsage);
         end;
     end;
 
@@ -265,5 +280,10 @@ codeunit 6753 "Send Reminder Event Handler"
 
             TempEmailItem.AddAttachment(AttachmentStream, AttachmentFileName);
         until TempAttachementReportSelections.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAttachRelatedDocumentsBeforeEmailFileInternalOnAfterAttachRelatedDocument(var TempEmailItem: Record "Email Item" temporary; var PostedDocNo: Code[20]; SendRemindersSetup: Record "Send Reminders Setup"; SourceTableID: Integer; SourceRelationID: Integer; SourceID: Guid; ReportUsage: Integer)
+    begin
     end;
 }

@@ -8,6 +8,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Telemetry;
 
+/// <summary>
+/// Executes the batch creation of reminder documents based on configured setup parameters.
+/// </summary>
 codeunit 6759 "Create Reminders Action Job"
 {
     TableNo = "Reminder Action";

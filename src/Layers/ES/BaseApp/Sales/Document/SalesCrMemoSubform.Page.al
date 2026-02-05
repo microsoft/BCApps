@@ -21,6 +21,9 @@ using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Integration.Excel;
 
+/// <summary>
+/// Displays the line items subform for a sales credit memo document.
+/// </summary>
 page 96 "Sales Cr. Memo Subform"
 {
     AutoSplitKey = true;
@@ -727,6 +730,7 @@ page 96 "Sales Cr. Memo Subform"
                     }
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
@@ -1243,12 +1247,18 @@ page 96 "Sales Cr. Memo Subform"
         BackgroundErrorCheck := DocumentErrorsMgt.BackgroundValidationEnabled();
     end;
 
+    /// <summary>
+    /// Runs the invoice discount calculation with user confirmation.
+    /// </summary>
     procedure ApproveCalcInvDisc()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Disc. (Yes/No)", Rec);
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Explodes the BOM for the current item line.
+    /// </summary>
     procedure ExplodeBOM()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Explode BOM", Rec);
@@ -1275,6 +1285,9 @@ page 96 "Sales Cr. Memo Subform"
             Rec.Type := Rec.GetDefaultLineType();
     end;
 
+    /// <summary>
+    /// Calculates the invoice discount for the current line.
+    /// </summary>
     procedure CalcInvDisc()
     var
         SalesCalcDiscount: Codeunit "Sales-Calc. Discount";
@@ -1283,12 +1296,19 @@ page 96 "Sales Cr. Memo Subform"
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Gets return receipts to create credit memo lines.
+    /// </summary>
     procedure GetReturnReceipt()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Get Return Receipts", Rec);
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Inserts extended text for the current line if available.
+    /// </summary>
+    /// <param name="Unconditionally">Whether to insert text without checking conditions.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec, xRec);
@@ -1306,11 +1326,18 @@ page 96 "Sales Cr. Memo Subform"
         Rec.ShowItemChargeAssgnt();
     end;
 
+    /// <summary>
+    /// Updates the current page.
+    /// </summary>
+    /// <param name="SetSaveRecord">Whether to save the record before updating.</param>
     procedure UpdateForm(SetSaveRecord: Boolean)
     begin
         CurrPage.Update(SetSaveRecord);
     end;
 
+    /// <summary>
+    /// Handles post-validation processing when the No. field changes.
+    /// </summary>
     procedure NoOnAfterValidate()
     begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
@@ -1356,6 +1383,9 @@ page 96 "Sales Cr. Memo Subform"
         DeltaUpdateTotals();
     end;
 
+    /// <summary>
+    /// Updates the editable state of fields based on the current row.
+    /// </summary>
     procedure UpdateEditableOnRow()
     begin
         IsCommentLine := not Rec.HasTypeToFillMandatoryFields();
@@ -1370,6 +1400,9 @@ page 96 "Sales Cr. Memo Subform"
         OnAfterUpdateEditableOnRow(Rec, IsCommentLine, IsBlankNumber);
     end;
 
+    /// <summary>
+    /// Calculates the document totals for the subform.
+    /// </summary>
     procedure CalculateTotals()
     begin
         DocumentTotals.SalesCheckIfDocumentChanged(Rec, xRec);
@@ -1377,6 +1410,9 @@ page 96 "Sales Cr. Memo Subform"
         DocumentTotals.RefreshSalesLine(Rec);
     end;
 
+    /// <summary>
+    /// Performs incremental update of document totals based on line changes.
+    /// </summary>
     procedure DeltaUpdateTotals()
     var
         IsHandled: Boolean;
@@ -1391,11 +1427,17 @@ page 96 "Sales Cr. Memo Subform"
             Rec.SendLineInvoiceDiscountResetNotification();
     end;
 
+    /// <summary>
+    /// Forces a recalculation of document totals.
+    /// </summary>
     procedure ForceTotalsCalculation()
     begin
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Redistributes invoice discount amounts after validation.
+    /// </summary>
     procedure RedistributeTotalsOnAfterValidate()
     var
         SalesHeader: Record "Sales Header";
@@ -1412,6 +1454,9 @@ page 96 "Sales Cr. Memo Subform"
         DocumentTotals.GetTotalSalesHeaderAndCurrency(Rec, TotalSalesHeader, Currency);
     end;
 
+    /// <summary>
+    /// Clears the total sales header variable.
+    /// </summary>
     procedure ClearTotalSalesHeader();
     begin
         Clear(TotalSalesHeader);
@@ -1426,6 +1471,9 @@ page 96 "Sales Cr. Memo Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Updates the type text display based on the current line type.
+    /// </summary>
     procedure UpdateTypeText()
     var
         RecRef: RecordRef;

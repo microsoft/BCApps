@@ -103,29 +103,34 @@ table 5774 "Warehouse Pick Summary"
         }
         field(26; "Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(27; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(28; "Qty. Handled"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(29; "Qty. Handled (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Handled (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(40; "Qty. in Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Inventory';
             DecimalPlaces = 0 : 5;
@@ -138,84 +143,98 @@ table 5774 "Warehouse Pick Summary"
         }
         field(41; "Qty. Available to Pick"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Available to Pick';
             DecimalPlaces = 0 : 5;
         }
         field(42; "Potential Pickable Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Potential Qty. Available to Pick';
             DecimalPlaces = 0 : 5;
         }
         field(43; "Available Qty. Not in Ship Bin"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Available Quantity Excluding Ship Bin';
             DecimalPlaces = 0 : 5;
         }
         field(44; "Qty. Assigned"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Assigned';
             DecimalPlaces = 0 : 5;
         }
         field(50; "Qty. Reserved in Warehouse"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Reserved in Warehouse';
             DecimalPlaces = 0 : 5;
         }
         field(51; "Qty. Res. in Pick/Ship Bins"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Reserved in Pick/Ship Bins';
             DecimalPlaces = 0 : 5;
         }
         field(52; "Qty. Reserved for this Line"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Reserved for this Line';
             DecimalPlaces = 0 : 5;
         }
         field(60; "Qty. in Blocked Item Tracking"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Blocked Item Tracking';
             DecimalPlaces = 0 : 5;
         }
         field(61; "Qty. in Active Pick Lines"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Active Pick Lines';
             DecimalPlaces = 0 : 5;
         }
         field(62; "Qty. in Pickable Bins"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Pickable Bins';
             DecimalPlaces = 0 : 5;
         }
         field(63; "Qty. in Warehouse"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Warehouse';
             DecimalPlaces = 0 : 5;
         }
         field(70; "Qty. Block. Item Tracking Res."; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Blocked Item Tracking for Checking Reservation';
             DecimalPlaces = 0 : 5;
         }
         field(71; "Qty. in Active Pick Lines Res."; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. in Active Pick Lines for Checking Reservation';
             DecimalPlaces = 0 : 5;
         }
         field(72; "Qty. Not in Ship Bin"; Decimal)
         {
+            AutoFormatType = 0;
             Editable = false;
             Caption = 'Qty. Not in Ship Bins for Checking Reservation';
             DecimalPlaces = 0 : 5;

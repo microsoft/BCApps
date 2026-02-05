@@ -10,6 +10,9 @@ using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using System.Text;
 
+/// <summary>
+/// Displays and manages customer price groups used to assign shared pricing rules to multiple customers.
+/// </summary>
 page 7 "Customer Price Groups"
 {
     ApplicationArea = Basic, Suite;
@@ -309,6 +312,10 @@ page 7 "Customer Price Groups"
         CRMIsCoupledToRecord: Boolean;
         ExtendedPriceEnabled: Boolean;
 
+    /// <summary>
+    /// Gets a filter string for the selected customer price groups on the page.
+    /// </summary>
+    /// <returns>A filter string representing the selected customer price groups.</returns>
     procedure GetSelectionFilter(): Text
     var
         CustPriceGr: Record "Customer Price Group";

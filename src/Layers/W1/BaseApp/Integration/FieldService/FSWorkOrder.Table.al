@@ -331,6 +331,7 @@ table 6400 "FS Work Order"
         }
         field(53; EstimateSubtotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotalamount';
             ExternalType = 'Money';
             Description = 'Enter the summary of total estimated billing amount for this work order';
@@ -348,6 +349,7 @@ table 6400 "FS Work Order"
         }
         field(56; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'exchangerate';
             ExternalType = 'Decimal';
             ExternalAccess = Read;
@@ -357,6 +359,7 @@ table 6400 "FS Work Order"
         }
         field(57; EstimateSubtotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -415,6 +418,7 @@ table 6400 "FS Work Order"
         }
         field(67; Latitude; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_latitude';
             ExternalType = 'Double';
             Description = '';
@@ -423,6 +427,7 @@ table 6400 "FS Work Order"
         }
         field(68; Longitude; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_longitude';
             ExternalType = 'Double';
             Description = '';
@@ -542,6 +547,7 @@ table 6400 "FS Work Order"
         }
         field(85; SubtotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotalamount';
             ExternalType = 'Money';
             Description = 'Enter the summary of subtotal billing amount excluding tax for this work order.';
@@ -550,6 +556,7 @@ table 6400 "FS Work Order"
         }
         field(86; SubTotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -625,6 +632,7 @@ table 6400 "FS Work Order"
         }
         field(100; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount';
             ExternalType = 'Money';
             Description = 'Enter the summary of total billing amount for this work order.';
@@ -633,6 +641,7 @@ table 6400 "FS Work Order"
         }
         field(101; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -642,6 +651,7 @@ table 6400 "FS Work Order"
         }
         field(102; TotalSalesTax; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalsalestax';
             ExternalType = 'Money';
             Description = 'Enter the summary of total sales tax charged for this work order.';
@@ -650,6 +660,7 @@ table 6400 "FS Work Order"
         }
         field(103; TotalSalesTax_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalsalestax_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -758,6 +769,7 @@ table 6400 "FS Work Order"
         }
         field(142; NotToExceedCostAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_nottoexceedcostamount';
             ExternalType = 'Money';
             Description = 'The value of not-to-exceed cost for the work order in base currency.';
@@ -766,6 +778,7 @@ table 6400 "FS Work Order"
         }
         field(143; NotToExceedCostAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_nottoexceedcostamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -775,6 +788,7 @@ table 6400 "FS Work Order"
         }
         field(144; NotToExceedPriceAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_nottoexceedpriceamount';
             ExternalType = 'Money';
             Description = 'The value of not-to-exceed price for the work order in base currency.';
@@ -783,6 +797,7 @@ table 6400 "FS Work Order"
         }
         field(145; NotToExceedPriceAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_nottoexceedpriceamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -807,6 +822,7 @@ table 6400 "FS Work Order"
         }
         field(149; ProductsServicesCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_productsservicescost';
             ExternalType = 'Money';
             Description = 'The total actual cost of the products and services';
@@ -815,6 +831,7 @@ table 6400 "FS Work Order"
         }
         field(150; ProductsServicesCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_productsservicescost_base';
             ExternalType = 'Money';
             Description = 'Value of the Total Cost in base currency.';
@@ -823,6 +840,7 @@ table 6400 "FS Work Order"
         }
         field(151; ProductsServicesEstimatedCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_productsservicesestimatedcost';
             ExternalType = 'Money';
             Description = 'The total estimated cost of the products and services';
@@ -831,6 +849,7 @@ table 6400 "FS Work Order"
         }
         field(152; ProductsServicesEstimatedCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_productsservicesestimatedcost_base';
             ExternalType = 'Money';
             Description = 'Value of the Total Estimated Cost in base currency.';
@@ -839,6 +858,7 @@ table 6400 "FS Work Order"
         }
         field(153; TotalEstimatedAfterTaxPrice; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalestimatedaftertaxprice';
             ExternalType = 'Money';
             Description = 'The estimated price after adding tax to the subtotal';
@@ -847,6 +867,7 @@ table 6400 "FS Work Order"
         }
         field(154; TotalEstimatedAfterTaxPrice_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalestimatedaftertaxprice_base';
             ExternalType = 'Money';
             Description = 'Value of the Total Estimated After Tax Price in base currency.';
@@ -905,5 +926,5 @@ table 6400 "FS Work Order"
         {
         }
     }
-} 
+}
 #endif

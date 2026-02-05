@@ -123,6 +123,7 @@ table 5351 "CRM Quote"
         }
         field(13; DiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quote Discount Amount';
             Description = 'Type the discount amount for the quote if the customer is eligible for special savings.';
             ExternalName = 'discountamount';
@@ -130,6 +131,7 @@ table 5351 "CRM Quote"
         }
         field(14; FreightAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount';
             Description = 'Type the cost of freight or shipping for the products included in the quote for use in calculating the Total Amount field.';
             ExternalName = 'freightamount';
@@ -137,6 +139,7 @@ table 5351 "CRM Quote"
         }
         field(15; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount';
             Description = 'Shows the total amount due, calculated as the sum of the products, discounts, freight, and taxes for the quote.';
             ExternalAccess = Modify;
@@ -145,6 +148,7 @@ table 5351 "CRM Quote"
         }
         field(16; TotalLineItemAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount';
             Description = 'Shows the sum of all existing and write-in products included on the quote, based on the specified price list and quantities.';
             ExternalAccess = Modify;
@@ -153,6 +157,7 @@ table 5351 "CRM Quote"
         }
         field(17; TotalLineItemDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount';
             Description = 'Shows the total of the Manual Discount amounts specified on all products included in the quote. This value is reflected in the Detail Amount field on the quote and is added to any discount amount or rate specified on the quote';
             ExternalAccess = Modify;
@@ -161,6 +166,7 @@ table 5351 "CRM Quote"
         }
         field(18; TotalAmountLessFreight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount';
             Description = 'Shows the total product amount for the quote, minus any discounts. This value is added to freight and tax amounts in the calculation for the total amount due for the quote.';
             ExternalAccess = Modify;
@@ -176,6 +182,7 @@ table 5351 "CRM Quote"
         }
         field(20; TotalTax; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax';
             Description = 'Shows the total of the Tax amounts specified on all products included in the quote, included in the Total Amount due calculation for the quote.';
             ExternalAccess = Modify;
@@ -184,6 +191,7 @@ table 5351 "CRM Quote"
         }
         field(21; TotalDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount';
             Description = 'Shows the total discount amount, based on the discount price and rate entered on the quote.';
             ExternalAccess = Modify;
@@ -443,6 +451,7 @@ table 5351 "CRM Quote"
         }
         field(58; DiscountPercentage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quote Discount (%)';
             Description = 'Type the discount rate that should be applied to the Detail Amount field to include additional savings for the customer in the quote.';
             ExternalName = 'discountpercentage';
@@ -584,6 +593,7 @@ table 5351 "CRM Quote"
         }
         field(75; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -616,6 +626,7 @@ table 5351 "CRM Quote"
         }
         field(79; TotalLineItemDiscountAmount_Ba; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount (Base)';
             Description = 'Shows the Total Line Item Discount Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -633,6 +644,7 @@ table 5351 "CRM Quote"
         }
         field(81; TotalAmountLessFreight_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount (Base)';
             Description = 'Shows the Pre-Freight Amount converted field to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -641,6 +653,7 @@ table 5351 "CRM Quote"
         }
         field(82; DiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quote Discount Amount (Base)';
             Description = 'Shows the Discount Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -649,6 +662,7 @@ table 5351 "CRM Quote"
         }
         field(83; FreightAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount (Base)';
             Description = 'Shows the Freight Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -657,6 +671,7 @@ table 5351 "CRM Quote"
         }
         field(84; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount (Base)';
             Description = 'Shows the Total Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -665,6 +680,7 @@ table 5351 "CRM Quote"
         }
         field(85; TotalDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount (Base)';
             Description = 'Shows the Total Discount Amount converted field to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -673,6 +689,7 @@ table 5351 "CRM Quote"
         }
         field(86; TotalTax_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax (Base)';
             Description = 'Shows the Total Tax field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -681,6 +698,7 @@ table 5351 "CRM Quote"
         }
         field(87; TotalLineItemAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount (Base)';
             Description = 'Shows the Detail Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

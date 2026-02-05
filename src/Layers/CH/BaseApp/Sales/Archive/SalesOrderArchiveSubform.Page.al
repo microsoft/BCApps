@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item.Catalog;
 
+/// <summary>
+/// Displays line items for an archived sales order document.
+/// </summary>
 page 5160 "Sales Order Archive Subform"
 {
     Caption = 'Lines';
@@ -478,6 +481,9 @@ page 5160 "Sales Order Archive Subform"
         DimVisible8: Boolean;
         DescriptionIndent: Integer;
 
+    /// <summary>
+    /// Opens the Document Line Tracking page for the current archived sales order line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

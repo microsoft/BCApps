@@ -492,7 +492,7 @@ codeunit 99000834 "Purch. Line-Reserve"
         if not IsHandled then begin
             InitFromPurchLine(TrackingSpecification, PurchaseLine);
             if ((PurchaseLine."Document Type" = PurchaseLine."Document Type"::Invoice) and
-                (PurchaseLine."Receipt No." <> '')) or
+                PurchaseLine.IsMatchedToReceiptOrOrder()) or
             ((PurchaseLine."Document Type" = PurchaseLine."Document Type"::"Credit Memo") and
                 (PurchaseLine."Return Shipment No." <> ''))
             then
@@ -525,6 +525,31 @@ codeunit 99000834 "Purch. Line-Reserve"
         RunItemTrackingLinesPage(ItemTrackingLines);
     end;
 
+    procedure CallItemTracking(var PurchaseLine: Record "Purchase Line"; ItemLedgerEntryFilter: Text)
+    var
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingLines: Page "Item Tracking Lines";
+        ShouldProcessDropShipment: Boolean;
+    begin
+        InitFromPurchLine(TrackingSpecification, PurchaseLine);
+        ItemTrackingLines.SetRunMode(Enum::"Item Tracking Run Mode"::"Combined Ship/Rcpt");
+
+        ShouldProcessDropShipment := PurchaseLine."Drop Shipment";
+
+        if ShouldProcessDropShipment then begin
+            ItemTrackingLines.SetRunMode(Enum::"Item Tracking Run Mode"::"Drop Shipment");
+            if PurchaseLine."Sales Order No." <> '' then
+                ItemTrackingLines.SetSecondSourceRowID(
+                    ItemTrackingManagement.ComposeRowID(
+                        Database::"Sales Line", 1, PurchaseLine."Sales Order No.", '', 0, PurchaseLine."Sales Order Line No."));
+        end;
+
+        ItemTrackingLines.SetItemLedgerEntryFilter(ItemLedgerEntryFilter);
+        ItemTrackingLines.SetSourceSpec(TrackingSpecification, PurchaseLine."Expected Receipt Date");
+        ItemTrackingLines.SetInbound(PurchaseLine.IsInbound());
+        RunItemTrackingLinesPage(ItemTrackingLines);
+    end;
+
     local procedure RunItemTrackingLinesPage(var ItemTrackingLines: Page "Item Tracking Lines")
     var
         IsHandled: Boolean;
@@ -551,7 +576,7 @@ codeunit 99000834 "Purch. Line-Reserve"
         if PurchaseLine.Type <> PurchaseLine.Type::Item then
             exit;
         if ((PurchaseLine."Document Type" = PurchaseLine."Document Type"::Invoice) and
-            (PurchaseLine."Receipt No." <> '')) or
+            PurchaseLine.IsMatchedToReceiptOrOrder()) or
            ((PurchaseLine."Document Type" = PurchaseLine."Document Type"::"Credit Memo") and
             (PurchaseLine."Return Shipment No." <> ''))
         then

@@ -90,6 +90,7 @@ page 99000959 "Order Promising Lines"
                 field(CalcAvailability; Rec.CalcAvailability())
                 {
                     ApplicationArea = OrderPromising;
+                    AutoFormatType = 0;
                     Caption = 'Availability';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies how many units of the item on the order promising line are available.';

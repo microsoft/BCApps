@@ -52,14 +52,19 @@ table 12203 "Fattura Header"
         }
         field(9; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(10; "Total Inv. Discount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Total Inv. Discount';
         }
         field(11; "Total Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Total Amount';
         }
         field(12; "Payment Terms Code"; Code[10])
@@ -116,6 +121,8 @@ table 12203 "Fattura Header"
         }
         field(51; "Fattura Stamp Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Fattura Stamp Amount';
         }
         field(60; Prepayment; Boolean)

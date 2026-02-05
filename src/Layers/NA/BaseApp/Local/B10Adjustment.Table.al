@@ -18,6 +18,7 @@ table 10240 "B10 Adjustment"
         }
         field(2; "Adjustment Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Adjustment Amount';
             DecimalPlaces = 2 : 5;
         }

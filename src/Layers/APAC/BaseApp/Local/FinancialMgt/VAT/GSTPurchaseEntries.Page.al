@@ -86,6 +86,7 @@ page 28164 "GST Purchase Entries"
                 }
                 field(GSTPercentage; GSTPercentage)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'GST %';
                     DecimalPlaces = 2 : 5;
@@ -109,6 +110,8 @@ page 28164 "GST Purchase Entries"
                 }
                 field(GSTTotalAmount; GSTTotalAmount)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Purchase';
                     ToolTip = 'Specifies the sum of the values of GST Base and Amount fields in the GST Purchase Entry line.';

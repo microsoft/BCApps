@@ -999,8 +999,10 @@ codeunit 5704 "TransferOrder-Post Shipment"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]
-    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean)
+    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean; PostToGL: Boolean)
     begin
+        if not PostToGL then
+            exit;
         if InvtSetup.UseLegacyPosting() then
             exit;
         PostponedValueEntries.Add(ValueEntry."Entry No.");

@@ -66,18 +66,23 @@ page 9099 "Job WIP/Recognition FactBox"
             }
             field("Recog. Profit Amount"; Rec.CalcRecognizedProfitAmount())
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Jobs;
                 Caption = 'Recog. Profit Amount';
                 ToolTip = 'Specifies the recognized profit amount for the project.';
             }
             field("Recog. Profit %"; Rec.CalcRecognizedProfitPercentage())
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Recog. Profit %';
                 ToolTip = 'Specifies the recognized profit percentage for the project.';
             }
             field("Acc. WIP Costs Amount"; Rec.CalcAccWIPCostsAmount())
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Jobs;
                 Caption = 'Acc. WIP Costs Amount';
                 ToolTip = 'Specifies the total WIP costs for the project.';
@@ -85,6 +90,8 @@ page 9099 "Job WIP/Recognition FactBox"
             }
             field("Acc. WIP Sales Amount"; Rec.CalcAccWIPSalesAmount())
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Jobs;
                 Caption = 'Acc. WIP Sales Amount';
                 ToolTip = 'Specifies the total WIP sales for the project.';

@@ -5,6 +5,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Lists top customers ranked by sales or balance amounts with graphical chart representation. This report is obsolete.
+/// </summary>
+
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Utilities;
@@ -262,6 +266,12 @@ report 111 "Customer - Top 10 List"
         PercentofTotalSalesCaptionLbl: Label '% of Total Sales';
         NoOfRecordsToPrintErrMsg: Label 'The value must be a positive number.';
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Top 10 List report.
+    /// </summary>
+    /// <param name="SetChartType">The chart type option for visualization.</param>
+    /// <param name="SetShowType">The show type option (sales or balance).</param>
+    /// <param name="NoOfRecords">The number of top customers to include.</param>
     procedure InitializeRequest(SetChartType: Option; SetShowType: Option; NoOfRecords: Integer)
     begin
         ChartType := SetChartType;

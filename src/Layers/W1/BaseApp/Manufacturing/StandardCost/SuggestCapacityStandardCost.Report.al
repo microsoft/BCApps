@@ -119,6 +119,7 @@ report 5852 "Suggest Capacity Standard Cost"
                         Caption = 'Standard Cost';
                         field("AmtAdjustFactor[1]"; AmtAdjustFactor[1])
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
@@ -139,6 +140,7 @@ report 5852 "Suggest Capacity Standard Cost"
                         Caption = 'Indirect Cost %';
                         field("AmtAdjustFactor[2]"; AmtAdjustFactor[2])
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
@@ -159,6 +161,7 @@ report 5852 "Suggest Capacity Standard Cost"
                         Caption = 'Overhead Rate';
                         field("AmtAdjustFactor[3]"; AmtAdjustFactor[3])
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;

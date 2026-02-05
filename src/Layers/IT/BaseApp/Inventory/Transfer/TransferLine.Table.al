@@ -105,6 +105,7 @@ table 5741 "Transfer Line"
         }
         field(4; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -158,6 +159,7 @@ table 5741 "Transfer Line"
         }
         field(6; "Qty. to Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -193,6 +195,7 @@ table 5741 "Transfer Line"
         }
         field(7; "Qty. to Receive"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Receive';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -232,6 +235,7 @@ table 5741 "Transfer Line"
         }
         field(8; "Quantity Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Shipped';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -247,6 +251,7 @@ table 5741 "Transfer Line"
         }
         field(9; "Quantity Received"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Received';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -365,6 +370,7 @@ table 5741 "Transfer Line"
         }
         field(16; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -386,12 +392,14 @@ table 5741 "Transfer Line"
         }
         field(17; "Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(18; "Qty. to Ship (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship (Base)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -411,12 +419,14 @@ table 5741 "Transfer Line"
         }
         field(19; "Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(20; "Qty. to Receive (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Receive (Base)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -436,12 +446,14 @@ table 5741 "Transfer Line"
         }
         field(21; "Qty. Received (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Received (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(22; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -486,27 +498,32 @@ table 5741 "Transfer Line"
         }
         field(24; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(25; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(26; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(27; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
         field(28; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -516,6 +533,7 @@ table 5741 "Transfer Line"
         }
         field(29; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -553,6 +571,7 @@ table 5741 "Transfer Line"
         }
         field(31; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
@@ -573,12 +592,14 @@ table 5741 "Transfer Line"
         }
         field(34; "Qty. in Transit"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Transit';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(35; "Qty. in Transit (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Transit (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -748,6 +769,7 @@ table 5741 "Transfer Line"
         }
         field(50; "Reserved Quantity Inbnd."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                   "Source Ref. No." = field("Line No."),
                                                                   "Source Type" = const(5741),
@@ -761,6 +783,7 @@ table 5741 "Transfer Line"
         }
         field(51; "Reserved Quantity Outbnd."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                    "Source Ref. No." = field("Line No."),
                                                                    "Source Type" = const(5741),
@@ -774,6 +797,7 @@ table 5741 "Transfer Line"
         }
         field(52; "Reserved Qty. Inbnd. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                            "Source Ref. No." = field("Line No."),
                                                                            "Source Type" = const(5741),
@@ -787,6 +811,7 @@ table 5741 "Transfer Line"
         }
         field(53; "Reserved Qty. Outbnd. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                             "Source Ref. No." = field("Line No."),
                                                                             "Source Type" = const(5741),
@@ -813,6 +838,7 @@ table 5741 "Transfer Line"
         }
         field(55; "Reserved Quantity Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                   "Source Ref. No." = filter(<> 0),
                                                                   "Source Type" = const(5741),
@@ -826,6 +852,7 @@ table 5741 "Transfer Line"
         }
         field(56; "Reserved Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                            "Source Ref. No." = filter(<> 0),
                                                                            "Source Type" = const(5741),
@@ -864,6 +891,7 @@ table 5741 "Transfer Line"
         }
         field(5750; "Whse. Inbnd. Otsdg. Qty (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("Warehouse Receipt Line"."Qty. Outstanding (Base)" where("Source Type" = const(5741),
                                                                                         "Source Subtype" = const("1"),
@@ -876,6 +904,7 @@ table 5741 "Transfer Line"
         }
         field(5751; "Whse Outbnd. Otsdg. Qty (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding (Base)" where("Source Type" = const(5741),
                                                                                          "Source Subtype" = const("0"),
@@ -1025,6 +1054,7 @@ table 5741 "Transfer Line"
         }
         field(12191; "WIP Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -1045,6 +1075,7 @@ table 5741 "Transfer Line"
         }
         field(12192; "WIP Qty. To Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Qty. To Ship';
             DecimalPlaces = 0 : 5;
 
@@ -1059,6 +1090,7 @@ table 5741 "Transfer Line"
         }
         field(12193; "WIP Qty. Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Qty. Shipped';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1071,12 +1103,14 @@ table 5741 "Transfer Line"
         }
         field(12194; "WIP Outstanding Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Outstanding Qty.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(12195; "WIP Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;

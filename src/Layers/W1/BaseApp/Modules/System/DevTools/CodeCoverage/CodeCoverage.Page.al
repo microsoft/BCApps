@@ -72,6 +72,7 @@ page 9990 "Code Coverage"
                 field(TotalCoveragePercent; TotalCoveragePercent)
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Total Coverage %';
                     DecimalPlaces = 2 : 2;
                     Editable = false;
@@ -93,6 +94,7 @@ page 9990 "Code Coverage"
                 field(CoveragePercent; CoveragePercent)
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Coverage %';
                     StyleExpr = CoveragePercentStyle;
                     ToolTip = 'Specifies the percentage applied to the code coverage line.';

@@ -84,6 +84,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Bills';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -97,6 +98,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Bills in Bill Gr.';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -110,6 +112,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Open Bills in Post. Bill Gr.';
                     Editable = false;
                     ToolTip = 'Specifies non-processed payments.';
@@ -123,6 +126,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Hon. Bills in Post. Bill Gr.';
                     Editable = false;
                     ToolTip = 'Specifies settled payments.';
@@ -136,6 +140,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Rej. Bills in Post. Bill Gr.';
                     Editable = false;
                     ToolTip = 'Specifies rejected payments.';
@@ -149,6 +154,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Redr. Bills in Post. Bill Gr.';
                     Editable = false;
                     ToolTip = 'Specifies recirculated payments.';
@@ -162,6 +168,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Hon. Closed Bills';
                     Editable = false;
                     ToolTip = 'Specifies settled payments.';
@@ -175,6 +182,7 @@ page 35304 "Cartera Receiv. Statistics FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Rej. Closed Bills';
                     Editable = false;
                     ToolTip = 'Specifies rejected payments.';

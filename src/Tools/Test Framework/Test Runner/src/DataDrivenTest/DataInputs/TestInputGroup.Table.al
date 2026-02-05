@@ -200,7 +200,7 @@ table 130454 "Test Input Group"
         if (Rec."Language ID" = 0) or (Rec."Parent Group Code" <> '') or (Rec."Group Name" = '') then
             exit;
 
-        ParentGroupCode := CopyStr(Rec."Group Name", 1, MaxStrLen(ParentGroupCode) - StrLen(ParentGroupSuffixTxt)) + ParentGroupSuffixTxt;
+        ParentGroupCode := CopyStr(Rec."Group Name", 1, MaxStrLen(ParentGroup.Code));
 
         if ParentGroup.Get(ParentGroupCode) then
             Rec."Parent Group Code" := ParentGroup.Code
@@ -227,7 +227,6 @@ table 130454 "Test Input Group"
 
     var
         ALTestSuffixTxt: Label '-00000', Locked = true;
-        ParentGroupSuffixTxt: Label '-GROUP', Locked = true;
         ImportedAutomaticallyTxt: Label 'Imported from tool';
         ParentGroupMustHaveNoLanguageErr: Label 'Parent groups must have no language set (Language ID = 0). Current Language ID: %1, Code: %2, Group Name: %3', Comment = '%1 = Language ID, %2 = Code, %3 = Group Name';
         LanguageVersionMustHaveLanguageErr: Label 'Language versions must have a Language ID set. Parent Group Code: %1, Code: %2, Group Name: %3', Comment = '%1 = Parent Group Code, %2 = Code, %3 = Group Name';

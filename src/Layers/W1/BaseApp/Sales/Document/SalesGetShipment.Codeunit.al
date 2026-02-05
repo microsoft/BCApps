@@ -9,6 +9,9 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Retrieves shipment lines to create invoice lines for billing shipped goods.
+/// </summary>
 codeunit 64 "Sales-Get Shipment"
 {
     TableNo = "Sales Line";
@@ -63,6 +66,10 @@ codeunit 64 "Sales-Get Shipment"
 #pragma warning restore AA0074
         CannotCombineShptsDiffTaxLiableErr: Label 'You cannot combine shipments from orders which have different values of Tax Liable.';
 
+    /// <summary>
+    /// Creates sales invoice lines from the specified sales shipment lines.
+    /// </summary>
+    /// <param name="SalesShptLine2">Specifies the sales shipment lines to create invoice lines from.</param>
     procedure CreateInvLines(var SalesShptLine2: Record "Sales Shipment Line")
     var
         Window: Dialog;
@@ -142,6 +149,12 @@ codeunit 64 "Sales-Get Shipment"
         OnAfterCreateInvLines(SalesShptLine2, SalesHeader, SalesLine, SalesShptHeader);
     end;
 
+    /// <summary>
+    /// Inserts a single sales invoice line from a shipment line.
+    /// </summary>
+    /// <param name="SalesShptLine2">Specifies the sales shipment line to create an invoice line from.</param>
+    /// <param name="TransferLine">Specifies whether the line should be transferred to the invoice.</param>
+    /// <param name="PrepmtAmtToDeductRounding">Specifies the prepayment amount rounding to deduct.</param>
     procedure InsertInvoiceLineFromShipmentLine(var SalesShptLine2: Record "Sales Shipment Line"; TransferLine: Boolean; var PrepmtAmtToDeductRounding: Decimal)
     var
         IsHandled: Boolean;
@@ -160,6 +173,10 @@ codeunit 64 "Sales-Get Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Sets the sales header for creating invoice lines from shipments.
+    /// </summary>
+    /// <param name="SalesHeader2">Specifies the sales header to use for creating invoice lines.</param>
     procedure SetSalesHeader(var SalesHeader2: Record "Sales Header")
     var
         IsHandled: Boolean;
@@ -173,6 +190,9 @@ codeunit 64 "Sales-Get Shipment"
         SalesHeader.TestField("Document Type", SalesHeader."Document Type"::Invoice);
     end;
 
+    /// <summary>
+    /// Updates item charge line assignments for invoiced shipment lines.
+    /// </summary>
     procedure UpdateItemChargeLines()
     var
         SalesShipmentLineLocal: Record "Sales Shipment Line";
@@ -190,6 +210,11 @@ codeunit 64 "Sales-Get Shipment"
             until SalesLineChargeItemUpdate.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves item charge assignments from a sales order for a shipment line.
+    /// </summary>
+    /// <param name="SalesShptLine">Specifies the sales shipment line to get charge assignments for.</param>
+    /// <param name="QtyToInvoice">Specifies the quantity to invoice for the item charge.</param>
     procedure GetItemChargeAssgnt(var SalesShptLine: Record "Sales Shipment Line"; QtyToInvoice: Decimal)
     var
         SalesOrderLine: Record "Sales Line";
@@ -334,6 +359,10 @@ codeunit 64 "Sales-Get Shipment"
         exit(ItemChargeAssgntSales."Qty. to Assign");
     end;
 
+    /// <summary>
+    /// Calculates the invoice discount for a sales line based on sales setup.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to calculate the invoice discount for.</param>
     procedure CalcInvoiceDiscount(var SalesLine: Record "Sales Line")
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -346,6 +375,12 @@ codeunit 64 "Sales-Get Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Calculates and updates the prepayment amount to deduct rounding for a shipment line.
+    /// </summary>
+    /// <param name="SalesShptLine">Specifies the sales shipment line.</param>
+    /// <param name="SalesLine">Specifies the sales line.</param>
+    /// <param name="RoundingAmount">Specifies and returns the accumulated rounding amount.</param>
     procedure CalcUpdatePrepmtAmtToDeductRounding(SalesShptLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line"; var RoundingAmount: Decimal)
     var
         SalesOrderLine: Record "Sales Line";
@@ -373,6 +408,11 @@ codeunit 64 "Sales-Get Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Adjusts the prepayment amount to deduct by applying any rounding differences.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to adjust.</param>
+    /// <param name="RoundingAmount">Specifies the rounding amount to apply.</param>
     procedure AdjustPrepmtAmtToDeductRounding(var SalesLine: Record "Sales Line"; RoundingAmount: Decimal)
     begin
         if Round(RoundingAmount) <> 0 then begin
@@ -381,6 +421,11 @@ codeunit 64 "Sales-Get Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Validates that the VAT business posting group on the shipment line matches the sales header.
+    /// </summary>
+    /// <param name="SalesShptLine">Specifies the sales shipment line to check.</param>
+    /// <param name="SalesHeader">Specifies the sales header to validate against.</param>
     procedure CheckSalesShptLineVATBusPostingGroup(SalesShptLine: Record "Sales Shipment Line"; SalesHeader: Record "Sales Header")
     var
         IsHandled: Boolean;
@@ -393,6 +438,11 @@ codeunit 64 "Sales-Get Shipment"
         SalesShptLine.TestField("VAT Bus. Posting Group", SalesHeader."VAT Bus. Posting Group");
     end;
 
+    /// <summary>
+    /// Retrieves a list of posted sales invoices related to a specific sales order.
+    /// </summary>
+    /// <param name="TempSalesInvoiceHeader">Returns the temporary table containing the posted sales invoice headers.</param>
+    /// <param name="OrderNo">Specifies the sales order number to find invoices for.</param>
     procedure GetSalesOrderInvoices(var TempSalesInvoiceHeader: Record "Sales Invoice Header" temporary; OrderNo: Code[20])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -412,6 +462,11 @@ codeunit 64 "Sales-Get Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Copies document attachments from the sales order line to the invoice line.
+    /// </summary>
+    /// <param name="SalesShipmentLine">Specifies the sales shipment line containing the order reference.</param>
+    /// <param name="SalesLine2">Specifies the destination sales invoice line.</param>
     procedure CopyDocumentAttachments(var SalesShipmentLine: Record "Sales Shipment Line"; var SalesLine2: Record "Sales Line")
     var
         OrderSalesLine: Record "Sales Line";

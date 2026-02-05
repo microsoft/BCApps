@@ -109,6 +109,7 @@ table 5612 "FA Depreciation Book"
         }
         field(5; "Straight-Line %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Straight-Line %';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
@@ -123,6 +124,7 @@ table 5612 "FA Depreciation Book"
         }
         field(6; "No. of Depreciation Years"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'No. of Depreciation Years';
             DecimalPlaces = 2 : 8;
@@ -157,6 +159,7 @@ table 5612 "FA Depreciation Book"
         }
         field(7; "No. of Depreciation Months"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'No. of Depreciation Months';
             DecimalPlaces = 2 : 8;
@@ -192,6 +195,7 @@ table 5612 "FA Depreciation Book"
         field(8; "Fixed Depr. Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Fixed Depr. Amount';
             MinValue = 0;
 
@@ -205,6 +209,7 @@ table 5612 "FA Depreciation Book"
         }
         field(9; "Declining-Balance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Declining-Balance %';
             DecimalPlaces = 2 : 8;
             MaxValue = 100;
@@ -234,6 +239,7 @@ table 5612 "FA Depreciation Book"
         field(11; "Final Rounding Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Final Rounding Amount';
             MinValue = 0;
 
@@ -245,6 +251,7 @@ table 5612 "FA Depreciation Book"
         field(12; "Ending Book Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Ending Book Value';
             MinValue = 0;
 
@@ -289,6 +296,7 @@ table 5612 "FA Depreciation Book"
         field(15; "Acquisition Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -301,6 +309,7 @@ table 5612 "FA Depreciation Book"
         field(16; Depreciation; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -313,6 +322,7 @@ table 5612 "FA Depreciation Book"
         field(17; "Book Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "Part of Book Value" = const(true),
@@ -324,6 +334,7 @@ table 5612 "FA Depreciation Book"
         field(18; "Proceeds on Disposal"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -336,6 +347,7 @@ table 5612 "FA Depreciation Book"
         field(19; "Gain/Loss"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -348,6 +360,7 @@ table 5612 "FA Depreciation Book"
         field(20; "Write-Down"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -360,6 +373,7 @@ table 5612 "FA Depreciation Book"
         field(21; Appreciation; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -372,6 +386,7 @@ table 5612 "FA Depreciation Book"
         field(22; "Custom 1"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -384,6 +399,7 @@ table 5612 "FA Depreciation Book"
         field(23; "Custom 2"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -396,6 +412,7 @@ table 5612 "FA Depreciation Book"
         field(24; "Depreciable Basis"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "Part of Depreciable Basis" = const(true),
@@ -407,6 +424,7 @@ table 5612 "FA Depreciation Book"
         field(25; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(" "),
@@ -419,6 +437,7 @@ table 5612 "FA Depreciation Book"
         field(26; "Book Value on Disposal"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "FA Posting Category" = const(Disposal),
@@ -431,6 +450,7 @@ table 5612 "FA Depreciation Book"
         field(27; Maintenance; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             CalcFormula = sum("Maintenance Ledger Entry".Amount where("FA No." = field("FA No."),
                                                                        "Depreciation Book Code" = field("Depreciation Book Code"),
                                                                        "Maintenance Code" = field("Maintenance Code Filter"),
@@ -502,6 +522,7 @@ table 5612 "FA Depreciation Book"
         }
         field(40; "FA Exchange Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'FA Exchange Rate';
             DecimalPlaces = 4 : 4;
             MinValue = 0;
@@ -514,6 +535,7 @@ table 5612 "FA Depreciation Book"
         field(41; "Fixed Depr. Amount below Zero"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             BlankZero = true;
             Caption = 'Fixed Depr. Amount below Zero';
             MinValue = 0;
@@ -568,6 +590,7 @@ table 5612 "FA Depreciation Book"
         }
         field(46; "Depr. below Zero %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Depr. below Zero %';
             DecimalPlaces = 2 : 8;
@@ -591,6 +614,7 @@ table 5612 "FA Depreciation Book"
         field(48; "Projected Proceeds on Disposal"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             BlankZero = true;
             Caption = 'Projected Proceeds on Disposal';
             MinValue = 0;
@@ -615,6 +639,7 @@ table 5612 "FA Depreciation Book"
         }
         field(52; "Accum. Depr. % (Custom 1)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Accum. Depr. % (Custom 1)';
             DecimalPlaces = 2 : 8;
@@ -628,6 +653,7 @@ table 5612 "FA Depreciation Book"
         }
         field(53; "Depr. This Year % (Custom 1)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Depr. This Year % (Custom 1)';
             DecimalPlaces = 2 : 8;
@@ -663,6 +689,7 @@ table 5612 "FA Depreciation Book"
         }
         field(58; "FA Add.-Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'FA Add.-Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -697,6 +724,7 @@ table 5612 "FA Depreciation Book"
         field(62; "Temp. Fixed Depr. Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Temp. Fixed Depr. Amount';
         }
         field(63; "Ignore Def. Ending Book Value"; Boolean)
@@ -1127,6 +1155,11 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("Part of Book Value");
         if GetFilter("FA Posting Date Filter") <> '' then
             FALedgerEntry.SetFilter("FA Posting Date", GetFilter("FA Posting Date Filter"));
+    end;
+
+    internal procedure GetCurrencyCode(): Code[10]
+    begin
+        exit('');
     end;
 
     [IntegrationEvent(false, false)]

@@ -150,28 +150,70 @@ table 743 "VAT Report Setup"
         {
             Caption = 'Report VAT Note';
         }
+#if not CLEANSCHEMA31
         field(11000; "Source Identifier"; Text[11])
         {
             Caption = 'Source Identifier';
+            ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
         field(11001; "Transmission Process ID"; Text[3])
         {
             Caption = 'Transmission Process ID';
+            ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
         field(11002; "Supplier ID"; Text[3])
         {
             Caption = 'Supplier ID';
+            ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
         field(11003; Codepage; Option)
         {
             Caption = 'Codepage';
             OptionCaption = 'IBM-850,EBCDIC273,EBCDIC1141';
             OptionMembers = "IBM-850",EBCDIC273,EBCDIC1141;
+            ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
         field(11004; "Registration ID"; Text[6])
         {
             Caption = 'Registration ID';
+            ObsoleteReason = 'This field is no longer used in the new VIES ELMA XML export format.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
+#endif
         field(11005; "Export Cancellation Lines"; Boolean)
         {
             Caption = 'Export Cancellation Lines';

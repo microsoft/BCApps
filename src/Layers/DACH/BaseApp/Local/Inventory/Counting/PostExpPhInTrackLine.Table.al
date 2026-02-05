@@ -34,6 +34,7 @@ table 5005362 "Post. Exp. Ph. In. Track. Line"
         }
         field(30; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -53,5 +54,5 @@ table 5005362 "Post. Exp. Ph. In. Track. Line"
     }
 }
 
- 
+
 #endif

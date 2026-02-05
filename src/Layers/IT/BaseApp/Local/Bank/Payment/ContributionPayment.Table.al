@@ -32,31 +32,37 @@ table 12115 "Contribution Payment"
         field(10; "Gross Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Gross Amount';
         }
         field(11; "Non Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount';
         }
         field(12; "Contribution Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Contribution Base';
         }
         field(13; "Total Social Security Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Social Security Amount';
         }
         field(14; "Free-Lance Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Free-Lance Amount';
         }
         field(15; "Company Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Company Amount';
         }
         field(31; "Series Number"; Text[30])

@@ -11,6 +11,9 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 
+/// <summary>
+/// Displays all sales price lists with their status, validity periods, and assignment details.
+/// </summary>
 page 7015 "Sales Price Lists"
 {
     Caption = 'Sales Price Lists';
@@ -292,6 +295,10 @@ page 7015 "Sales Price Lists"
         StatusActiveFilterApplied: Boolean;
         AllowUpdatingDefaultsFilterApplied: Boolean;
 
+    /// <summary>
+    /// Sets the record filter to show customer-related sales price lists.
+    /// </summary>
+    /// <param name="PriceListHeader">The price list header record with filters to apply.</param>
     procedure SetRecordFilter(var PriceListHeader: Record "Price List Header")
     begin
         Rec.FilterGroup := 2;
@@ -301,6 +308,11 @@ page 7015 "Sales Price Lists"
         Rec.FilterGroup := 0;
     end;
 
+    /// <summary>
+    /// Sets the source filter for the price list based on the provided price source list.
+    /// </summary>
+    /// <param name="PriceSourceList">The price source list to use for filtering.</param>
+    /// <param name="AmountType">The amount type (Price, Discount, or both) to filter by.</param>
     procedure SetSource(PriceSourceList: Codeunit "Price Source List"; AmountType: Enum "Price Amount Type")
     var
         PriceUXManagement: Codeunit "Price UX Management";
@@ -308,6 +320,11 @@ page 7015 "Sales Price Lists"
         PriceUXManagement.SetPriceListsFilters(Rec, PriceSourceList, AmountType);
     end;
 
+    /// <summary>
+    /// Sets the asset filter for the price list based on the provided price asset.
+    /// </summary>
+    /// <param name="PriceAsset">The price asset record to use for filtering.</param>
+    /// <param name="AmountType">The amount type (Price, Discount, or both) to filter by.</param>
     procedure SetAsset(PriceAsset: Record "Price Asset"; AmountType: Enum "Price Amount Type")
     var
         PriceUXManagement: Codeunit "Price UX Management";

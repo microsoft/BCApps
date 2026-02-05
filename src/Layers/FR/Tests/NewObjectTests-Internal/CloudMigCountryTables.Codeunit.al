@@ -2,9 +2,12 @@ codeunit 135161 "Cloud Mig Country Tables"
 {
     procedure GetTablesThatShouldBeCloudMigrated(var ListOfTablesToMigrate: List of [Integer])
     begin
+#if not CLEAN28
         ListOfTablesToMigrate.Add(Database::"Bank Account Buffer");
+#endif
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Line");
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Name");
+#if not CLEAN28        
         ListOfTablesToMigrate.Add(Database::"Payment Address");
         ListOfTablesToMigrate.Add(Database::"Payment Class");
         ListOfTablesToMigrate.Add(Database::"Payment Header Archive");
@@ -15,6 +18,7 @@ codeunit 135161 "Cloud Mig Country Tables"
         ListOfTablesToMigrate.Add(Database::"Payment Status");
         ListOfTablesToMigrate.Add(Database::"Payment Step Ledger");
         ListOfTablesToMigrate.Add(Database::"Payment Step");
+#endif        
         ListOfTablesToMigrate.Add(Database::"Shipment Invoiced");
         ListOfTablesToMigrate.Add(Database::"Unreal. CV Ledg. Entry Buffer");
     end;

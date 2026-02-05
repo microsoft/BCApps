@@ -22,7 +22,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         ItemTrackingLines: Page "Item Tracking Lines";
         CountingRecordsMsg: Label 'Counting records...';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetSerialNoRequired', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetSerialNoRequired', '', true, false)]
     local procedure OnGetItemTrackingSetupOnSetSerialNoRequired(var ItemTrackingSetup: Record "Item Tracking Setup"; ItemTrackingCode: Record "Item Tracking Code"; EntryType: Enum "Item Ledger Entry Type"; Inbound: Boolean)
     begin
         case EntryType of
@@ -34,7 +34,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetLotNoRequired', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetLotNoRequired', '', true, false)]
     local procedure OnGetItemTrackingSetupOnSetLotNoRequired(var ItemTrackingSetup: Record "Item Tracking Setup"; ItemTrackingCode: Record "Item Tracking Code"; EntryType: Enum "Item Ledger Entry Type"; Inbound: Boolean)
     begin
         case EntryType of
@@ -46,7 +46,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetPackageNoRequired', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnGetItemTrackingSetupOnSetPackageNoRequired', '', true, false)]
     local procedure OnGetItemTrackingSetupOnSetPackageNoRequired(var ItemTrackingSetup: Record "Item Tracking Setup"; ItemTrackingCode: Record "Item Tracking Code"; EntryType: Enum "Item Ledger Entry Type"; Inbound: Boolean)
     begin
         case EntryType of
@@ -58,7 +58,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnAfterInitWhseWorksheetLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnAfterInitWhseWorksheetLine', '', true, false)]
     local procedure OnAfterInitWhseWorksheetLine(var WhseWorksheetLine: Record "Whse. Worksheet Line"; WhseDocType: Enum "Warehouse Worksheet Document Type"; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer; SourceSublineNo: Integer)
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -82,7 +82,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnBeforeRetrieveItemTrackingFromReservEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnBeforeRetrieveItemTrackingFromReservEntry', '', true, false)]
     local procedure OnBeforeRetrieveItemTrackingFromReservEntry(ItemJnlLine: Record "Item Journal Line"; var ReservEntry: Record "Reservation Entry"; var Result: Boolean; var IsHandled: Boolean; var TempTrackingSpec: Record "Tracking Specification" temporary)
     begin
         if ItemJnlLine.Subcontracting then begin
@@ -163,7 +163,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         exit(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnInitTrackingSpecificationByDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnInitTrackingSpecificationByDocumentType', '', true, false)]
     local procedure OnInitTrackingSpecificationByDocumentType(var WhseWorksheetLine: Record "Whse. Worksheet Line"; SourceType: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -250,7 +250,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         exit(RegisteredWhseActivityLine."Qty. (Base)");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnInitTrackingSpecificationOnCreateNew', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnInitTrackingSpecificationOnCreateNew', '', true, false)]
     local procedure OnInitTrackingSpecificationOnCreateNew(var WhseWorksheetLine: Record "Whse. Worksheet Line"; SourceType: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -329,6 +329,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
             CopyProdOrderLineFieldsToTempProdOrdLineTrackingBuff(ProdOrderLine, TempProdOrdLineTrackingBuff);
             TempProdOrdLineTrackingBuff."Buffer Entry No." := 1;
             TempProdOrdLineTrackingBuff.Insert();
+            OnAfterSplitProdOrderLineForOutputPutAway(ProdOrderLine, TempProdOrdLineTrackingBuff);
             exit;
         end;
 
@@ -366,6 +367,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
             TempProdOrdLineTrackingBuff."Buffer Entry No." := 1;
             TempProdOrdLineTrackingBuff.Insert();
         end;
+        OnAfterSplitProdOrderLineForOutputPutAway(ProdOrderLine, TempProdOrdLineTrackingBuff);
     end;
 
     local procedure CopyProdOrderLineFieldsToTempProdOrdLineTrackingBuff(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff.")
@@ -418,7 +420,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnCalcWhseItemTrkgLineOnSetSourceTypeFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnCalcWhseItemTrkgLineOnSetSourceTypeFilter', '', true, false)]
     local procedure OnCalcWhseItemTrkgLineOnSetSourceTypeFilter(var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin
         case WhseItemTrackingLine."Source Type" of
@@ -450,21 +452,21 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     // Item Tracking Code
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidateSNSpecificTrackingOnAfterSet', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidateSNSpecificTrackingOnAfterSet', '', true, false)]
     local procedure OnValidateSNSpecificTrackingOnAfterSet(var ItemTrackingCode: Record "Item Tracking Code")
     begin
         ItemTrackingCode."SN Manuf. Inbound Tracking" := true;
         ItemTrackingCode."SN Manuf. Outbound Tracking" := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidateLotSpecificTrackingOnAfterSet', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidateLotSpecificTrackingOnAfterSet', '', true, false)]
     local procedure OnValidateLotSpecificTrackingOnAfterSet(var ItemTrackingCode: Record "Item Tracking Code")
     begin
         ItemTrackingCode."Lot Manuf. Inbound Tracking" := true;
         ItemTrackingCode."Lot Manuf. Outbound Tracking" := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidatePackageSpecificTrackingOnAfterSet', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Code", 'OnValidatePackageSpecificTrackingOnAfterSet', '', true, false)]
     local procedure OnValidatePackageSpecificTrackingOnAfterSet(var ItemTrackingCode: Record "Item Tracking Code")
     begin
         ItemTrackingCode."Package Manuf. Inb. Tracking" := true;
@@ -472,7 +474,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
     end;
 
     // Report Carry Out Reservation
-    [EventSubscriber(ObjectType::Report, Report::"Carry Out Reservation", 'OnCarryOutReservationOtherDemandType', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Carry Out Reservation", 'OnCarryOutReservationOtherDemandType', '', true, false)]
     local procedure OnCarryOutReservationOtherDemandType(var ReservationWkshLine: Record "Reservation Wksh. Line"; DemandType: Enum "Reservation Demand Type")
     begin
         case DemandType of
@@ -481,7 +483,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Action Message Entry", 'OnAfterSumUp', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Action Message Entry", 'OnAfterSumUp', '', true, false)]
     local procedure OnAfterSumUp(var ActionMessageEntry: Record "Action Message Entry"; var ComponentBinding: Boolean; var FirstDate: Date; var FirstTime: Time)
     var
         ReservEntry: Record "Reservation Entry";
@@ -516,7 +518,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     // Codeunit "Item Tracing Mgt."
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnInsertRecordOnBeforeSetDescription', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnInsertRecordOnBeforeSetDescription', '', true, false)]
     local procedure OnInsertRecordOnBeforeSetDescription(var TempTrackEntry: Record "Item Tracing Buffer"; var RecRef: RecordRef; var Description2: Text[100])
     var
         ProductionOrder: Record "Production Order";
@@ -532,7 +534,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnAfterSetRecordID', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnAfterSetRecordID', '', true, false)]
     local procedure OnAfterSetRecordID(var TrackingEntry: Record "Item Tracing Buffer"; RecRef: RecordRef)
     var
         ProductionOrder: Record "Production Order";
@@ -551,7 +553,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnShowDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnShowDocument', '', true, false)]
     local procedure OnShowDocument(RecRef: RecordRef; RecID: RecordId)
     var
         ProductionOrder: Record "Production Order";
@@ -571,7 +573,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     // Codeunit Reservation Engine Mgt.
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnModifyActionMessageDatingOnGetDampenerPeriod', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnModifyActionMessageDatingOnGetDampenerPeriod', '', true, false)]
     local procedure OnModifyActionMessageDatingOnGetDampenerPeriod(ReservEntry: Record "Reservation Entry"; var DampenerPeriod: Dateformula)
     var
         InventorySetup: Record "Inventory Setup";
@@ -585,7 +587,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         DampenerPeriod := InventorySetup."Default Dampener Period";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnAfterShouldModifyActionMessageDating', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnAfterShouldModifyActionMessageDating', '', true, false)]
     local procedure OnAfterShouldModifyActionMessageDating(ReservationEntry: Record "Reservation Entry"; var Result: Boolean)
     begin
         Result := Result or (ReservationEntry."Source Type" = Database::"Prod. Order Line");
@@ -593,7 +595,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     // Page Item Tracking Lines
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnSetSourceSpecOnCollectTrackingData', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnSetSourceSpecOnCollectTrackingData', '', true, false)]
     local procedure OnSetSourceSpecOnCollectTrackingData(var TrackingSpecification: Record "Tracking Specification"; var TempTrackingSpecification: Record "Tracking Specification" temporary; ExcludePostedEntries: Boolean; CurrentSignFactor: Integer; var SourceQuantity: Decimal)
     begin
         if TrackingSpecification."Source Type" = Database::"Prod. Order Line" then
@@ -641,7 +643,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 #endif
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnCheckItemTrackingLineIsBoundForBarcodeScanning', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnCheckItemTrackingLineIsBoundForBarcodeScanning', '', true, false)]
     local procedure OnCheckItemTrackingLineIsBoundForBarcodeScanning(var TrackingSpecification: Record "Tracking Specification"; var Result: Boolean; IsHandled: Boolean)
     begin
         if TrackingSpecification."Source Type" = Database::"Prod. Order Line" then begin
@@ -696,14 +698,14 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         exit(true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnAfterTableSignFactor', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnAfterTableSignFactor', '', true, false)]
     local procedure OnAfterTableSignFactor(TableNo: Integer; var Sign: Integer);
     begin
         if TableNo = Database::"Prod. Order Component" then
             Sign := -1;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnCheckIsSNSpecificTracking, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnCheckIsSNSpecificTracking, '', true, false)]
     local procedure OnCheckIsSNSpecificTracking(ItemTrackingCode: Record "Item Tracking Code"; var SNSepecificTracking: Boolean)
     begin
         if SNSepecificTracking then
@@ -712,7 +714,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         SNSepecificTracking := ItemTrackingCode."SN Manuf. Inbound Tracking" or ItemTrackingCode."SN Manuf. Outbound Tracking";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnCheckIsLotSpecificTracking, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnCheckIsLotSpecificTracking, '', true, false)]
     local procedure OnCheckIsLotSpecificTracking(ItemTrackingCode: Record "Item Tracking Code"; var LotSepecificTracking: Boolean)
     begin
         if LotSepecificTracking then
@@ -721,7 +723,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         LotSepecificTracking := ItemTrackingCode."Lot Manuf. Inbound Tracking" or ItemTrackingCode."Lot Manuf. Outbound Tracking";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError, '', true, false)]
     local procedure OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError(var TempTrackingSpecification: Record "Tracking Specification" temporary; var QtyToHandleToNewRegister: Decimal; var QtyToHandleInItemTracking: Decimal; var QtyToHandleOnSourceDocLine: Decimal; var IsHandled: Boolean; var AllowWhseOverpick: Boolean)
     var
         Item: Record Item;
@@ -734,7 +736,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         AllowWhseOverpick := Item."Allow Whse. Overpick";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", OnFindRelatedParentTrkgSpecOnSetSourceFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", OnFindRelatedParentTrkgSpecOnSetSourceFilters, '', true, false)]
     local procedure OnFindRelatedParentTrkgSpecOnSetSourceFilters(ItemJnlLine: Record "Item Journal Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
         case ItemJnlLine."Entry Type" of
@@ -765,6 +767,11 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateQtySplitForPutAwayOnProdOrdLineTrackingBuffer(var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; ProdOrderLine: Record "Prod. Order Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var QtyBaseAvailableToPutAway: Decimal; var RemainingHandledQtyBase: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSplitProdOrderLineForOutputPutAway(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary)
     begin
     end;
 }

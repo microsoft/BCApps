@@ -162,6 +162,8 @@ page 10009 "Customer Order Header Status"
                 field(TotalOpenAmountOnHold; TotalOpenAmountOnHold)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Total Open Amount On Hold';
                     Editable = false;
                     ToolTip = 'Specifies the total amount on open documents that are on hold.';
@@ -169,6 +171,8 @@ page 10009 "Customer Order Header Status"
                 field(TotalOpenAmount; TotalOpenAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Total Open Amount';
                     Editable = false;
                     ToolTip = 'Specifies the total amount on open documents.';

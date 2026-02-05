@@ -29,6 +29,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Amount';
                             ToolTip = 'Specifies the invoiced amount related to the particular service item.';
                         }
@@ -36,6 +37,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Usage (Amount)';
                             ToolTip = 'Specifies the usage amount for the specified service item.';
                         }
@@ -43,12 +45,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Amount';
                             ToolTip = 'Specifies the cost amount of the service item.';
                         }
                         field("OrderUsageTotalQty[1]"; OrderUsageTotalQty[1])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the quantity of all G/L account entries, costs, items and/or resource hours in the service order.';
@@ -56,6 +60,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalInvQty[1]"; OrderUsageTotalInvQty[1])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Quantity Invoiced';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the quantity that has been invoiced for the specified service item.';
@@ -63,6 +68,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalConsQty[1]"; OrderUsageTotalConsQty[1])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Quantity Consumed';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the quantity of the particular service item that has been consumed.';
@@ -71,12 +77,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit for the specified service item.';
                         }
                         field("OrderInvProfitPct[1]"; OrderInvProfitPct[1])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -89,6 +97,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Price';
                             ToolTip = 'Specifies the price that was invoiced for the service item.';
                         }
@@ -96,6 +105,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Price';
                             ToolTip = 'Specifies the total price for the specified service item.';
                         }
@@ -103,12 +113,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             ToolTip = 'Specifies the total cost for the specified service item.';
                         }
                         field("OrderUsageTotalQty[2]"; OrderUsageTotalQty[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -116,6 +128,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalInvQty[2]"; OrderUsageTotalInvQty[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -123,6 +136,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalConsQty[2]"; OrderUsageTotalConsQty[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -131,12 +145,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit for the specified service item.';
                         }
                         field("OrderInvProfitPct[2]"; OrderInvProfitPct[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -149,6 +165,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Price';
                             ToolTip = 'Specifies the price that was invoiced for the service item.';
                         }
@@ -156,6 +173,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Price';
                             ToolTip = 'Specifies the total price for the specified service item.';
                         }
@@ -163,12 +181,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             ToolTip = 'Specifies the total cost for the specified service item.';
                         }
                         field("OrderUsageTotalQty[3]"; OrderUsageTotalQty[3])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -176,6 +196,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalInvQty[3]"; OrderUsageTotalInvQty[3])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -183,6 +204,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalConsQty[3]"; OrderUsageTotalConsQty[3])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -191,12 +213,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit for the specified service item.';
                         }
                         field("OrderInvProfitPct[3]"; OrderInvProfitPct[3])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -209,6 +233,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Price';
                             ToolTip = 'Specifies the price that was invoiced for the service item.';
                         }
@@ -216,6 +241,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Price';
                             ToolTip = 'Specifies the total price for the specified service item.';
                         }
@@ -223,12 +249,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             ToolTip = 'Specifies the total cost for the specified service item.';
                         }
                         field("OrderUsageTotalQty[4]"; OrderUsageTotalQty[4])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -236,6 +264,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalInvQty[4]"; OrderUsageTotalInvQty[4])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -243,6 +272,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalConsQty[4]"; OrderUsageTotalConsQty[4])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -251,13 +281,15 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit for the specified service item.';
                         }
                         field("OrderInvProfitPct[4]"; OrderInvProfitPct[4])
                         {
                             ApplicationArea = Service;
-                            Caption = 'Profit %';
+                            AutoFormatType = 0;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
                         }
@@ -269,6 +301,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Price';
                             ToolTip = 'Specifies the price that was invoiced for the service item.';
                         }
@@ -276,6 +309,7 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Price';
                             ToolTip = 'Specifies the total price for the specified service item.';
                         }
@@ -283,12 +317,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             ToolTip = 'Specifies the total cost for the specified service item.';
                         }
                         field("OrderUsageTotalQty[5]"; OrderUsageTotalQty[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -296,6 +332,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalInvQty[5]"; OrderUsageTotalInvQty[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -303,6 +340,7 @@ page 5982 "Service Item Statistics"
                         field("OrderUsageTotalConsQty[5]"; OrderUsageTotalConsQty[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';
@@ -311,12 +349,14 @@ page 5982 "Service Item Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit';
                             ToolTip = 'Specifies the profit for the specified service item.';
                         }
                         field("OrderInvProfitPct[5]"; OrderInvProfitPct[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the Invoiced Amount, minus the Usage (Cost) x 100, divided by the Invoiced Amount.';

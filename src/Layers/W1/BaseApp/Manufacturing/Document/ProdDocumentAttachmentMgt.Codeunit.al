@@ -18,7 +18,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         CopyAttachmentLbl: Label 'Copy Attachment From %1 to %2.', Comment = '%1 = From Table Caption, %2 = To Table Caption ';
         DeleteAttachmentLbl: Label 'Delete Attachment From %1.', Comment = '%1 = From Table Caption';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterIsProductionDocumentFlow', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterIsProductionDocumentFlow', '', true, false)]
     local procedure OnAfterIsProductionDocumentFlow(TableNo: Integer; var IsDocumentFlow: Boolean)
     begin
         if IsProductionDocumentFlow(TableNo) then
@@ -35,7 +35,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             Database::"Prod. Order Line"]);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocument', '', true, false)]
     local procedure OnAfterIsTableDocument(TableNo: Integer; var IsDocument: Boolean)
     begin
         if IsDocument then
@@ -44,7 +44,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         IsDocument := TableNo in [Database::"Production Order", Database::"Prod. Order Line"];
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', true, false)]
     local procedure OnAfterGetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
     var
         ProdBOMHeader: Record "Production BOM Header";
@@ -86,7 +86,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', true, false)]
     local procedure OnAfterTableHasNumberFieldPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         if TableNo <> 0 then
@@ -108,7 +108,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasDocTypePrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasDocTypePrimaryKey', '', true, false)]
     local procedure OnAfterTableHasDocTypePrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         if TableNo <> 0 then
@@ -123,7 +123,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasLineNumberPrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasLineNumberPrimaryKey', '', true, false)]
     local procedure OnAfterTableHasLineNumberPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         if TableNo <> 0 then
@@ -137,7 +137,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetFromParameters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetFromParameters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetFromParameters(FromRecRef: RecordRef; var FromDocumentAttachment: Record "Document Attachment"; var FromAttachmentDocumentType: Enum "Attachment Document Type")
     var
         FromFieldRef: FieldRef;
@@ -194,7 +194,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetDocumentFlowFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetDocumentFlowFilter', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetDocumentFlowFilter(var FromDocumentAttachment: Record "Document Attachment"; FromRecRef: RecordRef; ToRecRef: RecordRef);
     begin
         if ToRecRef.Number() <> 0 then
@@ -214,7 +214,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToParameters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToParameters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetToParameters(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; var ToFieldRef: FieldRef; var ToNo: Code[20]; var ToLineNo: Integer; var ToAttachmentDocumentType: Enum "Attachment Document Type");
     begin
         if ToRecRef.Number() <> 0 then
@@ -248,7 +248,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToDocumentFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToDocumentFilters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetToDocumentFilters(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
     begin
         if ToRecRef.Number() <> 0 then
@@ -263,7 +263,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForProdOrderLineInsert(var Rec: Record "Prod. Order Line"; RunTrigger: Boolean)
     var
         Item: Record Item;
@@ -300,7 +300,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Item No.", false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Item No.", true, false)]
     local procedure DocumentAttachmentFlow_ForProdOrderLineNoChange(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -321,7 +321,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Production BOM No.", false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Production BOM No.", true, false)]
     local procedure DocumentAttachmentFlow_ForProdOrderBomInsert(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -342,7 +342,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Routing No.", false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Routing No.", true, false)]
     local procedure DocumentAttachmentFlow_ForRoutingNoInsert(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -363,7 +363,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterTransProdOrder, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterTransProdOrder, '', true, false)]
     local procedure DocumentAttachmentFlow_FromProdOrderToProdOrder(var FromProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order")
     begin
         if (ToProdOrder."No." = '') or IsNullGuid(ToProdOrder.SystemId) then
@@ -375,13 +375,13 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(FromProdOrder, ToProdOrder);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTransformAttachmentDocumentTypeValue', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTransformAttachmentDocumentTypeValue', '', true, false)]
     local procedure OnAfterTransformAttachmentDocumentTypeValue(TableNo: Integer; var AttachmentDocumentType: Enum "Attachment Document Type")
     begin
         TransformAttachmentDocumentTypeValue(TableNo, AttachmentDocumentType);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, false)]
     local procedure DocumentAttachmentFlow_FromProdOrderLineToProdOrderLine(var FromProdOrderLine: Record "Prod. Order Line"; var ToProdOrderLine: Record "Prod. Order Line")
     begin
         if ToProdOrderLine.IsTemporary() then
@@ -391,7 +391,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(FromProdOrderLine, ToProdOrderLine);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Production Order", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Production Order", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProductionOrder(var Rec: Record "Production Order"; RunTrigger: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -401,7 +401,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         FeatureTelemetry.LogUsage('0000OCM', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProdOrderLine(var Rec: Record "Prod. Order Line"; RunTrigger: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -411,7 +411,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         FeatureTelemetry.LogUsage('0000OCN', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Routing Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Routing Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteRoutingHeader(var Rec: Record "Routing Header"; RunTrigger: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -421,7 +421,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         FeatureTelemetry.LogUsage('0000OCO', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Production BOM Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Production BOM Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProductionBOM(var Rec: Record "Production BOM Header"; RunTrigger: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";

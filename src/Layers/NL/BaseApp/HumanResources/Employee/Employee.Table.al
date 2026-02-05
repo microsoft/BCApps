@@ -378,6 +378,7 @@ table 5200 Employee
         }
         field(45; "Total Absence (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Employee Absence"."Quantity (Base)" where("Employee No." = field("No."),
                                                                           "Cause of Absence Code" = field("Cause of Absence Filter"),
                                                                           "From Date" = field("Date Filter")));
@@ -499,6 +500,7 @@ table 5200 Employee
         field(70; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Employee Ledger Entry"."Amount (LCY)" where("Employee No." = field("No."),
                                                                               "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                               "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -548,6 +550,8 @@ table 5200 Employee
         }
         field(104; "Payroll"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Payroll';
             ToolTip = 'Specifies the value of the Payroll field.';
 
@@ -569,6 +573,8 @@ table 5200 Employee
         }
         field(106; "Payroll (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Payroll (LCY)';
 
             trigger OnValidate()
@@ -578,6 +584,7 @@ table 5200 Employee
         }
         field(107; "Payroll Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payroll Currency Factor';
         }
         field(108; "Nationality"; Code[10])
@@ -593,6 +600,7 @@ table 5200 Employee
         }
         field(110; "Working Hours"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Working Hours';
             ToolTip = 'Specifies the value of the Working Hours field.';
         }

@@ -1295,20 +1295,25 @@ table 98 "General Ledger Setup"
         field(12110; "Official Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Official Debit Amount';
         }
         field(12111; "Official Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Official Credit Amount';
         }
         field(12112; "Minimum VAT Payable"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Minimum VAT Payable';
         }
         field(12113; "Settlement Round. Factor"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Settlement Round. Factor';
         }
         field(12114; "Last Settlement Date"; Date)

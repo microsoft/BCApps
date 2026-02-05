@@ -15,6 +15,9 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Issues finance charge memos by posting interest and fees to the general ledger and creating customer ledger entries.
+/// </summary>
 codeunit 395 "FinChrgMemo-Issue"
 {
     Permissions = TableData "Cust. Ledger Entry" = rm,
@@ -268,6 +271,12 @@ codeunit 395 "FinChrgMemo-Issue"
 #pragma warning restore AA0074
         MissingJournalFieldErr: Label 'Please enter a %1 when posting Additional Fees or Interest.', Comment = '%1 - field caption';
 
+    /// <summary>
+    /// Sets the finance charge memo header and posting options for the issue process.
+    /// </summary>
+    /// <param name="NewFinChrgMemoHeader">Specifies the finance charge memo header to issue.</param>
+    /// <param name="NewReplacePostingDate">Specifies whether to replace the posting date on the finance charge memo.</param>
+    /// <param name="NewPostingDate">Specifies the new posting date to use if NewReplacePostingDate is true.</param>
     procedure Set(var NewFinChrgMemoHeader: Record "Finance Charge Memo Header"; NewReplacePostingDate: Boolean; NewPostingDate: Date)
     begin
         FinChrgMemoHeader := NewFinChrgMemoHeader;
@@ -275,11 +284,19 @@ codeunit 395 "FinChrgMemo-Issue"
         PostingDate := NewPostingDate;
     end;
 
+    /// <summary>
+    /// Sets the general journal batch to use when posting finance charge memo entries.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">Specifies the general journal batch for posting entries.</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
     end;
 
+    /// <summary>
+    /// Retrieves the issued finance charge memo header that was created during the issue process.
+    /// </summary>
+    /// <param name="NewIssuedFinChrgMemoHeader">Returns the issued finance charge memo header record.</param>
     procedure GetIssuedFinChrgMemo(var NewIssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
         NewIssuedFinChrgMemoHeader := IssuedFinChrgMemoHeader;
@@ -336,6 +353,10 @@ codeunit 395 "FinChrgMemo-Issue"
             FinChrgMemoLine.FieldError(Amount, Text001);
     end;
 
+    /// <summary>
+    /// Deletes all lines associated with the specified issued finance charge memo header.
+    /// </summary>
+    /// <param name="IssuedFinChrgMemoHeader">Specifies the issued finance charge memo header whose lines will be deleted.</param>
     procedure DeleteIssuedFinChrgLines(IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     var
         IssuedFinChrgMemoLine: Record "Issued Fin. Charge Memo Line";
@@ -344,6 +365,10 @@ codeunit 395 "FinChrgMemo-Issue"
         IssuedFinChrgMemoLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Increments the number of times the issued finance charge memo has been printed.
+    /// </summary>
+    /// <param name="IssuedFinChrgMemoHeader">Specifies the issued finance charge memo header to update the print count for.</param>
     procedure IncrNoPrinted(var IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
         IssuedFinChrgMemoHeader.Find();
@@ -353,6 +378,11 @@ codeunit 395 "FinChrgMemo-Issue"
         Commit();
     end;
 
+    /// <summary>
+    /// Prepares the issued finance charge memo header for deletion by transferring fields and setting up source code information.
+    /// </summary>
+    /// <param name="FinChrgMemoHeader">Specifies the finance charge memo header to test for deletion.</param>
+    /// <param name="IssuedFinChrgMemoHeader">Returns the prepared issued finance charge memo header record.</param>
     procedure TestDeleteHeader(FinChrgMemoHeader: Record "Finance Charge Memo Header"; var IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
         Clear(IssuedFinChrgMemoHeader);
@@ -376,6 +406,11 @@ codeunit 395 "FinChrgMemo-Issue"
         OnAfterTestDeleteHeader(IssuedFinChrgMemoHeader, FinChrgMemoHeader);
     end;
 
+    /// <summary>
+    /// Deletes a finance charge memo header and creates a corresponding issued finance charge memo record for audit purposes.
+    /// </summary>
+    /// <param name="FinChrgMemoHeader">Specifies the finance charge memo header to delete.</param>
+    /// <param name="IssuedFinChrgMemoHeader">Returns the created issued finance charge memo header for the deleted document.</param>
     procedure DeleteHeader(FinChrgMemoHeader: Record "Finance Charge Memo Header"; var IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     var
         IssuedFinChrgMemoLine: Record "Issued Fin. Charge Memo Line";
@@ -497,116 +532,239 @@ codeunit 395 "FinChrgMemo-Issue"
         end;
     end;
 
+    /// <summary>
+    /// Raised after the interest amounts are calculated for all finance charge memo lines.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="TempGenJournalLine">Specifies the temporary general journal line records.</param>
+    /// <param name="FinChrgMemoInterestAmount">Specifies the calculated interest amount.</param>
+    /// <param name="FinChrgMemoInterestVATAmount">Specifies the calculated interest VAT amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateFinChrgMemoInterestAmounts(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var FinChrgMemoInterestAmount: Decimal; var FinChrgMemoInterestVATAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after a general journal line is initialized for posting.
+    /// </summary>
+    /// <param name="GenJnlLine">Specifies the general journal line record.</param>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="SrcCode">Specifies the source code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; FinChargeMemoHeader: Record "Finance Charge Memo Header"; var SrcCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the finance charge memo is successfully issued.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header that was issued.</param>
+    /// <param name="IssuedFinChargeMemoNo">Specifies the document number of the issued finance charge memo.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIssueFinChargeMemo(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; IssuedFinChargeMemoNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after dimensions are set on the general journal line.
+    /// </summary>
+    /// <param name="GenJnlLine">Specifies the general journal line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="DefaultDimSource">Specifies the list of default dimension sources.</param>
+    /// <param name="SrcCode">Specifies the source code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDimensionsProcedure(var GenJnlLine: Record "Gen. Journal Line"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; var SrcCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the TestDeleteHeader procedure prepares the issued finance charge memo header.
+    /// </summary>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the prepared issued finance charge memo header record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the original finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestDeleteHeader(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before dimensions are validated on the finance charge memo.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDimensions(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before a reminder or finance charge entry is inserted.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">Specifies the reminder or finance charge entry to be inserted.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertFinChargeEntry(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FinanceChargeMemoLine: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the finance charge memo issue process begins.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header to issue.</param>
+    /// <param name="ReplacePostingDate">Specifies whether to replace the posting date.</param>
+    /// <param name="PostingDate">Specifies the posting date to use.</param>
+    /// <param name="IsHandled">Set to true to skip the default issue process.</param>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the issued finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIssueFinChargeMemo(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; var ReplacePostingDate: Boolean; var PostingDate: Date; var IsHandled: Boolean; IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the issued finance charge memo header is inserted.
+    /// </summary>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the issued finance charge memo header to be inserted.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the original finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIssuedFinChrgMemoHeaderInsert(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the general journal line is posted with validation.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the general journal line to be posted.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlPostLineRunWithCheck(var GenJournalLine: Record "Gen. Journal Line"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating customer ledger entries with the closing interest calculated flag.
+    /// </summary>
+    /// <param name="CustLedgEntry2">Specifies the customer ledger entries to be updated.</param>
+    /// <param name="CustLedgEntry">Specifies the original customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustLedgEntriesCalculateInterestOnBeforeCustLedgerEntry2ModifyAll(var CustLedgEntry2: Record "Cust. Ledger Entry"; CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after an issued finance charge memo line is inserted.
+    /// </summary>
+    /// <param name="FinChrgMemoLine">Specifies the original finance charge memo line.</param>
+    /// <param name="IssuedFinChrgMemoLine">Specifies the inserted issued finance charge memo line.</param>
+    /// <param name="CurrencyFactor">Specifies the currency exchange rate factor.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertIssuedFinChrgMemoLine(FinChrgMemoLine: Record "Finance Charge Memo Line"; var IssuedFinChrgMemoLine: Record "Issued Fin. Charge Memo Line"; CurrencyFactor: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after a finance charge memo line is processed during the issue process.
+    /// </summary>
+    /// <param name="FinChrgMemoLine">Specifies the finance charge memo line that was processed.</param>
+    /// <param name="DocNo">Specifies the document number of the issued finance charge memo.</param>
+    /// <param name="CurrencyFactor">Specifies the currency exchange rate factor.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetFinChrgMemoLine(FinChrgMemoLine: Record "Finance Charge Memo Line"; DocNo: Code[20]; CurrencyFactor: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the finance charge memo line amount is negative.
+    /// </summary>
+    /// <param name="FinChrgMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinChrgMemoLine">Specifies the finance charge memo line to check.</param>
+    /// <param name="FinChrgTerms">Specifies the finance charge terms record.</param>
+    /// <param name="IsHandled">Set to true to skip the default negative amount check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNegativeFinChrgMemoLineAmount(FinChrgMemoHeader: Record "Finance Charge Memo Header"; FinChrgMemoLine: Record "Finance Charge Memo Line"; FinChrgTerms: Record "Finance Charge Terms"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the print count is incremented on the issued finance charge memo.
+    /// </summary>
+    /// <param name="IssuedFinChrgMemoHeader">Specifies the issued finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnIncrNoPrintedOnBeforeModify(var IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a general journal line for a G/L account fee is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the inserted general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGLAccountGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before a general journal line for a G/L account fee is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the general journal line to be inserted.</param>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeGLAccountGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line"; FinanceChargeMemoLine: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a general journal line for interest is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the inserted general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterInterestGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before a general journal line for interest is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the general journal line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeInterestGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a general journal line for the customer total is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the inserted general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterTotalGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before a general journal line for the customer total is inserted.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the general journal line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeTotalGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the general journal line is posted with validation.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the posted general journal line.</param>
+    /// <param name="GenJnlPostLine">Specifies the posting codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterGenJnlPostLineRunWithCheck(var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before customer ledger entries are updated with the calculate interest flag.
+    /// </summary>
+    /// <param name="EntryNo">Specifies the customer ledger entry number.</param>
+    /// <param name="DocumentDate">Specifies the document date for the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default update process.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateCustLedgEntriesCalculateInterest(EntryNo: Integer; DocumentDate: Date; var IsHandled: Boolean)
     begin

@@ -36,6 +36,9 @@ using System.Integration.PowerBI;
 using System.Integration.Word;
 using System.Text;
 
+/// <summary>
+/// Lists all customers with filtering and navigation capabilities.
+/// </summary>
 page 22 "Customer List"
 {
     ApplicationArea = Basic, Suite, Service;
@@ -1260,6 +1263,7 @@ page 22 "Customer List"
                         ObsoleteTag = '28.0';
                     }
 #endif
+#if not CLEAN28
                     action(ReportCustomerSalesList)
                     {
                         ApplicationArea = Basic, Suite;
@@ -1267,7 +1271,12 @@ page 22 "Customer List"
                         Image = "Report";
                         RunObject = Report "Customer - Sales List";
                         ToolTip = 'View customer sales for a period, for example, to report sales activity to customs and tax authorities. You can choose to include only customers with total sales that exceed a minimum amount. You can also specify whether you want the report to show address details for each customer.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
+#if not CLEAN28
                     action(ReportSalesStatistics)
                     {
                         ApplicationArea = Basic, Suite;
@@ -1275,7 +1284,11 @@ page 22 "Customer List"
                         Image = "Report";
                         RunObject = Report "Sales Statistics";
                         ToolTip = 'View customers'' total costs, sales, and profits over time, for example, to analyze earnings trends. The report shows amounts for original and adjusted costs, sales, profits, invoice discounts, payment discounts, and profit percentage in three adjustable periods.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                 }
                 group(FinanceReports)
                 {
@@ -1377,6 +1390,7 @@ page 22 "Customer List"
             group(General)
             {
                 Caption = 'General';
+#if not CLEAN28
                 action("Customer List")
                 {
                     ApplicationArea = Suite;
@@ -1384,7 +1398,11 @@ page 22 "Customer List"
                     Image = "Report";
                     RunObject = Report "Customer - List";
                     ToolTip = 'View various kinds of basic information for customers, such as customer posting group, discount group, finance charge and payment information, salesperson, the customer''s default currency and credit limit (in LCY), and the customer''s current balance (in LCY).';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Customer Register")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1427,6 +1445,7 @@ page 22 "Customer List"
                     RunObject = Report "Customer - Order Detail";
                     ToolTip = 'View a list of orders divided by customer. The order amounts are totaled for each customer and for the entire list. The report can be used, for example, to obtain an overview of sales over the short term or to analyze possible shipment problems.';
                 }
+#if not CLEAN28
                 action("Customer - Sales List")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1434,7 +1453,12 @@ page 22 "Customer List"
                     Image = "Report";
                     RunObject = Report "Customer - Sales List";
                     ToolTip = 'View customer sales for a period, for example, to report sales activity to customs and tax authorities. You can choose to include only customers with total sales that exceed a minimum amount. You can also specify whether you want the report to show address details for each customer.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
+#if not CLEAN28
                 action("Sales Statistics")
                 {
                     ApplicationArea = Suite;
@@ -1442,7 +1466,11 @@ page 22 "Customer List"
                     Image = "Report";
                     RunObject = Report "Sales Statistics";
                     ToolTip = 'View customers'' total costs, sales, and profits over time, for example, to analyze earnings trends. The report shows amounts for original and adjusted costs, sales, profits, invoice discounts, payment discounts, and profit percentage in three adjustable periods.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Customer/Item Sales")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1600,10 +1628,15 @@ page 22 "Customer List"
                 actionref("Customer - Order Summary_Promoted"; "Customer - Order Summary")
                 {
                 }
+#if not CLEAN28
                 actionref("Customer - Sales List_Promoted"; "Customer - Sales List")
                 {
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                    ObsoleteTag = '21.0';
                 }
+#endif
                 actionref("Customer - Due Payments_Promoted"; "Customer - Due Payments")
                 {
                 }
@@ -1716,6 +1749,10 @@ page 22 "Customer List"
         EventFilter: Text;
         CaptionTxt: Text;
 
+    /// <summary>
+    /// Gets a filter expression representing the currently selected customers.
+    /// </summary>
+    /// <returns>A filter expression for the selected customers.</returns>
     procedure GetSelectionFilter(): Text
     var
         Cust: Record Customer;
@@ -1730,6 +1767,10 @@ page 22 "Customer List"
         exit(SelectionFilterForCustomer);
     end;
 
+    /// <summary>
+    /// Sets the customer record variable to the current page selection.
+    /// </summary>
+    /// <param name="Cust">Variable to receive the selection filter.</param>
     procedure SetSelection(var Cust: Record Customer)
     begin
         CurrPage.SetSelectionFilter(Cust);
@@ -1766,12 +1807,21 @@ page 22 "Customer List"
         Page.Run(Page::"Sales Prices", SalesPrice);
     end;
 
+    /// <summary>
+    /// Raises an event to allow customization of the customer list page caption.
+    /// </summary>
+    /// <param name="InText">The caption text to be modified.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure SetCaption(var InText: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after getting the selection filter from the customer list.
+    /// </summary>
+    /// <param name="Customer">The customer records that are selected.</param>
+    /// <param name="SelectionFilterForCustomer">The selection filter text for the selected customers.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterGetSelectionFilter(var Customer: Record Customer; var SelectionFilterForCustomer: Text)
     begin

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays a card view for editing individual finance charge terms with all configuration options.
+/// </summary>
 page 494 "Finance Charge Terms Card"
 {
     Caption = 'Finance Charge Terms Card';

@@ -15,10 +15,12 @@ codeunit 101931 "Create Local RapidStart Pack"
     begin
         CreateTable(DATABASE::"FR Acc. Schedule Name");
         CreateTable(DATABASE::"FR Acc. Schedule Line");
+#if not CLEAN28
         CreateTable(DATABASE::"Payment Class");
         CreateTable(DATABASE::"Payment Status");
         CreateTable(DATABASE::"Payment Step");
         CreateTable(DATABASE::"Payment Address");
+#endif
         CreateTable(DATABASE::"Gen. Journal Line");
     end;
 
@@ -35,10 +37,12 @@ codeunit 101931 "Create Local RapidStart Pack"
         CreateConfigWorksheet.CreateConfigGroup(XLocalSettingsTxt);
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"FR Acc. Schedule Name");
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"FR Acc. Schedule Line");
+#if not CLEAN28
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Class");
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Status");
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Step");
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Address");
+#endif
     end;
 
     procedure SetFieldsAndFilters(TableID: Integer)

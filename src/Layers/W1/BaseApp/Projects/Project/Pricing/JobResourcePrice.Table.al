@@ -124,6 +124,7 @@ table 1012 "Job Resource Price"
         }
         field(8; "Unit Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Cost Factor';
 
             trigger OnValidate()
@@ -133,6 +134,7 @@ table 1012 "Job Resource Price"
         }
         field(9; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

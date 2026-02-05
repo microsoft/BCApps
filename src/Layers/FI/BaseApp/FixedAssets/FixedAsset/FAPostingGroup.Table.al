@@ -313,6 +313,7 @@ table 5606 "FA Posting Group"
         }
         field(31; "Allocated Acquisition Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Acquisition)));
             Caption = 'Allocated Acquisition Cost %';
@@ -322,6 +323,7 @@ table 5606 "FA Posting Group"
         }
         field(32; "Allocated Depreciation %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Depreciation)));
             Caption = 'Allocated Depreciation %';
@@ -331,6 +333,7 @@ table 5606 "FA Posting Group"
         }
         field(33; "Allocated Write-Down %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Write-Down")));
             Caption = 'Allocated Write-Down %';
@@ -340,6 +343,7 @@ table 5606 "FA Posting Group"
         }
         field(34; "Allocated Appreciation %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Appreciation)));
             Caption = 'Allocated Appreciation %';
@@ -349,6 +353,7 @@ table 5606 "FA Posting Group"
         }
         field(35; "Allocated Custom 1 %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Custom 1")));
             Caption = 'Allocated Custom 1 %';
@@ -358,6 +363,7 @@ table 5606 "FA Posting Group"
         }
         field(36; "Allocated Custom 2 %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Custom 2")));
             Caption = 'Allocated Custom 2 %';
@@ -367,6 +373,7 @@ table 5606 "FA Posting Group"
         }
         field(37; "Allocated Sales Price %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Disposal)));
             Caption = 'Allocated Sales Price %';
@@ -376,6 +383,7 @@ table 5606 "FA Posting Group"
         }
         field(38; "Allocated Maintenance %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Maintenance)));
             Caption = 'Allocated Maintenance %';
@@ -385,6 +393,7 @@ table 5606 "FA Posting Group"
         }
         field(39; "Allocated Gain %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Gain)));
             Caption = 'Allocated Gain %';
@@ -394,6 +403,7 @@ table 5606 "FA Posting Group"
         }
         field(40; "Allocated Loss %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Loss)));
             Caption = 'Allocated Loss %';
@@ -403,6 +413,7 @@ table 5606 "FA Posting Group"
         }
         field(41; "Allocated Book Value % (Gain)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Book Value (Gain)")));
             Caption = 'Allocated Book Value % (Gain)';
@@ -412,6 +423,7 @@ table 5606 "FA Posting Group"
         }
         field(42; "Allocated Book Value % (Loss)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Book Value (Loss)")));
             Caption = 'Allocated Book Value % (Loss)';

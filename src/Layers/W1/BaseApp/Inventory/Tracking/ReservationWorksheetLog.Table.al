@@ -26,6 +26,7 @@ table 359 "Reservation Worksheet Log"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

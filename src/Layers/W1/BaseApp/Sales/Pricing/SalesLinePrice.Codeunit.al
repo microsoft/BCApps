@@ -14,6 +14,9 @@ using Microsoft.Pricing.Source;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Implements price calculation logic for sales lines, handling price sources, discounts, and campaign pricing.
+/// </summary>
 codeunit 7020 "Sales Line - Price" implements "Line With Price"
 {
     var
@@ -23,11 +26,20 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         CurrPriceType: Enum "Price Type";
         PriceCalculated: Boolean;
 
+    /// <summary>
+    /// Returns the database table number for the Sales Line table.
+    /// </summary>
+    /// <returns>The table number of the Sales Line table.</returns>
     procedure GetTableNo(): Integer
     begin
         exit(Database::"Sales Line")
     end;
 
+    /// <summary>
+    /// Sets the sales line and price type for price calculation, initializing the price sources.
+    /// </summary>
+    /// <param name="PriceType">Specifies the type of price calculation (Sale or Purchase).</param>
+    /// <param name="Line">Specifies the sales line record to set.</param>
     procedure SetLine(PriceType: Enum "Price Type"; Line: Variant)
     begin
         SalesLine := Line;
@@ -36,6 +48,12 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         AddSources();
     end;
 
+    /// <summary>
+    /// Sets the sales header, sales line, and price type for price calculation, clearing existing data and initializing price sources.
+    /// </summary>
+    /// <param name="PriceType">Specifies the type of price calculation (Sale or Purchase).</param>
+    /// <param name="Header">Specifies the sales header record to set.</param>
+    /// <param name="Line">Specifies the sales line record to set.</param>
     procedure SetLine(PriceType: Enum "Price Type"; Header: Variant; Line: Variant)
     begin
         ClearAll();
@@ -43,27 +61,51 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         SetLine(PriceType, Line);
     end;
 
+    /// <summary>
+    /// Copies the specified price source list to the internal price source list.
+    /// </summary>
+    /// <param name="NewPriceSourceList">Specifies the price source list to copy from.</param>
     procedure SetSources(var NewPriceSourceList: codeunit "Price Source List")
     begin
         PriceSourceList.Copy(NewPriceSourceList);
     end;
 
+    /// <summary>
+    /// Retrieves the current sales line record.
+    /// </summary>
+    /// <param name="Line">Returns the sales line record.</param>
     procedure GetLine(var Line: Variant)
     begin
         Line := SalesLine;
     end;
 
+    /// <summary>
+    /// Retrieves the current sales header and sales line records.
+    /// </summary>
+    /// <param name="Header">Returns the sales header record.</param>
+    /// <param name="Line">Returns the sales line record.</param>
     procedure GetLine(var Header: Variant; var Line: Variant)
     begin
         Header := SalesHeader;
         Line := SalesLine;
     end;
 
+    /// <summary>
+    /// Returns the current price type used for price calculation.
+    /// </summary>
+    /// <returns>The current price type (Sale or Purchase).</returns>
     procedure GetPriceType(): Enum "Price Type"
     begin
         exit(CurrPriceType);
     end;
 
+    /// <summary>
+    /// Determines whether a price update is needed based on the amount type, whether a price was found, and the field that triggered the calculation.
+    /// </summary>
+    /// <param name="AmountType">Specifies the type of amount (Price or Discount).</param>
+    /// <param name="FoundPrice">Specifies whether a price was found during calculation.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
+    /// <returns>True if the price needs to be updated; otherwise, false.</returns>
     procedure IsPriceUpdateNeeded(AmountType: enum "Price Amount Type"; FoundPrice: Boolean; CalledByFieldNo: Integer) Result: Boolean;
     begin
         if FoundPrice then
@@ -76,12 +118,19 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterIsPriceUpdateNeeded(AmountType, FoundPrice, CalledByFieldNo, Result, SalesLine);
     end;
 
+    /// <summary>
+    /// Determines whether a line discount is allowed for the sales line based on the line settings and whether a price has been calculated.
+    /// </summary>
+    /// <returns>True if a line discount is allowed; otherwise, false.</returns>
     procedure IsDiscountAllowed() Result: Boolean;
     begin
         Result := SalesLine."Allow Line Disc." or not PriceCalculated;
         OnAfterIsDiscountAllowed(SalesLine, PriceCalculated, Result, SalesHeader);
     end;
 
+    /// <summary>
+    /// Verifies that the sales line has valid data for price calculation, including quantity per unit of measure and currency factor.
+    /// </summary>
     procedure Verify()
     var
         IsHandled: Boolean;
@@ -96,6 +145,11 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
             SalesHeader.TestField("Currency Factor");
     end;
 
+    /// <summary>
+    /// Initializes the detailed price calculation setup record with asset information from the sales line.
+    /// </summary>
+    /// <param name="DtldPriceCalculationSetup">Returns the initialized detailed price calculation setup record.</param>
+    /// <returns>True if a source group was found for the setup; otherwise, false.</returns>
     procedure SetAssetSourceForSetup(var DtldPriceCalculationSetup: Record "Dtld. Price Calculation Setup"): Boolean
     begin
         DtldPriceCalculationSetup.Init();
@@ -114,6 +168,10 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         exit((PriceCalculationBuffer."Asset Type" <> PriceCalculationBuffer."Asset Type"::" ") and (PriceCalculationBuffer."Asset No." <> ''));
     end;
 
+    /// <summary>
+    /// Determines the price asset type based on the sales line type (Item, Resource, or G/L Account).
+    /// </summary>
+    /// <returns>The price asset type corresponding to the sales line type.</returns>
     procedure GetAssetType() AssetType: Enum "Price Asset Type";
     begin
         case SalesLine.Type of
@@ -129,6 +187,11 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterGetAssetType(SalesLine, AssetType);
     end;
 
+    /// <summary>
+    /// Copies the sales line data to the price calculation buffer for price calculation processing.
+    /// </summary>
+    /// <param name="PriceCalculationBufferMgt">Specifies the price calculation buffer management codeunit to populate.</param>
+    /// <returns>True if the data was successfully copied to the buffer; otherwise, false.</returns>
     procedure CopyToBuffer(var PriceCalculationBufferMgt: Codeunit "Price Calculation Buffer Mgt."): Boolean
     var
         PriceCalculationBuffer: Record "Price Calculation Buffer";
@@ -228,6 +291,11 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterGetDocumentDate(DocumentDate, SalesHeader, SalesLine);
     end;
 
+    /// <summary>
+    /// Applies the price or discount from the price list line to the sales line based on the amount type and price type.
+    /// </summary>
+    /// <param name="AmountType">Specifies whether to apply a price or discount.</param>
+    /// <param name="PriceListLine">Specifies the price list line containing the price or discount to apply.</param>
     procedure SetPrice(AmountType: Enum "Price Amount Type"; PriceListLine: Record "Price List Line")
     var
         IsHandled: Boolean;
@@ -257,6 +325,10 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterSetPrice(SalesLine, PriceListLine, AmountType, SalesHeader);
     end;
 
+    /// <summary>
+    /// Validates the price or discount on the sales line after it has been set, triggering field validation logic.
+    /// </summary>
+    /// <param name="AmountType">Specifies whether to validate a price or discount.</param>
     procedure ValidatePrice(AmountType: enum "Price Amount Type")
     begin
         case AmountType of
@@ -277,6 +349,10 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterValidatePrice(SalesLine, CurrPriceType, AmountType, SalesHeader);
     end;
 
+    /// <summary>
+    /// Updates the sales line after price calculation, clearing the line discount if not allowed.
+    /// </summary>
+    /// <param name="AmountType">Specifies the type of amount that was updated (Price or Discount).</param>
     procedure Update(AmountType: enum "Price Amount Type")
     begin
         if not SalesLine."Allow Line Disc." then
@@ -285,6 +361,9 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
         OnAfterUpdate(SalesLine, CurrPriceType, AmountType, SalesHeader);
     end;
 
+    /// <summary>
+    /// Adds all activated campaigns associated with the customer or contact as price sources.
+    /// </summary>
     procedure AddActivatedCampaignsAsSource()
     var
         TempTargetCampaignGr: Record "Campaign Target Group" temporary;

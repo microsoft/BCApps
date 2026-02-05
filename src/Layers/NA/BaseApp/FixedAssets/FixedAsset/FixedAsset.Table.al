@@ -331,6 +331,7 @@ table 5600 "Fixed Asset"
         }
         field(10003; "Vehicle Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Vehicle Gross Weight';
             MinValue = 0.01;
             DecimalPlaces = 0 : 2;

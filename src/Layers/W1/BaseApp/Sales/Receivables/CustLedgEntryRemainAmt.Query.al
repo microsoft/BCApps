@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Calculates the sum of remaining amounts in local currency for customer ledger entries, with filters for document type, open status, and due date.
+/// </summary>
 query 21 "Cust. Ledg. Entry Remain. Amt."
 {
     Caption = 'Cust. Ledg. Entry Remain. Amt.';

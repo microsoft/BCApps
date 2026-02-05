@@ -73,6 +73,7 @@ page 5804 "Applied Item Entries"
                 field(ApplQty; ApplQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Applied Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies how many units of the item that have been applied.';
@@ -80,6 +81,7 @@ page 5804 "Applied Item Entries"
                 field(Qty; Qty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the total quantity of items that have been applied.';
                 }

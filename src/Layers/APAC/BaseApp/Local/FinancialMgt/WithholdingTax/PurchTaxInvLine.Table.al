@@ -104,6 +104,7 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -117,16 +118,19 @@ table 28076 "Purch. Tax Inv. Line"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -153,6 +157,7 @@ table 28076 "Purch. Tax Inv. Line"
         field(31; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
         }
         field(32; "Allow Invoice Disc."; Boolean)
@@ -162,21 +167,25 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -203,6 +212,7 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(54; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -363,6 +373,7 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -376,6 +387,7 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -397,6 +409,7 @@ table 28076 "Purch. Tax Inv. Line"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -495,14 +508,20 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(28042; "WHT Absorb Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'WHT Absorb Base';
         }
         field(28070; "Paid Amount Incl. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Paid Amount Incl. VAT';
         }
         field(28071; "Paid VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Paid VAT';
         }
         field(28073; "External Document No."; Code[35])
@@ -535,6 +554,7 @@ table 28076 "Purch. Tax Inv. Line"
         }
         field(99000755; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
         }
@@ -575,9 +595,6 @@ table 28076 "Purch. Tax Inv. Line"
     var
         PurchInvHeader: Record "Purch. Inv. Header";
     begin
-        if "Document No." = PurchInvHeader."No." then
-            exit(PurchInvHeader."Currency Code");
-
         if PurchInvHeader.Get("Document No.") then
             exit(PurchInvHeader."Currency Code");
 

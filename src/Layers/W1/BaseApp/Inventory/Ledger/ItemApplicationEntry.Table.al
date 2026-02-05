@@ -44,6 +44,7 @@ table 339 "Item Application Entry"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -709,7 +710,7 @@ table 339 "Item Application Entry"
     begin
         MaxValuationDate := 0D;
         if WithinValuationDate then begin
-            ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date", "SystemCreatedAt");
+            ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date");
             ValueEntry.SetRange("Item Ledger Entry No.", FromItemLedgEntry."Entry No.");
             ValueEntry.SetLoadFields("Valuation Date");
             ValueEntry.FindLast();
@@ -783,11 +784,11 @@ table 339 "Item Application Entry"
         CalcQuantity := 0;
         if ItemApplicationEntry.FindSet() then
             repeat
-                ItemLedgerEntry.SetLoadFields("Entry Type", "Applies-to Entry");
+                ItemLedgerEntry.SetLoadFields("Entry Type", "Applies-to Entry", "Drop Shipment");
                 if ItemLedgerEntry.Get(ItemApplicationEntry."Outbound Item Entry No.") then
                     if SameType then begin
-                        if (ItemLedgerEntry."Entry Type" = OriginalItemLedgerEntry."Entry Type") or
-                           (ItemLedgerEntry."Applies-to Entry" <> 0)
+                        if ((ItemLedgerEntry."Entry Type" = OriginalItemLedgerEntry."Entry Type") or
+                           (ItemLedgerEntry."Applies-to Entry" <> 0)) and (not ItemLedgerEntry."Drop Shipment")
                         then
                             CalcQuantity := CalcQuantity + ItemApplicationEntry.Quantity
                     end else
@@ -889,11 +890,9 @@ table 339 "Item Application Entry"
     begin
         if MaxDate = 0D then
             exit(true);
-        ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date", SystemCreatedAt);
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
-        ValueEntry.SetLoadFields("Valuation Date");
-        ValueEntry.FindLast();
-        exit(ValueEntry."Valuation Date" <= MaxDate);
+        ValueEntry.SetFilter("Valuation Date", '>%1', MaxDate);
+        exit(ValueEntry.IsEmpty());
     end;
 
 #if not CLEAN27

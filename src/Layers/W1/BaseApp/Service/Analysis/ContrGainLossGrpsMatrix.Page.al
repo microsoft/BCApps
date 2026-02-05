@@ -39,6 +39,8 @@ page 9259 "Contr. Gain/Loss (Grps) Matrix"
                 field(TotalGainLoss; TotalGainLoss)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Total Movement';
                     ToolTip = 'Specifies the total change in annual amount on the service contract.';

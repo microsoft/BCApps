@@ -34,6 +34,7 @@ table 3 "Payment Terms"
         }
         field(4; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             Enabled = false;
@@ -74,6 +75,7 @@ table 3 "Payment Terms"
         }
         field(12171; "Payment %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Payment Lines"."Payment %" where("Sales/Purchase" = const(" "),
                                                                  Type = const("Payment Terms"),
                                                                  Code = field(Code)));

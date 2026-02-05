@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Analysis;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays customer sales information with configurable period and amount type views.
+/// </summary>
 page 155 "Customer Sales"
 {
     Caption = 'Customer Sales';

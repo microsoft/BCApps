@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Displays and edits a customer ship-to address with shipping and contact information.
+/// </summary>
 page 300 "Ship-to Address"
 {
     Caption = 'Ship-to Address';
@@ -227,11 +230,22 @@ page 300 "Ship-to Address"
 
         ShowMapLbl: Label 'Show on Map';
 
+    /// <summary>
+    /// Raises an event after initializing a new ship-to address record with default values from the customer.
+    /// </summary>
+    /// <param name="Customer">The customer record used to initialize the new ship-to address.</param>
+    /// <param name="ShipToAddress">The new ship-to address record being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnNewRecord(var Customer: Record Customer; var ShipToAddress: Record "Ship-to Address")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before initializing a new ship-to address record.
+    /// </summary>
+    /// <param name="Customer">The customer record to be used for initialization.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization behavior.</param>
+    /// <param name="ShipToAddress">The new ship-to address record being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnNewRecord(var Customer: Record Customer; var IsHandled: Boolean; var ShipToAddress: Record "Ship-to Address")
     begin

@@ -78,6 +78,7 @@ table 5880 "Pstd. Phys. Invt. Order Line"
         }
         field(50; "Qty. Expected (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Expected (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -93,6 +94,7 @@ table 5880 "Pstd. Phys. Invt. Order Line"
         }
         field(54; "Qty. Exp. Tracking (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Pstd.Exp.Invt.Order.Tracking"."Quantity (Base)" where("Order No" = field("Document No."),
                                                                                       "Order Line No." = field("Line No.")));
             Caption = 'Qty. Exp. Item Tracking (Base)';
@@ -109,11 +111,13 @@ table 5880 "Pstd. Phys. Invt. Order Line"
         field(60; "Unit Amount"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Amount';
         }
         field(62; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
         }
         field(70; "No. Finished Rec.-Lines"; Integer)
@@ -123,12 +127,14 @@ table 5880 "Pstd. Phys. Invt. Order Line"
         }
         field(71; "Qty. Recorded (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Recorded (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(72; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -142,12 +148,14 @@ table 5880 "Pstd. Phys. Invt. Order Line"
         }
         field(74; "Pos. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pos. Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(75; "Neg. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Neg. Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;

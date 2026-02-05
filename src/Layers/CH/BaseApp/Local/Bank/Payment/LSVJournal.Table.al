@@ -85,10 +85,14 @@ table 3010832 "LSV Journal"
         }
         field(52; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(53; "Amount Plus"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("LSV Journal Line"."Collection Amount" where("LSV Journal No." = field("No.")));
             Caption = 'Amount Plus';
             FieldClass = FlowField;

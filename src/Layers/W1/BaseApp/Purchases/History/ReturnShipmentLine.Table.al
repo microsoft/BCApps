@@ -106,6 +106,7 @@ table 6651 "Return Shipment Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -118,16 +119,19 @@ table 6651 "Return Shipment Line"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -136,6 +140,7 @@ table 6651 "Return Shipment Line"
         field(31; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
         }
         field(32; "Allow Invoice Disc."; Boolean)
@@ -145,21 +150,25 @@ table 6651 "Return Shipment Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -191,12 +200,14 @@ table 6651 "Return Shipment Line"
         }
         field(54; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -362,6 +373,7 @@ table 6651 "Return Shipment Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -375,11 +387,13 @@ table 6651 "Return Shipment Line"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -399,7 +413,8 @@ table 6651 "Return Shipment Line"
         }
         field(5603; "Salvage Value"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -474,6 +489,7 @@ table 6651 "Return Shipment Line"
         }
         field(5805; "Return Qty. Shipped Not Invd."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Return Qty. Shipped Not Invd.';
             DecimalPlaces = 0 : 5;
             Editable = false;

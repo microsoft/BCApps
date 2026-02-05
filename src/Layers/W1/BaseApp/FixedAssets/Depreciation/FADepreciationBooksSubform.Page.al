@@ -115,6 +115,8 @@ page 5666 "FA Depreciation Books Subform"
                 field(BookValue; BookValue)
                 {
                     ApplicationArea = FixedAssets;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec.GetCurrencyCode();
                     Caption = 'Book Value';
                     Editable = false;
                     ToolTip = 'Specifies the book value for the fixed asset as a FlowField.';

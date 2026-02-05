@@ -47,6 +47,8 @@ page 9151 "My Vendors"
                 field("<Balance>"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Balance';
                     ToolTip = 'Specifies the balance.';
                     Visible = false;

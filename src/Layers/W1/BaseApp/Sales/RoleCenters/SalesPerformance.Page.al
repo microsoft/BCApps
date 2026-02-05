@@ -8,6 +8,9 @@ using Microsoft.Inventory.Analysis;
 using System.Integration;
 using System.Visualization;
 
+/// <summary>
+/// Displays a chart of sales performance based on analysis report data with configurable period lengths and navigation.
+/// </summary>
 page 770 "Sales Performance"
 {
     Caption = 'Sales Performance';

@@ -36,6 +36,7 @@ table 10304 "ACH RB Detail"
         }
         field(6; "Payment Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Amount';
         }
         field(7; "Customer/Vendor Number"; Text[30])

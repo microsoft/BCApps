@@ -113,7 +113,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             EDocumentPurchaseLine.Validate("[BC] Item Reference No.", ItemReference."Reference No.");
             EDocImpSessionTelemetry.SetLineBool(EDocumentPurchaseLine.SystemId, 'Item Reference ', true);
 
-            SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Item Reference No."), StrSubstNo(ItemReferenceReasonMsg, VendorNo), ItemReference, Page::"Item References", StrSubstNo(ItemReferenceSourceMsg, ItemReference."Reference No."), ActivityLog);
+            SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), StrSubstNo(ItemReferenceReasonMsg, VendorNo), ItemReference, Page::"Item References", StrSubstNo(ItemReferenceSourceMsg, ItemReference."Reference No."), ActivityLog);
             EDocActivityLogSession.Set(EDocActivityLogSession.ItemRefTok(), ActivityLog);
             exit;
         end;

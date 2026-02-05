@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +13,9 @@ report 11008 "Export VIES Report"
 {
     Caption = 'VAT- VIES Declaration (XML)';
     ProcessingOnly = true;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by codeunit "Generate Xml VIES ELMA" for ELMA XML format export.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -394,4 +398,4 @@ report 11008 "Export VIES Report"
         exit(FormatAmountForExport(VATReportLine.Base, Length));
     end;
 }
-
+#endif

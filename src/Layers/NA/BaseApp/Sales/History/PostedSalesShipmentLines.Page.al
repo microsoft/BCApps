@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.Finance.Dimension;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales shipment lines across documents for analysis and invoicing status.
+/// </summary>
 page 525 "Posted Sales Shipment Lines"
 {
     ApplicationArea = Basic, Suite;

@@ -98,6 +98,8 @@ page 36631 "Customer List - Order Status"
                 }
                 field("Balance on Date (LCY)"; Rec."Balance on Date (LCY)")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Editable = false;
                     ToolTip = 'Specifies a balance amount in local currency.';
                     Visible = false;

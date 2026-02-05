@@ -35,6 +35,8 @@ page 9048 "Acc. Payable Activities"
                 }
                 field("A/P Accounts Balance"; this.ActivitiesMgt.CalcAPAccountsBalance())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'A/P Accounts Balance';
                     ToolTip = 'The total balance of all A/P accounts.';
 
@@ -45,6 +47,8 @@ page 9048 "Acc. Payable Activities"
                 }
                 field("Payments On Hold Amount"; this.PaymentsOnHoldAmountCue)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Payments On Hold';
                     ToolTip = 'The total amount of payments that are currently on hold.';
 

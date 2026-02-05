@@ -83,6 +83,7 @@ table 5410 "Prod. Order Capacity Need"
         }
         field(14; "Allocated Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocated Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -101,26 +102,31 @@ table 5410 "Prod. Order Capacity Need"
 #pragma warning restore AS0070
         field(18; "Needed Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Needed Time';
             DecimalPlaces = 0 : 5;
         }
         field(19; "Needed Time (ms)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Needed Time (ms)';
             Editable = false;
         }
         field(21; "Lot Size"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Lot Size';
             DecimalPlaces = 1 : 1;
         }
         field(22; "Concurrent Capacities"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
             DecimalPlaces = 0 : 5;
         }
         field(23; Efficiency; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Efficiency';
             DecimalPlaces = 0 : 5;
         }

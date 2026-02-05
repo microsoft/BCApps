@@ -64,6 +64,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(8; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(9; "Vendor No."; Code[20])
@@ -125,12 +126,14 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(18; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Debit Amount (LCY)';
         }
         field(19; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Credit Amount (LCY)';
         }

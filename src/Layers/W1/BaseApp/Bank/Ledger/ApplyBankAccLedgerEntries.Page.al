@@ -176,6 +176,8 @@ page 381 "Apply Bank Acc. Ledger Entries"
                 field(Balance; Balance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Balance';
                     Editable = false;
                     ToolTip = 'Specifies the balance of the bank account since the last posting, including any amount in the Total on Outstanding Checks field.';
@@ -183,6 +185,8 @@ page 381 "Apply Bank Acc. Ledger Entries"
                 field(CheckBalance; CheckBalance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Total on Outstanding Checks';
                     Editable = false;
                     ToolTip = 'Specifies the part of the bank account balance that consists of posted check ledger entries. The amount in this field is a subset of the amount in the Balance field under the right pane in the Bank Acc. Reconciliation window.';
@@ -207,6 +211,8 @@ page 381 "Apply Bank Acc. Ledger Entries"
                 field(BalanceToReconcile; BalanceToReconcile)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Balance To Reconcile';
                     Editable = false;
                     ToolTip = 'Specifies the balance of the bank account since the last posting, excluding any amount in the Total on Outstanding Checks field.';

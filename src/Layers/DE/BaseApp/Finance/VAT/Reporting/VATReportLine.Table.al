@@ -205,6 +205,7 @@ table 741 "VAT Report Line"
         }
         field(24; "Number of Supplies"; Decimal)
         {
+            AutoFormatType = 0;
             BlankNumbers = DontBlank;
             Caption = 'Number of Supplies';
             DecimalPlaces = 0 : 0;

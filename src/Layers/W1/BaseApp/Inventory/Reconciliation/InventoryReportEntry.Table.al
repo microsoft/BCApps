@@ -33,74 +33,92 @@ table 5846 "Inventory Report Entry"
         }
         field(8; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory';
         }
         field(9; "Inventory (Interim)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory (Interim)';
         }
         field(10; "WIP Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP Inventory';
         }
         field(11; "Direct Cost Applied Actual"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Direct Cost Applied Actual';
         }
         field(12; "Overhead Applied Actual"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Applied Actual';
         }
         field(13; "Purchase Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Purchase Variance';
         }
         field(14; "Inventory Adjmt."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory Adjmt.';
         }
         field(16; "Invt. Accrual (Interim)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invt. Accrual (Interim)';
         }
         field(17; COGS; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'COGS';
         }
         field(18; "COGS (Interim)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'COGS (Interim)';
         }
         field(19; "Material Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Material Variance';
         }
         field(20; "Capacity Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity Variance';
         }
         field(21; "Subcontracted Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Subcontracted Variance';
         }
         field(22; "Capacity Overhead Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity Overhead Variance';
         }
         field(23; "Mfg. Overhead Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Mfg. Overhead Variance';
         }
         field(28; Total; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total';
         }
         field(29; "G/L Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'G/L Total';
         }
         field(30; Difference; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Difference';
         }
         field(31; Type; Option)
@@ -111,26 +129,32 @@ table 5846 "Inventory Report Entry"
         }
         field(32; "Direct Cost Applied WIP"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Direct Cost Applied WIP';
         }
         field(33; "Overhead Applied WIP"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Applied WIP';
         }
         field(35; "Inventory To WIP"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory To WIP';
         }
         field(36; "WIP To Interim"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WIP To Interim';
         }
         field(37; "Direct Cost Applied"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Direct Cost Applied';
         }
         field(38; "Overhead Applied"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Applied';
         }
         field(39; Description; Text[100])
@@ -179,6 +203,7 @@ table 5846 "Inventory Report Entry"
         }
         field(70; "Mat. Non-Inventory Variance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Material Non-Inventory Variance';
         }
     }

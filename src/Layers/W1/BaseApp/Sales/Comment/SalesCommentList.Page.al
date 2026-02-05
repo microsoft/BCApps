@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Comment;
 
+/// <summary>
+/// Displays a read-only list of comment lines for sales documents.
+/// </summary>
 page 69 "Sales Comment List"
 {
     Caption = 'Comment List';

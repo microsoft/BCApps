@@ -12,6 +12,9 @@ using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Posts multiple sales documents as a batch through the job queue for background processing.
+/// </summary>
 codeunit 85 "Sales Post Batch via Job Queue"
 {
     TableNo = "Job Queue Entry";
@@ -68,6 +71,11 @@ codeunit 85 "Sales Post Batch via Job Queue"
             ThrowErrorMessage(TotalDocumentsCount, ErrorPostDocumentsCount, ErrorPrintDocumentsCount);
     end;
 
+    /// <summary>
+    /// Enqueues a batch of sales documents for posting via the job queue.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header records to be processed in the batch.</param>
+    /// <param name="JobQueueEntry">Specifies the job queue entry to be used for batch processing.</param>
     procedure EnqueueSalesBatch(var SalesHeader: Record "Sales Header"; var JobQueueEntry: Record "Job Queue Entry")
     begin
         EnqueueJobQueueEntry(JobQueueEntry);
@@ -255,26 +263,57 @@ codeunit 85 "Sales Post Batch via Job Queue"
         Error(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Raised after inserting the report into the report inbox after printing to PDF.
+    /// </summary>
+    /// <param name="ReportInbox">The report inbox record that was inserted.</param>
+    /// <param name="SalesHeader">The sales header for which the report was generated.</param>
+    /// <param name="RecRef">The record reference to the posted document.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrintToPDFOnAfterReportInboxInsert(var ReportInbox: Record "Report Inbox"; var SalesHeader: Record "Sales Header"; var RecRef: RecordRef)
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the report to generate the PDF.
+    /// </summary>
+    /// <param name="ReportId">The ID of the report to run.</param>
+    /// <param name="RecRef">The record reference to the posted document.</param>
+    /// <param name="OStream">The output stream for the PDF content.</param>
+    /// <param name="IsSuccess">Returns whether the report generation was successful.</param>
+    /// <param name="IsHandled">Set to true to skip the default report generation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrintToPDFOnBeforeReportRun(ReportId: Integer; RecRef: RecordRef; var OStream: OutStream; var IsSuccess: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the Sales-Post codeunit runs for each document in the batch.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesBatchOnBeforeRunSalesPost(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Sales-Post codeunit has successfully run for each document in the batch.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesBatchOnAfterRunSalesPost(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing a document in the batch.
+    /// </summary>
+    /// <param name="ReportUsage">The report usage type for the document.</param>
+    /// <param name="RecRef">The record reference to the posted document.</param>
+    /// <param name="SalesHeader">The sales header from which the document was posted.</param>
+    /// <param name="JobQueueEntry">The job queue entry processing the batch.</param>
+    /// <param name="Result">Returns whether printing was successful.</param>
+    /// <param name="IsHandled">Set to true to skip the default print logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintDocument(ReportUsage: Enum "Report Selection Usage"; RecRef: RecordRef; SalesHeader: Record "Sales Header"; JobQueueEntry: Record "Job Queue Entry"; var Result: Boolean; var IsHandled: Boolean)
     begin

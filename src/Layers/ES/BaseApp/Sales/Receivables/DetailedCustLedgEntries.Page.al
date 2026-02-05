@@ -8,6 +8,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Navigate;
 using System.Security.User;
 
+/// <summary>
+/// Displays detailed customer ledger entries including applications, adjustments, and tolerances with options to unapply entries.
+/// </summary>
 page 573 "Detailed Cust. Ledg. Entries"
 {
     AdditionalSearchTerms = 'sales transaction,payment receipt';

@@ -41,6 +41,12 @@ page 99000861 "Planning Component List"
                     ApplicationArea = Planning;
                     ToolTip = 'Specifies the description of the component.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Calculation Formula"; Rec."Calculation Formula")
                 {
                     ApplicationArea = Planning;

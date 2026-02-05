@@ -24,6 +24,7 @@ page 970 "Time Sheet Allocation"
                     field(TotalQty; TotalQty)
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         Caption = 'Total Quantity';
                         Editable = false;
                         ToolTip = 'Specifies the allocation of posted time sheet lines.';
@@ -31,6 +32,7 @@ page 970 "Time Sheet Allocation"
                     field(AllocatedQty; AllocatedQty)
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         Caption = 'Allocated Quantity';
                         Editable = false;
                         ToolTip = 'Specifies the sum of the hours that have been allocated on the time sheet. The allocated number of hours must equal the total number of hours.';
@@ -46,6 +48,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity1; DateQuantity[1])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[1];
 
                         trigger OnValidate()
@@ -56,6 +59,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity2; DateQuantity[2])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[2];
 
                         trigger OnValidate()
@@ -66,6 +70,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity3; DateQuantity[3])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[3];
 
                         trigger OnValidate()
@@ -76,6 +81,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity4; DateQuantity[4])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[4];
 
                         trigger OnValidate()
@@ -86,6 +92,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity5; DateQuantity[5])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[5];
 
                         trigger OnValidate()
@@ -96,6 +103,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity6; DateQuantity[6])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[6];
 
                         trigger OnValidate()
@@ -106,6 +114,7 @@ page 970 "Time Sheet Allocation"
                     field(DateQuantity7; DateQuantity[7])
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         CaptionClass = '3,' + DateDescription[7];
 
                         trigger OnValidate()

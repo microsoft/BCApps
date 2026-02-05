@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Telemetry;
 
+/// <summary>
+/// Displays and manages reminder terms configurations including posting options and fee settings.
+/// </summary>
 page 431 "Reminder Terms"
 {
     ApplicationArea = Basic, Suite;

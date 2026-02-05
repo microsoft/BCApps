@@ -10,6 +10,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Applies default invoice discounts to sales documents based on discount type configuration.
+/// </summary>
 codeunit 56 "Sales - Calc Discount By Type"
 {
     TableNo = "Sales Line";
@@ -32,6 +35,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         InvDiscBaseAmountIsZeroErr: Label 'Cannot apply an invoice discount because the document does not include lines where the Allow Invoice Disc. field is selected. To add a discount, specify a line discount in the Line Discount % field for the relevant lines, or add a line of type Item where the Allow Invoice Disc. field is selected.';
         CalcInvoiceDiscountOnSalesLine: Boolean;
 
+    /// <summary>
+    /// Applies the default invoice discount to the sales header.
+    /// </summary>
+    /// <param name="InvoiceDiscountAmount">The invoice discount amount to apply.</param>
+    /// <param name="SalesHeader">The sales header to apply the discount to.</param>
     procedure ApplyDefaultInvoiceDiscount(InvoiceDiscountAmount: Decimal; var SalesHeader: Record "Sales Header")
     begin
         ApplyDefaultInvoiceDiscount(InvoiceDiscountAmount, SalesHeader, false);
@@ -59,6 +67,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         ResetRecalculateInvoiceDisc(SalesHeader);
     end;
 
+    /// <summary>
+    /// Applies invoice discount based on a specific amount.
+    /// </summary>
+    /// <param name="InvoiceDiscountAmount">The invoice discount amount to apply.</param>
+    /// <param name="SalesHeader">The sales header to apply the discount to.</param>
     procedure ApplyInvDiscBasedOnAmt(InvoiceDiscountAmount: Decimal; var SalesHeader: Record "Sales Header")
     var
         TempVATAmountLine: Record "VAT Amount Line" temporary;
@@ -113,6 +126,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         end;
     end;
 
+    /// <summary>
+    /// Gets the customer invoice discount percentage for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to get the discount for.</param>
+    /// <returns>The invoice discount percentage.</returns>
     procedure GetCustInvoiceDiscountPct(SalesLine: Record "Sales Line"): Decimal
     var
         SalesHeader: Record "Sales Header";
@@ -160,6 +178,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         exit(0);
     end;
 
+    /// <summary>
+    /// Determines whether the invoice discount amount should be redistributed.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <returns>True if the discount should be redistributed.</returns>
     procedure ShouldRedistributeInvoiceDiscountAmount(var SalesHeader: Record "Sales Header"): Boolean
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
@@ -201,6 +224,10 @@ codeunit 56 "Sales - Calc Discount By Type"
         end;
     end;
 
+    /// <summary>
+    /// Resets the recalculate invoice discount flag on all sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header whose lines should be reset.</param>
     procedure ResetRecalculateInvoiceDisc(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -214,6 +241,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         OnAfterResetRecalculateInvoiceDisc(SalesHeader);
     end;
 
+    /// <summary>
+    /// Checks if a customer invoice discount record exists for the given code.
+    /// </summary>
+    /// <param name="InvDiscCode">The invoice discount code to check.</param>
+    /// <returns>True if a record exists.</returns>
     procedure CustInvDiscRecExists(InvDiscCode: Code[20]): Boolean
     var
         CustInvDisc: Record "Cust. Invoice Disc.";
@@ -222,6 +254,11 @@ codeunit 56 "Sales - Calc Discount By Type"
         exit(not CustInvDisc.IsEmpty);
     end;
 
+    /// <summary>
+    /// Checks if invoice discount is allowed for the given discount code.
+    /// </summary>
+    /// <param name="InvDiscCode">The invoice discount code to check.</param>
+    /// <returns>True if invoice discount is allowed.</returns>
     procedure InvoiceDiscIsAllowed(InvDiscCode: Code[20]): Boolean
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -270,6 +307,10 @@ codeunit 56 "Sales - Calc Discount By Type"
     begin
     end;
 
+    /// <summary>
+    /// Sets the flag to calculate invoice discount on a specific line.
+    /// </summary>
+    /// <param name="CalcInvoiceDiscountOnLine">Whether to calculate on a specific line.</param>
     procedure CalcInvoiceDiscOnLine(CalcInvoiceDiscountOnLine: Boolean)
     begin
         CalcInvoiceDiscountOnSalesLine := CalcInvoiceDiscountOnLine;

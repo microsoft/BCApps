@@ -9,6 +9,9 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using System.Reflection;
 
+/// <summary>
+/// Displays and manages customer-specific document layouts for sales reports. Allows configuration of report selections, email settings, and custom layouts per customer.
+/// </summary>
 page 9657 "Customer Report Selections"
 {
     Caption = 'Document Layouts';

@@ -265,12 +265,16 @@ codeunit 137159 "SCM Warehouse VII"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesLine2: Record "Sales Line";
+        VATPostingsetupSale: Record "VAT Posting Setup";
         Quantity: Decimal;
         PostedDocumentNo: Code[20];
     begin
         // Create Customer. Create Warehouse Shipment from Sales Order.
         Quantity := LibraryRandom.RandDec(10, 2);
         LibraryInventory.CreateItem(Item);
+        LibraryERM.FindVATPostingSetup(VATPostingSetupSale, VATPostingSetupSale."VAT Calculation Type"::"Normal VAT");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetupSale."VAT Prod. Posting Group");
+        Item.Modify();
         LibrarySales.CreateCustomer(Customer);
         CreateWarehouseShipmentFromSalesOrder(SalesHeader, SalesLine, Customer."No.", Item."No.", Quantity, LocationBlue.Code, false);
 

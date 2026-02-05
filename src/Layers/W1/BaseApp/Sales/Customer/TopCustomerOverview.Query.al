@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.CRM.Team;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Provides an overview of customers with sales, profit, and geographic information for analysis.
+/// </summary>
 query 100 "Top Customer Overview"
 {
     Caption = 'Top Customer Overview';

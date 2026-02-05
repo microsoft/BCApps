@@ -143,6 +143,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeSharePointConnection();
         CreateDefaultAADApplication();
         CreatePowerPagesAAdApplications();
+        CreateExpenseAgentAADApplications();
         UpgradePowerBIOptin();
     end;
 
@@ -3504,6 +3505,18 @@ codeunit 104000 "Upgrade - BaseApp"
             exit;
         AADApplicationSetup.CreatePowerPagesAAdApplications();
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCreateDefaultPowerPagesAADApplicationsTag());
+    end;
+
+    local procedure CreateExpenseAgentAADApplications()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        AADApplicationSetup: Codeunit "AAD Application Setup";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCreateExpenseAgentAADApplicationsTag()) then
+            exit;
+        AADApplicationSetup.CreateExpenseAgentAADApplications();
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCreateExpenseAgentAADApplicationsTag());
     end;
 
     local procedure CheckLedgerEntriesMoveFromRecordIDToSystemId()

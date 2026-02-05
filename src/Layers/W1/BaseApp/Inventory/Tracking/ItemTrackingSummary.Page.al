@@ -144,6 +144,7 @@ page 6500 "Item Tracking Summary"
                         Visible = MaxQuantity1Visible;
                         field(MaxQuantity1; MaxQuantity)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = ItemTracking;
                             Caption = 'Selectable';
                             DecimalPlaces = 0 : 5;
@@ -157,6 +158,7 @@ page 6500 "Item Tracking Summary"
                         Visible = Selected1Visible;
                         field(Selected1; SelectedQuantity)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = ItemTracking;
                             Caption = 'Selected';
                             DecimalPlaces = 0 : 5;
@@ -170,6 +172,7 @@ page 6500 "Item Tracking Summary"
                         Visible = Undefined1Visible;
                         field(Undefined1; MaxQuantity - SelectedQuantity)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = ItemTracking;
                             BlankZero = true;
                             Caption = 'Undefined';

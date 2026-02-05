@@ -148,6 +148,7 @@ report 10030 "Budget Amount by Period"
                     field(DistributeAmt; DistributeAmt)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Budget Amount';
                         ToolTip = 'Specifies the budgeted amount. ';
                     }
@@ -161,6 +162,7 @@ report 10030 "Budget Amount by Period"
                     field(PercentChg; PercentChg)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Period Percent Change';
                         ToolTip = 'Specifies if you want the budget to increase in relation to the previous period. For example, if the budget amount is $100, and the amount type is Beginning Amount, and the period percent change is 10, then the first period will have a budget of $100, the second period will have a budget of $110, the third will have a budget of $121.';
                     }

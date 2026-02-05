@@ -595,6 +595,8 @@ page 30 "Item Card"
                 field(CalcUnitPriceExclVAT; Rec.CalcUnitPriceExclVAT())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     CaptionClass = '2,0,' + Rec.FieldCaption("Unit Price");
                     Importance = Additional;
                     ToolTip = 'Specifies the unit price excluding VAT.';

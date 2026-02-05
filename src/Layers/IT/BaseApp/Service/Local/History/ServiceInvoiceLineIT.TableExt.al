@@ -12,6 +12,7 @@ tableextension 12457 "Service Invoice Line IT" extends "Service Invoice Line"
     {
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;

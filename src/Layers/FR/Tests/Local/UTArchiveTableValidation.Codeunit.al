@@ -1,7 +1,11 @@
+#if not CLEAN28
 codeunit 144039 "UT Archive Table Validation"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -43,4 +47,4 @@ codeunit 144039 "UT Archive Table Validation"
         RecRef1.Close();
     end;
 }
-
+#endif

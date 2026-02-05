@@ -11,6 +11,9 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using System.Automation;
 
+/// <summary>
+/// Displays a list of blanket sales orders for managing long-term customer agreements.
+/// </summary>
 page 9303 "Blanket Sales Orders"
 {
     ApplicationArea = Suite;

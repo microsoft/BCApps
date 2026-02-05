@@ -57,6 +57,7 @@ page 5999 "Available - Service Lines"
                 }
                 field(QtyToReserveBase; QtyToReserveBase)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Available Quantity';
                     DecimalPlaces = 0 : 5;
@@ -65,6 +66,7 @@ page 5999 "Available - Service Lines"
                 }
                 field(ReservedQuantity; GetReservedQtyInLine())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     Caption = 'Current Reserved Quantity';
                     DecimalPlaces = 0 : 5;

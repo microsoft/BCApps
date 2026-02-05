@@ -15,6 +15,9 @@ using Microsoft.Inventory.Location;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Displays sales analysis data by configurable dimensions with matrix view support.
+/// </summary>
 page 7158 "Sales Analysis by Dimensions"
 {
     Caption = 'Sales Analysis by Dimensions';
@@ -718,6 +721,10 @@ page 7158 "Sales Analysis by Dimensions"
         SalesAnalysisByDimMatrix.RunModal();
     end;
 
+    /// <summary>
+    /// Sets the analysis view code to be used when the page opens.
+    /// </summary>
+    /// <param name="NewAnalysisViewCode">The analysis view code to set.</param>
     procedure SetCurrentAnalysisViewCode(NewAnalysisViewCode: Code[10])
     begin
         NewItemAnalysisCode := NewAnalysisViewCode;

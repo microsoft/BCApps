@@ -84,6 +84,7 @@ page 5 Currencies
                 field(ExchangeRateAmt; ExchangeRateAmt)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Exchange Rate';
                     DecimalPlaces = 0 : 7;
                     Editable = false;
@@ -238,6 +239,7 @@ page 5 Currencies
                 field(CurrencyFactor; CurrencyFactor)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Currency Factor';
                     DecimalPlaces = 1 : 6;
                     ToolTip = 'Specifies the relationship between the additional reporting currency and the local currency. Amounts are recorded in both LCY and the additional reporting currency, using the relevant exchange rate and the currency factor.';

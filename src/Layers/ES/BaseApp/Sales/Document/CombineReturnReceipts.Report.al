@@ -12,6 +12,9 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using System.Globalization;
 
+/// <summary>
+/// Consolidates multiple return receipts into a single sales credit memo for efficient processing.
+/// </summary>
 report 6653 "Combine Return Receipts"
 {
     ApplicationArea = SalesReturnOrder, PurchReturnOrder;
@@ -311,6 +314,13 @@ report 6653 "Combine Return Receipts"
             ToSalesHeader.Validate("Bill-to Customer No.", FromSalesOrderHeader."Bill-to Customer No.");
     end;
 
+    /// <summary>
+    /// Initializes the request with posting parameters.
+    /// </summary>
+    /// <param name="NewPostingDate">The posting date for combined credit memos.</param>
+    /// <param name="NewDocumentDate">The document date for combined credit memos.</param>
+    /// <param name="NewCalcInvDisc">Whether to calculate invoice discount.</param>
+    /// <param name="NewPostCreditMemo">Whether to post the credit memo after combining.</param>
     procedure InitializeRequest(NewPostingDate: Date; NewDocumentDate: Date; NewCalcInvDisc: Boolean; NewPostCreditMemo: Boolean)
     begin
         PostingDateReq := NewPostingDate;
@@ -320,12 +330,24 @@ report 6653 "Combine Return Receipts"
         PostInv := NewPostCreditMemo;
     end;
 
+    /// <summary>
+    /// Initializes the request with posting parameters including VAT date.
+    /// </summary>
+    /// <param name="NewPostingDate">The posting date for combined credit memos.</param>
+    /// <param name="NewDocumentDate">The document date for combined credit memos.</param>
+    /// <param name="NewVATDate">The VAT date for combined credit memos.</param>
+    /// <param name="NewCalcInvDisc">Whether to calculate invoice discount.</param>
+    /// <param name="NewPostCreditMemo">Whether to post the credit memo after combining.</param>
     procedure InitializeRequest(NewPostingDate: Date; NewDocumentDate: Date; NewVATDate: Date; NewCalcInvDisc: Boolean; NewPostCreditMemo: Boolean)
     begin
         InitializeRequest(NewPostingDate, NewDocumentDate, NewCalcInvDisc, NewPostCreditMemo);
         VATDateReq := NewVATDate;
     end;
 
+    /// <summary>
+    /// Sets whether to hide dialog messages during processing.
+    /// </summary>
+    /// <param name="NewHideDialog">Whether to hide dialog messages.</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;

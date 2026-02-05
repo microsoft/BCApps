@@ -1123,6 +1123,10 @@ codeunit 99000845 "Reservation Management"
         ReservEntry2 := ReservEntry;
         ReservEntry2.SetPointerFilter();
         ReservEntry.CopyTrackingFiltersToReservEntry(ReservEntry2);
+
+        if ReservEntry.GetFilter("Item Ledger Entry No.") <> '' then
+            ReservEntry2.SetRange("Item Ledger Entry No.", ReservEntry."Item Ledger Entry No.");
+
         if ReservEntry2.FindFirst() then begin
             ReservEntry.Binding := ReservEntry2.Binding;
             ReservEntry2.CalcSums("Quantity (Base)");

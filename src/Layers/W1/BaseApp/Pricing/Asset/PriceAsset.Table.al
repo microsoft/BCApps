@@ -139,12 +139,16 @@ table 7003 "Price Asset"
         }
         field(17; "Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
         field(18; "Unit Price 2"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price 2';
             DataClassification = SystemMetadata;
             MinValue = 0;

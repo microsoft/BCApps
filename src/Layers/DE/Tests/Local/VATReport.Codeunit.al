@@ -1,58 +1,27 @@
 codeunit 144001 "VAT Report"
 {
-    // -------------------------------------------------------------------------------------------------
-    // Function Name                                                                         TFS ID
-    // -------------------------------------------------------------------------------------------------
-    // ExportVATReportVerifyNoOfLinesOnZeroBaseAmount                                        352584
-    // ExportCorrectiveVATReportCancellationOn                                               352605
-    // ExportCorrectiveVATReportCancellationOff                                              352605
-    // CompanyNameAdressCity                                                                 352599
-
     Subtype = Test;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
-        // [FEATURE] [VAT Report]
+        // [FEATURE] [VAT Report] [VIES ELMA XML]
     end;
 
     var
-        ExportVIESReport: Report "Export VIES Report";
+        VATReportMediator: Codeunit "VAT Report Mediator";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
+        VariableStorage: Codeunit "Library - Variable Storage";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         Assert: Codeunit Assert;
-        FieldStartPositionsRecType0Tok: Label '1,2,8,16,61,86,91,116';
-        FieldStartPositionsRecType1Tok: Label '1,2,13,15,19,33,45,46,48,50';
-        FieldStartPositionsRecType2Tok: Label '1,2,13,17,31,36';
-        FieldLengthsRecType0Tok: Label '1,6,8,45,25,5,25,5';
-        FieldLengthsRecType1Tok: Label '1,11,2,4,14,12,1,2,2,71';
-        FieldLengthsRecType2Tok: Label '1,11,4,14,5,85';
-        RegistrationIDLbl: Label 'Registration ID';
-        CreationDateLbl: Label 'Creation Date';
-        NameLbl: Label 'Name';
-        PostCodeLbl: Label 'Post Code';
-        CompanyAddressLbl: Label 'Company Address';
-        LocationLbl: Label 'Location';
-        VATRegNoLbl: Label 'VAT Registration No.';
-        TypeOfStatementLbl: Label 'Type of Statement';
-        ECPartnerIDLbl: Label 'EC Partner VAT ID';
-        AssessmentBasisLbl: Label 'Assessment basis';
-        TypeOfTurnoverLbl: Label 'Type of turnover';
-        NoticeLbl: Label 'Notice';
-        RevocationLbl: Label 'Revocation';
-        TotalAmtLbl: Label 'Total of the assessement bases';
-        NoOfLinesLbl: Label 'Number of records of record type 1';
-        ReportPeriodLbl: Label 'Reporting time period';
         IncorrectNoOfReportLinesErr: Label 'The number of report lines is incorrect.';
         IncorrectVATReportLineAmtErr: Label 'The amount in the VAT Report line is incorrect.';
-        MandatoryFieldEmptyErr: Label 'Not all mandatory fields are filled in the report.';
-        UnknownReportLineTypeErr: Label 'Unknown report line type (Report Type field = %1).';
-        IncorrectReportFieldValueErr: Label 'The value of the field %1 in VAT Report is incorrect.';
         ReportNotSubmittedErr: Label 'VAT report was not submitted.';
-        VATReportMediator: Codeunit "VAT Report Mediator";
         OriginalAmtMustBeZeroErr: Label 'Original amount must be 0 in corrective report.';
-        IncorrectCorrectionAmtErr: Label 'Amount must be equal to %1 in corrective line.';
+        IncorrectCorrectionAmtErr: Label 'Amount must be equal to %1 in corrective line.', Comment = '%1 = expected amount';
         LineCannotBeChangedErr: Label 'Cancellation line cannot be changed';
         NewValueIsNotSetErr: Label 'Amount in correction line must be editable.';
         IncorrectAmtInSecondCorrErr: Label 'Amount in the second correction must be initialized with the first correction amount.';
@@ -60,15 +29,12 @@ codeunit 144001 "VAT Report"
         NonEUCountryInReportErr: Label 'VAT entry for non-EU country must not be included in report.';
         CorrLinesNotCreatedErr: Label 'Correction lines were not created.';
         ReportLineMustBeDeletedErr: Label 'VAT Report Line must be deleted.';
-        VariableStorage: Codeunit "Library - Variable Storage";
         ReportingPeriodNotTransferredErr: Label 'Reporing period data must be transferred into corrective report from the original report.';
         ReportPeriodValidatedIncorrectlyErr: Label 'VAT report period validated incorrectly.';
-        FieldMustBeFilledErr: Label 'Field %1 should be filled in table %2.';
+        FieldMustBeFilledErr: Label 'Field %1 should be filled in table %2.', Comment = '%1 = field name, %2 = table name';
         IncorectMsgInErrorLogErr: Label 'Incorrect error message in error log.';
         IncorrectVATEntriesListErr: Label 'Detailed vat entries list is displayed incorrectly.';
         ErrorLogMustBeEmptyErr: Label 'No errors must be logged.';
-        IncorrectAmountForExportErr: Label 'Amount for export formatted incorrectly.';
-        IncorrectFileNameErr: Label 'Report file name is incorrect.';
         OddNoOfCorrLinesErr: Label 'Each cancellation line should have related corrective line.';
         CorrectionEntryAlreadyExistsErr: Label 'A correction entry already exists for this entry in report';
         InvalidCompanyNameTok: Label 'Name - Labé';
@@ -78,11 +44,12 @@ codeunit 144001 "VAT Report"
         ValidCompanyAddressTok: Label 'Address - Labe';
         ValidCompanyCityTok: Label 'City - Labe';
         KeyAlreadyExistsErr: Label 'When you run the Suggest Lines action, it will add a VAT Report line for VAT Reg. No', Comment = 'A line of type = Correction already exists in the VAT Report. Remove the line to continue. Filters: VAT Registration No. = 12345';
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        UnacceptableValueErr: Label 'Your entry of ''%1'' is not an acceptable value for ''%2''', Comment = '%1 = field value, %2 = field caption';
+        VIESELMAFileNamePatternTxt: Label 'ZMDO_DE%1_%2%3_%4', Locked = true, Comment = '%1 = VAT Registration No. digits, %2 = Report Period No. + 20, %3 = Report Year, %4 = Date';
+        FileNamePatternMismatchErr: Label 'File name should match pattern %1*.xml, actual: %2', Comment = '%1 = expected file name pattern, %2 = actual file name';
         IsInitialized: Boolean;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SetReportPeriodTypeMonth_VerifyPeriodValidated()
     var
         PeriodNo: Integer;
@@ -94,7 +61,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SetReportPeriodTypeQuarter_VerifyPeriodValidated()
     var
         PeriodNo: Integer;
@@ -106,7 +72,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SetReportPeriodTypeYear_VerifyPeriodValidated()
     var
         PeriodType: Option ,Month,Quarter,Year,"Bi-Monthly";
@@ -116,7 +81,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SetReportPeriodTypeBiMonthly_VerifyPeriodValidated()
     var
         PeriodNo: Integer;
@@ -129,7 +93,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyStartDate_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -141,7 +104,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyEndDate_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -153,7 +115,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyProcessingDate_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -165,7 +126,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyPeriodType_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -177,7 +137,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyPeriodNo_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -189,7 +148,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyReportYear_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -201,7 +159,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyCompanyName_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -213,7 +170,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyCompanyAddress_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -225,7 +181,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyPostCode_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -237,7 +192,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyCity_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -249,7 +203,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyVATRegNo_VerifyErrorLogged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -261,7 +214,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyVATRegNoInLine_VerifyErrorLogged()
     var
         VATReportLine: Record "VAT Report Line";
@@ -272,7 +224,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ChangeReportTypeWithLines()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -294,7 +245,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ChangeOriginalReportNoWithLines()
     var
         VATReportHeaderB: Record "VAT Report Header";
@@ -338,36 +288,7 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVIESReportVATRegistrationNo()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        CompanyInformation: Record "Company Information";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        SetupCompanyInformationVATRegNo(CompanyInformation);
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        VerifyReportFieldValue(
-          VATReportBuf,
-          1,
-          5,
-          GetVATRegNo(VATReportLine),
-          ECPartnerIDLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
     [HandlerFunctions('VATReportErrorLogHandler')]
-    [Scope('OnPrem')]
     procedure SetEmptyCountryCodeInLine_VerifyErrorLogged()
     var
         VATReportLine: Record "VAT Report Line";
@@ -378,7 +299,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SetZeroAmountInLine_VerifyValidationSuccessful()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -393,7 +313,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure DeleteReport_VerifyLinesDeleted()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -410,7 +329,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure DeleteVATReportLine_VerifyRelationLinesDeleted()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -425,12 +343,9 @@ codeunit 144001 "VAT Report"
 
         VATReportLineRelation.SetRange("VAT Report No.", VATReportHeader."No.");
         Assert.IsTrue(VATReportLineRelation.IsEmpty, ReportLineMustBeDeletedErr);
-
-        DeleteVATReport(VATReportHeader."No.");
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_VerifyDateFiltering()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -451,7 +366,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_StandardReport_VerifyCountryGrouping()
     var
         VATReportLine: Record "VAT Report Line";
@@ -461,7 +375,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_StandardReport_VerifyVATRegNoGrouping()
     var
         VATReportLine: Record "VAT Report Line";
@@ -471,7 +384,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_StandardReport_VerifyEU3PartyTradeGrouping()
     var
         VATReportLine: Record "VAT Report Line";
@@ -481,7 +393,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_StandardReport_VerifyLineRelation()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -509,7 +420,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure SuggestLines_StandardReport_VerifyNonEUCountryNotIncluded()
     var
         CountryRegion: Record "Country/Region";
@@ -539,564 +449,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
-    procedure FormatAmountForExport_PositiveNumber_VerifyLeadingZeros()
-    var
-        AmtText: Text[20];
-        NoOfDigits: Integer;
-        i: Integer;
-    begin
-        Initialize();
-        NoOfDigits := LibraryRandom.RandIntInRange(3, 7);
-        AmtText := FormatRandomAmountForExport(NoOfDigits, true);
-
-        for i := 1 to StrLen(AmtText) - NoOfDigits do
-            Assert.AreEqual('0', Format(AmtText[i]), IncorrectAmountForExportErr);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure FormatAmountForExport_PositiveNumber_VerifyAmountRounded()
-    var
-        AmtText: Text[20];
-        NoOfDigits: Integer;
-    begin
-        Initialize();
-        NoOfDigits := LibraryRandom.RandIntInRange(3, 7);
-        AmtText := FormatRandomAmountForExport(NoOfDigits, true);
-        Assert.AreEqual(NoOfDigits, StrLen(DelChr(AmtText, '<', '0')), IncorrectAmountForExportErr);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure FormatAmountForExport_NegativeNumber()
-    var
-        AmtText: Text[20];
-    begin
-        Initialize();
-        AmtText := FormatRandomAmountForExport(LibraryRandom.RandIntInRange(3, 7), false);
-        Assert.AreEqual('-', Format(AmtText[StrLen(AmtText)]), IncorrectAmountForExportErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyMandatoryFieldsFilled()
-    var
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        VATReportHeader: Record "VAT Report Header";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        VerifyMandatoryFieldsInVATReport(VATReportBuf);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyNoOfLinesType0()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        Assert.AreEqual(1, CountReportBufferLines(VATReportBuf, '0'), IncorrectNoOfReportLinesErr);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyNoOfLinesType2()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        Assert.AreEqual(1, CountReportBufferLines(VATReportBuf, '2'), IncorrectNoOfReportLinesErr);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyNoOfLinesOnZeroBaseAmount()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        // Verify Export Buffer for absence of non-correction VAT report lines with 0 Base
-        CreateVATReportAndSaveIntoBufferZeroBase(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        VerifyBufferLineCount(VATReportBuf, '1', 0);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyRegistrationID()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportSetup: Record "VAT Report Setup";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        VATReportSetup.Get();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 2, VATReportSetup."Registration ID", RegistrationIDLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyCreationDate()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 3, Format(VATReportHeader."Processing Date", 0, '<Year4><Month,2><Day,2>'), CreationDateLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyReporterName()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 4, VATReportHeader."Company Name", NameLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyAddressStreet()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 5, VATReportHeader."Company Address", CompanyAddressLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyAddressPostcode()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 6, VATReportHeader."Post Code", PostCodeLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyAddressLocation()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 0, 7, VATReportHeader.City, LocationLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyReporterVATID()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VerifyReportFieldValue(VATReportBuf, 1, 2, VATReportHeader."VAT Registration No.", VATRegNoLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyTypeOfStatement()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        ExportVIESReport: Report "Export VIES Report";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-        VerifyReportFieldValue(VATReportBuf, 1, 3, ExportVIESReport.GetReportType(VATReportLine, VATReportHeader), TypeOfStatementLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyPartnerVATID()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        // [SCENARIO 301437] Export VIES Report when VAT Registration No does not have Country/Region prefix
-        Initialize();
-
-        // [GIVEN] EU Country/Region Code = 'BE', VAT Registration No = '123456789'
-        // [WHEN] Run Export VIES Report
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        // [THEN] VAT Registration No. exported as 'BE123456789'
-        VerifyReportFieldValue(
-          VATReportBuf,
-          1,
-          5,
-          GetVATRegNo(VATReportLine),
-          ECPartnerIDLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVATIDWithCountryCode()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        TempDataExportBuffer: Record "Data Export Buffer" temporary;
-        CountryRegion: Record "Country/Region";
-        VATRegNo: Text[20];
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        // [SCENARIO 301437] Export VIES Report when VAT Registration No has Country/Region prefix
-        Initialize();
-
-        // [GIVEN] EU Country/Region Code = 'BE', VAT Registration No = 'BE123456789'
-        LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion."EU Country/Region Code" :=
-          LibraryUtility.GenerateRandomCodeWithLength(CountryRegion.FieldNo("EU Country/Region Code"), DATABASE::"Country/Region", 2);
-        CountryRegion.Modify();
-        VATRegNo := CountryRegion."EU Country/Region Code" + Format(LibraryRandom.RandIntInRange(10000000, 20000000));
-
-        // [WHEN] Run Export VIES Report
-        SetupVATReportScenarioWithVATRegNo(VATReportHeader, TestPeriodStart, TestPeriodEnd, CountryRegion.Code, VATRegNo);
-        ExportVATReportIntoBuffer(VATReportHeader, TempDataExportBuffer);
-
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        // [THEN] VAT Registration No. exported as 'BE123456789'
-        VerifyReportFieldValue(
-          TempDataExportBuffer,
-          1,
-          5,
-          VATReportLine."VAT Registration No.",
-          ECPartnerIDLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyAssessmentBasis()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        VerifyReportFieldValue(VATReportBuf, 1, 6, ExportVIESReport.FormatAmountForExport(VATReportLine.Base, 12), AssessmentBasisLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyTypeOfTurnover()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        ExportVIESReport: Report "Export VIES Report";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        VerifyReportFieldValue(VATReportBuf, 1, 7, ExportVIESReport.GetTurnoverType(VATReportLine), TypeOfTurnoverLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyNotice()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        ExportVIESReport: Report "Export VIES Report";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        VerifyReportFieldValue(VATReportBuf, 1, 8, ExportVIESReport.GetNotice(VATReportHeader), NoticeLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyRevocation()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        ExportVIESReport: Report "Export VIES Report";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.FindFirst();
-
-        VerifyReportFieldValue(VATReportBuf, 1, 9, ExportVIESReport.GetRevocation(VATReportHeader), RevocationLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyTotalAssessmentBase()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-        VATReportLine.CalcSums(Base);
-
-        VerifyReportFieldValue(
-          VATReportBuf,
-          2,
-          4,
-          ExportVIESReport.FormatAmountForExport(VATReportLine.Base, 14),
-          TotalAmtLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyNoOfRecordType1Records()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
-
-        VerifyReportFieldValue(
-          VATReportBuf,
-          2,
-          5,
-          ExportVIESReport.FormatAmountForExport(VATReportLine.Count, 5),
-          NoOfLinesLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyReportingTimePeriod()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer";
-        ExportVIESReport: Report "Export VIES Report";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        VerifyReportFieldValue(VATReportBuf, 2, 3, ExportVIESReport.GetReportPeriod(VATReportHeader), ReportPeriodLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportVerifyReportingTimePeriodsAreEqual()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        CreateVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        Assert.AreEqual(
-          GetFieldValueFromBuffer(VATReportBuf, 1, 4),
-          GetFieldValueFromBuffer(VATReportBuf, 2, 3),
-          StrSubstNo(IncorrectReportFieldValueErr, ReportPeriodLbl));
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('VATReportLinesListHandler,ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportCorrectiveVATReportVerifyTotalAmount()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        CorrVATReportHeader: Record "VAT Report Header";
-        CorrVATReportLine: Record "VAT Report Line";
-        VATReportBuf: Record "Data Export Buffer";
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        Initialize();
-        SetupVatReportScenario_SubmitReport(VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        CreateCorrectiveReport(VATReportHeader, CorrVATReportHeader);
-        SubmitVATReport(CorrVATReportHeader);
-
-        ExportVATReportIntoBuffer(CorrVATReportHeader, VATReportBuf);
-        FindLastReportLine(CorrVATReportHeader."No.", CorrVATReportLine."Line Type"::Correction, CorrVATReportLine);
-
-        VerifyReportFieldValue(
-          VATReportBuf,
-          2,
-          4,
-          ExportVIESReport.FormatAmountForExport(CorrVATReportLine.Base, 14),
-          TotalAmtLbl);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler,VATReportLinesListHandler')]
-    [Scope('OnPrem')]
-    procedure ExportCorrectiveVATReportCancellationOn()
-    begin
-        // Verify Export Buffer for report lines' types and total report count
-        // when Export Cancellation Lines is Off
-        Initialize();
-        ExportCorrectiveVATReportVerifyReportLineTypesAndCount(false, 2);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler,VATReportLinesListHandler')]
-    [Scope('OnPrem')]
-    procedure ExportCorrectiveVATReportCancellationOff()
-    begin
-        // Verify Export Buffer for report lines' types and total report count.
-        // when Export Cancellation Lines is On
-        Initialize();
-        ExportCorrectiveVATReportVerifyReportLineTypesAndCount(true, 3);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure CompanyNameAdressCity()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1109,46 +461,9 @@ codeunit 144001 "VAT Report"
         VATReportHeader.Insert(true);
 
         VerifyVATReportHeaderCompanyInformation(VATReportHeader);
-
-        DeleteVATReport(VATReportHeader."No.");
     end;
 
     [Test]
-    [Scope('OnPrem')]
-    procedure MakeFileNameInExportModeVerifyExtension()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        FileName: Text;
-    begin
-        Initialize();
-        CreateStandardMonthReport(VATReportHeader);
-        VATReportHeader.Validate("Test Export", false);
-        FileName := ExportVIESReport.MakeFileName(VATReportHeader);
-
-        Assert.AreEqual('p', Format(FileName[StrLen(FileName)]), IncorrectFileNameErr);
-
-        DeleteVATReport(VATReportHeader."No.");
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure MakeFileNameInTestModeVerifyExtension()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        FileName: Text;
-    begin
-        Initialize();
-        CreateStandardMonthReport(VATReportHeader);
-        VATReportHeader.Validate("Test Export", true);
-        FileName := ExportVIESReport.MakeFileName(VATReportHeader);
-
-        Assert.AreEqual('t', Format(FileName[StrLen(FileName)]), IncorrectFileNameErr);
-
-        DeleteVATReport(VATReportHeader."No.");
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure VerifyOpenReportCannotBeSubmitted()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1161,7 +476,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure VerifyReleasedReportCannotBeSubmitted()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1172,11 +486,9 @@ codeunit 144001 "VAT Report"
 
         asserterror VATReportMediator.Submit(VATReportHeader);
         Assert.ExpectedTestFieldError(VATReportHeader.FieldCaption(Status), Format(VATReportHeader.Status::Exported));
-
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure VerifyExportedReportCanBeSubmitted()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1188,13 +500,10 @@ codeunit 144001 "VAT Report"
         VATReportMediator.Submit(VATReportHeader);
         VATReportHeader.Get(VATReportHeader."No.");
         Assert.AreEqual(Format(VATReportHeader.Status::Submitted), Format(VATReportHeader.Status), ReportNotSubmittedErr);
-
-        DeleteVATReport(VATReportHeader."No.");
     end;
 
     [Test]
     [HandlerFunctions('VATReportsLookupHandler')]
-    [Scope('OnPrem')]
     procedure SetOriginalReportNo_VerifyReportValidated()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1217,7 +526,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyTwoLinesCreated()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1241,7 +549,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyOriginalAmount()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1265,7 +572,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyCorrectiveAmountIsFilled()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1293,7 +599,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyOriginalAmountCannotBeChanged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1317,7 +622,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyCorrectiveAmountCanBeChanged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1348,7 +652,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure SuggestCorrectiveLinesVerifyAmountsInSecondCorrection()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1389,7 +692,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CreateCorrectiveReportVerifyPeriodTypeCannotBeChanged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1407,7 +709,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CreateCorrectiveReportVerifyPeriodNoCannotBeChanged()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1426,7 +727,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestNoNewEntry()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1458,7 +758,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestNewEntryKnownKey()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1509,7 +808,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestNewEntryNewKey()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1546,7 +844,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestNewEntriesKnownKey()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1604,7 +901,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrSuggestNewEntryBasePreManualChange()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1663,7 +959,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrSuggestNoNewEntryBasePreManualChange()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1708,7 +1003,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrSuggestNoNewEntryBasePreManualChangeCorrect()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1757,7 +1051,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrSuggestForCorrectedLineConflictErr()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1798,7 +1091,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrSuggestForCorrectedLineNoNewEntries()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1839,7 +1131,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrLinesDisplayCorrectBaseAmounts()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1881,7 +1172,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrLinesCannotBeInvokedTwice()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1914,7 +1204,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesValuesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrLinesForPrevAndReportedEntries()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -1982,7 +1271,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure CorrLinesNewVATEntryOldAmount()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2036,7 +1324,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestChangedFilters()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2097,7 +1384,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestChangedFiltersTwice()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2169,7 +1455,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestChangedFiltersToggle()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2253,7 +1538,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue')]
-    [Scope('OnPrem')]
     procedure CorrSuggestChangedFiltersSuggestTwice()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2296,7 +1580,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure CorrSuggestNewEntriesSuggestTwice()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2338,7 +1621,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATEntriesListHandler')]
-    [Scope('OnPrem')]
     procedure ClickAmountAssistEdit_VerifyVATEntriesList()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2359,7 +1641,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure VerifyAmountCannotBeChangedInReleasedReport()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2378,18 +1659,13 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure VerifyReportLineCanRelateToOneTableOnly()
     var
         VATReportHeader: Record "VAT Report Header";
         VATReportLineRelation: Record "VAT Report Line Relation";
     begin
         Initialize();
-        CreateMockVATReportWithLines(
-          VATReportHeader,
-          VATReportHeader."VAT Report Type"::Standard,
-          VATReportHeader."Report Period Type"::Year,
-          1);
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Year, 1);
 
         VATReportLineRelation.Get(VATReportHeader."No.", 1, DATABASE::"VAT Entry", 1);
         VATReportLineRelation.Validate("Table No.", DATABASE::"G/L Entry");
@@ -2400,7 +1676,6 @@ codeunit 144001 "VAT Report"
 
     [Test]
     [HandlerFunctions('VATReportLinesListHandler')]
-    [Scope('OnPrem')]
     procedure VerifyCorrectiveReportWithOddNoOfLinesCannotBeReleased()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2421,34 +1696,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [HandlerFunctions('ExportVIESReportPageHandler')]
-    [Scope('OnPrem')]
-    procedure ExportVATReportEncodingUT()
-    var
-        VATReportHeader: Record "VAT Report Header";
-        FileMgt: Codeunit "File Management";
-        ServerFileName: Text;
-    begin
-        // [FEATURE] [UT]
-        // [SCENARIO 166131] VAT Report exports country specific symbols with correct encoding
-        Initialize();
-
-        // [GIVEN] Company information address contains country specific symbols
-        SetCompanyInformationAddress('ÄäÜüöÖß');
-
-        // [GIVEN] Created VAT Report
-        CreateStandardMonthReport(VATReportHeader);
-
-        // [WHEN] Run Export VAT report
-        ServerFileName := FileMgt.ServerTempFileName('txt');
-        ExportVATReport(VATReportHeader, ServerFileName);
-
-        // [THEN] Created file contains country specific symbols in correct encoding
-        VerifyCompanyInfoAddressValue(ServerFileName, 'ÄäÜüöÖß');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure ECSLReportSetReportPeriodTypeMonth()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2462,7 +1709,7 @@ codeunit 144001 "VAT Report"
         ECSLReport.OpenNew();
         ECSLReport."Report Period No.".SetValue(1);
         ECSLReport.ReportPeriodType.SetValue(Format(VATReportHeader."Report Period Type"::Month));
-        VATReportNo := ECSLReport."No.".Value();
+        VATReportNo := CopyStr(ECSLReport."No.".Value(), 1, 20);
         ECSLReport.Close();
 
         VATReportHeader.Get(VATReportNo);
@@ -2470,7 +1717,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ECSLReportSetReportPeriodTypeQuarter()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2484,7 +1730,7 @@ codeunit 144001 "VAT Report"
         ECSLReport.OpenNew();
         ECSLReport."Report Period No.".SetValue(1);
         ECSLReport.ReportPeriodType.SetValue(Format(VATReportHeader."Report Period Type"::Quarter));
-        VATReportNo := ECSLReport."No.".Value();
+        VATReportNo := CopyStr(ECSLReport."No.".Value(), 1, 20);
         ECSLReport.Close();
 
         VATReportHeader.Get(VATReportNo);
@@ -2492,7 +1738,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ECSLReportSetReportPeriodTypeYear()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2508,12 +1753,11 @@ codeunit 144001 "VAT Report"
         Assert.ExpectedErrorCode('TestValidation');
         Assert.ExpectedError(
           StrSubstNo(
-            'Your entry of ''%1'' is not an acceptable value for ''%2''',
+            UnacceptableValueErr,
             Format(VATReportHeader."Report Period Type"::Year), ECSLReport.ReportPeriodType.Caption));
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ECSLReportSetReportPeriodTypeBiMonthly()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -2527,20 +1771,786 @@ codeunit 144001 "VAT Report"
         ECSLReport.OpenNew();
         ECSLReport."Report Period No.".SetValue(1);
         ECSLReport.ReportPeriodType.SetValue(Format(VATReportHeader."Report Period Type"::"Bi-Monthly"));
-        VATReportNo := ECSLReport."No.".Value();
+        VATReportNo := CopyStr(ECSLReport."No.".Value(), 1, 20);
         ECSLReport.Close();
 
         VATReportHeader.Get(VATReportNo);
         VATReportHeader.TestField("Report Period Type", VATReportHeader."Report Period Type"::"Bi-Monthly");
     end;
 
+    [Test]
+    procedure ExportVATReportEncodingUT()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 166131] VAT Report exports country specific symbols with correct encoding
+        Initialize();
+
+        // [GIVEN] Company information address contains country specific symbols
+        SetCompanyInformationAddress('ÄäÜüöÖß');
+
+        // [WHEN] Create VAT Report Xml
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] XML contains country specific symbols in correct encoding
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:strasse', 'ÄäÜüöÖß');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyNoOfLinesOnZeroBaseAmount()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] VAT Report lines with zero base amount are not included in exported VIES report
+        Initialize();
+
+        // [WHEN] Export VIES report with VAT Report Lines having zero base amount
+        CreateVATReportZeroBase(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] No zmZeile nodes exist in the exported XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 0);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyCreationDate()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains creation date
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Creation date in XML starts with today's date
+        InitXMLReaderForVIESReport(TempBlob);
+        Assert.IsTrue(
+            StrPos(LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//elan:Erstellung', 0), Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>')) = 1,
+            'Creation date should start with today''s date');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyReporterName()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains company name
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Company Name in XML matches "VR"."Company Name"
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:name', VATReportHeader."Company Name");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyAddressStreet()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains company address
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Company Address in XML matches "VR"."Company Address"
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:strasse', VATReportHeader."Company Address");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyAddressPostcode()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains post code
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Post Code in XML matches "VR"."Post Code"
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:plz', VATReportHeader."Post Code");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyAddressLocation()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains city
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] City in XML matches "VR".City
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:ort', VATReportHeader.City);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyISOCountryCode()
+    var
+        CompanyInformation: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains ISO country code in entrepreneur's address
+        Initialize();
+
+        // [GIVEN] Company Information with Country/Region Code having ISO Code "DE"
+        CompanyInformation.Get();
+        CountryRegion.Get(CompanyInformation."Country/Region Code");
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] ISO Country Code in XML matches Company Information's Country/Region ISO Code
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:staat', CountryRegion."ISO Code");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyReporterVATID()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains VAT Registration No.
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] VAT Registration No. in XML matches "DE" + "VR"."VAT Registration No."
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:deUStIdNr', 'DE' + VATReportHeader."VAT Registration No.");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyTypeOfStatement()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains type of statement
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Type of statement attribute is '10' (standard report)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('//zm:zms/zm:unternehmer/zm:zm', 'meldeart', '10');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyPartnerVATID()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report exports Partner VAT ID with country code and VAT number separately
+        Initialize();
+
+        // [WHEN] Export VIES report with VAT Report Line with Country/Region Code "BE" and VAT Registration No. "123456789"
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATReportLine.FindFirst();
+        CountryRegion.Get(VATReportLine."Country/Region Code");
+
+        // [THEN] Country code and VAT Registration No. are exported separately
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:lkz', CountryRegion."EU Country/Region Code");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', VATReportLine."VAT Registration No.");
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyAssessmentBasis()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report exports assessment basis (amount)
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATReportLine.FindFirst();
+
+        // [THEN] Amount in XML matches VAT Report Line Base amount
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:betrag', Format(Round(VATReportLine.Base, 1), 0, 9));
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyTypeOfTurnover()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains type of turnover 'L' for EU Deliveries
+        Initialize();
+
+        // [WHEN] Export VIES report without EU Service and without EU 3-Party Trade
+        CreateVATReportWithTurnoverType(VATReportHeader, TempBlob, false, false);
+
+        // [THEN] Type of turnover in XML is 'L' (Lieferungen - deliveries)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:umsatzart', 'L');
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyTypeOfTurnoverServices()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains type of turnover 'S' for EU Services
+        Initialize();
+
+        // [WHEN] Export VIES report with VAT Report Line having "EU Service" = true
+        CreateVATReportWithTurnoverType(VATReportHeader, TempBlob, true, false);
+
+        // [THEN] Type of turnover in XML is 'S' (Sonstige Leistung - Services)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:umsatzart', 'S');
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyTypeOfTurnoverTriangularTrade()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains type of turnover 'D' for EU 3-Party Trade
+        Initialize();
+
+        // [WHEN] Export VIES report with VAT Report Line having "EU 3-Party Trade" = true
+        CreateVATReportWithTurnoverType(VATReportHeader, TempBlob, false, true);
+
+        // [THEN] Type of turnover in XML is 'D' (Dreiecksgeschäft - Triangular trade)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:umsatzart', 'D');
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyNotice()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report does not contain notice node when notice is not set
+        Initialize();
+
+        // [WHEN] Export VIES report with Notice = false
+        CreateVATReportWithNotice(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, false);
+
+        // [THEN] Notice node is absent in the exported XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//zm:zms/zm:unternehmer/zm:zm/zm:anzeige');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyNoticeWhenSet()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains notice node with 'true' when notice is set
+        Initialize();
+
+        // [WHEN] Export VIES report with Notice = true
+        CreateVATReportWithNotice(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, true);
+
+        // [THEN] Notice node value is 'true'
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:anzeige', 'true');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyRevocation()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report does not contain revocation node when revocation is not set
+        Initialize();
+
+        // [WHEN] Export VIES report with Revocation = false
+        CreateVATReportWithRevocation(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, false);
+
+        // [THEN] Revocation node is absent in the exported XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//zm:zms/zm:unternehmer/zm:zm/zm:widerruf');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyRevocationWhenSet()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains revocation node with 'true' when revocation is set
+        Initialize();
+
+        // [WHEN] Export VIES report with Revocation = true
+        CreateVATReportWithRevocation(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, true);
+
+        // [THEN] Revocation node value is 'true'
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:widerruf', 'true');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyNoOfLines()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct number of lines
+        Initialize();
+
+        // [WHEN] Export VIES report with multiple VAT Report Lines
+        CreateVATReportWithMultipleLines(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+
+        // [THEN] Number of zmZeile nodes matches VAT Report Line count
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', VATReportLine.Count);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyReportingTimePeriod()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct reporting time period
+        Initialize();
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Year value in XML match VAT Report Header period
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:mzr/zm:jahr', Format(VATReportHeader."Report Year"));
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyPeriodCodeForQuarter()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        QuarterNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct period code for quarterly report (1-4)
+        Initialize();
+
+        // [GIVEN] Quarter number 1-4
+        QuarterNo := LibraryRandom.RandIntInRange(1, 4);
+
+        // [WHEN] Export VIES report with Report Period Type = Quarter
+        CreateVATReportWithPeriodType(VATReportHeader, TempBlob, VATReportHeader."Report Period Type"::Quarter, QuarterNo);
+
+        // [THEN] Period code in XML equals Quarter number (1-4)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:mzr/zm:quart', Format(QuarterNo));
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyPeriodCodeForYear()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct period code for annual report (5)
+        Initialize();
+
+        // [WHEN] Export VIES report with Report Period Type = Year
+        CreateVATReportWithPeriodType(VATReportHeader, TempBlob, VATReportHeader."Report Period Type"::Year, 1);
+
+        // [THEN] Period code in XML equals 5 (annual)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:mzr/zm:quart', '5');
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyPeriodCodeForBiMonthly()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        BiMonthlyPeriodNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct period code for bi-monthly report (11-14)
+        Initialize();
+
+        // [GIVEN] Bi-monthly period number 1-4
+        BiMonthlyPeriodNo := LibraryRandom.RandIntInRange(1, 4);
+
+        // [WHEN] Export VIES report with Report Period Type = Bi-Monthly
+        CreateVATReportWithPeriodType(VATReportHeader, TempBlob, VATReportHeader."Report Period Type"::"Bi-Monthly", BiMonthlyPeriodNo);
+
+        // [THEN] Period code in XML equals Period No + 10 (11-14)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:mzr/zm:quart', Format(BiMonthlyPeriodNo + 10));
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyPeriodCodeForMonth()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        MonthNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains correct period code for monthly report (21-32)
+        Initialize();
+
+        // [GIVEN] Month number 1-12
+        MonthNo := LibraryRandom.RandIntInRange(1, 12);
+
+        // [WHEN] Export VIES report with Report Period Type = Month
+        CreateVATReportWithPeriodType(VATReportHeader, TempBlob, VATReportHeader."Report Period Type"::Month, MonthNo);
+
+        // [THEN] Period code in XML equals Month No + 20 (21-32)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:mzr/zm:quart', Format(MonthNo + 20));
+    end;
+
+    [Test]
+    [HandlerFunctions('VATReportLinesListHandler')]
+    procedure ExportCorrectiveVATReportVerifyCorrectionAmount()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        CorrVATReportHeader: Record "VAT Report Header";
+        CorrVATReportLine: Record "VAT Report Line";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export corrective VIES Report contains correction amount
+        Initialize();
+
+        // [GIVEN] Submitted VAT Report "VR" and Corrective VAT Report "CVR" with correction lines
+        SetupVatReportScenario_SubmitReport(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+        CreateCorrectiveReport(VATReportHeader, CorrVATReportHeader);
+        SubmitVATReport(CorrVATReportHeader);
+
+        // [WHEN] Export corrective VAT Report into TempBlob
+        ExportVATReportIntoTempBlob(CorrVATReportHeader, TempBlob);
+        FindLastReportLine(CorrVATReportHeader."No.", CorrVATReportLine."Line Type"::Correction, CorrVATReportLine);
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Amount in XML matches correction line Base amount
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:betrag', Format(Round(CorrVATReportLine.Base, 1), 0, 9));
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATReportLinesListHandler')]
+    procedure ExportCorrectiveVATReportCancellationOff()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export corrective VIES Report with cancellation lines disabled exports 2 lines
+        Initialize();
+
+        // [GIVEN] Export Cancellation Lines is Off
+        SetupExportCancellationLines(false);
+
+        // [GIVEN] Corrective VAT Report "VR"
+        CreateCorrectiveVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [WHEN] Initialize XML Reader for VIES Report
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Report type is '11' (corrective) and contains 2 lines
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('//zm:zms/zm:unternehmer/zm:zm', 'meldeart', '11');
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 2);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+        VATReportHeader.Get(VATReportHeader."Original Report No.");
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATReportLinesListHandler')]
+    procedure ExportCorrectiveVATReportCancellationOn()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export corrective VIES Report with cancellation lines enabled exports 3 lines
+        Initialize();
+
+        // [GIVEN] Export Cancellation Lines is On
+        SetupExportCancellationLines(true);
+
+        // [GIVEN] Corrective VAT Report "VR"
+        CreateCorrectiveVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [WHEN] Initialize XML Reader for VIES Report
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Report type is '11' (corrective) and contains 3 lines
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('//zm:zms/zm:unternehmer/zm:zm', 'meldeart', '11');
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 3);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+        VATReportHeader.Get(VATReportHeader."Original Report No.");
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATReportLinesListHandler')]
+    procedure ExportCorrectiveVATReportVerifyCancellationAmountZero()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        CorrVATReportHeader: Record "VAT Report Header";
+        CorrVATReportLine: Record "VAT Report Line";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export corrective VIES Report exports cancellation lines with amount = 0
+        Initialize();
+
+        // [GIVEN] Export Cancellation Lines is On
+        SetupExportCancellationLines(true);
+
+        // [GIVEN] Submitted VAT Report "VR" and Corrective VAT Report "CVR" with cancellation line having non-zero base
+        SetupVatReportScenario_SubmitReport(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+        CreateCorrectiveReport(VATReportHeader, CorrVATReportHeader);
+        FindLastReportLine(CorrVATReportHeader."No.", CorrVATReportLine."Line Type"::Cancellation, CorrVATReportLine);
+        Assert.AreNotEqual(0, CorrVATReportLine.Base, 'Cancellation line base should not be zero');
+        SubmitVATReport(CorrVATReportHeader);
+
+        // [WHEN] Export corrective VAT Report into TempBlob
+        ExportVATReportIntoTempBlob(CorrVATReportHeader, TempBlob);
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Cancellation line amount in XML is 0 (first zmZeile is the cancellation line)
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:betrag', '0', 0);
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+        Cleanup(CorrVATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyUmgebungProduktion()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains 'PRODUKTION' environment when test export is disabled
+        Initialize();
+
+        // [GIVEN] VAT Report "VR" with Test Export = false
+        CreateVATReportWithTestExport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, false);
+
+        // [WHEN] Initialize XML Reader for VIES Report
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Umgebung node value is 'PRODUKTION'
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//elan:Umgebung', 'PRODUKTION');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyUmgebungTest()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 613377] Export VIES Report contains 'TEST' environment when test export is enabled
+        Initialize();
+
+        // [GIVEN] VAT Report "VR" with Test Export = true
+        CreateVATReportWithTestExport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob, true);
+
+        // [WHEN] Initialize XML Reader for VIES Report
+        InitXMLReaderForVIESReport(TempBlob);
+
+        // [THEN] Umgebung node value is 'TEST'
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//elan:Umgebung', 'TEST');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportVerifyFileName()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportExport: Codeunit "VAT Report Export";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+        FileName: Text;
+        ExpectedFileName: Text;
+    begin
+        // [FEATURE] [AI test] [UT]
+        // [SCENARIO 613377] GetVIESELMAFileName returns file name ZMDO_DE<vatregno>_<periodno+20><reportyear>_<datetime>.xml
+        Initialize();
+
+        // [GIVEN] VAT Report "VR" with VAT Registration No. and period data
+        SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+
+        // [WHEN] GetVIESELMAFileName is called
+        FileName := VATReportExport.GetVIESELMAFileName(VATReportHeader);
+
+        // [THEN] File name matches expected format ZMDO_DE<vatregno>_<periodno+20><reportyear>_<date>_<time>.xml
+        ExpectedFileName := StrSubstNo(VIESELMAFileNamePatternTxt,
+            GetDigitsFromVATRegNo(VATReportHeader."VAT Registration No."),
+            VATReportHeader."Report Period No." + 20,
+            VATReportHeader."Report Year",
+            Format(Today(), 0, '<Year4><Month,2><Day,2>'));
+        Assert.IsTrue(StrPos(FileName, ExpectedFileName) = 1, StrSubstNo(FileNamePatternMismatchErr, ExpectedFileName, FileName));
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
+        DeleteAllVATReports();
         if IsInitialized then
             exit;
 
         InitializeVATReportSetup();
+        InitializeCompanyInformation();
         LibrarySetupStorage.Save(DATABASE::"Company Information");
         LibrarySetupStorage.Save(DATABASE::"VAT Report Setup");
         IsInitialized := true;
@@ -2555,13 +2565,28 @@ codeunit 144001 "VAT Report"
 
         VATReportSetup.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
         VATReportSetup.Validate("Modify Submitted Reports", false);
-        VATReportSetup.Validate("Source Identifier", LibraryUtility.GenerateRandomCode(VATReportSetup.FieldNo("Source Identifier"), DATABASE::"VAT Report Setup"));
-        VATReportSetup.Validate(
-          "Transmission Process ID",
-          LibraryUtility.GenerateRandomCode(VATReportSetup.FieldNo("Transmission Process ID"), DATABASE::"VAT Report Setup"));
-        VATReportSetup.Validate("Supplier ID", LibraryUtility.GenerateRandomCode(VATReportSetup.FieldNo("Supplier ID"), DATABASE::"VAT Report Setup"));
-        VATReportSetup.Validate("Registration ID", LibraryUtility.GenerateRandomCode(VATReportSetup.FieldNo("Registration ID"), DATABASE::"VAT Report Setup"));
         VATReportSetup.Modify();
+    end;
+
+    local procedure InitializeCompanyInformation()
+    var
+        CompanyInformation: Record "Company Information";
+        PostCode: Record "Post Code";
+    begin
+        PostCode.Validate(Code, LibraryUtility.GenerateGUID());
+        PostCode.Validate(City, LibraryUtility.GenerateGUID());
+        PostCode.Validate("Country/Region Code", CreateCountryRegion());
+        PostCode.Insert();
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Post Code", PostCode.Code);
+        CompanyInformation.Modify();
+    end;
+
+    local procedure InitXMLReaderForVIESReport(var TempBlob: Codeunit "Temp Blob")
+    begin
+        LibraryXPathXMLReader.InitializeXml(TempBlob, 'n1', 'http://www.itzbund.de/elan');
+        LibraryXPathXMLReader.AddAdditionalXmlNamespace('elan', 'http://www.itzbund.de/elan/elemente');
+        LibraryXPathXMLReader.AddAdditionalXmlNamespace('zm', 'http://www.itzbund.de/ZM/01');
     end;
 
     local procedure UpdateCompanyInformation(CompanyName: Text[100]; CompanyAddress: Text[30]; CompanyCity: Text[30])
@@ -2595,27 +2620,6 @@ codeunit 144001 "VAT Report"
         VATReportSetup.Modify();
     end;
 
-    local procedure ExportCorrectiveVATReportVerifyReportLineTypesAndCount(ExportCancellationLines: Boolean; ExpectedCount: Integer)
-    var
-        VATReportHeader: Record "VAT Report Header";
-        VATReportBuf: Record "Data Export Buffer" temporary;
-        TestPeriodStart: Date;
-        TestPeriodEnd: Date;
-    begin
-        // Verify Export Buffer for report lines' types and total report count.
-        SetupExportCancellationLines(ExportCancellationLines);
-
-        CreateCorrectiveVATReportAndSaveIntoBuffer(VATReportBuf, VATReportHeader, TestPeriodStart, TestPeriodEnd);
-
-        Assert.AreEqual(
-          ExpectedCount, CountReportBufferLinesByVATReportType(VATReportBuf, '11'), IncorrectNoOfReportLinesErr);
-        VerifyBufferLineCount(VATReportBuf, '1', ExpectedCount);
-
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-        VATReportHeader.Get(VATReportHeader."Original Report No.");
-        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
-    end;
-
     local procedure Cleanup(VATReportNo: Code[20]; TestPeriodStart: Date; TestPeriodEnd: Date)
     begin
         DeleteVATReport(VATReportNo);
@@ -2643,6 +2647,17 @@ codeunit 144001 "VAT Report"
     begin
         VATEntry.SetRange("VAT Reporting Date", TestPeriodStart, TestPeriodEnd);
         VATEntry.DeleteAll(true);
+    end;
+
+    local procedure DeleteAllVATReports()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        VATReportLineRelation: Record "VAT Report Line Relation";
+    begin
+        VATReportHeader.DeleteAll();
+        VATReportLine.DeleteAll();
+        VATReportLineRelation.DeleteAll();
     end;
 
     local procedure SetupVATReportScenario(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date)
@@ -2807,14 +2822,6 @@ codeunit 144001 "VAT Report"
         exit(1);
     end;
 
-    local procedure GetVATRegNo(VATReportLine: Record "VAT Report Line"): Text[20]
-    var
-        CountryRegion: Record "Country/Region";
-    begin
-        CountryRegion.Get(VATReportLine."Country/Region Code");
-        exit(CopyStr(CountryRegion."EU Country/Region Code", 1, 2) + VATReportLine."VAT Registration No.");
-    end;
-
     local procedure CreateVATEntries(NoOfEntries: Integer; MinDate: Date; MaxDate: Date; CountryCode: Code[10]; VATRegNo: Text[20]; EU3PartyTrade: Boolean)
     var
         i: Integer;
@@ -2906,8 +2913,8 @@ codeunit 144001 "VAT Report"
         VATReportHeader."Report Period No." := 0;
         VATReportHeader.Validate("VAT Report Config. Code", VATReportHeader."VAT Report Config. Code"::VIES);
         VATReportHeader.Validate("VAT Report Type", VATReportType);
-        VATReportHeader.Validate("Report Period Type", ReportPeriodType);
-        VATReportHeader.Validate("Report Period No.", ReportPeriodNo);
+        VATReportHeader."Report Period Type" := ReportPeriodType;
+        VATReportHeader."Report Period No." := ReportPeriodNo;
         VATReportHeader.Validate("Report Year", ReportYear);
         VATReportHeader.Validate("Processing Date", VATReportHeader."End Date");
         VATReportHeader.Modify(true);
@@ -2915,15 +2922,12 @@ codeunit 144001 "VAT Report"
 
     local procedure CreateMockVATReportLine(VATReportNo: Code[20])
     var
-        CountryRegion: Record "Country/Region";
         VATReportLine: Record "VAT Report Line";
     begin
-        LibraryERM.FindCountryRegion(CountryRegion);
-
         VATReportLine.Init();
         VATReportLine."VAT Report No." := VATReportNo;
         VATReportLine."Line No." := 1;
-        VATReportLine."Country/Region Code" := CountryRegion.Code;
+        VATReportLine."Country/Region Code" := CreateCountryRegion();
         VATReportLine."VAT Registration No." := LibraryUtility.GenerateRandomCode(VATReportLine.FieldNo("VAT Registration No."), DATABASE::"VAT Report Line");
         VATReportLine.Base := LibraryRandom.RandDec(10000, 2);
         VATReportLine.Amount := LibraryRandom.RandDec(10000, 2);
@@ -2950,23 +2954,14 @@ codeunit 144001 "VAT Report"
 
     local procedure CreateMockVATReportWithLines(var VATReportHeader: Record "VAT Report Header"; ReportType: Option; ReportPeriodType: Option; ReportPeriodNo: Integer)
     begin
-        CreateVATReportHeader(
-            VATReportHeader,
-            ReportType,
-            ReportPeriodType,
-            ReportPeriodNo,
-            CurrYear());
+        CreateVATReportHeader(VATReportHeader, ReportType, ReportPeriodType, ReportPeriodNo, CurrYear());
         CreateMockVATReportLine(VATReportHeader."No.");
         CreateMockReportRelationLine(VATReportHeader."No.");
     end;
 
     local procedure CreateStandardMonthReport(var VATReportHeader: Record "VAT Report Header")
     begin
-        CreateMockVATReportWithLines(
-          VATReportHeader,
-          VATReportHeader."VAT Report Type"::Standard,
-          VATReportHeader."Report Period Type"::Month,
-          Date2DMY(WorkDate(), 2));
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, Date2DMY(WorkDate(), 2));
     end;
 
     local procedure CreateMockVATReport_SetFieldValue(VATReportPart: Option Header,Line; ValidatedFieldNo: Integer; FieldValue: Variant): Code[20]
@@ -2976,11 +2971,7 @@ codeunit 144001 "VAT Report"
         RecRef: RecordRef;
         ReportFieldRef: FieldRef;
     begin
-        CreateMockVATReportWithLines(
-          VATReportHeader,
-          VATReportHeader."VAT Report Type"::Standard,
-          VATReportHeader."Report Period Type"::Year,
-          1);
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Year, 1);
 
         case VATReportPart of
             VATReportPart::Header:
@@ -3006,28 +2997,11 @@ codeunit 144001 "VAT Report"
     begin
         LibraryERM.CreateCountryRegion(CountryRegion);
 
-        CountryRegion.Validate(
-            "EU Country/Region Code",
-            LibraryUtility.GenerateRandomCode(CountryRegion.FieldNo("EU Country/Region Code"), DATABASE::"Country/Region"));
+        CountryRegion.Validate("EU Country/Region Code", LibraryUtility.GenerateRandomAlphabeticText(2, 0));
+        CountryRegion.Validate("ISO Code", LibraryUtility.GenerateRandomAlphabeticText(2, 0));
         CountryRegion.Modify(true);
 
         exit(CountryRegion.Code);
-    end;
-
-    local procedure FormatRandomAmountForExport(NoOfDigits: Integer; PositiveAmount: Boolean): Text[20]
-    var
-        RangeMin: Integer;
-        RangeMax: Integer;
-        Amt: Decimal;
-    begin
-        RangeMin := Power(10, NoOfDigits - 1);
-        RangeMax := RangeMin * 10 - 1;
-
-        Amt := LibraryRandom.RandDecInRange(RangeMin, RangeMax, 2);
-        if not PositiveAmount then
-            Amt := -Amt;
-
-        exit(ExportVIESReport.FormatAmountForExport(Amt, LibraryRandom.RandIntInRange(10, 15)));
     end;
 
     local procedure CalcVATAmount(CountryCode: Code[10]; VATRegNo: Text[20]; EU3PartyTrade: Boolean): Decimal
@@ -3062,157 +3036,80 @@ codeunit 144001 "VAT Report"
             until VATReportLine.Next() = 0;
     end;
 
-    local procedure CreateVATReportAndSaveIntoBuffer(var ReportBuf: Record "Data Export Buffer" temporary; var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date)
+    local procedure CreateVATReport(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob")
     begin
         SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        ExportVATReportIntoBuffer(VATReportHeader, ReportBuf);
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
     end;
 
-    local procedure CreateVATReportAndSaveIntoBufferZeroBase(var ReportBuf: Record "Data Export Buffer" temporary; var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date)
+    local procedure CreateVATReportWithNotice(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob"; Notice: Boolean)
+    begin
+        SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+        VATReportHeader.Notice := Notice;
+        VATReportHeader.Modify();
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportWithRevocation(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob"; Revocation: Boolean)
+    begin
+        SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+        VATReportHeader.Revocation := Revocation;
+        VATReportHeader.Modify();
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportWithTestExport(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob"; TestExport: Boolean)
+    begin
+        SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+        VATReportHeader."Test Export" := TestExport;
+        VATReportHeader.Modify();
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportWithTurnoverType(var VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob"; EUService: Boolean; EU3PartyTrade: Boolean)
+    var
+        VATReportLine: Record "VAT Report Line";
+    begin
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATReportLine.FindFirst();
+        VATReportLine."EU Service" := EUService;
+        VATReportLine."EU 3-Party Trade" := EU3PartyTrade;
+        VATReportLine.Modify();
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportWithPeriodType(var VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob"; ReportPeriodType: Option " ",Month,Quarter,Year,"Bi-Monthly"; ReportPeriodNo: Integer)
+    begin
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, ReportPeriodType, ReportPeriodNo);
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportWithMultipleLines(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob")
+    var
+        VATReportLine: Record "VAT Report Line";
+    begin
+        FindFirstMonthWithoutVATEntries(TestPeriodStart, TestPeriodEnd);
+        InitVATEntriesGroupingScenario(LibraryRandom.RandIntInRange(2, 5), VATReportLine.FieldNo("VAT Registration No."), TestPeriodStart, TestPeriodEnd);
+        CreateVATReport(
+            VATReportHeader."VAT Report Type"::Standard,
+            VATReportHeader."Report Period Type"::Month,
+            Date2DMY(TestPeriodStart, 2),
+            Date2DMY(TestPeriodStart, 3),
+            VATReportHeader);
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+    end;
+
+    local procedure CreateVATReportZeroBase(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob")
     begin
         SetupVATReportScenarioZeroBase(VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        ExportVATReportIntoBuffer(VATReportHeader, ReportBuf);
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
     end;
 
-    local procedure CreateCorrectiveVATReportAndSaveIntoBuffer(var ReportBuf: Record "Data Export Buffer" temporary; var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date)
+    local procedure CreateCorrectiveVATReport(var VATReportHeader: Record "VAT Report Header"; var TestPeriodStart: Date; var TestPeriodEnd: Date; var TempBlob: Codeunit "Temp Blob")
     begin
         SetupCorrectiveVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
-        ExportVATReportIntoBuffer(VATReportHeader, ReportBuf);
-    end;
-
-    local procedure GetFieldValueFromBuffer(var ReportBuf: Record "Data Export Buffer"; RecordType: Integer; FldNo: Integer): Text[120]
-    begin
-        ReportBuf.Reset();
-        if ReportBuf.FindSet() then
-            repeat
-                if Format(ReportBuf."Field Value"[1]) = Format(RecordType) then
-                    exit(ExtractFieldValueFromReportLine(ReportBuf."Field Value", FldNo));
-            until ReportBuf.Next() = 0;
-
-        exit('');
-    end;
-
-    local procedure VerifyMandatoryFieldsInVATReport(var VATReportBuf: Record "Data Export Buffer")
-    begin
-        VATReportBuf.FindSet();
-        repeat
-            case VATReportBuf."Field Value"[1] of
-                '0':
-                    VerifyVATReportLineFields_RecordType0(VATReportBuf."Field Value");
-                '1':
-                    VerifyVATReportLineFields_RecordType1(VATReportBuf."Field Value");
-                '2':
-                    VerifyVATReportLineFields_RecordType2(VATReportBuf."Field Value");
-                else
-                    Error(UnknownReportLineTypeErr, VATReportBuf."Field Value"[1]);
-            end;
-        until VATReportBuf.Next() = 0;
-    end;
-
-    local procedure VerifyVATReportLineFields_RecordType0(ReportLine: Text[120])
-    begin
-        Assert.IsTrue(
-          IsFieldNotEmpty(ReportLine, 1) and
-          IsFieldNotEmpty(ReportLine, 2) and
-          IsFieldNotEmpty(ReportLine, 3) and
-          IsFieldNotEmpty(ReportLine, 4) and
-          IsFieldNotEmpty(ReportLine, 5) and
-          IsFieldNotEmpty(ReportLine, 6) and
-          IsFieldNotEmpty(ReportLine, 7),
-          MandatoryFieldEmptyErr);
-    end;
-
-    local procedure VerifyVATReportLineFields_RecordType1(ReportLine: Text[120])
-    begin
-        Assert.IsTrue(
-          IsFieldNotEmpty(ReportLine, 1) and
-          IsFieldNotEmpty(ReportLine, 2) and
-          IsFieldNotEmpty(ReportLine, 3) and
-          IsFieldNotEmpty(ReportLine, 4) and
-          IsFieldNotEmpty(ReportLine, 5) and
-          IsFieldNotEmpty(ReportLine, 6) and
-          IsFieldNotEmpty(ReportLine, 8) and
-          IsFieldNotEmpty(ReportLine, 9),
-          MandatoryFieldEmptyErr);
-    end;
-
-    local procedure VerifyVATReportLineFields_RecordType2(ReportLine: Text[120])
-    begin
-        Assert.IsTrue(
-          IsFieldNotEmpty(ReportLine, 1) and
-          IsFieldNotEmpty(ReportLine, 2) and
-          IsFieldNotEmpty(ReportLine, 3) and
-          IsFieldNotEmpty(ReportLine, 4) and
-          IsFieldNotEmpty(ReportLine, 5),
-          MandatoryFieldEmptyErr);
-    end;
-
-    local procedure IsFieldNotEmpty(ReportLine: Text[120]; FieldNo: Integer): Boolean
-    begin
-        exit(ExtractFieldValueFromReportLine(ReportLine, FieldNo) <> '');
-    end;
-
-    local procedure ExtractFieldValueFromReportLine(ReportLine: Text[120]; FieldNo: Integer): Text[120]
-    var
-        RecType: Text[1];
-    begin
-        RecType := CopyStr(ReportLine, 1, 1);
-        exit(DelChr(CopyStr(ReportLine, GetFieldStartPosition(RecType, FieldNo), GetFieldLength(RecType, FieldNo)), '<>', ' '));
-    end;
-
-    local procedure GetFieldStartPosition(RecordType: Text[1]; FieldNo: Integer) StartPosition: Integer
-    begin
-        case RecordType of
-            '0':
-                Evaluate(StartPosition, SelectStr(FieldNo, FieldStartPositionsRecType0Tok));
-            '1':
-                Evaluate(StartPosition, SelectStr(FieldNo, FieldStartPositionsRecType1Tok));
-            '2':
-                Evaluate(StartPosition, SelectStr(FieldNo, FieldStartPositionsRecType2Tok));
-        end;
-    end;
-
-    local procedure GetFieldLength(RecordType: Text[1]; FieldNo: Integer) Length: Integer
-    begin
-        case RecordType of
-            '0':
-                Evaluate(Length, SelectStr(FieldNo, FieldLengthsRecType0Tok));
-            '1':
-                Evaluate(Length, SelectStr(FieldNo, FieldLengthsRecType1Tok));
-            '2':
-                Evaluate(Length, SelectStr(FieldNo, FieldLengthsRecType2Tok));
-        end;
-    end;
-
-    local procedure CountReportBufferLines(var ReportBuf: Record "Data Export Buffer"; RecordType: Text[1]) NoOfLines: Integer
-    begin
-        ReportBuf.Reset();
-        ReportBuf.FindSet();
-        repeat
-            if Format(ReportBuf."Field Value"[1]) = RecordType then
-                NoOfLines += 1;
-        until ReportBuf.Next() = 0
-    end;
-
-    local procedure CountReportBufferLinesByVATReportType(var ReportBuf: Record "Data Export Buffer"; VATReportTypeFilter: Text[2]) NoOfLines: Integer
-    var
-        VATReportType: Text[2];
-    begin
-        ReportBuf.Reset();
-        ReportBuf.FindSet();
-        repeat
-            VATReportType := CopyStr(ReportBuf."Field Value", 13, 2);
-            if VATReportType = VATReportTypeFilter then
-                NoOfLines += 1;
-        until ReportBuf.Next() = 0
-    end;
-
-    local procedure VerifyReportFieldValue(var VATReportBuf: Record "Data Export Buffer" temporary; RecordType: Integer; FldNo: Integer; ExpectedValue: Text[120]; ReportFieldName: Text[50])
-    begin
-        Assert.AreEqual(
-          ExpectedValue,
-          GetFieldValueFromBuffer(VATReportBuf, RecordType, FldNo),
-          StrSubstNo(IncorrectReportFieldValueErr, ReportFieldName));
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
     end;
 
     local procedure CreateCorrectiveVATReportHeader(OrigVATReportHeader: Record "VAT Report Header"; var CorrVATReportHeader: Record "VAT Report Header")
@@ -3232,13 +3129,6 @@ codeunit 144001 "VAT Report"
     begin
         CreateCorrectiveVATReportHeader(VATReportHeader, CorrVATReportHeader);
         RunCorrectVATReportLines(CorrVATReportHeader."No.");
-    end;
-
-    local procedure SetupCompanyInformationVATRegNo(var CompanyInformation: Record "Company Information")
-    begin
-        CompanyInformation.Get();
-        CompanyInformation.Validate("VAT Registration No.", PadStr(CompanyInformation."Country/Region Code", 11, Format(LibraryRandom.RandInt(9))));
-        CompanyInformation.Modify();
     end;
 
     local procedure CurrYear(): Integer
@@ -3286,27 +3176,11 @@ codeunit 144001 "VAT Report"
         exit(VATReportLineRelation.Count);
     end;
 
-    local procedure ExportVATReport(var VATReportHeader: Record "VAT Report Header"; FileName: Text)
+    local procedure ExportVATReportIntoTempBlob(var VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob")
     var
-        ExportVIESReport: Report "Export VIES Report";
+        VATReportExport: Codeunit "VAT Report Export";
     begin
-        Commit();
-        VATReportHeader.SetRange("No.", VATReportHeader."No.");
-        ExportVIESReport.SetTestExportMode(FileName);
-        ExportVIESReport.SetTableView(VATReportHeader);
-        ExportVIESReport.RunModal();
-    end;
-
-    local procedure ExportVATReportIntoBuffer(var VATReportHeader: Record "VAT Report Header"; var ReportBuf: Record "Data Export Buffer" temporary)
-    var
-        ExportVIESReport: Report "Export VIES Report";
-    begin
-        ExportVIESReport.SetTestMode(true);
-        Commit();
-        VATReportHeader.SetRange("No.", VATReportHeader."No.");
-        ExportVIESReport.SetTableView(VATReportHeader);
-        ExportVIESReport.RunModal();
-        ExportVIESReport.GetBuffer(ReportBuf);
+        VATReportExport.CreateVIESELMAXml(VATReportHeader, TempBlob);
     end;
 
     local procedure CorrectionLineExists(VATReportNo: Code[20]; LineType: Option New,Cancellation,Correction): Boolean
@@ -3339,14 +3213,6 @@ codeunit 144001 "VAT Report"
         Assert.AreEqual(VATReportPage."Report Period Type".AsInteger(), VATReportHeader."Report Period Type", ReportingPeriodNotTransferredErr);
         Assert.AreEqual(VATReportPage."Report Period No.".AsInteger(), VATReportHeader."Report Period No.", ReportingPeriodNotTransferredErr);
         Assert.AreEqual(VATReportPage."Report Year".AsInteger(), VATReportHeader."Report Year", ReportingPeriodNotTransferredErr);
-    end;
-
-    local procedure VerifyCompanyInfoAddressValue(FileName: Text; ExpectedValue: Text)
-    var
-        FileLine: Text;
-    begin
-        FileLine := LoadFirstFileLine(FileName);
-        Assert.ExpectedMessage(ExpectedValue, FileLine);
     end;
 
     local procedure SetVATReportPeriodTypeVerifyDate(PeriodType: Option ,Month,Quarter,Year,"Bi-Monthly"; PeriodNo: Integer)
@@ -3428,18 +3294,6 @@ codeunit 144001 "VAT Report"
         REPORT.RunModal(REPORT::"VAT Report Suggest Lines", false, false, VATReportHeader);
     end;
 
-    local procedure LoadFirstFileLine(FileName: Text) Line: Text
-    var
-        File: File;
-        InStr: InStream;
-    begin
-        File.TextMode(true);
-        File.Open(FileName, TEXTENCODING::Windows);
-        File.Read(Line);
-        File.CreateInStream(InStr);
-        InStr.ReadText(Line);
-    end;
-
     local procedure SetCompanyInformationAddress(NewAddress: Text[50])
     var
         CompanyInformation: Record "Company Information";
@@ -3447,6 +3301,17 @@ codeunit 144001 "VAT Report"
         CompanyInformation.Get();
         CompanyInformation.Address := NewAddress;
         CompanyInformation.Modify();
+    end;
+
+    local procedure GetDigitsFromVATRegNo(VATRegNo: Code[20]): Text
+    var
+        ResultTB: TextBuilder;
+        Ch: Char;
+    begin
+        foreach Ch in VATRegNo do
+            if (Ch >= '0') and (Ch <= '9') then
+                ResultTB.Append(Ch);
+        exit(ResultTB.ToText());
     end;
 
     local procedure RunCorrectVATReportLines(VATReportNo: Code[20])
@@ -3485,15 +3350,7 @@ codeunit 144001 "VAT Report"
         exit(ReportFieldRef.Caption);
     end;
 
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure ExportVIESReportPageHandler(var ExportVIESReport: TestRequestPage "Export VIES Report")
-    begin
-        ExportVIESReport.OK().Invoke();
-    end;
-
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure VATReportLinesListHandler(var VATRepLinesList: TestPage "VAT Report Lines")
     begin
         VATRepLinesList.Last();
@@ -3501,7 +3358,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure VATReportLinesValuesListHandler(var VATRepLinesList: TestPage "VAT Report Lines")
     begin
         VATRepLinesList.First();
@@ -3512,7 +3368,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure VATReportsLookupHandler(var VATReportList: TestPage "VAT Report List")
     var
         VATReportNo: Variant;
@@ -3523,7 +3378,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [PageHandler]
-    [Scope('OnPrem')]
     procedure VATReportErrorLogHandler(var ErrorLogPage: TestPage "VAT Report Error Log")
     var
         ExpectedErrorText: Variant;
@@ -3534,7 +3388,6 @@ codeunit 144001 "VAT Report"
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure VATEntriesListHandler(var VATEntriesList: TestPage "VAT Entries")
     var
         VATBase: Decimal;
@@ -3558,22 +3411,9 @@ codeunit 144001 "VAT Report"
         Assert.AreEqual(VATReportSetup."Company City", VATReportHeader.City, VATReportHeader.FieldCaption(City));
     end;
 
-    local procedure VerifyBufferLineCount(var DataExportBuffer: Record "Data Export Buffer"; LineType: Text[1]; ExpectedCount: Integer)
-    begin
-        Assert.AreEqual(ExpectedCount, CountReportBufferLines(DataExportBuffer, LineType), IncorrectNoOfReportLinesErr);
-        VerifyReportFieldValue(
-          DataExportBuffer,
-          2,
-          5,
-          ExportVIESReport.FormatAmountForExport(ExpectedCount, 5),
-          TotalAmtLbl);
-    end;
-
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure ConfirmHandlerTrue(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
     end;
 }
-

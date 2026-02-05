@@ -90,12 +90,14 @@ table 7323 "Posted Whse. Shipment Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(16; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -108,6 +110,7 @@ table 7323 "Posted Whse. Shipment Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -159,6 +162,7 @@ table 7323 "Posted Whse. Shipment Line"
         }
         field(50; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -168,6 +172,7 @@ table 7323 "Posted Whse. Shipment Line"
         }
         field(51; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;

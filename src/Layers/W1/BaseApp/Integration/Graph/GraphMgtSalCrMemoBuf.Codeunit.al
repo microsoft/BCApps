@@ -16,7 +16,7 @@ using System.Reflection;
 codeunit 5508 "Graph Mgt - Sal. Cr. Memo Buf."
 {
     Permissions = TableData "Sales Cr.Memo Header" = rimd,
-                  tabledata "Sales Cr. Memo Entity Buffer" = r;
+                  tabledata "Sales Cr. Memo Entity Buffer" = rimd;
 
     trigger OnRun()
     begin

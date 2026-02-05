@@ -76,6 +76,12 @@ page 99000818 "Prod. Order Components"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description of the item on the line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Scrap %"; Rec."Scrap %")
                 {
                     ApplicationArea = Manufacturing;

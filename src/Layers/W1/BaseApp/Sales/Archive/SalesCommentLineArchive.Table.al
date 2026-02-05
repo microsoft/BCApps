@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Archive;
 
 using Microsoft.Sales.Comment;
 
+/// <summary>
+/// Stores archived comment lines associated with sales documents.
+/// </summary>
 table 5126 "Sales Comment Line Archive"
 {
     Caption = 'Sales Comment Line Archive';
@@ -15,43 +18,70 @@ table 5126 "Sales Comment Line Archive"
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of the archived sales document that this comment is associated with.
+        /// </summary>
 #pragma warning disable AS0070
         field(1; "Document Type"; Enum "Sales Comment Document Type")
         {
             Caption = 'Document Type';
         }
 #pragma warning restore AS0070
+        /// <summary>
+        /// Specifies the document number of the archived sales document that this comment belongs to.
+        /// </summary>
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Specifies the sequential line number that uniquely identifies this comment within the document.
+        /// </summary>
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Specifies the date when the comment was created or last modified.
+        /// </summary>
         field(4; Date; Date)
         {
             Caption = 'Date';
             ToolTip = 'Specifies the version number of the archived document.';
         }
+        /// <summary>
+        /// Specifies a code that categorizes the comment for grouping or filtering purposes.
+        /// </summary>
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
             ToolTip = 'Specifies the document line number of the quote or order to which the comment applies.';
         }
+        /// <summary>
+        /// Contains the actual comment text associated with the archived sales document.
+        /// </summary>
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
             ToolTip = 'Specifies the line number for the comment.';
         }
+        /// <summary>
+        /// Specifies the document line number that this comment is attached to, or zero for header-level comments.
+        /// </summary>
         field(7; "Document Line No."; Integer)
         {
             Caption = 'Document Line No.';
         }
+        /// <summary>
+        /// Specifies how many times the same document number has been archived.
+        /// </summary>
         field(8; "Doc. No. Occurrence"; Integer)
         {
             Caption = 'Doc. No. Occurrence';
         }
+        /// <summary>
+        /// Specifies the version number of the archived document that this comment belongs to.
+        /// </summary>
         field(9; "Version No."; Integer)
         {
             Caption = 'Version No.';
@@ -70,6 +100,9 @@ table 5126 "Sales Comment Line Archive"
     {
     }
 
+    /// <summary>
+    /// Initializes a new comment line with the work date if no comment exists for the current date.
+    /// </summary>
     procedure SetUpNewLine()
     var
         SalesCommentLine: Record "Sales Comment Line Archive";

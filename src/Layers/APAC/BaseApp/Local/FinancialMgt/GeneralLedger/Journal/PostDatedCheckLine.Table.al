@@ -129,6 +129,7 @@ table 28090 "Post Dated Check Line"
         }
         field(18; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
 
             trigger OnValidate()
@@ -148,6 +149,8 @@ table 28090 "Post Dated Check Line"
         }
         field(22; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -174,6 +177,8 @@ table 28090 "Post Dated Check Line"
         }
         field(23; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
 
             trigger OnValidate()
@@ -469,6 +474,8 @@ table 28090 "Post Dated Check Line"
         }
         field(52; "Interest Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Interest Amount';
 
             trigger OnValidate()
@@ -484,6 +491,8 @@ table 28090 "Post Dated Check Line"
         }
         field(53; "Interest Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Interest Amount (LCY)';
         }
         field(480; "Dimension Set ID"; Integer)

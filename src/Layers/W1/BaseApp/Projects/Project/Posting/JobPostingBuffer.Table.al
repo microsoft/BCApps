@@ -73,11 +73,13 @@ table 212 "Job Posting Buffer"
         field(20; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(21; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -85,12 +87,14 @@ table 212 "Job Posting Buffer"
         field(22; "Total Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost';
             DataClassification = SystemMetadata;
         }
         field(23; "Total Price"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price';
             DataClassification = SystemMetadata;
         }
@@ -114,6 +118,7 @@ table 212 "Job Posting Buffer"
         field(27; "Additional-Currency Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Additional-Currency Amount';
             DataClassification = SystemMetadata;
         }

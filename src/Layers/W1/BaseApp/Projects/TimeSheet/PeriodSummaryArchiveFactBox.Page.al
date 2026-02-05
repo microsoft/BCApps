@@ -15,6 +15,7 @@ page 964 "Period Summary Archive FactBox"
         {
             field("DateQuantity[1]"; DateQuantity[1])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[1];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -22,6 +23,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[2]"; DateQuantity[2])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[2];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -29,6 +31,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[3]"; DateQuantity[3])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[3];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -36,6 +39,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[4]"; DateQuantity[4])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[4];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -43,6 +47,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[5]"; DateQuantity[5])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[5];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -50,6 +55,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[6]"; DateQuantity[6])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[6];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -57,6 +63,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field("DateQuantity[7]"; DateQuantity[7])
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 CaptionClass = '3,' + DateDescription[7];
                 ToolTip = 'Specifies the number of hours registered for this day.';
@@ -64,6 +71,7 @@ page 964 "Period Summary Archive FactBox"
             }
             field(TotalQuantity; TotalQuantity)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Total';
                 Editable = false;
@@ -73,12 +81,14 @@ page 964 "Period Summary Archive FactBox"
             }
             field(PresenceQty; PresenceQty)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Total Presence';
                 ToolTip = 'Specifies the total presence (calculated in days or hours) for all resources on the line.';
             }
             field(AbsenceQty; AbsenceQty)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Total Absence';
                 ToolTip = 'Specifies the total absence (calculated in days or hours) for all resources on the line.';

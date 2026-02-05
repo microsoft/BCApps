@@ -31,6 +31,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Amount';
                             ToolTip = 'Specifies the net amount of all invoiced service item lines in the service contract.';
                         }
@@ -38,6 +39,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Discount Amount';
                             ToolTip = 'Specifies the amount of discount being applied for the contract.';
                         }
@@ -45,6 +47,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Amount';
                             ToolTip = 'Specifies the total amount of costs for all service item lines in the service contract.';
                         }
@@ -52,13 +55,14 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit, after the cost amount has been subtracted from the total amount.';
                         }
                         field("ProfitAmountPercent[1]"; ProfitAmountPercent[1])
                         {
                             ApplicationArea = Service;
-                            AutoFormatType = 1;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as a percentage of the invoiced amount.';
@@ -95,6 +99,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Amount';
                             ToolTip = 'Specifies the net amount of all invoiced service item lines in the service contract.';
                         }
@@ -102,6 +107,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Discount Amount';
                             ToolTip = 'Specifies the amount of discount being applied for the contract.';
                         }
@@ -109,6 +115,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Amount';
                             ToolTip = 'Specifies the total amount of costs for all service item lines in the service contract.';
                         }
@@ -116,13 +123,14 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit, after the cost amount has been subtracted from the total amount.';
                         }
                         field("ProfitAmountPercent[2]"; ProfitAmountPercent[2])
                         {
                             ApplicationArea = Service;
-                            AutoFormatType = 1;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as a percentage of the invoiced amount.';
@@ -155,6 +163,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Invoiced Amount';
                             ToolTip = 'Specifies the net amount of all invoiced service item lines in the service contract.';
                         }
@@ -162,6 +171,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Discount Amount';
                             ToolTip = 'Specifies the amount of discount being applied for the contract.';
                         }
@@ -169,6 +179,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Amount';
                             ToolTip = 'Specifies the total amount of costs for all service item lines in the service contract.';
                         }
@@ -176,13 +187,14 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit, after the cost amount has been subtracted from the total amount.';
                         }
                         field("ProfitAmountPercent[3]"; ProfitAmountPercent[3])
                         {
                             ApplicationArea = Service;
-                            AutoFormatType = 1;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as a percentage of the invoiced amount.';
@@ -216,12 +228,14 @@ page 6059 "Contract Statistics"
                             ApplicationArea = Service;
                             AutoFormatType = 1;
                             Caption = 'Invoiced Amount';
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the net amount of all invoiced service item lines in the service contract.';
                         }
                         field("TotalDiscount[4]"; TotalDiscount[4])
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Discount Amount';
                             ToolTip = 'Specifies the amount of discount being applied for the contract.';
                         }
@@ -229,6 +243,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Amount';
                             ToolTip = 'Specifies the total amount of costs for all service item lines in the service contract.';
                         }
@@ -236,13 +251,14 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit, after the cost amount has been subtracted from the total amount.';
                         }
                         field("ProfitAmountPercent[4]"; ProfitAmountPercent[4])
                         {
                             ApplicationArea = Service;
-                            AutoFormatType = 1;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as percentage of the invoiced amount.';
@@ -251,6 +267,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Prepayments;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Prepaid Amount';
                             ToolTip = 'Specifies the sum of all amounts that have been prepaid.';
                         }
@@ -277,6 +294,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Invoiced Amount';
                             ToolTip = 'Specifies the total amount of all invoiced service item lines in the service contract.';
                         }
@@ -284,6 +302,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Discount Amount';
                             ToolTip = 'Specifies the total amount of discounts for all service item lines in the service contract.';
                         }
@@ -291,6 +310,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost Amount';
                             ToolTip = 'Specifies the total amount of costs for all service item lines in the service contract.';
                         }
@@ -298,13 +318,14 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Profit Amount';
                             ToolTip = 'Specifies the total amount of profit for all service item lines in the service contract.';
                         }
                         field("ProfitAmountPercent[5]"; ProfitAmountPercent[5])
                         {
                             ApplicationArea = Service;
-                            AutoFormatType = 1;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as a percentage of the invoiced amount.';
@@ -313,6 +334,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Prepayments;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Prepaid Amount';
                             ToolTip = 'Specifies the sum of all amounts that have been prepaid.';
                         }
@@ -320,6 +342,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Amount';
                             ToolTip = 'Specifies the sum of the invoiced amount and the prepaid amount.';
                         }
@@ -327,6 +350,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit Amount';
                             ToolTip = 'Specifies the amount of profit, after the cost amount has been subtracted from the total amount.';
                         }
@@ -334,6 +358,7 @@ page 6059 "Contract Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             ToolTip = 'Specifies the amount of profit as percentage of the invoiced amount.';

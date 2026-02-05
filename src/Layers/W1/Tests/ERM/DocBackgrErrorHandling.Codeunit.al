@@ -25,6 +25,8 @@
         IsInitialized: Boolean;
         InvalidDimensionsErr: Label 'The dimensions used in %1 %2 are invalid', Comment = '%1 = Document Type, %2 = Document No, %3 = Error text';
         CheckUnhandledErrorTxt: Label 'Check unhandled error', Locked = true;
+        NothingToPostErr: Label 'There is nothing to post because the document does not contain a quantity or amount.';
+        UnexpectedErrorInPurchaseDocCheckFactboxErr: Label 'Unexpected error message in Purchase Doc. Check Factbox';
 
     [Test]
     [HandlerFunctions('BackgroundValidationShowSetupNotificationHandler')]
@@ -604,6 +606,64 @@
 
         // [THEN] Notifications "Enable Data Check" and "Show the Document Check Factbox" are created
         VerifyNotificationsCreated();
+    end;
+
+    [Test]
+    [HandlerFunctions('BackgroundValidationShowSetupNotificationHandler')]
+    procedure PurchaseOrderDocumentCheckError()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record vendor;
+        PurchaseOrder: TestPage "Purchase Order";
+        PurchaseOrderSubform: TestPage "Purchase Order Subform";
+    begin
+        // [SCENARIO 611403] Verify Document Check Error on Purchase Order.
+
+        // [GIVEN] Initialize and also enable "Show the Document Check FactBox" and "Enable Data Check" with Notifications.
+        Initialize();
+
+        // [GIVEN] No My Notificaions records
+        ClearBackgroundCheckNotifications();
+
+        // [GIVEN] Create Purchase Order.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendor(Vendor));
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItem(Item), LibraryRandom.RandInt(10));
+        PurchaseHeader."Vendor Invoice No." := LibraryUtility.GenerateGUID();
+        PurchaseHeader.Modify(true);
+        Commit();
+
+        // [WHEN] Open Purchase Order and Set Qty. to Receive and Qty. to Invoice as 0.
+        PurchaseOrderSubform.OpenEdit();
+        PurchaseOrderSubform.Filter.SetFilter("Document No.", PurchaseHeader."No.");
+        PurchaseOrderSubform."Qty. to Receive".SetValue(0);
+        PurchaseOrderSubform."Qty. to Invoice".SetValue(0);
+        PurchaseOrderSubform.Close();
+        Commit();
+
+        // [THEN] Open Purchase Order page and verify "Purchase Doc. Check Factbox" shows only 1 error.
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchaseDocCheckFactbox.NumberOfErrors.AssertEquals(1);
+        Assert.AreEqual(NothingToPostErr, PurchaseOrder.PurchaseDocCheckFactbox.Error1.Value(), UnexpectedErrorInPurchaseDocCheckFactboxErr);
+        PurchaseOrder.Close();
+
+        // [WHEN] Open Purchase Order and Set Qty. to Receive and Qty. to Invoice as Purchase Line Quantity.
+        PurchaseOrderSubform.OpenEdit();
+        PurchaseOrderSubform.Filter.SetFilter("Document No.", PurchaseHeader."No.");
+        PurchaseOrderSubform."Qty. to Receive".SetValue(PurchaseLine.Quantity);
+        PurchaseOrderSubform."Qty. to Invoice".SetValue(PurchaseLine.Quantity);
+        PurchaseOrderSubform.Close();
+        Commit();
+
+        // [THEN] Open Purchase Order and verify there is no error in "Purchase Doc. Check Factbox".
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchaseDocCheckFactbox.NumberOfErrors.AssertEquals(0);
+
+        VerifyNotificationOff();
     end;
 
     local procedure Initialize()

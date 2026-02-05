@@ -96,18 +96,21 @@ table 5882 "Pstd. Phys. Invt. Record Line"
         }
         field(41; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(42; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(43; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

@@ -1909,17 +1909,11 @@ End Function
         <Field Name="GenJournalLineBalanceLCYCaption">
           <DataField>GenJournalLineBalanceLCYCaption</DataField>
         </Field>
-        <Field Name="GenJournalLineVATCodeCaption">
-          <DataField>GenJournalLineVATCodeCaption</DataField>
-        </Field>
         <Field Name="GenJournalLineVATNumberCaption">
           <DataField>GenJournalLineVATNumberCaption</DataField>
         </Field>
         <Field Name="GenJournalLineBalGenPostingTypeCaption">
           <DataField>GenJournalLineBalGenPostingTypeCaption</DataField>
-        </Field>
-        <Field Name="GenJournalLineBalVATCodeCaption">
-          <DataField>GenJournalLineBalVATCodeCaption</DataField>
         </Field>
         <Field Name="GenJournalLineBalVATNumberCaption">
           <DataField>GenJournalLineBalVATNumberCaption</DataField>
@@ -1966,17 +1960,11 @@ End Function
         <Field Name="BalanceLCY_GenJournalLineFormat">
           <DataField>BalanceLCY_GenJournalLineFormat</DataField>
         </Field>
-        <Field Name="VATCode_GenJournalLine">
-          <DataField>VATCode_GenJournalLine</DataField>
-        </Field>
         <Field Name="VATNumber_GenJournalLine">
           <DataField>VATNumber_GenJournalLine</DataField>
         </Field>
         <Field Name="BalGenPostingType_GenJournalLine">
           <DataField>BalGenPostingType_GenJournalLine</DataField>
-        </Field>
-        <Field Name="BalVATCode_GenJournalLine">
-          <DataField>BalVATCode_GenJournalLine</DataField>
         </Field>
         <Field Name="BalVATNumber_GenJournalLine">
           <DataField>BalVATNumber_GenJournalLine</DataField>

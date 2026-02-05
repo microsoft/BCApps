@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Calculates the sum of sales amounts in local currency from customer ledger entries, with filters for document type, open status, and posting date.
+/// </summary>
 query 1310 "Cust. Ledg. Entry Sales"
 {
     Caption = 'Cust. Ledg. Entry Sales';

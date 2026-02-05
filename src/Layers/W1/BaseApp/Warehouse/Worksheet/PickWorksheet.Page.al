@@ -180,6 +180,7 @@ page 7345 "Pick Worksheet"
                 field(AvailableQtyToPickExcludingQCBins; Rec.AvailableQtyToPickForCurrentLine())
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Available Qty. to Pick';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -232,6 +233,7 @@ page 7345 "Pick Worksheet"
                 field(QtyCrossDockedUOM; QtyCrossDockedUOM)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock Bin';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -245,6 +247,7 @@ page 7345 "Pick Worksheet"
                 field(QtyCrossDockedUOMBase; QtyCrossDockedUOMBase)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock (Base)';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -259,6 +262,7 @@ page 7345 "Pick Worksheet"
                 field(QtyCrossDockedAllUOMBase; QtyCrossDockedAllUOMBase)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock Bin (Base all UOM)';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

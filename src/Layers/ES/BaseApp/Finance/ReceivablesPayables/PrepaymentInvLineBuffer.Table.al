@@ -321,6 +321,7 @@ table 461 "Prepayment Inv. Line Buffer"
         }
         field(10700; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = SystemMetadata;
             DecimalPlaces = 1 : 1;

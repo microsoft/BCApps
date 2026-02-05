@@ -7,6 +7,9 @@ namespace Microsoft.Sales.FinanceCharge;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Utilities;
 
+/// <summary>
+/// Provides batch processing to cancel multiple issued finance charge memos with configurable document numbering and posting dates.
+/// </summary>
 report 1395 "Cancel Issued Fin.Charge Memos"
 {
     AdditionalSearchTerms = 'cancel issued fin. charge memo';

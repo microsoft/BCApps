@@ -257,6 +257,7 @@ report 10511 "VAT Entry Exception Report"
                         Caption = 'Maximum:';
                         field(MaxVATBaseDiscount; MaxVATBaseDiscount)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Base Discount %';
                             MaxValue = 100;
@@ -265,12 +266,14 @@ report 10511 "VAT Entry Exception Report"
                         }
                         field(MaxManualVATDifference; MaxManualVATDifference)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Basic, Suite;
                             Caption = 'Manual VAT Difference';
                             ToolTip = 'Specifies that you want to print the manual VAT difference over the maximum amount in the VAT Difference (LCY) field, by placing a check mark in the check box.';
                         }
                         field(MaxVATRateDifference; MaxVATRateDifference)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Rate % Difference';
                             DecimalPlaces = 1 : 5;

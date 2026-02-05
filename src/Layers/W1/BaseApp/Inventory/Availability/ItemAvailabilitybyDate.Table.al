@@ -21,10 +21,12 @@ table 5872 "Item Availability by Date"
         }
         field(3; "Available Qty"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Available Qty';
         }
         field(4; "Updated Available Qty"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Updated Available Qty';
         }
         field(5; "Variant Code"; Code[10])

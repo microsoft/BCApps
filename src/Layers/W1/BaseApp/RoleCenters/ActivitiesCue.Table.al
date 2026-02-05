@@ -82,6 +82,7 @@ table 1313 "Activities Cue"
         }
         field(10; "Average Collection Days"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Average Collection Days';
             DecimalPlaces = 1 : 1;
         }

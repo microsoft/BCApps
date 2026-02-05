@@ -14,7 +14,7 @@ codeunit 99000994 "Mfg. Navigate Mgt."
 
         ProductionOrderTxt: Label 'Production Order';
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', true, false)]
     local procedure OnAfterFindPostedDocuments(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text)
     begin
         FindProdOrderHeader(DocumentEntry, DocNoFilter, PostingDateFilter);
@@ -30,7 +30,7 @@ codeunit 99000994 "Mfg. Navigate Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', true, false)]
     local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; var IsHandled: Boolean; ContactNo: Code[250])
     begin
         case TempDocumentEntry."Table ID" of

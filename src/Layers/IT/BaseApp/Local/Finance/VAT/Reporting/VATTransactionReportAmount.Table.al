@@ -22,6 +22,8 @@ table 12195 "VAT Transaction Report Amount"
         }
         field(2; "Threshold Amount Excl. VAT"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Threshold Amount Excl. VAT';
             MinValue = 0;
 
@@ -32,6 +34,8 @@ table 12195 "VAT Transaction Report Amount"
         }
         field(3; "Threshold Amount Incl. VAT"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Threshold Amount Incl. VAT';
             MinValue = 0;
 

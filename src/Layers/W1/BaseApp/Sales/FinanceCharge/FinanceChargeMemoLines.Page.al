@@ -6,6 +6,9 @@ namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// Displays and manages line items for finance charge memos as a subpage with support for extended text insertion.
+/// </summary>
 page 447 "Finance Charge Memo Lines"
 {
     AutoSplitKey = true;
@@ -162,6 +165,10 @@ page 447 "Finance Charge Memo Lines"
         RemainingAmountEmphasize: Boolean;
         AmountEmphasize: Boolean;
 
+    /// <summary>
+    /// Inserts extended text for the current finance charge memo line.
+    /// </summary>
+    /// <param name="Unconditionally">Specifies whether to insert extended text unconditionally.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec);

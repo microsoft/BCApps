@@ -21,12 +21,14 @@ table 2004 "Azure AI Usage"
         }
         field(2; "Total Resource Usage"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Resource Usage';
             Editable = false;
             MinValue = 0;
         }
         field(3; "Original Resource Limit"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Resource Limit';
             Editable = false;
             MinValue = 0;

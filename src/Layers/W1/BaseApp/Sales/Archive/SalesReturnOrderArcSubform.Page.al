@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item.Catalog;
 
+/// <summary>
+/// Displays line items for an archived sales return order document.
+/// </summary>
 page 6628 "Sales Return Order Arc Subform"
 {
     Caption = 'Lines';
@@ -459,6 +462,9 @@ page 6628 "Sales Return Order Arc Subform"
         DimVisible7: Boolean;
         DimVisible8: Boolean;
 
+    /// <summary>
+    /// Opens the Document Line Tracking page for the current archived sales return order line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Pricing;
 
+/// <summary>
+/// Displays and manages customer invoice discount terms including minimum amounts, discount percentages, and service charges.
+/// </summary>
 page 23 "Cust. Invoice Discounts"
 {
     Caption = 'Cust. Invoice Discounts';

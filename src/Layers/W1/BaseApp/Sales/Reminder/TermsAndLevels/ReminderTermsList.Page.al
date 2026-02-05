@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a list of all reminder terms with navigation to the detailed setup page.
+/// </summary>
 page 837 "Reminder Terms List"
 {
     ApplicationArea = All;

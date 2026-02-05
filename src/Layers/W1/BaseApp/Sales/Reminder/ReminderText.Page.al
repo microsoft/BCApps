@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Manages the beginning and ending text lines displayed on reminder documents by level.
+/// </summary>
 page 433 "Reminder Text"
 {
     AutoSplitKey = true;

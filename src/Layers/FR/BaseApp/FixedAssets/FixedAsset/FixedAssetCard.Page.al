@@ -291,6 +291,8 @@ page 5600 "Fixed Asset Card"
                 field(BookValue; BookValue)
                 {
                     ApplicationArea = FixedAssets;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Book Value';
                     DrillDown = true;
                     Editable = false;

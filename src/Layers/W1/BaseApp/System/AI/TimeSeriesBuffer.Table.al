@@ -25,6 +25,7 @@ table 2000 "Time Series Buffer"
         }
         field(4; Value; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Value';
             DataClassification = SystemMetadata;
         }

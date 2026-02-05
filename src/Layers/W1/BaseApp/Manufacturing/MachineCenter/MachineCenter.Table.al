@@ -228,6 +228,7 @@ table 99000758 "Machine Center"
         field(19; "Direct Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
             MinValue = 0;
 
@@ -238,6 +239,7 @@ table 99000758 "Machine Center"
         }
         field(20; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -254,6 +256,7 @@ table 99000758 "Machine Center"
         field(21; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             DecimalPlaces = 2 : 5;
             MinValue = 0;
@@ -268,6 +271,7 @@ table 99000758 "Machine Center"
         }
         field(22; "Queue Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Queue Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -292,12 +296,14 @@ table 99000758 "Machine Center"
         }
         field(31; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(32; Efficiency; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Efficiency';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
@@ -305,12 +311,14 @@ table 99000758 "Machine Center"
         }
         field(33; "Maximum Efficiency"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Maximum Efficiency';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(34; "Minimum Efficiency"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Efficiency';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -333,6 +341,7 @@ table 99000758 "Machine Center"
         }
         field(41; "Capacity (Total)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Total)" where("Capacity Type" = const("Machine Center"),
                                                                          "No." = field("No."),
                                                                          "Work Shift Code" = field("Work Shift Filter"),
@@ -344,6 +353,7 @@ table 99000758 "Machine Center"
         }
         field(42; "Capacity (Effective)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Effective)" where("Capacity Type" = const("Machine Center"),
                                                                              "No." = field("No."),
                                                                              "Work Shift Code" = field("Work Shift Filter"),
@@ -355,6 +365,7 @@ table 99000758 "Machine Center"
         }
         field(44; "Prod. Order Need (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where(Type = const("Machine Center"),
                                                                                   "No." = field("No."),
                                                                                   Status = field("Prod. Order Status Filter"),
@@ -368,6 +379,7 @@ table 99000758 "Machine Center"
         field(45; "Prod. Order Need Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Routing Line"."Expected Operation Cost Amt." where(Type = const("Machine Center"),
                                                                                                "No." = field("No."),
                                                                                                Status = field("Prod. Order Status Filter")));
@@ -382,30 +394,35 @@ table 99000758 "Machine Center"
         }
         field(50; "Setup Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Setup Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(52; "Wait Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Wait Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(53; "Move Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Move Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(54; "Fixed Scrap Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Fixed Scrap Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(55; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -422,6 +439,7 @@ table 99000758 "Machine Center"
         }
         field(58; "Send-Ahead Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Send-Ahead Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -438,18 +456,21 @@ table 99000758 "Machine Center"
         }
         field(62; "Minimum Process Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Process Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(63; "Maximum Process Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Maximum Process Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(64; "Concurrent Capacities"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -480,7 +501,7 @@ table 99000758 "Machine Center"
         }
         field(81; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
 
             trigger OnValidate()

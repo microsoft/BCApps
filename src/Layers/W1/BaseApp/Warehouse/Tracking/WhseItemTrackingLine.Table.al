@@ -41,6 +41,7 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(4; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -104,6 +105,7 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(29; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -124,6 +126,7 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(50; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -143,23 +146,27 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(51; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(52; "Quantity Handled (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Handled (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(53; "Quantity Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(60; "Qty. to Handle"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle';
             DecimalPlaces = 0 : 5;
         }
@@ -199,11 +206,13 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(91; "Qty. Registered (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Registered (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(92; "Put-away Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter("Put-away"),
 #pragma warning disable AL0603
                                                                                          "Whse. Document Type" = field("Source Type Filter"),
@@ -220,6 +229,7 @@ table 6550 "Whse. Item Tracking Line"
         }
         field(93; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter(Pick | Movement),
 #pragma warning disable AL0603
                                                                                          "Whse. Document Type" = field("Source Type Filter"),

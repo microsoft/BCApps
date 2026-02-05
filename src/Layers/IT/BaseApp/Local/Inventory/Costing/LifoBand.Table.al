@@ -38,6 +38,7 @@ table 12130 "Lifo Band"
         }
         field(10; "Increment Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Increment Quantity';
 
             trigger OnValidate()
@@ -48,6 +49,7 @@ table 12130 "Lifo Band"
         }
         field(11; "Absorbed Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Absorbed Quantity';
 
             trigger OnValidate()
@@ -58,6 +60,7 @@ table 12130 "Lifo Band"
         }
         field(12; "Residual Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Residual Quantity';
             Editable = true;
 
@@ -69,6 +72,7 @@ table 12130 "Lifo Band"
         field(13; CMP; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'CMP';
 
             trigger OnValidate()
@@ -83,15 +87,18 @@ table 12130 "Lifo Band"
         field(18; "Increment Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Increment Value';
         }
         field(20; "Qty not Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty not Invoiced';
         }
         field(21; "Amount not Invoiced"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount not Invoiced';
         }
         field(25; Positive; Boolean)
@@ -104,15 +111,19 @@ table 12130 "Lifo Band"
         }
         field(30; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
         }
         field(31; "Invoiced Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoiced Amount';
         }
         field(32; "Year Average Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Year Average Cost';
 
             trigger OnValidate()

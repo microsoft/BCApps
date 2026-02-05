@@ -8,6 +8,9 @@ using Microsoft.Foundation.Reporting;
 using System.Environment;
 Using System.Utilities;
 
+/// <summary>
+/// Subscribes to report events to handle customer statement PDF generation for API clients.
+/// </summary>
 codeunit 8812 "Customer Statement Subscr"
 {
     EventSubscriberInstance = Manual;

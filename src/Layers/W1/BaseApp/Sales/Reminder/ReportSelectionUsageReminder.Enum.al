@@ -11,8 +11,20 @@ enum 524 "Report Selection Usage Reminder"
     Extensible = true;
     AssignmentCompatibility = true;
 
+    /// <summary>
+    /// Specifies that the report selection is used for reminder documents.
+    /// </summary>
     value(0; "Reminder") { Caption = 'Reminder'; }
+    /// <summary>
+    /// Specifies that the report selection is used for finance charge memo documents.
+    /// </summary>
     value(1; "Fin. Charge") { Caption = 'Fin. Charge'; }
+    /// <summary>
+    /// Specifies that the report selection is used for reminder test reports.
+    /// </summary>
     value(2; "Reminder Test") { Caption = 'Reminder Test'; }
+    /// <summary>
+    /// Specifies that the report selection is used for finance charge memo test reports.
+    /// </summary>
     value(3; "Fin. Charge Test") { Caption = 'Fin. Charge Test'; }
 }

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using System.Globalization;
 using System.Reflection;
 
+/// <summary>
+/// Stores language-specific email text configurations including subject and body for reminder communications.
+/// </summary>
 table 503 "Reminder Email Text"
 {
     Caption = 'Reminder Email Text';
@@ -15,11 +18,17 @@ table 503 "Reminder Email Text"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier for this email text configuration.
+        /// </summary>
         field(1; Id; Guid)
         {
             Caption = 'ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the language code for this email text configuration.
+        /// </summary>
         field(2; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
@@ -27,26 +36,41 @@ table 503 "Reminder Email Text"
             TableRelation = Language;
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies whether this text is linked to reminder terms or a specific reminder level.
+        /// </summary>
         field(3; "Source Type"; Enum "Reminder Text Source Type")
         {
             Caption = 'Source Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the email subject line for reminder communications.
+        /// </summary>
         field(4; Subject; Text[128])
         {
             Caption = 'Subject';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the greeting text that appears at the start of the email body.
+        /// </summary>
         field(5; Greeting; Text[128])
         {
             Caption = 'Greeting';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Contains the main body text content of the reminder email.
+        /// </summary>
         field(6; "Body Text"; Blob)
         {
             Caption = 'Body Text';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the closing text that appears at the end of the email body.
+        /// </summary>
         field(7; Closing; Text[128])
         {
             Caption = 'Closing';
@@ -151,6 +175,10 @@ table 503 "Reminder Email Text"
         exit(DefaultClosingLbl);
     end;
 
+    /// <summary>
+    /// Sets the body text for the current email text record.
+    /// </summary>
+    /// <param name="value">The body text content to store.</param>
     procedure SetBodyText(value: Text)
     var
         WriteStream: OutStream;
@@ -170,16 +198,30 @@ table 503 "Reminder Email Text"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Sets the body text for the specified email text record.
+    /// </summary>
+    /// <param name="value">The body text content to store.</param>
+    /// <param name="ReminderEmailText">The email text record to update.</param>
     procedure SetBodyText(value: Text; var ReminderEmailText: Record "Reminder Email Text")
     begin
         ReminderEmailText.SetBodyText(value);
     end;
 
+    /// <summary>
+    /// Gets the body text from the current email text record.
+    /// </summary>
+    /// <returns>The body text content.</returns>
     procedure GetBodyText(): Text
     begin
         exit(GetBodyText(Rec));
     end;
 
+    /// <summary>
+    /// Gets the body text from the specified email text record.
+    /// </summary>
+    /// <param name="ReminderEmailText">The email text record to read from.</param>
+    /// <returns>The body text content.</returns>
     procedure GetBodyText(var ReminderEmailText: Record "Reminder Email Text"): Text
     var
         TypeHelper: Codeunit "Type Helper";
@@ -199,6 +241,11 @@ table 503 "Reminder Email Text"
         exit(BodyText);
     end;
 
+    /// <summary>
+    /// Creates a new reminder email text record for the user's language with default content.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the email text group.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; SourceType: Enum "Reminder Text Source Type")
     var
         Language: Codeunit Language;
@@ -206,6 +253,12 @@ table 503 "Reminder Email Text"
         SetDefaultContentForNewLanguage(SelectedId, Language.GetUserLanguageCode(), SourceType);
     end;
 
+    /// <summary>
+    /// Creates a new reminder email text record for the specified language with default content.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the email text group.</param>
+    /// <param name="LanguageCode">The language code for the new record.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type")
     var
         EmptyGuid: Guid;
@@ -213,6 +266,13 @@ table 503 "Reminder Email Text"
         SetDefaultContentForNewLanguage(SelectedId, LanguageCode, SourceType, EmptyGuid);
     end;
 
+    /// <summary>
+    /// Creates a new reminder email text record for the specified language and links it to the source record.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the email text group.</param>
+    /// <param name="LanguageCode">The language code for the new record.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
+    /// <param name="SelectedSystemId">The system ID of the source record to link to.</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type"; SelectedSystemId: Guid)
     var
         ExistingReminderEmailText: Record "Reminder Email Text";

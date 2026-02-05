@@ -21,6 +21,7 @@ table 99000832 "Item Availability Line"
         }
         field(3; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

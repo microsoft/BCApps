@@ -35,6 +35,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field1; MATRIX_CellData[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[1];
 
                     trigger OnDrillDown()
@@ -45,6 +47,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field2; MATRIX_CellData[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[2];
 
                     trigger OnDrillDown()
@@ -55,6 +59,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field3; MATRIX_CellData[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[3];
 
                     trigger OnDrillDown()
@@ -65,6 +71,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field4; MATRIX_CellData[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[4];
 
                     trigger OnDrillDown()
@@ -75,6 +83,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field5; MATRIX_CellData[5])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[5];
 
                     trigger OnDrillDown()
@@ -85,6 +95,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field6; MATRIX_CellData[6])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[6];
 
                     trigger OnDrillDown()
@@ -95,6 +107,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field7; MATRIX_CellData[7])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[7];
 
                     trigger OnDrillDown()
@@ -105,6 +119,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field8; MATRIX_CellData[8])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[8];
 
                     trigger OnDrillDown()
@@ -115,6 +131,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field9; MATRIX_CellData[9])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[9];
 
                     trigger OnDrillDown()
@@ -125,6 +143,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field10; MATRIX_CellData[10])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[10];
 
                     trigger OnDrillDown()
@@ -135,6 +155,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field11; MATRIX_CellData[11])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[11];
 
                     trigger OnDrillDown()
@@ -145,6 +167,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field12; MATRIX_CellData[12])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[12];
 
                     trigger OnDrillDown()
@@ -155,6 +179,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field13; MATRIX_CellData[13])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[13];
 
                     trigger OnDrillDown()
@@ -165,6 +191,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field14; MATRIX_CellData[14])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[14];
 
                     trigger OnDrillDown()
@@ -175,6 +203,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field15; MATRIX_CellData[15])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[15];
 
                     trigger OnDrillDown()
@@ -185,6 +215,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field16; MATRIX_CellData[16])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[16];
 
                     trigger OnDrillDown()
@@ -195,6 +227,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field17; MATRIX_CellData[17])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[17];
 
                     trigger OnDrillDown()
@@ -205,6 +239,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field18; MATRIX_CellData[18])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[18];
 
                     trigger OnDrillDown()
@@ -215,6 +251,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field19; MATRIX_CellData[19])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[19];
 
                     trigger OnDrillDown()
@@ -225,6 +263,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field20; MATRIX_CellData[20])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[20];
 
                     trigger OnDrillDown()
@@ -235,6 +275,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field21; MATRIX_CellData[21])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[21];
 
                     trigger OnDrillDown()
@@ -245,6 +287,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field22; MATRIX_CellData[22])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[22];
 
                     trigger OnDrillDown()
@@ -255,6 +299,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field23; MATRIX_CellData[23])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[23];
 
                     trigger OnDrillDown()
@@ -265,6 +311,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field24; MATRIX_CellData[24])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[24];
 
                     trigger OnDrillDown()
@@ -275,6 +323,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field25; MATRIX_CellData[25])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[25];
 
                     trigger OnDrillDown()
@@ -285,6 +335,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field26; MATRIX_CellData[26])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[26];
 
                     trigger OnDrillDown()
@@ -295,6 +347,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field27; MATRIX_CellData[27])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[27];
 
                     trigger OnDrillDown()
@@ -305,6 +359,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field28; MATRIX_CellData[28])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[28];
 
                     trigger OnDrillDown()
@@ -315,6 +371,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field29; MATRIX_CellData[29])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[29];
 
                     trigger OnDrillDown()
@@ -325,6 +383,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field30; MATRIX_CellData[30])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[30];
 
                     trigger OnDrillDown()
@@ -335,6 +395,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field31; MATRIX_CellData[31])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[31];
 
                     trigger OnDrillDown()
@@ -345,6 +407,8 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                 field(Field32; MATRIX_CellData[32])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[32];
 
                     trigger OnDrillDown()

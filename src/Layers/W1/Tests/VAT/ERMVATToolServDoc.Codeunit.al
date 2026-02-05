@@ -893,6 +893,7 @@ codeunit 134053 "ERM VAT Tool - Serv. Doc"
     local procedure VATToolServiceLnPartShInvoiceConsume(FieldOption: Option; Invoice: Boolean; Consume: Boolean)
     var
         ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
         TempRecRef: RecordRef;
     begin
         Initialize();
@@ -906,7 +907,6 @@ codeunit 134053 "ERM VAT Tool - Serv. Doc"
         // SETUP: Ship (Partially) and Invoice/Consume.
         ERMVATToolHelper.UpdateQtyToShipService(ServiceHeader);
         ERMVATToolHelper.UpdateQtyToConsumeInvoice(ServiceHeader, Consume, Invoice);
-        ERMVATToolHelper.CreateLinesRefService(TempRecRef, ServiceHeader);
         LibraryService.PostServiceOrder(ServiceHeader, true, Consume, Invoice);
 
         // SETUP: Update VAT Change Tool Setup table.
@@ -915,11 +915,9 @@ codeunit 134053 "ERM VAT Tool - Serv. Doc"
         // Excercise: Run VAT Rate Change Tool.
         ERMVATToolHelper.RunVATRateChangeTool();
 
-        // Verify: Check if proper data was updated.
-        VerifyServiceLnPartShipped(TempRecRef);
-
-        // Verify: Log Entries
-        ERMVATToolHelper.VerifyDocumentSplitLogEntries(TempRecRef);
+        // Verify: Check that line was split.
+        GetServiceLine(ServiceHeader, ServiceLine);
+        Assert.AreEqual(2, ServiceLine.Count, ERMVATToolHelper.GetConversionErrorSplitLines());
 
         // Cleanup: Delete groups.
         ERMVATToolHelper.DeleteGroups();

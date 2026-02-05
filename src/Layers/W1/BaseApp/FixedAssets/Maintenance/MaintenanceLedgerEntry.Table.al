@@ -79,20 +79,24 @@ table 5625 "Maintenance Ledger Entry"
         field(12; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(13; "Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Debit Amount';
         }
         field(14; "Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Credit Amount';
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -177,6 +181,7 @@ table 5625 "Maintenance Ledger Entry"
         field(31; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount';
         }
         field(32; "Gen. Posting Type"; Enum "General Posting Type")
@@ -205,12 +210,13 @@ table 5625 "Maintenance Ledger Entry"
         }
         field(37; "FA Exchange Rate"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'FA Exchange Rate';
         }
         field(38; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(39; "Maintenance Code"; Code[10])

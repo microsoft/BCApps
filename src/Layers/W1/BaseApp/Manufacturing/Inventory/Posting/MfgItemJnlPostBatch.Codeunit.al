@@ -20,14 +20,14 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforePostLines', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforePostLines', '', true, false)]
     local procedure OnBeforePostLines()
     begin
         // Ensure that reference is not stale
         Clear(MfgCreatePutaway);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnHandleWhsePutAwayForProdOutput', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnHandleWhsePutAwayForProdOutput', '', true, false)]
     local procedure OnHandleWhsePutAwayForProdOutput(var ItemJnlLine: Record "Item Journal Line")
     begin
         HandleWhsePutAwayForProdOutput(ItemJnlLine);
@@ -47,7 +47,7 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
         MfgCreatePutaway.IncludeIntoWhsePutAwayForProdOrder(ItemJournalLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, false)]
     local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
     begin
         MfgCreatePutaway.CreateWhsePutAwayForProdOutput();
@@ -56,7 +56,7 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
         Clear(MfgCreatePutaway);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnCheckItemAvailabilityOnAfterSetAvailableQty', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnCheckItemAvailabilityOnAfterSetAvailableQty', '', true, false)]
     local procedure OnCheckItemAvailabilityOnAfterSetAvailableQty(var TempSKU: Record "Stockkeeping Unit" temporary; var ItemJnlLine: Record "Item Journal Line"; var AvailableQty: Decimal)
     begin
         AvailableQty += SelfReservedQty(TempSKU, ItemJnlLine);

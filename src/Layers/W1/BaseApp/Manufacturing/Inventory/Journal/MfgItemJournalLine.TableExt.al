@@ -57,6 +57,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5849; "Concurrent Capacity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Concurrent Capacity';
             DataClassification = CustomerContent;
@@ -67,6 +68,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
                 WorkCenter: Record "Work Center";
                 ShopCalendarMgt: Codeunit "Shop Calendar Management";
                 TotalTime: Integer;
+                SkipTimeValidation: Boolean;
             begin
                 TestField("Entry Type", "Entry Type"::Output);
                 if "Concurrent Capacity" = 0 then
@@ -80,12 +82,16 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
                     TotalTime := TotalTime + 86400000;
                 TestField("Work Center No.");
                 WorkCenter.Get("Work Center No.");
-                Validate("Setup Time", 0);
-                Validate(
-                  "Run Time",
-                  Round(
-                    TotalTime / ShopCalendarMgt.TimeFactor("Cap. Unit of Measure Code") *
-                    "Concurrent Capacity", WorkCenter."Calendar Rounding Precision"));
+                SkipTimeValidation := false;
+                OnValidateConcurrentCapacityOnBeforeTimeValidation(Rec, xRec, SkipTimeValidation);
+                if not SkipTimeValidation then begin
+                    Validate("Setup Time", 0);
+                    Validate(
+                      "Run Time",
+                      Round(
+                        TotalTime / ShopCalendarMgt.TimeFactor("Cap. Unit of Measure Code") *
+                        "Concurrent Capacity", WorkCenter."Calendar Rounding Precision"));
+                end;
             end;
         }
         field(5839; "Work Center No."; Code[20])
@@ -102,6 +108,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5841; "Setup Time"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Setup Time';
             DataClassification = CustomerContent;
@@ -116,6 +123,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5842; "Run Time"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Run Time';
             DataClassification = CustomerContent;
@@ -131,6 +139,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5843; "Stop Time"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Stop Time';
             DataClassification = CustomerContent;
@@ -143,6 +152,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5846; "Output Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Output Quantity';
             DataClassification = CustomerContent;
@@ -173,6 +183,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5847; "Scrap Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Machine Center" = R;
             Caption = 'Scrap Quantity';
             DataClassification = CustomerContent;
@@ -186,6 +197,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5851; "Setup Time (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Setup Time (Base)';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -198,6 +210,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5852; "Run Time (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Run Time (Base)';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -210,6 +223,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5853; "Stop Time (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Stop Time (Base)';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -222,6 +236,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5856; "Output Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Output Quantity (Base)';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -241,6 +256,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
         }
         field(5857; "Scrap Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Quantity (Base)';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -1094,6 +1110,11 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateProdOrderCompLineNo(var ItemJournalLine: Record "Item Journal Line"; xItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateConcurrentCapacityOnBeforeTimeValidation(var ItemJournalLine: Record "Item Journal Line"; xItemJournalLine: Record "Item Journal Line"; var SkipTimeValidation: Boolean)
     begin
     end;
 }

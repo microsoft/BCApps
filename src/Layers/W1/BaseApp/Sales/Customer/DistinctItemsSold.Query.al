@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Inventory.Ledger;
 
+/// <summary>
+/// Retrieves the distinct items sold to a customer within a specified date range.
+/// </summary>
 query 1 "Distinct Items Sold"
 {
     QueryType = Normal;

@@ -57,6 +57,7 @@ page 11000003 "Detail Line Subform"
                 }
                 field(PercentageAmount; PercentageAmount)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = '%';
                     DecimalPlaces = 0 : 2;

@@ -50,6 +50,7 @@ page 6550 "Whse. Item Tracking Lines"
                         field("SourceQuantityArray[1]"; SourceQuantityArray[1])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -58,6 +59,7 @@ page 6550 "Whse. Item Tracking Lines"
                         field(Handle1; SourceQuantityArray[2])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             Caption = 'Qty. to Handle';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -104,6 +106,7 @@ page 6550 "Whse. Item Tracking Lines"
                         field(Quantity3; UndefinedQtyArray[1])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -112,6 +115,7 @@ page 6550 "Whse. Item Tracking Lines"
                         field(Handle3; UndefinedQtyArray[2])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             DecimalPlaces = 0 : 5;
                             Editable = false;

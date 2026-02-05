@@ -32,6 +32,7 @@ table 7000023 "Customer Rating"
         }
         field(4; "Risk Percentage"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Risk Percentage';
             MaxValue = 100;
             MinValue = 0;

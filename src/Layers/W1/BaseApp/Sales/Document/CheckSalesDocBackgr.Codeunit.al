@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Validates sales document data in a background session for real-time error checking.
+/// </summary>
 codeunit 9072 "Check Sales Doc. Backgr."
 {
     trigger OnRun()
@@ -29,6 +32,11 @@ codeunit 9072 "Check Sales Doc. Backgr."
     var
         ErrorMessageMgt: Codeunit "Error Message Management";
 
+    /// <summary>
+    /// Runs validation checks on a sales document or line in a background session.
+    /// </summary>
+    /// <param name="Args">Dictionary containing error handling parameters for the check.</param>
+    /// <param name="TempErrorMessage">Returns any error messages generated during the check.</param>
     procedure RunCheck(Args: Dictionary of [Text, Text]; var TempErrorMessage: Record "Error Message" temporary)
     var
         SalesHeader: Record "Sales Header";

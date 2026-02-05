@@ -72,6 +72,7 @@ page 948 "TimeSheet Line Details FactBox"
                 }
                 field(JobBudgetedQty; JobBudgetedQty)
                 {
+                    AutoFormatType = 0;
                     Editable = false;
                     DecimalPlaces = 0 : 5;
                     BlankZero = true;

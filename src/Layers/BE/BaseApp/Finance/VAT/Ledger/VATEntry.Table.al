@@ -844,10 +844,14 @@ table 254 "VAT Entry"
         }
         field(11311; "Non Ded. VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Non Ded. VAT Amount';
         }
         field(11312; "Non Ded. Source Curr. VAT Amt."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Non Ded. Source Curr. VAT Amt.';
         }
         field(11391; "Month/Quarter"; Text[2])

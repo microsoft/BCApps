@@ -49,6 +49,7 @@ table 6027 "Pstd.Exp.Invt.Order.Tracking"
         }
         field(30; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

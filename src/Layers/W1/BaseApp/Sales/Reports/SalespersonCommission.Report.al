@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Calculates and displays commission amounts for salespeople based on customer ledger entries and configured commission percentages.
+/// </summary>
+
 using Microsoft.CRM.Team;
 using Microsoft.Inventory.Costing;
 using Microsoft.Sales.Receivables;

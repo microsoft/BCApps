@@ -741,6 +741,24 @@ page 51 "Purchase Invoice"
 
                                 CurrPage.Update(false);
                             end;
+
+                            trigger OnAfterLookup(Selected: RecordRef)
+                            var
+                                Vendor: Record Vendor;
+                            begin
+                                Selected.SetTable(Vendor);
+                                if Rec."Pay-to Vendor No." <> Vendor."No." then begin
+                                    xRec := Rec;
+                                    Rec."Pay-to Name" := Vendor.Name;
+                                    Rec.Validate("Pay-to Vendor No.", Vendor."No.");
+                                end;
+
+                                if Rec.GetFilter("Pay-to Vendor No.") = xRec."Pay-to Vendor No." then
+                                    if Rec."Pay-to Vendor No." <> xRec."Pay-to Vendor No." then
+                                        Rec.SetRange("Pay-to Vendor No.");
+
+                                CurrPage.Update();
+                            end;
                         }
                         field("Pay-to Name 2"; Rec."Pay-to Name 2")
                         {
@@ -1510,6 +1528,21 @@ page 51 "Purchase Invoice"
                         MoveNegPurchLines.ShowDocument();
                     end;
                 }
+                action(MatchedOrderLines)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Matched Order Lines';
+                    Image = TransferToLines;
+                    ToolTip = 'View and match order lines related to this purchase invoice.';
+
+                    trigger OnAction()
+                    var
+                        MatchedOrderLines: Page "Matched Order Lines";
+                    begin
+                        MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", true, Rec.SystemId);
+                        MatchedOrderLines.RunModal();
+                    end;
+                }
             }
             group("Request Approval")
             {
@@ -1757,6 +1790,9 @@ page 51 "Purchase Invoice"
                 {
                 }
                 actionref(MoveNegativeLines_Promoted; MoveNegativeLines)
+                {
+                }
+                actionref(MatchedOrderLines_Promoted; MatchedOrderLines)
                 {
                 }
             }

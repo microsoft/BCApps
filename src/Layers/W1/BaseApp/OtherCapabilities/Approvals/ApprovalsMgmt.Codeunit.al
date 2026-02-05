@@ -267,7 +267,7 @@ codeunit 1535 "Approvals Mgmt."
             ApproveRecordApprovalRequest(ItemJournalBatch.RecordId());
     end;
 
-    procedure ApproveRequisitionWkshLineRequest(RequisitionLine: Record "Requisition Line")
+    procedure ApproveRequisitionWkshRequest(RequisitionLine: Record "Requisition Line")
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
         ApprovalEntry: Record "Approval Entry";
@@ -311,7 +311,7 @@ codeunit 1535 "Approvals Mgmt."
             RejectRecordApprovalRequest(ItemJournalBatch.RecordId());
     end;
 
-    procedure RejectRequisitionWkshLineRequest(RequisitionLine: Record "Requisition Line")
+    procedure RejectRequisitionWkshRequest(RequisitionLine: Record "Requisition Line")
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
         ApprovalEntry: Record "Approval Entry";
@@ -355,7 +355,7 @@ codeunit 1535 "Approvals Mgmt."
             DelegateRecordApprovalRequest(ItemJournalBatch.RecordId());
     end;
 
-    procedure DelegateRequisitionWkshLineRequest(RequisitionLine: Record "Requisition Line")
+    procedure DelegateRequisitionWkshRequest(RequisitionLine: Record "Requisition Line")
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
         ApprovalEntry: Record "Approval Entry";
@@ -2350,8 +2350,8 @@ codeunit 1535 "Approvals Mgmt."
     begin
         GetRequisitionWkshBatch(RequisitionWkshName, RequisitionLine);
 
-        ApprovalEntry.SetFilter("Table ID", '%1|%2', Database::"Requisition Wksh. Name", Database::"Requisition Line");
-        ApprovalEntry.SetFilter("Record ID to Approve", '%1|%2', RequisitionWkshName.RecordId(), RequisitionLine.RecordId());
+        ApprovalEntry.SetRange("Table ID", Database::"Requisition Wksh. Name");
+        ApprovalEntry.SetRange("Record ID to Approve", RequisitionWkshName.RecordId());
         ApprovalEntry.SetRange("Related to Change", false);
         Page.Run(Page::"Approval Entries", ApprovalEntry);
     end;
@@ -2646,7 +2646,7 @@ codeunit 1535 "Approvals Mgmt."
     begin
         RecRef.GetTable(Variant);
         if HasOpenOrPendingApprovalEntriesForCurrentUser(RecRef.RecordId) then
-            if (CanCancelApprovalForRecord(RecRef.RecordId)) or (RecRef.Number in [Database::"Item Journal Batch"]) then
+            if (CanCancelApprovalForRecord(RecRef.RecordId)) or (RecRef.Number in [Database::"Item Journal Batch", Database::"Requisition Wksh. Name"]) then
                 Error(PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg);
 
         if (HasOpenApprovalEntries(RecRef.RecordId) and CanCancelApprovalForRecord(RecRef.RecordId))
@@ -2715,7 +2715,7 @@ codeunit 1535 "Approvals Mgmt."
                 end;
             Database::"Requisition Wksh. Name":
                 begin
-                    if HasOpenOrPendingApprovalEntriesForCurrentUser(RecRef.RecordId()) and CanCancelApprovalForRecord(RecRef.RecordId()) then
+                    if HasOpenOrPendingApprovalEntriesForCurrentUser(RecRef.RecordId()) then
                         Error(PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg);
 
                     if (HasOpenApprovalEntries(RecRef.RecordId()) and CanCancelApprovalForRecord(RecRef.RecordId())) or WorkflowWebhookMgt.HasPendingWorkflowWebhookEntryByRecordId(RecRef.RecordId()) then
@@ -2733,6 +2733,7 @@ codeunit 1535 "Approvals Mgmt."
     internal procedure PreventModifyRecIfOpenApprovalEntryExist(Variant: Variant)
     var
         ItemJournalBatch: Record "Item Journal Batch";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         ConfirmManagement: Codeunit "Confirm Management";
         RecRef: RecordRef;
@@ -2747,6 +2748,17 @@ codeunit 1535 "Approvals Mgmt."
                         if ConfirmManagement.GetResponseOrDefault(PreventModifyRecordWithOpenApprovalEntryNewMsg, true) then begin
                             RecRef.SetTable(ItemJournalBatch);
                             OnCancelItemJournalBatchApprovalRequest(ItemJournalBatch);
+                        end else
+                            Error('');
+                end;
+            Database::"Requisition Wksh. Name":
+                begin
+                    PreventModifyRecIfOpenApprovalEntryExistForCurrentUser(Variant);
+
+                    if (HasOpenApprovalEntries(RecRef.RecordId()) and CanCancelApprovalForRecord(RecRef.RecordId())) or WorkflowWebhookMgt.HasPendingWorkflowWebhookEntryByRecordId(RecRef.RecordId()) then
+                        if ConfirmManagement.GetResponseOrDefault(PreventModifyRecordWithOpenApprovalEntryNewMsg, true) then begin
+                            RecRef.SetTable(RequisitionWkshName);
+                            OnCancelRequisitionWkshBatchApprovalRequest(RequisitionWkshName);
                         end else
                             Error('');
                 end;
@@ -2979,7 +2991,6 @@ codeunit 1535 "Approvals Mgmt."
     local procedure GetApprovalStatusFromApprovalEntry(var ApprovalEntry: Record "Approval Entry"; RequisitionWkshName: Record "Requisition Wksh. Name"): Text[20]
     var
         RestrictedRecord: Record "Restricted Record";
-        RequisitionLine: Record "Requisition Line";
         FieldRef: FieldRef;
         ApprovalStatusName: Text;
     begin
@@ -2992,16 +3003,9 @@ codeunit 1535 "Approvals Mgmt."
             RestrictedRecord.SetRange(Details, RestrictBatchUsageDetailsLbl);
             if not RestrictedRecord.IsEmpty() then begin
                 RestrictedRecord.Reset();
-                RequisitionLine.ReadIsolation(IsolationLevel::ReadUncommitted);
-                RequisitionLine.SetLoadFields("Worksheet Template Name", "Journal Batch Name", "Line No.");
-                RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
-                RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-                if RequisitionLine.FindSet() then
-                    repeat
-                        RestrictedRecord.SetRange("Record ID", RequisitionLine.RecordId);
-                        if not RestrictedRecord.IsEmpty() then
-                            exit(CopyStr(ImposedRestrictionLbl, 1, 20));
-                    until RequisitionLine.Next() = 0;
+                RestrictedRecord.SetRange("Record ID", RequisitionWkshName.RecordId);
+                if not RestrictedRecord.IsEmpty() then
+                    exit(CopyStr(ImposedRestrictionLbl, 1, 20));
             end;
         end;
 

@@ -61,22 +61,26 @@ table 281 "Phys. Inventory Ledger Entry"
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(15; "Unit Amount"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Amount';
         }
         field(16; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
         }
         field(17; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(20; "Item Register No."; Integer)
@@ -130,11 +134,13 @@ table 281 "Phys. Inventory Ledger Entry"
         }
         field(54; "Qty. (Calculated)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Calculated)';
             DecimalPlaces = 0 : 5;
         }
         field(55; "Qty. (Phys. Inventory)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Phys. Inventory)';
             DecimalPlaces = 0 : 5;
         }

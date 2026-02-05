@@ -13,7 +13,7 @@ using Microsoft.Purchases.Document;
 /// </summary>
 codeunit 99000780 "Mfg. Dimension Management"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterUpdateGlobalDimCode', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterUpdateGlobalDimCode', '', true, false)]
     local procedure OnAfterUpdateGlobalDimCode(GlobalDimCodeNo: Integer; TableID: Integer; AccNo: Code[20]; NewDimValue: Code[20])
     begin
         if TableID = Database::"Work Center" then
@@ -59,7 +59,7 @@ codeunit 99000780 "Mfg. Dimension Management"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Check Dimensions", 'OnCheckDimValuePostingOnAfterCreateDimTableIDs', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Check Dimensions", 'OnCheckDimValuePostingOnAfterCreateDimTableIDs', '', true, false)]
     local procedure OnCheckDimValuePostingOnAfterCreateDimTableIDs(RecordVariant: Variant; var TableIDArr: array[10] of Integer; var NumberArr: array[10] of Code[20])
     var
         PurchaseLine: Record "Purchase Line";

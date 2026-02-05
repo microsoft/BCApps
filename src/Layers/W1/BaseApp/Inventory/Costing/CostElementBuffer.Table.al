@@ -28,6 +28,7 @@ table 5820 "Cost Element Buffer"
         field(3; "Actual Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Actual Cost';
             DataClassification = SystemMetadata;
         }
@@ -41,6 +42,7 @@ table 5820 "Cost Element Buffer"
         field(5; "Rounding Residual"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rounding Residual';
             DataClassification = SystemMetadata;
         }
@@ -54,6 +56,7 @@ table 5820 "Cost Element Buffer"
         field(7; "Expected Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Expected Cost';
             DataClassification = SystemMetadata;
         }
@@ -66,11 +69,13 @@ table 5820 "Cost Element Buffer"
         }
         field(9; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
             DataClassification = SystemMetadata;
         }
         field(10; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DataClassification = SystemMetadata;
         }

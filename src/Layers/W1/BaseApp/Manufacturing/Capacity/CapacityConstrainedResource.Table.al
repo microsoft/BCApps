@@ -65,6 +65,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(10; "Critical Load %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Critical Load %';
             DecimalPlaces = 1 : 1;
 
@@ -80,6 +81,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(11; "Dampener (% of Total Capacity)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Dampener (% of Total Capacity)';
             DecimalPlaces = 1 : 1;
 
@@ -111,6 +113,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(42; "Capacity (Effective)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Effective)" where("Capacity Type" = field("Capacity Type"),
                                                                              "No." = field("Capacity No."),
                                                                              "Work Shift Code" = field("Work Shift Filter"),
@@ -122,6 +125,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(44; "Prod. Order Need Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where(Type = field("Capacity Type"),
                                                                                   "No." = field("Capacity No."),
                                                                                   Date = field("Date Filter")));
@@ -132,6 +136,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(46; "Work Center Load Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where("Work Center No." = field("Work Center No."),
                                                                                   Date = field("Date Filter")));
             Caption = 'Work Center Load Qty.';
@@ -141,6 +146,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(48; "Prod. Order Need Qty. for Plan"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where(Type = field("Capacity Type"),
                                                                                   "No." = field("Capacity No."),
                                                                                   Date = field("Date Filter"),
@@ -152,6 +158,7 @@ table 99000866 "Capacity Constrained Resource"
         }
         field(49; "Work Center Load Qty. for Plan"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where("Work Center No." = field("Work Center No."),
                                                                                   Date = field("Date Filter"),
                                                                                   Active = const(true)));

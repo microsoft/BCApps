@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a summary of attachment text configurations for reminder documents as a card part.
+/// </summary>
 page 833 "Reminder Attachment Text"
 {
     Caption = 'Attachment Texts';

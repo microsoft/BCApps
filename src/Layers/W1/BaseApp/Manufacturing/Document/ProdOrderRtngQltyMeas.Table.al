@@ -44,16 +44,19 @@ table 5413 "Prod. Order Rtng Qlty Meas."
         }
         field(11; "Min. Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Min. Value';
             DecimalPlaces = 0 : 5;
         }
         field(12; "Max. Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Max. Value';
             DecimalPlaces = 0 : 5;
         }
         field(13; "Mean Tolerance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Mean Tolerance';
             DecimalPlaces = 0 : 5;
         }

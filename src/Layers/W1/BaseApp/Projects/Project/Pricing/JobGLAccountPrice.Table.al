@@ -74,6 +74,7 @@ table 1014 "Job G/L Account Price"
         }
         field(7; "Unit Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Cost Factor';
 
             trigger OnValidate()
@@ -91,6 +92,8 @@ table 1014 "Job G/L Account Price"
         }
         field(9; "Unit Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Unit Cost';
         }
         field(10; Description; Text[100])

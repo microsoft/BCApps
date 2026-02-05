@@ -88,7 +88,7 @@ codeunit 99000849 "Mfg. ReservCheckDateConfl"
         exit(ForceRequest);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation-Check Date Confl.", 'OnSameProdOrderAutoReserve', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation-Check Date Confl.", 'OnSameProdOrderAutoReserve', '', true, false)]
     local procedure OnSameProdOrderAutoReserve(var FilterReservationEntry: Record "Reservation Entry"; var Result: Boolean)
     var
         ProdOrderLineReservationEntry: Record "Reservation Entry";

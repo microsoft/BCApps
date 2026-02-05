@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,6 +15,9 @@ page 10864 "Payment Class"
     PageType = List;
     SourceTable = "Payment Class";
     UsageCategory = Administration;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -181,4 +185,4 @@ page 10864 "Payment Class"
         Text002: Label '''txt''';
         Text003: Label 'Import_Export Parameters.txt';
 }
-
+#endif

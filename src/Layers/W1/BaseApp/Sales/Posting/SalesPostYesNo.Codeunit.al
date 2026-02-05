@@ -10,6 +10,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Prompts the user for confirmation and posting options before posting a sales document.
+/// </summary>
 codeunit 81 "Sales-Post (Yes/No)"
 {
     EventSubscriberInstance = Manual;
@@ -32,6 +35,10 @@ codeunit 81 "Sales-Post (Yes/No)"
     var
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
 
+    /// <summary>
+    /// Posts the sales document and sends it to the customer using the configured document sending profile.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document to post and send.</param>
     procedure PostAndSend(var SalesHeader: Record "Sales Header")
     var
         SalesHeaderToPost: Record "Sales Header";
@@ -108,6 +115,10 @@ codeunit 81 "Sales-Post (Yes/No)"
         exit(true);
     end;
 
+    /// <summary>
+    /// Previews the posting of the sales document without actually posting it, showing the expected ledger entries.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document to preview.</param>
     procedure Preview(var SalesHeader: Record "Sales Header")
     var
         SalesPostYesNo: Codeunit "Sales-Post (Yes/No)";
@@ -117,6 +128,11 @@ codeunit 81 "Sales-Post (Yes/No)"
         GenJnlPostPreview.Preview(SalesPostYesNo, SalesHeader);
     end;
 
+    /// <summary>
+    /// Displays a message if previewing multiple sales documents and indicates which document is being previewed.
+    /// </summary>
+    /// <param name="SalesHeaderToPreview">Specifies the sales header records being previewed.</param>
+    /// <param name="DocumentNo">Specifies the document number of the current document being previewed.</param>
     procedure MessageIfPostingPreviewMultipleDocuments(var SalesHeaderToPreview: Record "Sales Header"; DocumentNo: Code[20])
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -128,11 +144,21 @@ codeunit 81 "Sales-Post (Yes/No)"
         GenJnlPostPreview.MessageIfPostingPreviewMultipleDocuments(RecordRefToPreview, DocumentNo);
     end;
 
+    /// <summary>
+    /// Raised after the sales document has been posted.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="PostAndSend">Indicates whether the document was posted using Post and Send functionality.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPost(var SalesHeader: Record "Sales Header"; PostAndSend: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the user confirms posting the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConfirmPost(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -160,36 +186,75 @@ codeunit 81 "Sales-Post (Yes/No)"
         Result := SalesPost.Run(SalesHeader);
     end;
 
+    /// <summary>
+    /// Raised after the posting flags (Ship, Receive, Invoice) are set during posting preview.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being previewed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunPreviewOnAfterSetPostingFlags(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying the posting confirmation dialog.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="DefaultOption">The default posting option to select in the dialog.</param>
+    /// <param name="Result">Set to the result of the confirmation dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmPost(var SalesHeader: Record "Sales Header"; var DefaultOption: Integer; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming and posting the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="HideDialog">Set to true to hide the confirmation dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="DefaultOption">The default posting option to select in the dialog.</param>
+    /// <param name="PostAndSend">Indicates whether to also send the document after posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmSalesPost(var SalesHeader: Record "Sales Header"; var HideDialog: Boolean; var IsHandled: Boolean; var DefaultOption: Integer; var PostAndSend: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the OnRun trigger executes.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the Sales-Post codeunit.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="SuppressCommit">Set to true to suppress database commits during posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunSalesPost(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var SuppressCommit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the posting selection options in the confirmation dialog.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostOnBeforeSetSelection(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the posting preview.
+    /// </summary>
+    /// <param name="Result">Returns the result of the preview operation.</param>
+    /// <param name="RecVar">The record to preview.</param>
+    /// <param name="IsHandled">Set to true to skip the default preview logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunPreview(var Result: Boolean; RecVar: Variant; var IsHandled: Boolean)
     begin

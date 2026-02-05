@@ -43,6 +43,8 @@ table 1005 "Job WIP G/L Entry"
         }
         field(6; "WIP Entry Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'WIP Entry Amount';
         }
         field(7; "Job Posting Group"; Code[20])

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Pricing;
 
+/// <summary>
+/// Provides a read-only view of sales prices for lookup and selection purposes.
+/// </summary>
 page 7007 "Get Sales Price"
 {
     Caption = 'Get Sales Price';

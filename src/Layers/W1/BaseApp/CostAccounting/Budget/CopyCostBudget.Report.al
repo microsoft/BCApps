@@ -167,6 +167,7 @@ report 1134 "Copy Cost Budget"
                     field("Amount multiplication factor"; Factor)
                     {
                         ApplicationArea = CostAccounting;
+                        AutoFormatType = 0;
                         Caption = 'Amount multiplication factor';
                         ToolTip = 'Specifies an adjustment factor that multiplies the amounts you want to copy. By entering an adjustment factor, you can increase or decrease the amounts that are to be copied to the new budget.';
                     }

@@ -46,6 +46,7 @@ page 35290 "Rec. Docs Analysis Fact Box"
             {
                 ApplicationArea = All;
                 AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Amount (LCY)';
                 DrillDown = true;
                 Editable = false;

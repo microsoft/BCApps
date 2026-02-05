@@ -67,6 +67,7 @@ table 5207 "Employee Absence"
         }
         field(7; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             ToolTip = 'Specifies the quantity associated with absences, in hours or days.';
             DecimalPlaces = 0 : 5;
@@ -100,6 +101,7 @@ table 5207 "Employee Absence"
         }
         field(12; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -111,6 +113,7 @@ table 5207 "Employee Absence"
         }
         field(13; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;

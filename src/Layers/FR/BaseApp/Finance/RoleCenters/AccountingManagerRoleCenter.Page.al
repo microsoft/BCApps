@@ -6,7 +6,9 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Reports;
 using Microsoft.CashFlow.Account;
@@ -131,53 +133,53 @@ page 9001 "Accounting Manager Role Center"
                 }
             }
 #else
-                part(Control1902304208; "Account Manager Activities")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part("User Tasks Activities"; "User Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part(Control99; "Finance Performance")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control103; "Trailing Sales Orders Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control106; "My Job Queue")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control100; "Cash Flow Forecast Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1907692008; "My Customers")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1902476008; "My Vendors")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control108; "Report Inbox Part")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                systempart(Control1901377608; MyNotes)
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+            part(Control1902304208; "Account Manager Activities")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part("User Tasks Activities"; "User Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part(Control99; "Finance Performance")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control103; "Trailing Sales Orders Chart")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control106; "My Job Queue")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control100; "Cash Flow Forecast Chart")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1907692008; "My Customers")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1902476008; "My Vendors")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control108; "Report Inbox Part")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            systempart(Control1901377608; MyNotes)
+            {
+                ApplicationArea = Basic, Suite;
+            }
 #endif
         }
     }
@@ -478,6 +480,7 @@ page 9001 "Accounting Manager Role Center"
             separator(Action1120013)
             {
             }
+#if not CLEAN28
             action("Payments Lists")
             {
                 ApplicationArea = Basic, Suite;
@@ -485,6 +488,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Payment List";
                 ToolTip = 'View a list of payments.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("GL/Cust. Ledger Reconciliation")
             {
@@ -493,6 +499,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "GL/Cust. Ledger Reconciliation";
                 ToolTip = 'View or print a separate page for each customer that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with customer ledger entries.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("GL/Vend. Ledger Reconciliation")
             {
@@ -501,7 +510,11 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "GL/Vend. Ledger Reconciliation";
                 ToolTip = 'View or print a separate page for each vendor that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with vendor ledger entries.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
+#endif
         }
         area(embedding)
         {
@@ -694,13 +707,18 @@ page 9001 "Accounting Manager Role Center"
                                         Recurring = const(false));
                     ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
                 }
+#if not CLEAN28
                 action("Payment Slips")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Slips';
                     RunObject = Page "Payment Slip List";
                     ToolTip = 'View a list of payment slips.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group("Fixed Assets")
             {
@@ -912,13 +930,18 @@ page 9001 "Accounting Manager Role Center"
                     RunObject = Page "Cost Budget Registers";
                     ToolTip = 'Get an overview of all cost budget entries sorted by posting date. ';
                 }
+#if not CLEAN28
                 action("Payment Slip List Archives")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Slip List Archives';
                     RunObject = Page "Payment Slip List Archive";
                     ToolTip = 'View a list of payment slips that have been posted and archived.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Posted Bank Deposits")
                 {
                     Caption = 'Posted Bank Deposits';
@@ -1036,12 +1059,16 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Page "Payment Journal";
                 ToolTip = 'Make payments to vendors.';
             }
+#if not CLEAN28
             action("Payment Slip")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Payment Slip';
                 RunObject = Page "Payment Slip";
                 ToolTip = 'Use payment slips to manage customer and vendor payments. ';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("Look/Edit Payment Line")
             {
@@ -1049,6 +1076,9 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Look/Edit Payment Line';
                 RunObject = Page "View/Edit Payment Line";
                 ToolTip = 'View and edit all payment lines that belong to a payment class. The window shows a line for each payment status. ';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("Payment Report")
             {
@@ -1056,6 +1086,9 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Payment Report';
                 RunObject = Page "Payment Report";
                 ToolTip = 'View all payment documents that belong to a payment class and have the same status.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("Archive Payment Journals")
             {
@@ -1064,6 +1097,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Archive Payment Slips";
                 ToolTip = 'Archive payment journals to separate them from active journals. You can enter criteria to specify the journals to archive.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
             action("Create Payment Slips")
             {
@@ -1071,7 +1107,11 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Create Payment Slips';
                 RunObject = Codeunit "Payment Management";
                 ToolTip = 'Manage information about customer and vendor payments.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
             }
+#endif
             separator(Action67)
             {
             }

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Archive;
 
+/// <summary>
+/// Lists all archived sales line records for lookup and selection.
+/// </summary>
 page 6619 "Sales Line Archive List"
 {
     Caption = 'Sales Line Archive List';

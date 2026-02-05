@@ -186,6 +186,7 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         }
         field(99000892; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Production Order" = R;
             Caption = 'Scrap %';
             DataClassification = CustomerContent;
@@ -233,6 +234,7 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
 #pragma warning restore AA0232
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Planning Routing Line"."Expected Operation Cost Amt." where("Worksheet Template Name" = field("Worksheet Template Name"),
                                                                                             "Worksheet Batch Name" = field("Journal Batch Name"),
                                                                                             "Worksheet Line No." = field("Line No.")));

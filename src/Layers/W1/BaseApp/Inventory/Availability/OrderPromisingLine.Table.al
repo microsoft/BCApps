@@ -39,6 +39,7 @@ table 99000880 "Order Promising Line"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -50,27 +51,32 @@ table 99000880 "Order Promising Line"
         }
         field(15; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(16; "Unavailable Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unavailable Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(17; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Unavailable Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unavailable Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(19; "Required Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Required Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -100,6 +106,7 @@ table 99000880 "Order Promising Line"
         }
         field(31; "Required Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Required Quantity';
             DecimalPlaces = 0 : 5;
         }

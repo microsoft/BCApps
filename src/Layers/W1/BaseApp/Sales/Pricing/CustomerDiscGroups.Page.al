@@ -9,6 +9,9 @@ using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using System.Text;
 
+/// <summary>
+/// Displays and manages customer discount groups used to assign shared discount rules to multiple customers.
+/// </summary>
 page 512 "Customer Disc. Groups"
 {
     ApplicationArea = Basic, Suite;
@@ -144,6 +147,10 @@ page 512 "Customer Disc. Groups"
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
         ExtendedPriceEnabled: Boolean;
 
+    /// <summary>
+    /// Gets a filter string for the selected customer discount groups on the page.
+    /// </summary>
+    /// <returns>A filter string representing the selected customer discount groups.</returns>
     procedure GetSelectionFilter(): Text
     var
         CustDiscGr: Record "Customer Discount Group";

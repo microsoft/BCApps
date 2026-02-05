@@ -15,6 +15,8 @@ pageextension 6482 "Serv. CFForecastStatFactBox" extends "CF Forecast Statistics
             field(ServiceOrders; Rec.CalcSourceTypeAmount("Cash Flow Source Type"::"Service Orders"))
             {
                 ApplicationArea = Service;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Service Orders';
                 ToolTip = 'Specifies the amount of the service order to be received and paid out by your business for the cash flow forecast.';
 

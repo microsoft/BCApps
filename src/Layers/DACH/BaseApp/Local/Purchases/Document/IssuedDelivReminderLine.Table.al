@@ -64,16 +64,19 @@ table 5005273 "Issued Deliv. Reminder Line"
         }
         field(10; "Reorder Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reorder Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

@@ -10,6 +10,9 @@ using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Analysis;
 using System.Utilities;
 
+/// <summary>
+/// Provides configuration and display of sales analysis reports with line and column templates.
+/// </summary>
 page 7117 "Sales Analysis Report"
 {
     Caption = 'Sales Analysis Report';
@@ -482,6 +485,9 @@ page 7117 "Sales Analysis Report"
                 exit(AnalysisReportName.Name + ' ' + AnalysisReportName.Description);
     end;
 
+    /// <summary>
+    /// Sets filters on the analysis columns and lines based on current template selections.
+    /// </summary>
     procedure SetFilters()
     begin
         TempAnalysisColumn.Reset();
@@ -576,6 +582,10 @@ page 7117 "Sales Analysis Report"
         Clear(LastColumn);
     end;
 
+    /// <summary>
+    /// Sets the analysis report name to be used when the page opens.
+    /// </summary>
+    /// <param name="NewReportName">The report name code to set.</param>
     procedure SetReportName(NewReportName: Code[10])
     begin
         NewCurrentReportName := NewReportName;

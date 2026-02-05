@@ -27,6 +27,7 @@ table 1799 "Data Migration Status"
         }
         field(5; "Progress Percent"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Progress Percent';
             DataClassification = SystemMetadata;
             ExtendedDatatype = Ratio;

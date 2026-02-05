@@ -10,6 +10,9 @@ using Microsoft.Utilities;
 using System.Automation;
 using System.Telemetry;
 
+/// <summary>
+/// Removes blanket sales orders that have been fully invoiced from the system.
+/// </summary>
 report 291 "Delete Invd Blnkt Sales Orders"
 {
     AccessByPermission = TableData "Sales Header" = RD;

@@ -36,6 +36,7 @@ table 278 "Job Journal Quantity"
         }
         field(5; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

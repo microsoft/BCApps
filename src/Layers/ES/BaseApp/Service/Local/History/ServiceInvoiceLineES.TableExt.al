@@ -20,6 +20,7 @@ tableextension 10793 "Service Invoice Line ES" extends "Service Invoice Line"
         }
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = CustomerContent;
         }

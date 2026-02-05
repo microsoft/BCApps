@@ -87,17 +87,20 @@ table 7156 "Item Analysis View Budg. Entry"
         }
         field(21; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount';
         }
         field(23; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
         }
     }

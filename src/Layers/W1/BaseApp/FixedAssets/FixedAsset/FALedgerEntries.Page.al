@@ -96,6 +96,7 @@ page 5604 "FA Ledger Entries"
                     Caption = 'Running Balance';
                     ToolTip = 'Specifies the running balance.';
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = false;
                 }
                 field("Reclassification Entry"; Rec."Reclassification Entry")

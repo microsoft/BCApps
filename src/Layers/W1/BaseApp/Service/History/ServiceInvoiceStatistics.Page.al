@@ -77,6 +77,7 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales (LCY)';
                     ToolTip = 'Specifies your total service sales turnover in the fiscal year. It is calculated from amounts excluding VAT on all completed and open service sales invoices and credit memos.';
                 }
@@ -84,6 +85,7 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     ToolTip = 'Specifies the amount of profit on the service invoice (in LCY), prior to any item cost adjustments. The program calculates the amount as the difference between the values in the Amount and the Original Cost (LCY) fields.';
                 }
@@ -91,11 +93,13 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     ToolTip = 'Specifies the amount of profit for the service invoice, in LCY, adjusted for any changes in the original item costs. ';
                 }
                 field(ProfitPct; ProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -103,6 +107,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(AdjProfitPct; AdjProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -110,6 +115,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -117,6 +123,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
@@ -124,6 +131,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -131,6 +139,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
@@ -138,6 +147,7 @@ page 6033 "Service Invoice Statistics"
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
@@ -147,6 +157,7 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Cost (LCY)';
                     ToolTip = 'Specifies the total cost (in LCY) of the G/L account entries, costs, items and/or resources on the posted service credit memo. The cost was calculated as a product of unit cost multiplied by quantity of the relevant items, resources and/or costs on the posted credit memo.';
                 }
@@ -154,6 +165,7 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     ToolTip = 'Specifies the total cost, in LCY, of the items in the posted service invoice, adjusted for any changes in the original costs of these items.';
                 }
@@ -161,6 +173,7 @@ page 6033 "Service Invoice Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the posted service invoice.';
 
@@ -186,6 +199,7 @@ page 6033 "Service Invoice Statistics"
                     AutoFormatType = 1;
                     Caption = 'Balance (LCY)';
                     ToolTip = 'Specifies the balance in LCY on the customer''s account.';
+                    AutoFormatExpression = '';
                 }
                 field(CreditLimitLCY; Cust."Credit Limit (LCY)")
                 {
@@ -197,6 +211,7 @@ page 6033 "Service Invoice Statistics"
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the expended percentage of the credit limit in (LCY).';

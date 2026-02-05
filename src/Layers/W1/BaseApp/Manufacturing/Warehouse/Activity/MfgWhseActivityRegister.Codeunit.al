@@ -19,7 +19,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         WhseActivityRegister: Codeunit "Whse.-Activity-Register";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseDocHeaderByWhseDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseDocHeaderByWhseDocumentType', '', true, false)]
     local procedure OnUpdateWhseDocHeaderByWhseDocumentType(var WarehouseActivityLine: Record "Warehouse Activity Line")
     var
         ProductionOrder: Record "Production Order";
@@ -70,7 +70,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnCheckSourceDocumentForAvailabilityBySourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnCheckSourceDocumentForAvailabilityBySourceDocument', '', true, false)]
     local procedure OnCheckSourceDocumentForAvailabilityBySourceDocument(var WarehouseActivityLine: Record "Warehouse Activity Line"; var RemainingQtyBase: Decimal; var RemainingQtyUoM: Code[10]; var AllowWhseOverpick: Boolean)
     var
         Item: Record Item;
@@ -96,7 +96,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnRegisterWhseItemTrkgLineOnSetDueDate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnRegisterWhseItemTrkgLineOnSetDueDate', '', true, false)]
     local procedure OnRegisterWhseItemTrkgLineOnSetDueDate(WarehouseActivityLine: Record "Warehouse Activity Line"; var DueDate: Date; var QtyToRegisterBase: Decimal; WhseDocType: Enum "Warehouse Activity Document Type")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -113,7 +113,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnRegisterWhseItemTrkgLineOnAfterSetDueDateForInvtMovement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnRegisterWhseItemTrkgLineOnAfterSetDueDateForInvtMovement', '', true, false)]
     local procedure OnRegisterWhseItemTrkgLineOnAfterSetDueDateForInvtMovement(WarehouseActivityLine: Record "Warehouse Activity Line"; var DueDate: Date)
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -130,7 +130,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseSourceDocLineByDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseSourceDocLineByDocumentType', '', true, false)]
     local procedure OnUpdateWhseSourceDocLineByDocumentType(var WarehouseActivityLine: Record "Warehouse Activity Line"; WhseDocType: Enum "Warehouse Activity Document Type")
     begin
         case WhseDocType of
@@ -145,7 +145,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnAfterUpdateSourceDocumentForInvtMovement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnAfterUpdateSourceDocumentForInvtMovement', '', true, false)]
     local procedure OnAfterUpdateSourceDocumentForInvtMovement(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
         case WarehouseActivityLine."Source Document" of
@@ -226,7 +226,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
             until ProdOrderComponent.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnGetSourceLineBaseQtyByWhseActivityDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnGetSourceLineBaseQtyByWhseActivityDocumentType', '', true, false)]
     local procedure OnGetSourceLineBaseQtyByWhseActivityDocumenttype(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QtyBase: Decimal; WhseDocType: Enum "Warehouse Activity Document Type")
     begin
         case WhseDocType of
@@ -235,7 +235,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnGetSourceLineBaseQtyByWhseActivitySourceType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnGetSourceLineBaseQtyByWhseActivitySourceType', '', true, false)]
     local procedure OnGetSourceLineBaseQtyByWhseActivitySourceType(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QtyBase: Decimal)
     begin
         case WarehouseActivityLine."Source Document" of
@@ -257,7 +257,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
 
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnBeforeCheckQtyAvailToInsertBase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnBeforeCheckQtyAvailToInsertBase', '', true, false)]
     local procedure OnBeforeCheckQtyAvailToInsertBase(var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var QtyAvailToInsertBase: Decimal; var AllowWhseOverpick: Boolean)
     var
         Item: Record Item;

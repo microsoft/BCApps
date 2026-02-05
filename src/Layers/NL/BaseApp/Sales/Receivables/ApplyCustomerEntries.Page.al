@@ -16,6 +16,9 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Displays open customer ledger entries and enables users to select and apply payments to invoices.
+/// </summary>
 page 232 "Apply Customer Entries"
 {
     Caption = 'Apply Customer Entries';
@@ -803,6 +806,11 @@ page 232 "Apply Customer Entries"
         CalcType: Enum "Customer Apply Calculation Type";
         OK: Boolean;
 
+    /// <summary>
+    /// Sets up the page to apply entries from a general journal line context.
+    /// </summary>
+    /// <param name="NewGenJnlLine">The general journal line from which to apply entries.</param>
+    /// <param name="ApplnTypeSelect">The field number indicating the application type selection.</param>
     procedure SetGenJnlLine(NewGenJnlLine: Record "Gen. Journal Line"; ApplnTypeSelect: Integer)
     begin
         GenJnlLine := NewGenJnlLine;
@@ -826,6 +834,12 @@ page 232 "Apply Customer Entries"
         SetApplyingCustLedgEntry();
     end;
 
+    /// <summary>
+    /// Sets up the page to apply entries from a sales header document context.
+    /// </summary>
+    /// <param name="NewSalesHeader">The sales header document from which to apply entries.</param>
+    /// <param name="NewCustLedgEntry">The customer ledger entry filters to apply.</param>
+    /// <param name="ApplnTypeSelect">The field number indicating the application type selection.</param>
     procedure SetSales(NewSalesHeader: Record "Sales Header"; var NewCustLedgEntry: Record "Cust. Ledger Entry"; ApplnTypeSelect: Integer)
     var
         TotalAdjCostLCY: Decimal;
@@ -860,11 +874,18 @@ page 232 "Apply Customer Entries"
     end;
 
 
+    /// <summary>
+    /// Sets the current record to the specified customer ledger entry.
+    /// </summary>
+    /// <param name="NewCustLedgEntry">The customer ledger entry to set as the current record.</param>
     procedure SetCustLedgEntry(NewCustLedgEntry: Record "Cust. Ledger Entry")
     begin
         Rec := NewCustLedgEntry;
     end;
 
+    /// <summary>
+    /// Initializes the applying customer ledger entry based on the current calculation type.
+    /// </summary>
     procedure SetApplyingCustLedgEntry()
     var
         IsHandled: Boolean;
@@ -887,6 +908,10 @@ page 232 "Apply Customer Entries"
         OnAfterSetApplyingCustLedgEntry(TempApplyingCustLedgEntry, GenJnlLine, SalesHeader);
     end;
 
+    /// <summary>
+    /// Gets the custom Applies-to ID if it was set exactly once during the session.
+    /// </summary>
+    /// <returns>The custom Applies-to ID or an empty string if not set or set multiple times.</returns>
     internal procedure GetCustomAppliesToID(): Code[50]
     begin
         if TimesSetCustomAppliesToID <> 1 then
@@ -986,6 +1011,10 @@ page 232 "Apply Customer Entries"
         OnSetApplyingCustLedgEntryOnBeforeCalcTypeDirectCalcApplnAmount(Rec, ApplyingAmount, TempApplyingCustLedgEntry);
     end;
 
+    /// <summary>
+    /// Sets the Applies-to ID on selected customer ledger entries for application.
+    /// </summary>
+    /// <param name="CurrentRec">Indicates whether to apply only to the current record or to all selected records.</param>
     procedure SetCustApplId(CurrentRec: Boolean)
     begin
         CurrPage.SetSelectionFilter(CustLedgEntry);
@@ -1016,6 +1045,10 @@ page 232 "Apply Customer Entries"
         end;
     end;
 
+    /// <summary>
+    /// Validates that selected customer ledger entries can be applied against the applying entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entries to validate.</param>
     procedure CheckCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         RaiseError: Boolean;
@@ -1054,6 +1087,9 @@ page 232 "Apply Customer Entries"
         OnAfterGetAppliesToID(CalcType, AppliesToID);
     end;
 
+    /// <summary>
+    /// Calculates the application amounts including applied amount, payment discount, and rounding.
+    /// </summary>
     procedure CalcApplnAmount()
     var
         IsHandled: Boolean;
@@ -1230,6 +1266,9 @@ page 232 "Apply Customer Entries"
         AmountRoundingPrecision := Currency."Amount Rounding Precision";
     end;
 
+    /// <summary>
+    /// Calculates any rounding amount needed when applying entries in different currencies.
+    /// </summary>
     procedure CheckRounding()
     var
         IsHandled: Boolean;
@@ -1263,6 +1302,10 @@ page 232 "Apply Customer Entries"
             ApplnRounding := -((AppliedAmount - PmtDiscAmount) + ApplyingAmount);
     end;
 
+    /// <summary>
+    /// Gets the current customer ledger entry record.
+    /// </summary>
+    /// <param name="CustLedgEntry">Returns the current customer ledger entry.</param>
     procedure GetCustLedgEntry(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
         CustLedgEntry := Rec;
@@ -1491,11 +1534,22 @@ page 232 "Apply Customer Entries"
             Error(PostingInWrongContextErr);
     end;
 
+    /// <summary>
+    /// Sets the Applies-to ID to use for filtering entries.
+    /// </summary>
+    /// <param name="AppliesToID2">The Applies-to ID value to set.</param>
     procedure SetAppliesToID(AppliesToID2: Code[50])
     begin
         AppliesToID := AppliesToID2;
     end;
 
+    /// <summary>
+    /// Converts ledger entry amounts to the specified currency using the exchange rate at the posting date.
+    /// </summary>
+    /// <param name="Type">The calculation type context for the exchange.</param>
+    /// <param name="CurrencyCode">The target currency code for conversion.</param>
+    /// <param name="CalcCustLedgEntry">The customer ledger entry with amounts to convert.</param>
+    /// <param name="PostingDate">The date to use for the exchange rate.</param>
     procedure ExchangeLedgerEntryAmounts(Type: Enum "Customer Apply Calculation Type"; CurrencyCode: Code[10]; var CalcCustLedgEntry: Record "Cust. Ledger Entry"; PostingDate: Date)
     var
         CalculateCurrency, IsHandled : Boolean;
@@ -1559,6 +1613,11 @@ page 232 "Apply Customer Entries"
         AppliesToIDVisible := ApplnType <> ApplnType::"Applies-to Doc. No.";
     end;
 
+    /// <summary>
+    /// Calculates the total remaining amount of entries with the opposite sign.
+    /// </summary>
+    /// <param name="TempAppliedCustLedgerEntry">The temporary applied customer ledger entry set to analyze.</param>
+    /// <returns>The total remaining amount of entries with opposite sign.</returns>
     procedure CalcOppositeEntriesAmount(var TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary) Result: Decimal
     var
         SavedAppliedCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -1578,194 +1637,428 @@ page 232 "Apply Customer Entries"
         end;
     end;
 
+    /// <summary>
+    /// Gets the application currency code.
+    /// </summary>
+    /// <returns>The currency code used for the application.</returns>
     procedure GetApplnCurrencyCode(): Code[10]
     begin
         exit(ApplnCurrencyCode);
     end;
 
+    /// <summary>
+    /// Gets the calculation type as an integer value.
+    /// </summary>
+    /// <returns>The calculation type as an integer.</returns>
     procedure GetCalcType(): Integer
     begin
         exit(CalcType.AsInteger());
     end;
 
+    /// <summary>
+    /// Sets the calculation type for the application process.
+    /// </summary>
+    /// <param name="NewCalcType">The calculation type to set.</param>
     procedure SetCalcType(NewCalcType: Enum "Customer Apply Calculation Type")
     begin
         CalcType := NewCalcType;
     end;
 
+    /// <summary>
+    /// Raised after the application amount has been calculated.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being applied.</param>
+    /// <param name="AppliedAmount">The calculated applied amount.</param>
+    /// <param name="ApplyingAmount">The applying amount from the source document.</param>
+    /// <param name="CalcType">The calculation type used.</param>
+    /// <param name="AppliedCustLedgEntry">The applied customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line if applicable.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCalcApplnAmount(CustLedgerEntry: Record "Cust. Ledger Entry"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var CalcType: Enum "Customer Apply Calculation Type"; var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the application amount to apply has been calculated.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ApplnAmountToApply">The calculated amount to apply.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcApplnAmountToApply(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplnAmountToApply: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the remaining application amount has been calculated.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ApplnRemainingAmount">The calculated remaining amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcApplnRemainingAmount(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplnRemainingAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after ledger entry amounts have been exchanged to the application currency.
+    /// </summary>
+    /// <param name="CalcCustLedgEntry">The customer ledger entry with converted amounts.</param>
+    /// <param name="CustLedgerEntry">The original customer ledger entry.</param>
+    /// <param name="CurrencyCode">The target currency code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterExchangeLedgerEntryAmounts(var CalcCustLedgEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; CurrencyCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Applies-to ID has been retrieved.
+    /// </summary>
+    /// <param name="CalcType">The calculation type.</param>
+    /// <param name="AppliesToID">The Applies-to ID value.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetAppliesToID(CalcType: Enum "Customer Apply Calculation Type"; var AppliesToID: Code[50])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Lookup OK action has been processed.
+    /// </summary>
+    /// <param name="OK">Indicates whether the lookup was successful.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupOKOnPush(var OK: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the page has been opened.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line if applicable.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry record.</param>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnOpenPage(var GenJnlLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyingCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the applying customer ledger entry has been set.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line if applicable.</param>
+    /// <param name="SalesHeader">The sales header if applicable.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetApplyingCustLedgEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the application amount is calculated.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line if applicable.</param>
+    /// <param name="SalesHeader">The sales header if applicable.</param>
+    /// <param name="AppliedCustLedgerEntry">The applied customer ledger entry.</param>
+    /// <param name="CalculationType">The calculation type option.</param>
+    /// <param name="ApplicationType">The application type option.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcApplnAmount(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; CalculationType: Option; ApplicationType: Option; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before rounding is checked for the application.
+    /// </summary>
+    /// <param name="CalcType">The calculation type.</param>
+    /// <param name="ApplnRounding">The application rounding amount.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckRounding(CalcType: Enum "Customer Apply Calculation Type"; var ApplnRounding: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before chosen entries are processed for application.
+    /// </summary>
+    /// <param name="Type">The calculation type option.</param>
+    /// <param name="CurrentAmount">The current amount being applied.</param>
+    /// <param name="CurrencyCode">The currency code.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="AppliedCustLedgerEntry">The applied customer ledger entries.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeHandledChosenEntries(Type: Option Direct,GenJnlLine,SalesHeader; CurrentAmount: Decimal; CurrencyCode: Code[10]; PostingDate: Date; var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before an error is raised for applying entries with earlier posting dates.
+    /// </summary>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being applied to.</param>
+    /// <param name="RaiseError">Set to false to suppress the error.</param>
+    /// <param name="CalcType">The calculation type option.</param>
+    /// <param name="OK">Indicates whether the operation is successful.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEarlierPostingDateError(ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; var RaiseError: Boolean; CalcType: Option; var OK: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before a direct application is posted.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="PreviewMode">Indicates whether posting is in preview mode.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostDirectApplication(var CustLedgerEntry: Record "Cust. Ledger Entry"; PreviewMode: Boolean; var IsHandled: Boolean; var ApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised before the applying customer ledger entry is set.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line if applicable.</param>
+    /// <param name="SalesHeader">The sales header if applicable.</param>
+    /// <param name="CalcType">The calculation type.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSetApplyingCustLedgerEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; var CalcType: Enum "Customer Apply Calculation Type"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the customer entry Applies-to ID is set.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="CurrentRec">Indicates whether applying to current record only.</param>
+    /// <param name="ApplyingAmount">The applying amount.</param>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="AppliesToID">The Applies-to ID.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="GenJournalLine">The general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetCustEntryApplID(CustLedgerEntry: Record "Cust. Ledger Entry"; CurrentRec: Boolean; var ApplyingAmount: Decimal; var ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; AppliesToID: Code[50]; var IsHandled: Boolean; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the applied amount during general journal line application to document number.
+    /// </summary>
+    /// <param name="AppliedCustLedgEntry">The applied customer ledger entry.</param>
+    /// <param name="ApplnDate">The application date.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcApplnAmountOnCalcTypeGenJnlLineOnApplnTypeToDocNoOnBeforeSetAppliedAmount(var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking against application currency during customer ledger entry validation.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being validated.</param>
+    /// <param name="GenJournalLine">The general journal line.</param>
+    /// <param name="TempApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="CalcType">The calculation type.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustLedgEntryOnBeforeCheckAgainstApplnCurrency(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary; CalcType: Enum "Customer Apply Calculation Type")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the applied amount during general journal line application to document number.
+    /// </summary>
+    /// <param name="AppliedCustLedgEntry">The applied customer ledger entry.</param>
+    /// <param name="ApplnDate">The application date.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
+    /// <param name="AppliedAmount">The applied amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcApplnAmountOnCalcTypeGenJnlLineOnApplnTypeToDocNoOnAfterSetAppliedAmount(var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10]; var AppliedAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the applied amount during sales header application to document number.
+    /// </summary>
+    /// <param name="AppliedCustLedgEntry">The applied customer ledger entry.</param>
+    /// <param name="ApplnDate">The application date.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcApplnAmountOnCalcTypeSalesHeaderOnApplnTypeToDocNoOnBeforeSetAppliedAmount(var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set when finding the applying entry.
+    /// </summary>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being filtered.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindFindApplyingEntryOnAfterCustLedgEntrySetFilters(ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the application amount when finding the applying entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnFindApplyingEntryOnBeforeCalcApplnAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a temporary applied customer ledger entry has been inserted during entry handling.
+    /// </summary>
+    /// <param name="TempAppliedCustLedgerEntry">The temporary applied customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnHandleChosenEntriesOnAfterTempAppliedCustLedgEntryInsert(var TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting a temporary applied customer ledger entry during entry handling.
+    /// </summary>
+    /// <param name="AppliedCustLedgEntry">The applied customer ledger entry.</param>
+    /// <param name="TempAppliedCustLedgEntry">The temporary applied customer ledger entry to delete.</param>
+    /// <param name="CurrencyCode">The currency code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleChosenEntriesOnBeforeDeleteTempAppliedCustLedgEntry(var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; TempAppliedCustLedgEntry: Record "Cust. Ledger Entry" temporary; CurrencyCode: Code[10])
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after checking against application currency when setting the Applies-to ID.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="CustLedgerEntry2">The second customer ledger entry.</param>
+    /// <param name="CalcType">The calculation type option.</param>
+    /// <param name="GenJnlLine">The general journal line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetCustApplIdOnAfterCheckAgainstApplnCurrency(var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry2: Record "Cust. Ledger Entry"; CalcType: Option; var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; ApplyingCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the application amount for direct calculation type.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ApplyingAmount">The applying amount.</param>
+    /// <param name="TempApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnSetApplyingCustLedgEntryOnBeforeCalcTypeDirectCalcApplnAmount(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyingAmount: Decimal; var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running customer entry edit when closing the page.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
     [IntegrationEvent(true, false)]
     local procedure OnOnQueryClosePageOnBeforeRunCustEntryEdit(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting values during direct application posting.
+    /// </summary>
+    /// <param name="ApplicationDate">The application date.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDirectApplicationBeforeSetValues(var ApplicationDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before applying during direct application posting.
+    /// </summary>
+    /// <param name="GLSetup">The general ledger setup.</param>
+    /// <param name="NewApplyUnapplyParameters">The apply/unapply parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDirectApplicationBeforeApply(GLSetup: Record "General Ledger Setup"; var NewApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the applying customer ledger entry from a sales header.
+    /// </summary>
+    /// <param name="TempApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetApplyingCustLedgEntrySalesHeader(var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after setting the applying customer ledger entry from a general journal line.
+    /// </summary>
+    /// <param name="TempApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="GenJnlLine">The general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetApplyingCustLedgEntryGenJnlLine(var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary; var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating amounts during ledger entry exchange.
+    /// </summary>
+    /// <param name="CalcCustLedgerEntry">The customer ledger entry for calculation.</param>
+    /// <param name="CustLedgerEntry">The original customer ledger entry.</param>
+    /// <param name="CurrencyCode">The currency code.</param>
+    /// <param name="CalculateCurrency">Indicates whether to calculate currency conversion.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnExchangeLedgerEntryAmountsOnBeforeCalculateAmounts(var CalcCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; CurrencyCode: Code[10]; CalculateCurrency: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing for earlier posting date during customer ledger entry check.
+    /// </summary>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being checked.</param>
+    /// <param name="CalcType">The calculation type.</param>
+    /// <param name="OK">Indicates whether the check passed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustLedgEntryOnAfterEarlierPostingDateTest(ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; CalcType: Enum "Customer Apply Calculation Type"; var OK: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing for earlier posting date when closing the page.
+    /// </summary>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="CalcType">The calculation type.</param>
+    /// <param name="OK">Indicates whether the check passed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnQueryClosePageOnAfterEarlierPostingDateTest(ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; CalcType: Enum "Customer Apply Calculation Type"; var OK: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking against application currency when entry number is not null.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustLedgEntryOnBeforeCheckAgainstApplnCurrencyWhenEntryNoIsNotNull(CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the application has been posted during direct application.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="NewApplyUnapplyParameters">The apply/unapply parameters used.</param>
+    /// <param name="PreviewMode">Indicates whether posting was in preview mode.</param>
+    /// <param name="Applied">Indicates whether the application was successful.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDirectApplicationOnAfterApply(var CustLedgerEntry: Record "Cust. Ledger Entry"; var NewApplyUnapplyParameters: Record "Apply Unapply Parameters"; PreviewMode: Boolean; Applied: Boolean)
     begin

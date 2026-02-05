@@ -190,6 +190,7 @@ table 1003 "Job Planning Line"
         }
         field(9; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -247,6 +248,7 @@ table 1003 "Job Planning Line"
         field(11; "Direct Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost (LCY)';
 
             trigger OnValidate()
@@ -258,6 +260,7 @@ table 1003 "Job Planning Line"
         field(12; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
             Editable = false;
 
@@ -283,12 +286,14 @@ table 1003 "Job Planning Line"
         field(13; "Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost (LCY)';
             Editable = false;
         }
         field(14; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
             Editable = false;
 
@@ -306,6 +311,7 @@ table 1003 "Job Planning Line"
         field(15; "Total Price (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price (LCY)';
             Editable = false;
         }
@@ -368,6 +374,7 @@ table 1003 "Job Planning Line"
         }
         field(18; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -377,6 +384,7 @@ table 1003 "Job Planning Line"
         }
         field(19; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -505,6 +513,7 @@ table 1003 "Job Planning Line"
         }
         field(900; "Qty. to Assemble"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Qty. to Assemble';
             DecimalPlaces = 0 : 5;
@@ -533,6 +542,7 @@ table 1003 "Job Planning Line"
         }
         field(901; "Qty. to Assemble (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Assemble (Base)';
             DecimalPlaces = 0 : 5;
             DataClassification = CustomerContent;
@@ -573,6 +583,7 @@ table 1003 "Job Planning Line"
         field(1001; "Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount (LCY)';
             Editable = false;
 
@@ -661,6 +672,7 @@ table 1003 "Job Planning Line"
         field(1008; "Line Discount Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Discount Amount (LCY)';
             Editable = false;
 
@@ -677,6 +689,7 @@ table 1003 "Job Planning Line"
         }
         field(1015; "Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Factor';
             Editable = false;
 
@@ -699,6 +712,7 @@ table 1003 "Job Planning Line"
         }
         field(1021; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -760,6 +774,7 @@ table 1003 "Job Planning Line"
         }
         field(1025; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -799,6 +814,7 @@ table 1003 "Job Planning Line"
             Editable = false;
             FieldClass = FlowField;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1036; "Invoiced Cost Amount (LCY)"; Decimal)
         {
@@ -809,6 +825,7 @@ table 1003 "Job Planning Line"
             Editable = false;
             FieldClass = FlowField;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1037; "VAT Unit Price"; Decimal)
         {
@@ -830,6 +847,7 @@ table 1003 "Job Planning Line"
         }
         field(1041; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(1042; "Description 2"; Text[50])
@@ -894,6 +912,7 @@ table 1003 "Job Planning Line"
         }
         field(1060; "Remaining Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty.';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -905,6 +924,7 @@ table 1003 "Job Planning Line"
         }
         field(1061; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -919,6 +939,7 @@ table 1003 "Job Planning Line"
         field(1063; "Remaining Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Total Cost (LCY)';
             Editable = false;
         }
@@ -932,17 +953,20 @@ table 1003 "Job Planning Line"
         field(1065; "Remaining Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Line Amount (LCY)';
             Editable = false;
         }
         field(1070; "Qty. Posted"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Posted';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(1071; "Qty. to Transfer to Journal"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Transfer to Journal';
             DecimalPlaces = 0 : 5;
 
@@ -962,6 +986,7 @@ table 1003 "Job Planning Line"
         field(1073; "Posted Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Posted Total Cost (LCY)';
             Editable = false;
         }
@@ -975,11 +1000,13 @@ table 1003 "Job Planning Line"
         field(1075; "Posted Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Posted Line Amount (LCY)';
             Editable = false;
         }
         field(1080; "Qty. Transferred to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line Invoice"."Quantity Transferred" where("Job No." = field("Job No."),
                                                                                         "Job Task No." = field("Job Task No."),
                                                                                         "Job Planning Line No." = field("Line No.")));
@@ -990,6 +1017,7 @@ table 1003 "Job Planning Line"
         }
         field(1081; "Qty. to Transfer to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Transfer to Invoice';
             DecimalPlaces = 0 : 5;
 
@@ -1028,6 +1056,7 @@ table 1003 "Job Planning Line"
         }
         field(1090; "Qty. Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line Invoice"."Quantity Transferred" where("Job No." = field("Job No."),
                                                                                         "Job Task No." = field("Job Task No."),
                                                                                         "Job Planning Line No." = field("Line No."),
@@ -1039,12 +1068,14 @@ table 1003 "Job Planning Line"
         }
         field(1091; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(1100; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Item = R;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source Type" = const(1003),
 #pragma warning disable AL0603
@@ -1061,6 +1092,7 @@ table 1003 "Job Planning Line"
         field(1101; "Reserved Qty. (Base)"; Decimal)
         {
             AccessByPermission = TableData Item = R;
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source Type" = const(1003),
 #pragma warning disable AL0603
                                                                             "Source Subtype" = field(Status),
@@ -1195,6 +1227,7 @@ table 1003 "Job Planning Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1202,6 +1235,7 @@ table 1003 "Job Planning Line"
         }
         field(5410; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1273,6 +1307,7 @@ table 1003 "Job Planning Line"
         }
         field(7300; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = filter(<> "Put-away"),
                                                                                   "Source Type" = const(167),
                                                                                   "Source No." = field("Job No."),
@@ -1289,6 +1324,7 @@ table 1003 "Job Planning Line"
         }
         field(7301; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1303,6 +1339,7 @@ table 1003 "Job Planning Line"
         }
         field(7302; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1314,6 +1351,7 @@ table 1003 "Job Planning Line"
         }
         field(7304; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter(<> "Put-away"),
                                                                                          "Source Type" = const(167),
                                                                                          "Source No." = field("Job No."),
@@ -1329,6 +1367,7 @@ table 1003 "Job Planning Line"
         }
         field(7305; "Qty. on Journal"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Journal Line"."Quantity (Base)" where("Job No." = field("Job No."),
                                                                   "Job Task No." = field("Job Task No."),
                                                                   "Job Planning Line No." = field("Line No."),
@@ -2290,8 +2329,7 @@ table 1003 "Job Planning Line"
             exit;
         end;
 
-        if (Amount <> xAmount) then
-            AmountLCY := ConvertAmountToLCY(Amount, UnitAmountRoundingPrecision);
+        AmountLCY := ConvertAmountToLCY(Amount, UnitAmountRoundingPrecision);
     end;
 
     local procedure ConvertAmountToFCY(AmountLCY: Decimal; Precision: Decimal) AmountFCY: Decimal;

@@ -149,6 +149,7 @@ table 246 "Requisition Line"
         }
         field(8; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -522,6 +523,7 @@ table 246 "Requisition Line"
         }
         field(30; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -547,6 +549,7 @@ table 246 "Requisition Line"
         }
         field(31; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry".Quantity where("Source ID" = field("Worksheet Template Name"),
                                                                   "Source Ref. No." = field("Line No."),
                                                                   "Source Type" = const(246),
@@ -662,6 +665,7 @@ table 246 "Requisition Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -669,6 +673,7 @@ table 246 "Requisition Line"
         }
         field(5405; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -678,6 +683,7 @@ table 246 "Requisition Line"
         }
         field(5406; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -714,6 +720,7 @@ table 246 "Requisition Line"
         }
         field(5408; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -733,6 +740,7 @@ table 246 "Requisition Line"
         }
         field(5431; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Worksheet Template Name"),
                                                                            "Source Ref. No." = field("Line No."),
                                                                            "Source Type" = const(246),
@@ -787,18 +795,21 @@ table 246 "Requisition Line"
         }
         field(5532; "Demand Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Demand Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5533; "Demand Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Demand Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5538; "Needed Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Needed Quantity';
             DecimalPlaces = 0 : 5;
@@ -806,6 +817,7 @@ table 246 "Requisition Line"
         }
         field(5539; "Needed Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Needed Quantity (Base)';
             DecimalPlaces = 0 : 5;
@@ -828,6 +840,7 @@ table 246 "Requisition Line"
         }
         field(5541; "Qty. per UOM (Demand)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per UOM (Demand)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -892,6 +905,7 @@ table 246 "Requisition Line"
         }
         field(5563; "Demand Qty. Available"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Demand Qty. Available';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -940,6 +954,7 @@ table 246 "Requisition Line"
         }
         field(7002; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             MaxValue = 100;
             MinValue = 0;
@@ -992,6 +1007,7 @@ table 246 "Requisition Line"
         }
         field(99000888; "Original Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Original Quantity';
             DecimalPlaces = 0 : 5;
@@ -999,6 +1015,7 @@ table 246 "Requisition Line"
         }
         field(99000889; "Finished Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Finished Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1006,6 +1023,7 @@ table 246 "Requisition Line"
         }
         field(99000890; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1106,17 +1124,20 @@ table 246 "Requisition Line"
         }
         field(99000899; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
         }
         field(99000900; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
         }
         field(99000901; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             MinValue = 0;
 
@@ -1145,7 +1166,8 @@ table 246 "Requisition Line"
         }
         field(99000902; "Cost Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
             Editable = false;
             MinValue = 0;
@@ -1235,7 +1257,8 @@ table 246 "Requisition Line"
         }
         field(99000910; "Expected Component Cost Amt."; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             CalcFormula = sum("Planning Component"."Cost Amount" where("Worksheet Template Name" = field("Worksheet Template Name"),
                                                                         "Worksheet Batch Name" = field("Journal Batch Name"),
                                                                         "Worksheet Line No." = field("Line No.")));
@@ -1245,12 +1268,14 @@ table 246 "Requisition Line"
         }
         field(99000911; "Finished Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Finished Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(99000912; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1303,6 +1328,7 @@ table 246 "Requisition Line"
         }
         field(99000918; "Net Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1409,7 +1435,6 @@ table 246 "Requisition Line"
     trigger OnDelete()
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
-        RequisitionLine: Record "Requisition Line";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1417,13 +1442,8 @@ table 246 "Requisition Line"
         if IsHandled then
             exit;
 
-        // Lines are deleted 1 by 1, this actually check if this is the last line in the Requisition Worksheet Name.
-        RequisitionLine.SetRange("Worksheet Template Name", "Worksheet Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", "Journal Batch Name");
-        RequisitionLine.SetFilter("Line No.", '<>%1', "Line No.");
-        if RequisitionLine.IsEmpty() then
-            if RequisitionWkshName.Get(Rec."Worksheet Template Name", Rec."Journal Batch Name") then
-                ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(RequisitionWkshName);
+        if RequisitionWkshName.Get(Rec."Worksheet Template Name", Rec."Journal Batch Name") then
+            ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(RequisitionWkshName);
 
         ReqLine.Reset();
         ReqLine.Get("Worksheet Template Name", "Journal Batch Name", "Line No.");
@@ -1465,13 +1485,12 @@ table 246 "Requisition Line"
 
     trigger OnModify()
     begin
-        CheckOpenApprovalEntryExistForCurrentUser();
+        PreventModifyRecIfOpenApprovalEntryExist();
         ReqLineReserve.VerifyChange(Rec, xRec);
     end;
 
     trigger OnRename()
     begin
-        ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId(), RecordId());
         Error(Text004, TableCaption);
     end;
 
@@ -1554,10 +1573,14 @@ table 246 "Requisition Line"
     local procedure CopyFromGLAcc()
     var
         GLAcc: Record "G/L Account";
+        ShouldTestFieldDirectPosting: Boolean;
     begin
         GLAcc.Get("No.");
         GLAcc.CheckGLAcc();
-        GLAcc.TestField("Direct Posting", true);
+        ShouldTestFieldDirectPosting := true;
+        OnCopyFromGLAccOnBeforeTestFieldDirectPosting(Rec, GLAcc, ShouldTestFieldDirectPosting);
+        if ShouldTestFieldDirectPosting then
+            GLAcc.TestField("Direct Posting", true);
         CopyDescriptionFromGLAcc(GLAcc);
     end;
 
@@ -3415,7 +3438,7 @@ table 246 "Requisition Line"
         DoNotUpdateOrderReceiptDate := NewUpdateOrderReceiptDate;
     end;
 
-    local procedure CheckOpenApprovalEntryExistForCurrentUser()
+    local procedure PreventModifyRecIfOpenApprovalEntryExist()
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
@@ -3750,6 +3773,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyDescriptionFromGLAcc(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromGLAccOnBeforeTestFieldDirectPosting(var RequisitionLine: Record "Requisition Line"; GLAccount: Record "G/L Account"; var ShouldTestFieldDirectPosting: Boolean)
     begin
     end;
 

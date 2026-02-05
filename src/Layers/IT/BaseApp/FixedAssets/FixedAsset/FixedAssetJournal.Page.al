@@ -24,7 +24,7 @@ page 5629 "Fixed Asset Journal"
     SourceTable = "FA Journal Line";
     UsageCategory = Tasks;
     AboutTitle = 'About Fixed Asset Journal';
-    AboutText = 'With the **Fixed Asset Journal**, All entries are posted to the fixed asset ledger entry only such as acquisition, depreciation, disposal, write-down, appreciation and maintenance.';
+    AboutText = 'With the **Fixed Asset Journal**, all entries are posted to the fixed asset ledger entry only such as acquisition, depreciation, disposal, write-down, appreciation and maintenance.';
 
     layout
     {

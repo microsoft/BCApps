@@ -62,6 +62,7 @@ table 5225 "Employee Payment Buffer"
         field(8; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

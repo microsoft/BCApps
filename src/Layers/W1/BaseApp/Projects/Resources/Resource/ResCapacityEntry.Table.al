@@ -39,6 +39,7 @@ table 160 "Res. Capacity Entry"
         }
         field(5; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DecimalPlaces = 0 : 5;
         }

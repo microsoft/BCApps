@@ -500,6 +500,11 @@
     "method": "VerifySalesPriceInSalesLineWhenSalesPriceIsUpdatedViaGetPriceFunction"
   },
   {
+    "codeunitId": 134159,
+    "codeunitName": "Test Price Calculation - V16",
+    "method": "VerifySalesLinePriceUpdateUsingGetPriceFunction"
+  },
+  {
     "codeunitId": 134169,
     "codeunitName": "Test Date Compression",
     "method": "TestMinimumUncompressedPeriodCompressGLEntries"

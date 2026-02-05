@@ -22,6 +22,9 @@ using Microsoft.Sales.Document;
 using System.Automation;
 using System.Telemetry;
 
+/// <summary>
+/// Displays a single posted sales invoice document with header and line details.
+/// </summary>
 page 132 "Posted Sales Invoice"
 {
     Caption = 'Posted Sales Invoice';

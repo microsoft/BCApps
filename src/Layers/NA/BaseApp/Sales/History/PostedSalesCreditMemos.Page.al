@@ -15,6 +15,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Reports;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales credit memos for viewing, printing, and navigation.
+/// </summary>
 page 144 "Posted Sales Credit Memos"
 {
     ApplicationArea = Basic, Suite;

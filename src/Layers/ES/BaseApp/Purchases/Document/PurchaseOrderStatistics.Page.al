@@ -515,6 +515,7 @@ page 403 "Purchase Order Statistics"
                 field(PrepmtInvPct; PrepmtInvPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Invoiced % of Prepayment Amt.';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the invoiced percentage of the prepayment amount.';
@@ -532,6 +533,7 @@ page 403 "Purchase Order Statistics"
                 field(PrepmtDeductedPct; PrepmtDeductedPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Deducted % of Prepayment Amt. to Deduct';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the deducted percentage of the prepayment amount to deduct.';

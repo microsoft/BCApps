@@ -388,6 +388,7 @@ table 5475 "Sales Invoice Entity Aggregate"
         field(122; "Invoice Discount Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Invoice Discount Value';
             DataClassification = CustomerContent;
         }

@@ -13,6 +13,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Reflection;
 
+/// <summary>
+/// Displays customer ledger entries grouped by G/L register showing posting details and amounts.
+/// </summary>
 report 10046 "Customer Register"
 {
     DefaultLayout = RDLC;

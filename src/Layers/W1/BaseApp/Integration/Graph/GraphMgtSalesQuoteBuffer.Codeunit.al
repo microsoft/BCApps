@@ -13,6 +13,8 @@ using System.Reflection;
 
 codeunit 5506 "Graph Mgt - Sales Quote Buffer"
 {
+    Permissions =
+        tabledata "Sales Quote Entity Buffer" = rimd;
 
     trigger OnRun()
     begin

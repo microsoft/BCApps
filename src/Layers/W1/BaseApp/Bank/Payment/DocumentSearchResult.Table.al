@@ -35,7 +35,7 @@ table 983 "Document Search Result"
         /// </summary>
         field(3; Amount; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         /// <summary>

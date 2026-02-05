@@ -62,6 +62,7 @@
         AmountZeroErr: Label 'Amount must be zero';
         AmountMustSameErr: Label 'Amount must be same';
         ChangeExtendedTextErr: Label 'You cannot change %1 for Extended Text Line.', Comment = '%1= Field Caption';
+        PayToVendorNoShouldBeSameErr: Label 'Pay-to Vendor No. should be set to the selected vendor.';
 
     [Test]
     [Scope('OnPrem')]
@@ -3192,6 +3193,45 @@
         // [THEN] Verify Source Currency Amount for Reverse Charge VAT Account in GL Entry
         VerifySourceCurrencyAmountInGLEntry(VATPostingSetup);
         LibraryVariableStorage.Clear();
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorLookupSelectVendorPageHandler,ConfirmHandler')]
+    procedure PayToVendorLookupWithDuplicateVendorNames()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        Vendor, Vendor2 : Record Vendor;
+        PurchaseInvoice: TestPage "Purchase Invoice";
+    begin
+        // [SCENARIO 617343] When multiple vendors have the same name, Pay-to Name lookup selects the correct vendor.
+        Initialize();
+
+        // [GIVEN] Create first vendor with random name.
+        LibraryPurchase.CreateVendorWithAddress(Vendor);
+        Vendor.Validate(Name, LibraryRandom.RandText(StrLen(Vendor."No.")));
+        Vendor.Modify(true);
+
+        // [GIVEN] Create second vendor with same name as first vendor. 
+        LibraryPurchase.CreateVendorWithAddress(Vendor2);
+        Vendor2.Validate(Name, Vendor.Name);
+        Vendor2.Modify(true);
+
+        // [GIVEN] Purchase Invoice for first vendor.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+
+        // [WHEN] Open Purchase Invoice and lookup Pay-to Name to select Vendor 2
+        LibraryVariableStorage.Enqueue(Vendor2."No.");
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoice.PayToOptions.SetValue(PurchaseInvoice.PayToOptions.GetOption(2)); // "Another Vendor"
+        PurchaseInvoice."Pay-to Name".Lookup();
+
+        // [THEN] Pay-to Vendor No. is set to Vendor 2, not Vendor 1
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        Assert.AreEqual(Vendor2."No.", PurchaseHeader."Pay-to Vendor No.", PayToVendorNoShouldBeSameErr);
+        PurchaseInvoice.Close();
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()

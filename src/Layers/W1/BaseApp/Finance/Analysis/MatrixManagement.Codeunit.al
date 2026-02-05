@@ -238,6 +238,8 @@ codeunit 9200 "Matrix Management"
             DimensionValue.SetFilter(Code, DimensionValueFilter);
         DimensionValue.FilterGroup(0);
 
+        OnDimToCaptionsOnAfterDimensionValueSetFiltersOnBeforeFindSet(DimensionValue);
+
         i := 0;
         if DimensionValue.FindSet() then
             repeat
@@ -824,5 +826,15 @@ codeunit 9200 "Matrix Management"
     local procedure OnMatrixPageStepTypeInGenerateMatrixDataExtended(SetWanted: Option; MaximumSetLength: Integer; var RecRef: RecordRef)
     begin
     end;
+
+    /// <summary>
+    /// Integration event raised after setting filters on dimension value record in dimension to captions procedure.
+    /// Allows additional filtering or processing after standard filter application.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension value record being filtered</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnDimToCaptionsOnAfterDimensionValueSetFiltersOnBeforeFindSet(var DimensionValue: Record "Dimension Value")
+    begin
+    end;    
 }
 

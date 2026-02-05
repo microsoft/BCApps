@@ -29,6 +29,8 @@ page 868 "Cash Flow Forecast Statistics"
                 Caption = 'General';
                 field(LiquidFunds; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Liquid Funds"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Liquid Funds';
                     ToolTip = 'Specifies amounts related to liquid funds.';
@@ -40,6 +42,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(Receivables; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::Receivables))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Receivables';
                     ToolTip = 'Specifies amounts related to receivables.';
@@ -51,6 +55,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(SalesOrders; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Sales Orders"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Sales Orders';
                     ToolTip = 'Specifies amounts related to sales orders.';
@@ -62,6 +68,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(SalesofFixedAssets; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Fixed Assets Disposal"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = FixedAssets;
                     Caption = 'Fixed Assets Disposal';
                     ToolTip = 'Specifies amounts related to fixed assets disposal.';
@@ -73,6 +81,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(ManualRevenues; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Cash Flow Manual Revenue"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Cash Flow Manual Revenues';
                     ToolTip = 'Specifies amounts related to cash flow manual revenues.';
@@ -84,8 +94,9 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(Payables; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::Payables))
                 {
-                    ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Payables';
                     ToolTip = 'Specifies amounts related to payables.';
 
@@ -96,6 +107,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(PurchaseOrders; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Purchase Orders"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Suite;
                     Caption = 'Purchase Orders';
                     ToolTip = 'Specifies amounts related to purchase orders.';
@@ -107,6 +120,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(BudgetedFixedAssets; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Fixed Assets Budget"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = FixedAssets;
                     Caption = 'Fixed Assets Budget';
                     ToolTip = 'Specifies amounts related to fixed asset budgets.';
@@ -118,6 +133,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(ManualExpenses; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"Cash Flow Manual Expense"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Cash Flow Manual Expenses';
                     ToolTip = 'Specifies amounts related to cash flow manual expenses.';
@@ -129,6 +146,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(GLBudgets; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::"G/L Budget"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'G/L Budgets';
                     ToolTip = 'Specifies amounts related to general ledger budgets.';
@@ -140,6 +159,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(Job; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::Job))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Jobs;
                     Caption = 'Project';
                     ToolTip = 'Specifies amounts related to projects.';
@@ -151,6 +172,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(Tax; Rec.CalcSourceTypeAmount(CashFlowForecastEntry."Source Type"::Tax))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Tax';
                     ToolTip = 'Specifies amounts related to taxes.';
@@ -162,6 +185,8 @@ page 868 "Cash Flow Forecast Statistics"
                 }
                 field(Total; Rec.CalcSourceTypeAmount("Cash Flow Source Type"::" "))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = Format(StrSubstNo(Text1000, Format(Rec."Manual Payments To")));
                     Caption = 'Total';

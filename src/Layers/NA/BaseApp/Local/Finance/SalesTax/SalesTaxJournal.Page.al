@@ -164,6 +164,7 @@ page 10101 "Sales Tax Journal"
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Balance';
                     Editable = false;
                     ToolTip = 'Specifies the customer''s balance. ';
@@ -173,6 +174,7 @@ page 10101 "Sales Tax Journal"
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total Balance';
                     Editable = false;
                     ToolTip = 'Specifies the total amount of the lines that are adjustments.';

@@ -12,6 +12,7 @@ tableextension 10711 "Service Line Archive ES" extends "Service Line Archive"
     {
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = CustomerContent;
         }

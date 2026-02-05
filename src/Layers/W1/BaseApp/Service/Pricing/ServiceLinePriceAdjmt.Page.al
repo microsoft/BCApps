@@ -147,6 +147,8 @@ page 6084 "Service Line Price Adjmt."
                         field(TotalAmount; TotalAmount)
                         {
                             ApplicationArea = Service;
+                            AutoFormatExpression = Rec.GetCurrency();
+                            AutoFormatType = 1;
                             Caption = 'Amount';
                             Editable = false;
                             ToolTip = 'Specifies the total amount that the service lines will be adjusted to.';
@@ -158,6 +160,8 @@ page 6084 "Service Line Price Adjmt."
                         field(AmountToAdjust; AmountToAdjust)
                         {
                             ApplicationArea = Service;
+                            AutoFormatExpression = Rec.GetCurrency();
+                            AutoFormatType = 1;
                             Caption = 'To Adjust';
                             Editable = false;
                             ToolTip = 'Specifies the total value of the service lines that need to be adjusted.';
@@ -169,6 +173,8 @@ page 6084 "Service Line Price Adjmt."
                         field(Control3; Remaining)
                         {
                             ApplicationArea = Service;
+                            AutoFormatExpression = Rec.GetCurrency();
+                            AutoFormatType = 1;
                             Caption = 'Remaining';
                             Editable = false;
                             ToolTip = 'Specifies the difference between the total amount that the service lines will be adjusted to, and actual total value of the service lines.';

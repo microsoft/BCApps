@@ -138,6 +138,8 @@ page 128 "Vend. Ledg. Entries Preview"
                 field(OriginalAmountLCY; OriginalAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the original amount linked to the vendor ledger entry, in local currency.';
@@ -165,6 +167,8 @@ page 128 "Vend. Ledg. Entries Preview"
                 field(AmountLCY; AmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of the ledger entry, in the local currency.';
@@ -216,6 +220,8 @@ page 128 "Vend. Ledg. Entries Preview"
                 field(RemainingAmountLCY; RemainingAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Remaining Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the remaining amount linked to the vendor ledger entry on the line, in local currency. ';

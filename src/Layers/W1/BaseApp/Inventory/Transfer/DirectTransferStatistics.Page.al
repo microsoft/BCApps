@@ -22,6 +22,7 @@ page 6780 "Direct Transfer Statistics"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies how many pieces of the item are processed.';
@@ -29,6 +30,7 @@ page 6780 "Direct Transfer Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total number of parcels in the document.';
@@ -36,6 +38,7 @@ page 6780 "Direct Transfer Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the net weight of the item. You may need the net weight to complete customs documents, waybills, and other forms.';
@@ -43,6 +46,7 @@ page 6780 "Direct Transfer Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the gross weight, including the weight of any packaging, of the catalog item.';
@@ -50,6 +54,7 @@ page 6780 "Direct Transfer Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total volume of the items in the document.';

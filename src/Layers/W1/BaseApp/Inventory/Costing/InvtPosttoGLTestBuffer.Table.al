@@ -51,6 +51,7 @@ table 5822 "Invt. Post to G/L Test Buffer"
         field(6; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
@@ -97,6 +98,7 @@ table 5822 "Invt. Post to G/L Test Buffer"
         field(15; "Source Currency Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Source Currency Code";
             Caption = 'Source Currency Amount';
             DataClassification = SystemMetadata;
             Editable = false;

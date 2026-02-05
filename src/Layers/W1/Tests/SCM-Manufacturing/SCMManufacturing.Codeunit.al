@@ -5304,6 +5304,7 @@ codeunit 137404 "SCM Manufacturing"
         Location.Validate("Require Shipment", true);
         Location.Validate("Require Put-away", true);
         Location.Validate("Require Pick", true);
+        Location.Validate("Prod. Consump. Whse. Handling", Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)");
         Location.Modify(true);
     end;
 
@@ -6886,6 +6887,8 @@ codeunit 137404 "SCM Manufacturing"
         FindProductionOrderComponent(ProdOrderComponent, ProductionOrder.Status, ProductionOrder."No.");
         ProdOrderComponent.Validate("Location Code", Location.Code);
         ProdOrderComponent.Modify();
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        FindProductionOrderComponent(ProdOrderComponent, ProductionOrder.Status, ProductionOrder."No.");
     end;
 
     local procedure VerifyWhsePickRequestOnPositiveRemQty(var ProductionOrder: Record "Production Order"; var ProdOrderComponent: Record "Prod. Order Component")

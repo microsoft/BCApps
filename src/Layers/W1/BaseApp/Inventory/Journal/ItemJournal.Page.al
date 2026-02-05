@@ -1427,7 +1427,7 @@ page 40 "Item Journal"
         Clear(DimMgt);
     end;
 
-    local procedure SetControlAppearanceFromBatch()
+    procedure SetControlAppearanceFromBatch()
     var
         ItemJournalBatch: Record "Item Journal Batch";
         ItemTrackingCode: Record "Item Tracking Code";

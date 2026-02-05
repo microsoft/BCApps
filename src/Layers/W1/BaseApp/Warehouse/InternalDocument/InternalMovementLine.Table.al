@@ -135,6 +135,7 @@ table 7347 "Internal Movement Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -154,6 +155,7 @@ table 7347 "Internal Movement Line"
         }
         field(16; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -181,6 +183,7 @@ table 7347 "Internal Movement Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -228,11 +231,13 @@ table 7347 "Internal Movement Line"
         }
         field(37; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
         }
         field(38; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
         }

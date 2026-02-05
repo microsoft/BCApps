@@ -38,6 +38,7 @@ table 12100 "Compress Depreciation"
         }
         field(6; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(7; "Document No."; Code[20])

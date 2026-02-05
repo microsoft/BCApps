@@ -167,6 +167,8 @@ page 380 "Bank Acc. Reconciliation Lines"
                 field(ReconciledAmount; ReconciledAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec.GetCurrencyCode();
+                    AutoFormatType = 1;
                     Caption = 'Reconciled';
                     Editable = false;
                     Enabled = ReconciledAmountEnable;
@@ -178,6 +180,8 @@ page 380 "Bank Acc. Reconciliation Lines"
                 field(TotalReconciledAmount; TotalReconciledAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec.GetCurrencyCode();
+                    AutoFormatType = 1;
                     Caption = 'Total Reconciled';
                     Editable = false;
                     Enabled = TotalReconciledAmountEnable;

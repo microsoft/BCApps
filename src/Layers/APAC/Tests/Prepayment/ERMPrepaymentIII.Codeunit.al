@@ -1856,6 +1856,44 @@ codeunit 134102 "ERM Prepayment III"
             Abs(PrepmtTotalInclVAT), Abs(DocumentTotalInclVAT), Abs(PrepmtTotalInclVAT) - Abs(DocumentTotalInclVAT)));
     end;
 
+    [Test]
+    procedure SalesPrepmtVATMoreThanDocVATZero_Error_TwoLines()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        LineGLAccount: Record "G/L Account";
+        PrepmtTotalInclVAT: Decimal;
+        DocumentTotalInclVAT: Decimal;
+    begin
+        // [SCENARIO 616438] Error The Prepayment account is assigned to a VAT product posting group where the VAT percentage is not equal to zero.
+        Initialize();
+        PrepmtTotalInclVAT := 1250.00;
+        DocumentTotalInclVAT := 1100.00;
+        LibraryLowerPermissions.SetO365BusFull();
+
+        // [GIVEN] Sales order with first line having Qty = 1, Unit Price = 1000,
+        // [GIVEN] And second line having Qty = 1, Unit Price = 1000, VAT %=0
+        CreateSalesPrepmtSetup(LineGLAccount, 10);
+        CreateSalesHeader(SalesHeader, LineGLAccount);
+        SalesHeader.validate("Prepayment %", 50);
+        CreateSalesLine(SalesHeader, SalesLine, LineGLAccount."No.", 1, 1000, 50);
+        SalesLine.Validate("VAT %", 0);
+        SalesLine.Modify(true);
+        CreateSalesLine(SalesHeader, SalesLine, LineGLAccount."No.", 1, 1000, 50);
+        salesline.Validate("VAT %", 0);
+        SalesLine.Modify(true);
+        LibraryERM.UpdateSalesPrepmtAccountVATGroup(
+            SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group", DuplicateVATSetup(LineGLAccount, 25));
+
+        // [WHEN] Post prepayment invoice
+        asserterror LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [THEN] Error for Prepayment VAT more than Document VAT
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(StrSubstNo(PrepaymentAmountHigherThanTheOrderErr,
+            Abs(PrepmtTotalInclVAT), Abs(DocumentTotalInclVAT), Abs(PrepmtTotalInclVAT) - Abs(DocumentTotalInclVAT)));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

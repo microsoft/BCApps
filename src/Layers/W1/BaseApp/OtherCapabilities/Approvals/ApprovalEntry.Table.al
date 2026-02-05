@@ -107,6 +107,7 @@ table 454 "Approval Entry"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(17; "Currency Code"; Code[10])
@@ -126,6 +127,7 @@ table 454 "Approval Entry"
         {
             Caption = 'Available Credit Limit (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(21; "Pending Approvals"; Integer)
         {

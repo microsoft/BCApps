@@ -103,6 +103,7 @@ table 5773 "Registered Whse. Activity Line"
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -117,11 +118,13 @@ table 5773 "Registered Whse. Activity Line"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(21; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -277,11 +280,13 @@ table 5773 "Registered Whse. Activity Line"
         }
         field(7310; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
         }
         field(7311; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
         }

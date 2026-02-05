@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Lists customer templates available for creating new customers with predefined field values.
+/// </summary>
 page 1381 "Customer Templ. List"
 {
     Caption = 'Customer Templates';

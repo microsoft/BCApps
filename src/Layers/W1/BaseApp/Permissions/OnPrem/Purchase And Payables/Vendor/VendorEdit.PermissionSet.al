@@ -41,6 +41,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
@@ -80,6 +81,7 @@ permissionset 7371 "Vendor - Edit"
                   tabledata Currency = R,
                   tabledata "Cust. Ledger Entry" = r,
                   tabledata "Default Dimension" = RIMD,
+                  tabledata "Detailed Matched Order Line" = Rm,
                   tabledata "Detailed Vendor Ledg. Entry" = Rim,
                   tabledata "Dtld. Price Calculation Setup" = Rid,
                   tabledata "Duplicate Price Line" = Rid,
@@ -111,12 +113,14 @@ permissionset 7371 "Vendor - Edit"
                   tabledata Location = R,
                   tabledata "Maintenance Ledger Entry" = rm,
                   tabledata "Maintenance Registration" = rm,
+                  tabledata "Matched Order Line" = Rm,
                   tabledata "My Vendor" = RIMD,
                   tabledata "Nonstock Item" = rm,
                   tabledata Opportunity = R,
                   tabledata "Order Address" = RIMD,
                   tabledata "Payment Method" = R,
                   tabledata "Payment Terms" = R,
+                  tabledata "Posted Matched Order Line" = rm,
                   tabledata "Price Asset" = Rid,
                   tabledata "Price Calculation Buffer" = Rid,
                   tabledata "Price Calculation Setup" = Rid,

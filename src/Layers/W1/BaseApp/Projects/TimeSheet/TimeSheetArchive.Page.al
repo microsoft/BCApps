@@ -134,6 +134,7 @@ page 959 "Time Sheet Archive"
                 field(Field1; CellData[1])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[1];
                     Width = 6;
@@ -141,6 +142,7 @@ page 959 "Time Sheet Archive"
                 field(Field2; CellData[2])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[2];
                     Width = 6;
@@ -148,6 +150,7 @@ page 959 "Time Sheet Archive"
                 field(Field3; CellData[3])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[3];
                     Width = 6;
@@ -155,6 +158,7 @@ page 959 "Time Sheet Archive"
                 field(Field4; CellData[4])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[4];
                     Width = 6;
@@ -162,6 +166,7 @@ page 959 "Time Sheet Archive"
                 field(Field5; CellData[5])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[5];
                     Width = 6;
@@ -169,6 +174,7 @@ page 959 "Time Sheet Archive"
                 field(Field6; CellData[6])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[6];
                     Width = 6;
@@ -176,6 +182,7 @@ page 959 "Time Sheet Archive"
                 field(Field7; CellData[7])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[7];
                     Width = 6;
@@ -183,6 +190,7 @@ page 959 "Time Sheet Archive"
                 field("Total Quantity"; Rec."Total Quantity")
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = 'Total';
                     DrillDown = false;
                     ToolTip = 'Specifies the total number of hours that have been entered on an archived time sheet.';

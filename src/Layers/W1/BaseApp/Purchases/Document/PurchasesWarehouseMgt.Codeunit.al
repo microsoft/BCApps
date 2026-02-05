@@ -282,6 +282,8 @@ codeunit 5992 "Purchases Warehouse Mgt."
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
         IsHandled: Boolean;
         Result: Boolean;
+        QtyPerUoM: Decimal;
+        QtyBasePurchaseLine: Decimal;
     begin
         IsHandled := false;
         OnBeforePurchLine2ReceiptLine(WarehouseReceiptHeader, PurchaseLine, IsHandled, Result);
@@ -291,9 +293,10 @@ codeunit 5992 "Purchases Warehouse Mgt."
         WarehouseReceiptLine.InitNewLine(WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.SetSource(DATABASE::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.");
         PurchaseLine.TestField("Unit of Measure Code");
+        GetQuantityRelatedParameter(PurchaseLine, QtyPerUoM, QtyBasePurchaseLine);
         WarehouseReceiptLine.SetItemData(
           PurchaseLine."No.", PurchaseLine.Description, PurchaseLine."Description 2", PurchaseLine."Location Code",
-          PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", PurchaseLine."Qty. per Unit of Measure",
+          PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", QtyPerUoM,
           PurchaseLine."Qty. Rounding Precision", PurchaseLine."Qty. Rounding Precision (Base)");
         WarehouseReceiptLine."Over-Receipt Code" := PurchaseLine."Over-Receipt Code";
         IsHandled := false;
@@ -311,7 +314,7 @@ codeunit 5992 "Purchases Warehouse Mgt."
                         WarehouseReceiptLine."Due Date" := WorkDate();
                     end;
             end;
-            WhseCreateSourceDocument.SetQtysOnRcptLine(WarehouseReceiptLine, Abs(PurchaseLine.Quantity), Abs(PurchaseLine."Quantity (Base)"));
+            WhseCreateSourceDocument.SetQtysOnRcptLine(WarehouseReceiptLine, Abs(PurchaseLine.Quantity), Abs(QtyBasePurchaseLine));
         end;
         OnPurchLine2ReceiptLineOnAfterSetQtysOnRcptLine(WarehouseReceiptLine, PurchaseLine);
         WarehouseReceiptLine."Starting Date" := PurchaseLine."Planned Receipt Date";
@@ -377,6 +380,14 @@ codeunit 5992 "Purchases Warehouse Mgt."
         exit((OldPurchaseLine.Quantity <> 0) and (NewPurchaseLine.Quantity = 0));
     end;
 
+    local procedure GetQuantityRelatedParameter(PurchaseLine: Record "Purchase Line"; var QtyPerUoM: Decimal; var QtyBasePurchaseLine: Decimal)
+    begin
+        QtyPerUoM := PurchaseLine."Qty. per Unit of Measure";
+        QtyBasePurchaseLine := PurchaseLine."Quantity (Base)";
+
+        OnAfterGetQuantityRelatedParameter(PurchaseLine, QtyPerUoM, QtyBasePurchaseLine);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFromPurchLine2ShptLine(var PurchaseLine: Record "Purchase Line"; var Result: Boolean; var IsHandled: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
@@ -434,6 +445,11 @@ codeunit 5992 "Purchases Warehouse Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnSetFiltersOnSourceTablesOnBeforeSetPurchaseTableView(var WarehouseSourceFilter: Record "Warehouse Source Filter"; var WarehouseRequest: Record "Warehouse Request"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetQuantityRelatedParameter(PurchaseLine: Record "Purchase Line"; var QtyPerUoM: Decimal; var QtyBasePurchaseLine: Decimal)
     begin
     end;
 

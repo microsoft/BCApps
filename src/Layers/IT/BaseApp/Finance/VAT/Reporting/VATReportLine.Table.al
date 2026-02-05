@@ -251,6 +251,8 @@ table 741 "VAT Report Line"
         }
         field(12104; "Amount Incl. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount Incl. VAT';
             Editable = false;
         }

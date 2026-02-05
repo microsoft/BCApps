@@ -104,7 +104,7 @@ report 99003805 "Reg. Abs. (from Work Center)"
                     field(Capacity; Capacity2)
                     {
                         ApplicationArea = Manufacturing;
-                        AutoFormatType = 1;
+                        AutoFormatType = 0;
                         Caption = 'Capacity';
                         MinValue = 0;
                         ToolTip = 'Specifies the amount of capacity that cannot be used during the absence period.';

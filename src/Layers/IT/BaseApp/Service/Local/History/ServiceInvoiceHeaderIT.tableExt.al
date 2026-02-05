@@ -112,6 +112,8 @@ tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header
         }
         field(12186; "Fattura Stamp Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Fattura Stamp Amount';
             DataClassification = CustomerContent;
         }

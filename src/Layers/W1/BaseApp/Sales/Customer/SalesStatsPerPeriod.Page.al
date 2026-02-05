@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Foundation.Period;
 
+/// <summary>
+/// Displays customer sales and profit statistics grouped by accounting period.
+/// </summary>
 page 3 "Sales Stats. Per Period"
 {
     Caption = 'Sales Stats. Per Period';

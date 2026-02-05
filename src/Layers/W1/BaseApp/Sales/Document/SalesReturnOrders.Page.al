@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Inventory.Item;
 
+/// <summary>
+/// Displays sales return order lines for lookup and selection purposes.
+/// </summary>
 page 6633 "Sales Return Orders"
 {
     Caption = 'Sales Return Orders';

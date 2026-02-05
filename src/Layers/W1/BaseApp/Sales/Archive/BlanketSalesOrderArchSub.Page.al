@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item.Catalog;
 
+/// <summary>
+/// Displays line items for an archived blanket sales order document.
+/// </summary>
 #pragma warning disable AS0106 // Protected variable ItemReferenceVisible was removed before AS0106 was introduced.
 page 6621 "Blanket Sales Order Arch. Sub."
 #pragma warning restore AS0106
@@ -435,6 +438,9 @@ page 6621 "Blanket Sales Order Arch. Sub."
         DimVisible7: Boolean;
         DimVisible8: Boolean;
 
+    /// <summary>
+    /// Opens the Document Line Tracking page for the current archived blanket sales order line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

@@ -74,9 +74,6 @@ codeunit 20424 "Qlty. Workflow Response"
         TableFilter: Text;
         Handled: Boolean;
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         Peek := ResponseWorkflowStepInstance."Function Name";
         if not Peek.StartsWith(QltyWorkflowSetup.GetQualityInspectionPrefix()) then
             exit;

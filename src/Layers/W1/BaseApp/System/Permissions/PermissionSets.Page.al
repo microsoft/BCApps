@@ -187,6 +187,13 @@ page 9802 "Permission Sets"
                         PermissionConflict.Run();
                     end;
                 }
+                action(PermissionsOverview)
+                {
+                    Caption = 'Permissions Overview';
+                    Image = ViewWorksheet;
+                    RunObject = Page "Permissions Overview";
+                    ToolTip = 'View how permissions are distributed across permission sets in your system as well as how they are assigned.';
+                }
             }
             group("User Groups")
             {

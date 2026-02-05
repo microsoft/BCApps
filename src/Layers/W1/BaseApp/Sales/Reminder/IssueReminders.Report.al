@@ -11,6 +11,9 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Posts reminder documents in batch, creating issued reminders and general ledger entries for fees and interest.
+/// </summary>
 report 190 "Issue Reminders"
 {
     Caption = 'Issue Reminders';
@@ -293,31 +296,66 @@ report 190 "Issue Reminders"
             VATDateReq := PostingDateReq;
     end;
 
+    /// <summary>
+    /// Raised after the report initialization to set default parameter values.
+    /// </summary>
+    /// <param name="PrintDoc">The print/email option setting.</param>
+    /// <param name="ReplacePostingDate">Indicates whether to replace the posting date.</param>
+    /// <param name="PostingDateReq">The posting date request value.</param>
+    /// <param name="HideDialog">Indicates whether to hide dialogs.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitReport(var PrintDoc: Option " ",Print,Email; var ReplacePostingDate: Boolean; var PostingDateReq: Date; var HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing or emailing an issued reminder.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header to print.</param>
+    /// <param name="IsHandled">Set to true to skip default printing.</param>
+    /// <param name="PrintDoc">The print/email option setting.</param>
+    /// <param name="HideDialog">Indicates whether to hide the email dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintIssuedReminderHeader(var IssuedReminderHeader: Record "Issued Reminder Header"; var IsHandled: Boolean; PrintDoc: Option " ",Print,Email; HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a temporary issued reminder header for printing.
+    /// </summary>
+    /// <param name="TempIssuedReminderHeader">The temporary issued reminder header to insert.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempIssuedReminderHeaderInsert(var TempIssuedReminderHeader: Record "Issued Reminder Header" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to confirm invoice rounding.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="InvoiceRoundingAmount">The calculated invoice rounding amount.</param>
+    /// <param name="ShouldConfirmInvoiceRounding">Indicates whether to show the rounding confirmation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnReminderHeaderOnAfterGetRecordOnAfterCalcShouldConfirmInvoiceRounding(var ReminderHeader: Record "Reminder Header"; InvoiceRoundingAmount: Decimal; var ShouldConfirmInvoiceRounding: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting parameters on the reminder issue codeunit.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being issued.</param>
+    /// <param name="ReminderIssue">The reminder issue codeunit instance.</param>
+    /// <param name="PrintDoc">The print/email option setting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnReminderHeaderOnAfterGetRecordOnAfterReminderIssueSetParams(var ReminderHeader: Record "Reminder Header"; var ReminderIssue: Codeunit "Reminder-Issue"; PrintDoc: Option)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the invoice rounding amount for a reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being processed.</param>
+    /// <param name="InvoiceRoundingAmount">The calculated invoice rounding amount.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetRecordReminderHeaderOnAfterGetInvoiceRoundingAmount(var ReminderHeader: Record "Reminder Header"; var InvoiceRoundingAmount: Decimal)
     begin

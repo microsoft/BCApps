@@ -67,6 +67,7 @@ page 10044 "Sales Credit Memo Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales ($)';
                     ToolTip = 'Specifies the sales amount.';
                 }
@@ -74,6 +75,7 @@ page 10044 "Sales Credit Memo Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost ($)';
                     ToolTip = 'Specifies the cost of the sales order, rounded according to the Amount Rounding Precision field in the Currencies window.';
                 }
@@ -81,11 +83,13 @@ page 10044 "Sales Credit Memo Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     ToolTip = 'Specifies the profit expressed as an amount.  ';
                 }
                 field(ProfitPct; ProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
@@ -93,6 +97,7 @@ page 10044 "Sales Credit Memo Stats."
                 }
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -100,12 +105,14 @@ page 10044 "Sales Credit Memo Stats."
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the number of parcels on the document.';
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -113,12 +120,14 @@ page 10044 "Sales Credit Memo Stats."
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the gross weight of items on the document.';
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the invoiced items.';
@@ -132,6 +141,8 @@ page 10044 "Sales Credit Memo Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -140,6 +151,8 @@ page 10044 "Sales Credit Memo Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -148,6 +161,8 @@ page 10044 "Sales Credit Memo Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -156,6 +171,8 @@ page 10044 "Sales Credit Memo Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;
@@ -187,6 +204,7 @@ page 10044 "Sales Credit Memo Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies how must of the customer''s credit is used, expressed as a percentage of the credit limit.';

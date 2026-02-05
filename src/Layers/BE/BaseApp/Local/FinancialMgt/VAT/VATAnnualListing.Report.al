@@ -337,7 +337,7 @@ report 11308 "VAT Annual Listing"
                     field(Minimum; Minimum)
                     {
                         ApplicationArea = Basic, Suite;
-                        AutoFormatType = 1;
+                        AutoFormatType = 0;
                         Caption = 'Minimum Amount';
                         ToolTip = 'Specifies the minimum customer''s year balance to be included in the report. If the yearly balance of the customer is smaller than the minimum amount (and there are no negative entries), the customer will not be included in the declaration.';
                     }

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Analysis;
 using Microsoft.CRM.Team;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Provides sales order performance analysis by joining sales headers and lines data.
+/// </summary>
 query 124 "Sales Order Analysis"
 {
     QueryType = Normal;

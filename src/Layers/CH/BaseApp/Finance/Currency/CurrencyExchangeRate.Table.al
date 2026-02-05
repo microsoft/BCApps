@@ -102,6 +102,7 @@ table 330 "Currency Exchange Rate"
         }
         field(11500; "VAT Exch. Rate Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Exch. Rate Amount';
             DecimalPlaces = 1 : 6;
 
@@ -112,6 +113,7 @@ table 330 "Currency Exchange Rate"
         }
         field(11501; "Relational VAT Exch. Rate Amt"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Relational VAT Exch. Rate Amt';
             DecimalPlaces = 1 : 6;
 

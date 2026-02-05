@@ -54,13 +54,15 @@ table 5895 "Inventory Adjustment Buffer"
         }
         field(13; "Item Ledger Entry Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Item Ledger Entry Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(43; "Cost Amount (Actual)"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Actual)';
             DataClassification = SystemMetadata;
         }
@@ -99,6 +101,7 @@ table 5895 "Inventory Adjustment Buffer"
         field(151; "Cost Amount (Expected)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Expected)';
             DataClassification = SystemMetadata;
         }

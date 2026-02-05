@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,6 +15,9 @@ report 10865 Bill
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/Bill.rdlc';
     Caption = 'Bill';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -242,4 +246,4 @@ report 10865 Bill
         DRAWEE_REF_CaptionLbl: Label 'DRAWEE REF.';
         BILLCaptionLbl: Label 'BILL';
 }
-
+#endif

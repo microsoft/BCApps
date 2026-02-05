@@ -70,16 +70,20 @@ table 6107 "E-Documents Setup"
     var
         CountryList: List of [Text];
     begin
-        CountryList.Add('US');
         CountryList.Add('AU');
-        CountryList.Add('NZ');
-        CountryList.Add('GB');
-        CountryList.Add('ES');
-        CountryList.Add('FR');
+        CountryList.Add('BE');
         CountryList.Add('CA');
-        CountryList.Add('IT');
         CountryList.Add('DE');
         CountryList.Add('DK');
+        CountryList.Add('ES');
+        CountryList.Add('FR');
+        CountryList.Add('GB');
+        CountryList.Add('IT');
+        CountryList.Add('NL');
+        CountryList.Add('NO');
+        CountryList.Add('NZ');
+        CountryList.Add('SE');
+        CountryList.Add('US');
         exit(CountryList);
     end;
 

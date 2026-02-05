@@ -24,6 +24,9 @@ using System.Security.User;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Stores header information for unissued finance charge memos including customer details, terms, and posting configuration.
+/// </summary>
 table 302 "Finance Charge Memo Header"
 {
     Caption = 'Finance Charge Memo Header';
@@ -34,6 +37,9 @@ table 302 "Finance Charge Memo Header"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique document number identifying this finance charge memo.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
@@ -47,6 +53,9 @@ table 302 "Finance Charge Memo Header"
                 "Posting Description" := StrSubstNo(Text000, "No.");
             end;
         }
+        /// <summary>
+        /// Specifies the customer who will receive this finance charge memo.
+        /// </summary>
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
@@ -91,22 +100,37 @@ table 302 "Finance Charge Memo Header"
                 CreateDimFromDefaultDim();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer as copied from the customer card.
+        /// </summary>
         field(3; Name; Text[100])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Specifies additional name information for the customer, typically used for longer company names.
+        /// </summary>
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
         }
+        /// <summary>
+        /// Specifies the street address of the customer.
+        /// </summary>
         field(5; Address; Text[100])
         {
             Caption = 'Address';
         }
+        /// <summary>
+        /// Specifies additional address information for the customer.
+        /// </summary>
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
         }
+        /// <summary>
+        /// Specifies the postal code of the customer's address.
+        /// </summary>
         field(7; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
@@ -130,6 +154,9 @@ table 302 "Finance Charge Memo Header"
                     PostCode.ValidatePostCode(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the city of the customer's address.
+        /// </summary>
         field(8; City; Text[30])
         {
             Caption = 'City';
@@ -153,11 +180,17 @@ table 302 "Finance Charge Memo Header"
                     PostCode.ValidateCity(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the county or state of the customer's address.
+        /// </summary>
         field(9; County; Text[30])
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
         }
+        /// <summary>
+        /// Specifies the country or region code of the customer's address.
+        /// </summary>
         field(10; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -168,11 +201,17 @@ table 302 "Finance Charge Memo Header"
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
             end;
         }
+        /// <summary>
+        /// Specifies the language code used for printing and communicating with the customer.
+        /// </summary>
         field(11; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
             TableRelation = Language;
         }
+        /// <summary>
+        /// Specifies the currency code for amounts on the finance charge memo.
+        /// </summary>
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -188,14 +227,23 @@ table 302 "Finance Charge Memo Header"
                 SetCompanyBankAccount();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the customer.
+        /// </summary>
         field(13; Contact; Text[100])
         {
             Caption = 'Contact';
         }
+        /// <summary>
+        /// Contains the customer's reference information for this finance charge memo.
+        /// </summary>
         field(14; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
         }
+        /// <summary>
+        /// Specifies the first global dimension code used for analysis and reporting.
+        /// </summary>
         field(15; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -208,6 +256,9 @@ table 302 "Finance Charge Memo Header"
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the second global dimension code used for analysis and reporting.
+        /// </summary>
         field(16; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -220,6 +271,9 @@ table 302 "Finance Charge Memo Header"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the customer posting group that determines the receivables account for posting.
+        /// </summary>
         field(17; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
@@ -230,6 +284,9 @@ table 302 "Finance Charge Memo Header"
                 CheckCustomerPostingGroupChange();
             end;
         }
+        /// <summary>
+        /// Specifies the general business posting group inherited from the customer.
+        /// </summary>
         field(18; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -243,15 +300,24 @@ table 302 "Finance Charge Memo Header"
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number for tax reporting purposes.
+        /// </summary>
         field(19; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
         }
+        /// <summary>
+        /// Specifies the reason code that explains why the finance charge memo was created.
+        /// </summary>
         field(20; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Specifies the date when the finance charge memo will be posted to the general ledger.
+        /// </summary>
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
@@ -263,6 +329,9 @@ table 302 "Finance Charge Memo Header"
                 Validate("VAT Reporting Date");
             end;
         }
+        /// <summary>
+        /// Specifies the date of the finance charge memo document, used for interest calculation and due date computation.
+        /// </summary>
         field(22; "Document Date"; Date)
         {
             Caption = 'Document Date';
@@ -281,10 +350,16 @@ table 302 "Finance Charge Memo Header"
                 Validate("Fin. Charge Terms Code");
             end;
         }
+        /// <summary>
+        /// Specifies the date by which payment is expected from the customer.
+        /// </summary>
         field(23; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Specifies the finance charge terms code that determines interest rates, fees, and calculation methods.
+        /// </summary>
         field(25; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
@@ -307,18 +382,30 @@ table 302 "Finance Charge Memo Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates whether interest amounts should be posted to the general ledger when the memo is issued.
+        /// </summary>
         field(26; "Post Interest"; Boolean)
         {
             Caption = 'Post Interest';
         }
+        /// <summary>
+        /// Indicates whether the additional fee should be posted to the general ledger when the memo is issued.
+        /// </summary>
         field(27; "Post Additional Fee"; Boolean)
         {
             Caption = 'Post Additional Fee';
         }
+        /// <summary>
+        /// Specifies the description that will appear in ledger entries when the memo is posted.
+        /// </summary>
         field(29; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
         }
+        /// <summary>
+        /// Indicates whether comments exist for this finance charge memo.
+        /// </summary>
         field(30; Comment; Boolean)
         {
             CalcFormula = exist("Fin. Charge Comment Line" where(Type = const("Finance Charge Memo"),
@@ -327,6 +414,9 @@ table 302 "Finance Charge Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total remaining amount from all customer ledger entries on the memo lines.
+        /// </summary>
         field(31; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -337,6 +427,9 @@ table 302 "Finance Charge Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total calculated interest amount from all memo lines.
+        /// </summary>
         field(32; "Interest Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -348,6 +441,9 @@ table 302 "Finance Charge Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total additional fee amount from all memo lines with G/L Account type.
+        /// </summary>
         field(33; "Additional Fee"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -358,6 +454,9 @@ table 302 "Finance Charge Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total VAT amount calculated on interest and fees from all memo lines.
+        /// </summary>
         field(34; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -368,12 +467,18 @@ table 302 "Finance Charge Memo Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number series used to assign the document number for this memo.
+        /// </summary>
         field(37; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the number series used to assign the document number when the memo is issued.
+        /// </summary>
         field(38; "Issuing No. Series"; Code[20])
         {
             Caption = 'Issuing No. Series';
@@ -397,24 +502,39 @@ table 302 "Finance Charge Memo Header"
                 TestField("Issuing No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the document number that will be assigned to the issued finance charge memo.
+        /// </summary>
         field(39; "Issuing No."; Code[20])
         {
             Caption = 'Issuing No.';
         }
+        /// <summary>
+        /// Specifies the tax area code used for sales tax calculation in North American tax jurisdictions.
+        /// </summary>
         field(41; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the customer is liable for sales tax on finance charges.
+        /// </summary>
         field(42; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the VAT business posting group used for VAT calculation on the memo.
+        /// </summary>
         field(43; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the date used for VAT reporting, which may differ from the posting date based on setup.
+        /// </summary>
         field(44; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -426,16 +546,25 @@ table 302 "Finance Charge Memo Header"
                     InitVATDate();
             end;
         }
+        /// <summary>
+        /// Specifies the regional format settings used for printing dates and numbers on the memo.
+        /// </summary>
         field(54; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
             TableRelation = "Language Selection"."Language Tag";
         }
+        /// <summary>
+        /// Specifies the company bank account to be printed on the finance charge memo for payment.
+        /// </summary>
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        /// <summary>
+        /// Specifies the unique identifier for the combination of dimension values assigned to this memo.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -452,6 +581,9 @@ table 302 "Finance Charge Memo Header"
                 DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the user who is responsible for processing this finance charge memo.
+        /// </summary>
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
@@ -576,6 +708,11 @@ table 302 "Finance Charge Memo Header"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Assists with editing the document number by allowing selection from related number series.
+    /// </summary>
+    /// <param name="OldFinChrgMemoHeader">Specifies the finance charge memo header before editing.</param>
+    /// <returns>True if a new number was selected; otherwise, false.</returns>
     procedure AssistEdit(OldFinChrgMemoHeader: Record "Finance Charge Memo Header"): Boolean
     begin
         FinChrgMemoHeader := Rec;
@@ -587,6 +724,9 @@ table 302 "Finance Charge Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Validates that required number series are configured in sales and receivables setup.
+    /// </summary>
     procedure TestNoSeries()
     var
         IsHandled: Boolean;
@@ -602,6 +742,10 @@ table 302 "Finance Charge Memo Header"
         OnAfterTestNoSeries(Rec);
     end;
 
+    /// <summary>
+    /// Retrieves the number series code for finance charge memos from sales and receivables setup.
+    /// </summary>
+    /// <returns>The number series code to use for assigning document numbers.</returns>
     procedure GetNoSeriesCode() NoSeriesCode: Code[20]
     var
         IsHandled: Boolean;
@@ -694,6 +838,9 @@ table 302 "Finance Charge Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Inserts standard fee lines and beginning and ending text lines based on the finance charge terms.
+    /// </summary>
     procedure InsertLines()
     var
         TranslationHelper: Codeunit "Translation Helper";
@@ -750,6 +897,10 @@ table 302 "Finance Charge Memo Header"
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the finance charge memo lines by removing empty text lines, recalculating rounding, and reinserting text lines.
+    /// </summary>
+    /// <param name="FinChrgMemoHeader2">Specifies the finance charge memo header to update lines for.</param>
     procedure UpdateLines(FinChrgMemoHeader2: Record "Finance Charge Memo Header")
     begin
         FinChrgMemoLine.Reset();
@@ -887,6 +1038,9 @@ table 302 "Finance Charge Memo Header"
         FinChrgMemoLine.Insert();
     end;
 
+    /// <summary>
+    /// Prints the finance charge memo test report for the current record.
+    /// </summary>
     procedure PrintRecords()
     var
         FinChrgMemoHeader: Record "Finance Charge Memo Header";
@@ -915,6 +1069,10 @@ table 302 "Finance Charge Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Confirms with the user whether to delete the finance charge memo when it would create a gap in the number series.
+    /// </summary>
+    /// <returns>True if the user confirms deletion or no confirmation is needed; otherwise, false.</returns>
     procedure ConfirmDeletion(): Boolean
     begin
         FinChrgMemoIssue.TestDeleteHeader(Rec, IssuedFinChrgMemoHdr);
@@ -929,6 +1087,10 @@ table 302 "Finance Charge Memo Header"
         exit(true);
     end;
 
+    /// <summary>
+    /// Creates dimension set entries from the specified default dimension sources.
+    /// </summary>
+    /// <param name="DefaultDimSource">Specifies the list of dimension sources to use for creating dimensions.</param>
     procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -953,6 +1115,11 @@ table 302 "Finance Charge Memo Header"
         OnAfterCreateDimProcedure(Rec, CurrFieldNo, DefaultDimSource);
     end;
 
+    /// <summary>
+    /// Validates and updates the shortcut dimension code and updates the dimension set accordingly.
+    /// </summary>
+    /// <param name="FieldNumber">Specifies the dimension field number (1 or 2) being validated.</param>
+    /// <param name="ShortcutDimCode">Specifies the dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
@@ -962,6 +1129,10 @@ table 302 "Finance Charge Memo Header"
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Calculates the invoice rounding amount based on the currency rounding precision.
+    /// </summary>
+    /// <returns>The rounding amount needed to round the total to the invoice rounding precision.</returns>
     procedure GetInvoiceRoundingAmount(): Decimal
     var
         TotalAmountInclVAT: Decimal;
@@ -1019,6 +1190,10 @@ table 302 "Finance Charge Memo Header"
         end;
     end;
 
+    /// <summary>
+    /// Updates the rounding line on the finance charge memo to reflect the current total amount.
+    /// </summary>
+    /// <param name="FinanceChargeHeader">Specifies the finance charge memo header to update rounding for.</param>
     procedure UpdateFinanceChargeRounding(FinanceChargeHeader: Record "Finance Charge Memo Header")
     var
         OldLineNo: Integer;
@@ -1045,11 +1220,17 @@ table 302 "Finance Charge Memo Header"
         OnAfterFinanceChargeRounding(FinanceChargeHeader);
     end;
 
+    /// <summary>
+    /// Enables the option to select from related number series when getting a document number.
+    /// </summary>
     procedure SetAllowSelectNoSeries()
     begin
         SelectNoSeriesAllowed := true;
     end;
 
+    /// <summary>
+    /// Opens the dimension set entry page to view and edit dimensions for this document.
+    /// </summary>
     procedure ShowDocDim()
     begin
         "Dimension Set ID" :=
@@ -1069,12 +1250,18 @@ table 302 "Finance Charge Memo Header"
                 exit(GetRangeMax("Customer No."));
     end;
 
+    /// <summary>
+    /// Sets the customer number from the current filter if a single customer is filtered.
+    /// </summary>
     procedure SetCustomerFromFilter()
     begin
         if GetFilterCustNo() <> '' then
             Validate("Customer No.", GetFilterCustNo());
     end;
 
+    /// <summary>
+    /// Creates dimensions for this document using the default dimensions from the customer.
+    /// </summary>
     procedure CreateDimFromDefaultDim()
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1090,131 +1277,275 @@ table 302 "Finance Charge Memo Header"
         OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource);
     end;
 
+    /// <summary>
+    /// Raised after the default dimension sources are initialized from the customer.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="DefaultDimSource">Specifies the list of default dimension sources that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised after dimensions are created for the finance charge memo.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="CurrFieldNo">Specifies the field number that triggered the dimension creation.</param>
+    /// <param name="DefaultDimSource">Specifies the list of dimension sources used for creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimProcedure(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; CurrFieldNo: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]);
     begin
     end;
 
+    /// <summary>
+    /// Raised after the number series code is retrieved for finance charge memos.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="SalesSetup">Specifies the sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">Specifies the number series code that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetNoSeriesCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the issuing number series code is retrieved.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IssuingNos">Specifies the issuing number series code that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetIssuingNoSeriesCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IssuingNos: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document dimensions page is shown.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDocDim(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the number series validation completes.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestNoSeries(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the company bank account is set based on the currency code.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the current finance charge memo header record.</param>
+    /// <param name="xFinanceChargeMemoHeader">Specifies the previous finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCompanyBankAccount(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; xFinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the shortcut dimension code is validated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the current finance charge memo header record.</param>
+    /// <param name="xFinanceChargeMemoHeader">Specifies the previous finance charge memo header record.</param>
+    /// <param name="FieldNumber">Specifies the dimension field number (1 or 2).</param>
+    /// <param name="ShortcutDimCode">Specifies the validated dimension code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var xFinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before the number series code is retrieved, allowing customization of the number series.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="SalesSetup">Specifies the sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">Specifies the number series code that can be set.</param>
+    /// <param name="IsHandled">Set to true to skip the default number series retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNoSeriesCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the issuing number series code is retrieved.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="SalesSetup">Specifies the sales and receivables setup record.</param>
+    /// <param name="IssuingNos">Specifies the issuing number series code that can be set.</param>
+    /// <param name="IsHandled">Set to true to skip the default issuing number series retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetIssuingNoSeriesCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; SalesSetup: Record "Sales & Receivables Setup"; var IssuingNos: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before a finance charge memo line is inserted during the InsertLines procedure.
+    /// </summary>
+    /// <param name="FinChrgMemoLine">Specifies the finance charge memo line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertFinChrgMemoLine(var FinChrgMemoLine: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the customer number is validated on the finance charge memo header.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCustomerNo(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the number series is validated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default number series validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestNoSeries(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the shortcut dimension code is validated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the current finance charge memo header record.</param>
+    /// <param name="xFinanceChargeMemoHeader">Specifies the previous finance charge memo header record.</param>
+    /// <param name="FieldNumber">Specifies the dimension field number (1 or 2).</param>
+    /// <param name="ShortcutDimCode">Specifies the dimension code to validate.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var xFinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the finance charge rounding line is updated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinanceChargeRounding(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after customer values are assigned to the finance charge memo header during customer number validation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="Customer">Specifies the customer record that was assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateCustomerNoOnAfterAssignCustomerValues(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; Customer: Record "Customer")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the city field is validated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="PostCode">Specifies the post code record used for validation.</param>
+    /// <param name="CurrentFieldNo">Specifies the field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default city validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCity(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var PostCode: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before the post code field is validated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="PostCode">Specifies the post code record used for validation.</param>
+    /// <param name="CurrentFieldNo">Specifies the field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default post code validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostCode(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var PostCode: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before the print confirmation dialog is displayed after issuing.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IssuedFinChrgMemoHdr">Specifies the issued finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default print confirmation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintConfirmation(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; var IssuedFinChrgMemoHdr: Record "Issued Fin. Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer posting group can be changed.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the current finance charge memo header record.</param>
+    /// <param name="xFinanceChargeMemoHeader">Specifies the previous finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting group change check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerPostingGroupChange(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var xFinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before dimensions are created for the finance charge memo.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="CallingFieldNo">Specifies the field number that triggered dimension creation.</param>
+    /// <param name="DefaultDimSource">Specifies the list of dimension sources.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; CallingFieldNo: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before the rounding line is inserted during finance charge rounding.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line for rounding.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinanceChargeRoundingOnBeforeInsertFinanceMemoHeader(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var FinanceChargeMemoLine: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after finance charge terms are retrieved during text line insertion.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertTextLinesOnAfterFinChrgTermsGetOrInit(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var FinanceChargeTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised after finance charge terms are retrieved during terms code validation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateFinChrgTermsCodeOnAfterFinChrgTermsGet(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var FinanceChargeTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised after finance charge terms are retrieved during the InsertLines procedure.
+    /// </summary>
+    /// <param name="FinChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinChrgTerms">Specifies the finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertLinesOnAfterFinChrgTermsGet(var FinChargeMemoHeader: Record "Finance Charge Memo Header"; var FinChrgTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the number series is initialized during record insertion.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the current finance charge memo header record.</param>
+    /// <param name="xFinanceChargeMemoHeader">Specifies the previous finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default number series initialization.</param>
     [IntegrationEvent(true, false)]
     local procedure OnInsertOnBeforeInitNoSeries(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var xFinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin

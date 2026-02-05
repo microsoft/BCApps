@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.Finance.Dimension;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales return receipt lines across documents for analysis and lookup.
+/// </summary>
 page 6663 "Posted Return Receipt Lines"
 {
     Caption = 'Posted Return Receipt Lines';

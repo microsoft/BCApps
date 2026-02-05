@@ -284,12 +284,14 @@ report 10163 "Vendor Purchases by Item"
                         Caption = 'Items with Net Purch. ($)';
                         field(MinPurchases; MinPurchases)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Greater than';
                             ToolTip = 'Specifies a maximum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
                         }
                         field(MaxPurchases; MaxPurchases)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Less than';
                             ToolTip = 'Specifies a minimum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
@@ -300,12 +302,14 @@ report 10163 "Vendor Purchases by Item"
                         Caption = 'Items with Net Purch. (Qty)';
                         field(MinQty; MinQty)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Greater than';
                             ToolTip = 'Specifies a maximum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
                         }
                         field(MaxQty; MaxQty)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Less than';
                             ToolTip = 'Specifies a minimum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';

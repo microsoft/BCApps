@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000775 "Mfg. VAT Rate Change Mgt."
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterUpdateTables', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterUpdateTables', '', true, false)]
     local procedure OnAfterUpdateTables(var VATRateChangeSetup: Record "VAT Rate Change Setup"; sender: Codeunit "VAT Rate Change Conversion")
     begin
         sender.UpdateTable(
@@ -25,7 +25,7 @@ codeunit 99000775 "Mfg. VAT Rate Change Mgt."
           sender.ConvertVATProdPostGrp(VATRateChangeSetup."Update Machine Centers"), sender.ConvertGenProdPostGrp(VATRateChangeSetup."Update Machine Centers"));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterAreTablesSelected', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterAreTablesSelected', '', true, false)]
     local procedure OnAfterAreTablesSelected(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var Result: Boolean)
     begin
         if VATRateChangeSetup."Update Production Orders" <> VATRateChangeSetup."Update Production Orders"::No then

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Archive;
 using Microsoft.Utilities;
 using System.Security.User;
 
+/// <summary>
+/// Lists all archived sales document headers for lookup and selection.
+/// </summary>
 page 5161 "Sales List Archive"
 {
     Caption = 'Sales List Archive';

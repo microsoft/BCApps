@@ -76,6 +76,8 @@ page 12188 "Manual vendor Payment Line"
                 field(TotalAmount; TotalAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total Amount';
                     ToolTip = 'Specifies the total amount.';
 
@@ -87,6 +89,8 @@ page 12188 "Manual vendor Payment Line"
                 field(TaxBaseAmount; TaxBaseAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Tax Base Amount';
                     ToolTip = 'Specifies the tax base amount.';
                 }

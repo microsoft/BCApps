@@ -102,6 +102,7 @@ table 330 "Currency Exchange Rate"
         }
         field(28041; "Relational Sett. Rate Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Relational Sett. Rate Amount';
             DecimalPlaces = 1 : 6;
             MinValue = 0;
@@ -113,6 +114,7 @@ table 330 "Currency Exchange Rate"
         }
         field(28140; "Settlement Rate Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Settlement Rate Amount';
             DecimalPlaces = 1 : 6;
             MinValue = 0;

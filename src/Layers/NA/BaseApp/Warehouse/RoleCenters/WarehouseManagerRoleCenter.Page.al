@@ -428,12 +428,17 @@ page 8909 "Warehouse Manager Role Center"
                         Caption = 'Whse. Shipment Status';
                         RunObject = report "Whse. Shipment Status";
                     }
+#if not CLEAN28
                     action("Customer - List")
                     {
                         ApplicationArea = Basic, Suite, Warehouse;
                         Caption = 'Customer Listing';
                         RunObject = Report "Customer Listing";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Inventory Picking List")
                     {
                         ApplicationArea = Warehouse;

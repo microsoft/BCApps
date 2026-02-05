@@ -124,19 +124,19 @@ table 10722 "New G/L Account"
         }
         field(31; "Balance at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Balance at Date';
             Editable = false;
         }
         field(32; "Net Change"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Net Change';
             Editable = false;
         }
         field(33; "Budgeted Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Budgeted Amount';
         }
         field(34; Totaling; Text[250])
@@ -151,13 +151,13 @@ table 10722 "New G/L Account"
         }
         field(36; Balance; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Balance';
             Editable = false;
         }
         field(37; "Budget at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Budget at Date';
             Editable = false;
         }
@@ -204,14 +204,14 @@ table 10722 "New G/L Account"
         }
         field(47; "Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Debit Amount';
             Editable = false;
         }
         field(48; "Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Credit Amount';
             Editable = false;
@@ -222,13 +222,13 @@ table 10722 "New G/L Account"
         }
         field(52; "Budgeted Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankNumbers = BlankNegAndZero;
             Caption = 'Budgeted Debit Amount';
         }
         field(53; "Budgeted Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankNumbers = BlankNegAndZero;
             Caption = 'Budgeted Credit Amount';
         }
@@ -258,19 +258,19 @@ table 10722 "New G/L Account"
         }
         field(60; "Additional-Currency Net Change"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Additional-Currency Net Change';
             Editable = false;
         }
         field(61; "Add.-Currency Balance at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Add.-Currency Balance at Date';
             Editable = false;
         }
         field(62; "Additional-Currency Balance"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Additional-Currency Balance';
             Editable = false;
         }
@@ -282,13 +282,13 @@ table 10722 "New G/L Account"
         }
         field(64; "Add.-Currency Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Add.-Currency Debit Amount';
             Editable = false;
         }
         field(65; "Add.-Currency Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Add.-Currency Credit Amount';
             Editable = false;
         }
@@ -324,5 +324,5 @@ table 10722 "New G/L Account"
     }
 }
 
- 
+
 #endif

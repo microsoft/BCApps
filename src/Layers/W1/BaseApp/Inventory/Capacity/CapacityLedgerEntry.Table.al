@@ -50,11 +50,13 @@ table 5832 "Capacity Ledger Entry"
         }
         field(10; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(15; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -77,6 +79,7 @@ table 5832 "Capacity Ledger Entry"
         }
         field(29; "Qty. per Cap. Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Cap. Unit of Measure';
             DecimalPlaces = 0 : 5;
         }
@@ -113,6 +116,7 @@ table 5832 "Capacity Ledger Entry"
         }
         field(59; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
         }
@@ -127,6 +131,7 @@ table 5832 "Capacity Ledger Entry"
         field(71; "Direct Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where("Capacity Ledger Entry No." = field("Entry No."),
                                                                           "Entry Type" = const("Direct Cost")));
             Caption = 'Direct Cost';
@@ -136,6 +141,7 @@ table 5832 "Capacity Ledger Entry"
         field(72; "Overhead Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where("Capacity Ledger Entry No." = field("Entry No."),
                                                                           "Entry Type" = const("Indirect Cost")));
             Caption = 'Overhead Cost';

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Retrieves sales order amounts grouped by currency code for trailing sales order analysis.
+/// </summary>
 query 760 "Trailing Sales Order Qry"
 {
     Caption = 'Trailing Sales Order Qry';

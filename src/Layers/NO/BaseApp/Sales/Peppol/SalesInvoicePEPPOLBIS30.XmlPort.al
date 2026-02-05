@@ -11,6 +11,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
 
+/// <summary>
+/// Generates UBL 2.1 compliant XML for sales invoices in PEPPOL BIS 3.0 format.
+/// </summary>
 xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
 {
     Caption = 'Sales Invoice - PEPPOL BIS 3.0';
@@ -2259,6 +2262,10 @@ xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
         exit(VATAmtLine.Next() <> 0);
     end;
 
+    /// <summary>
+    /// Initializes the XmlPort with the document to export.
+    /// </summary>
+    /// <param name="DocVariant">The sales invoice header record to export.</param>
     procedure Initialize(DocVariant: Variant)
     var
         IsHandled: Boolean;
@@ -2317,41 +2324,88 @@ xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
         exit('urn:fdc:peppol.eu:2017:poacc:billing:01:1.0');
     end;
 
+    /// <summary>
+    /// Raised when calculating totals for PEPPOL BIS 3.0 sales invoice export.
+    /// </summary>
+    /// <param name="SourceRecRef">Specifies the source record reference.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
+    /// <param name="TempVATAmtLine">Specifies the temporary VAT amount line record.</param>
+    /// <param name="TempVATProductPostingGroup">Specifies the temporary VAT product posting group record.</param>
+    /// <param name="ProcessedDocType">Specifies the document type being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetTotals(SourceRecRef: RecordRef; var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
     end;
 
+    /// <summary>
+    /// Raised when initializing the PEPPOL BIS 3.0 sales invoice export.
+    /// </summary>
+    /// <param name="SourceRecRef">Specifies the source record reference.</param>
+    /// <param name="TempSalesLineRounding">Specifies the temporary sales line for rounding.</param>
+    /// <param name="DocumentAttachments">Specifies the document attachments record.</param>
+    /// <param name="ProcessedDocType">Specifies the document type being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitialize(SourceRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment"; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised when finding the next invoice record during PEPPOL BIS 3.0 export.
+    /// </summary>
+    /// <param name="Position">Specifies the position in the iteration.</param>
+    /// <param name="SalesHeader">Specifies the sales header record.</param>
+    /// <param name="Found">Indicates whether a record was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindNextInvoiceRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when finding the next invoice line record during PEPPOL BIS 3.0 export.
+    /// </summary>
+    /// <param name="Position">Specifies the position in the iteration.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
+    /// <param name="Found">Indicates whether a record was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindNextInvoiceLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding sales invoice lines during PEPPOL BIS 3.0 export.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">Specifies the sales invoice line record to filter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating sales line totals during PEPPOL BIS 3.0 export.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">Specifies the sales invoice line record.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetTotalsOnBeforeGetSalesLineTotals(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving line general information during invoice line processing.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">Specifies the sales invoice line record.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInvoiceLineLoopOnAfterGetRecordOnBeforeGetLineGeneralInfo(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the invoice rounding line during initialization.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">Specifies the sales invoice line record.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitializeOnBeforeGetInvoiceRoundingLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
     begin

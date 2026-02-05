@@ -77,6 +77,7 @@ page 5660 "Depreciation Table Lines"
                 field(TotalDepreciationPct; TotalDeprPercent)
                 {
                     ApplicationArea = FixedAssets;
+                    AutoFormatType = 0;
                     Caption = 'Total Depreciation %';
                     Editable = false;
                     ToolTip = 'Specifies the total depreciation percent as the sum of the percentages for period depreciation, anticipated depreciation, and accelerated/reduced depreciation.';

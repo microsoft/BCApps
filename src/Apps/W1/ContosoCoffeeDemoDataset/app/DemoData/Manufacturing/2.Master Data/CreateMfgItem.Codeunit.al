@@ -245,9 +245,9 @@ codeunit 4770 "Create Mfg Item"
 
     local procedure InsertItemVariants()
     begin
-        ContosoItem.InsertItemVariant(SPSCM1006(), BlackTok, AutoDripLiteBlackTok);
-        ContosoItem.InsertItemVariant(SPSCM1006(), WhiteTok, AutoDripLiteWhiteTok);
-        ContosoItem.InsertItemVariant(SPSCM1006(), RedTok, AutoDripLiteRedTok);
+        ContosoItem.InsertItemVariant(SPSCM1006(), BlackTok, AutoDripLiteBlackTok, ManufacturingMedia.GetAutoDripLiteBlackPicture());
+        ContosoItem.InsertItemVariant(SPSCM1006(), WhiteTok, AutoDripLiteWhiteTok, ManufacturingMedia.GetAutoDripLiteWhitePicture());
+        ContosoItem.InsertItemVariant(SPSCM1006(), RedTok, AutoDripLiteRedTok, ManufacturingMedia.GetAutoDripLiteRedPicture());
     end;
 
     local procedure CalcStandardCost()

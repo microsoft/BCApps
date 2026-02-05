@@ -11,6 +11,9 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Defines G/L account mappings for customer transactions including receivables and discounts.
+/// </summary>
 table 92 "Customer Posting Group"
 {
     Caption = 'Customer Posting Group';
@@ -19,12 +22,18 @@ table 92 "Customer Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier for the customer posting group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
             ToolTip = 'Specifies the identifier for the customer posting group. This is what you choose when you assign the group to an entity or document.';
         }
+        /// <summary>
+        /// Specifies the G/L account for posting accounts receivable transactions from customers in this group.
+        /// </summary>
         field(2; "Receivables Account"; Code[20])
         {
             Caption = 'Receivables Account';
@@ -51,6 +60,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Receivables Account"), "Receivables Account", false, false, GLAccountCategory."Account Category"::Assets, GLAccountCategoryMgt.GetAR());
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting service charges applied to customers in this group.
+        /// </summary>
         field(7; "Service Charge Acc."; Code[20])
         {
             Caption = 'Service Charge Acc.';
@@ -77,6 +89,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Service Charge Acc."), "Service Charge Acc.", IsVATInUse(), true, GLAccountCategory."Account Category"::Income, GLAccountCategoryMgt.GetIncomeService());
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting payment discount debit amounts granted to customers in this group.
+        /// </summary>
         field(8; "Payment Disc. Debit Acc."; Code[20])
         {
             Caption = 'Payment Disc. Debit Acc.';
@@ -101,6 +116,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Payment Disc. Debit Acc."), "Payment Disc. Debit Acc.", false, false, GLAccountCategory."Account Category"::Expense, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting invoice rounding adjustments for customers in this group.
+        /// </summary>
         field(9; "Invoice Rounding Account"; Code[20])
         {
             Caption = 'Invoice Rounding Account';
@@ -125,6 +143,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Invoice Rounding Account"), "Invoice Rounding Account", IsVATInUse(), false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting additional fees from reminders and finance charge memos.
+        /// </summary>
         field(10; "Additional Fee Account"; Code[20])
         {
             Caption = 'Additional Fee Account';
@@ -149,6 +170,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Additional Fee Account"), "Additional Fee Account", IsVATInUse(), true, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting interest charges from reminders and finance charge memos.
+        /// </summary>
         field(11; "Interest Account"; Code[20])
         {
             Caption = 'Interest Account';
@@ -173,6 +197,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Interest Account"), "Interest Account", IsVATInUse(), false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting debit rounding differences when applying entries in different currencies.
+        /// </summary>
         field(12; "Debit Curr. Appln. Rndg. Acc."; Code[20])
         {
             Caption = 'Debit Curr. Appln. Rndg. Acc.';
@@ -198,6 +225,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Debit Curr. Appln. Rndg. Acc."), "Debit Curr. Appln. Rndg. Acc.", false, false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting credit rounding differences when applying entries in different currencies.
+        /// </summary>
         field(13; "Credit Curr. Appln. Rndg. Acc."; Code[20])
         {
             Caption = 'Credit Curr. Appln. Rndg. Acc.';
@@ -223,6 +253,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Credit Curr. Appln. Rndg. Acc."), "Credit Curr. Appln. Rndg. Acc.", false, false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting debit rounding differences from remaining amounts.
+        /// </summary>
         field(14; "Debit Rounding Account"; Code[20])
         {
             Caption = 'Debit Rounding Account';
@@ -248,6 +281,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Debit Rounding Account"), "Debit Rounding Account", false, false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting credit rounding differences from remaining amounts.
+        /// </summary>
         field(15; "Credit Rounding Account"; Code[20])
         {
             Caption = 'Credit Rounding Account';
@@ -271,6 +307,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Credit Rounding Account"), "Credit Rounding Account", false, false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting payment discount credit amounts when discounts are reduced.
+        /// </summary>
         field(16; "Payment Disc. Credit Acc."; Code[20])
         {
             Caption = 'Payment Disc. Credit Acc.';
@@ -295,6 +334,9 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Payment Disc. Credit Acc."), "Payment Disc. Credit Acc.", false, false, GLAccountCategory."Account Category"::Expense, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting payment tolerance debit amounts for sales transactions.
+        /// </summary>
         field(17; "Payment Tolerance Debit Acc."; Code[20])
         {
             Caption = 'Payment Tolerance Debit Acc.';
@@ -320,6 +362,9 @@ table 92 "Customer Posting Group"
                       FieldNo("Payment Tolerance Debit Acc."), "Payment Tolerance Debit Acc.", false, false, GLAccountCategory."Account Category"::Expense, '');
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting payment tolerance credit amounts for sales transactions.
+        /// </summary>
         field(18; "Payment Tolerance Credit Acc."; Code[20])
         {
             Caption = 'Payment Tolerance Credit Acc.';
@@ -347,6 +392,9 @@ table 92 "Customer Posting Group"
                       GLAccountCategory."Account Category"::Expense, GLAccountCategoryMgt.GetInterestExpense());
             end;
         }
+        /// <summary>
+        /// Specifies the G/L account for posting per-line additional fees from reminders.
+        /// </summary>
         field(19; "Add. Fee per Line Account"; Code[20])
         {
             Caption = 'Add. Fee per Line Account';
@@ -371,11 +419,17 @@ table 92 "Customer Posting Group"
                     CheckGLAccount(FieldNo("Add. Fee per Line Account"), "Add. Fee per Line Account", IsVATInUse(), false, GLAccountCategory."Account Category"::Income, '');
             end;
         }
+        /// <summary>
+        /// Specifies a description for the customer posting group to help identify its purpose.
+        /// </summary>
         field(20; Description; Text[100])
         {
             Caption = 'Description';
             ToolTip = 'Specifies the description for the customer posting group.';
         }
+        /// <summary>
+        /// Indicates whether all G/L accounts are shown in lookups, or only those related to the relevant account category.
+        /// </summary>
         field(21; "View All Accounts on Lookup"; Boolean)
         {
             Caption = 'View All Accounts on Lookup';
@@ -424,6 +478,10 @@ table 92 "Customer Posting Group"
             Error(YouCannotDeleteErr, Code);
     end;
 
+    /// <summary>
+    /// Gets the receivables G/L account for posting customer balances.
+    /// </summary>
+    /// <returns>The receivables account code.</returns>
     procedure GetReceivablesAccount() Result: Code[20]
     begin
         if "Receivables Account" = '' then
@@ -433,6 +491,11 @@ table 92 "Customer Posting Group"
         OnAfterGetReceivablesAccount(Rec, Result);
     end;
 
+    /// <summary>
+    /// Gets the payment discount G/L account for debit or credit postings.
+    /// </summary>
+    /// <param name="Debit">True to get the debit account, false for credit account.</param>
+    /// <returns>The payment discount account code.</returns>
     procedure GetPmtDiscountAccount(Debit: Boolean): Code[20]
     begin
         if Debit then begin
@@ -447,6 +510,11 @@ table 92 "Customer Posting Group"
         exit("Payment Disc. Credit Acc.");
     end;
 
+    /// <summary>
+    /// Gets the payment tolerance G/L account for debit or credit postings.
+    /// </summary>
+    /// <param name="Debit">True to get the debit account, false for credit account.</param>
+    /// <returns>The payment tolerance account code.</returns>
     procedure GetPmtToleranceAccount(Debit: Boolean): Code[20]
     begin
         if Debit then begin
@@ -461,6 +529,11 @@ table 92 "Customer Posting Group"
         exit("Payment Tolerance Credit Acc.");
     end;
 
+    /// <summary>
+    /// Gets the rounding G/L account for debit or credit postings.
+    /// </summary>
+    /// <param name="Debit">True to get the debit account, false for credit account.</param>
+    /// <returns>The rounding account code.</returns>
     procedure GetRoundingAccount(Debit: Boolean): Code[20]
     begin
         if Debit then begin
@@ -475,6 +548,11 @@ table 92 "Customer Posting Group"
         exit("Credit Rounding Account");
     end;
 
+    /// <summary>
+    /// Gets the application rounding G/L account for currency adjustments.
+    /// </summary>
+    /// <param name="Debit">True to get the debit account, false for credit account.</param>
+    /// <returns>The application rounding account code.</returns>
     procedure GetApplRoundingAccount(Debit: Boolean): Code[20]
     begin
         if Debit then begin
@@ -489,6 +567,10 @@ table 92 "Customer Posting Group"
         exit("Credit Curr. Appln. Rndg. Acc.");
     end;
 
+    /// <summary>
+    /// Gets the invoice rounding G/L account and validates its posting group.
+    /// </summary>
+    /// <returns>The invoice rounding account code.</returns>
     procedure GetInvRoundingAccount(): Code[20]
     var
         GLAccount: Record "G/L Account";
@@ -502,6 +584,10 @@ table 92 "Customer Posting Group"
         exit("Invoice Rounding Account");
     end;
 
+    /// <summary>
+    /// Gets the service charge G/L account for posting finance charge service fees.
+    /// </summary>
+    /// <returns>The service charge account code.</returns>
     procedure GetServiceChargeAccount(): Code[20]
     begin
         if "Service Charge Acc." = '' then
@@ -510,6 +596,10 @@ table 92 "Customer Posting Group"
         exit("Service Charge Acc.");
     end;
 
+    /// <summary>
+    /// Gets the additional fee G/L account for posting reminder and finance charge fees.
+    /// </summary>
+    /// <returns>The additional fee account code.</returns>
     procedure GetAdditionalFeeAccount(): Code[20]
     begin
         if "Additional Fee Account" = '' then
@@ -518,6 +608,10 @@ table 92 "Customer Posting Group"
         exit("Additional Fee Account");
     end;
 
+    /// <summary>
+    /// Gets the additional fee per line G/L account for posting line-based reminder fees.
+    /// </summary>
+    /// <returns>The additional fee per line account code.</returns>
     procedure GetAddFeePerLineAccount(): Code[20]
     begin
         if "Add. Fee per Line Account" = '' then
@@ -526,6 +620,10 @@ table 92 "Customer Posting Group"
         exit("Add. Fee per Line Account");
     end;
 
+    /// <summary>
+    /// Gets the interest G/L account for posting finance charge interest.
+    /// </summary>
+    /// <returns>The interest account code.</returns>
     procedure GetInterestAccount(): Code[20]
     begin
         if "Interest Account" = '' then
@@ -534,6 +632,13 @@ table 92 "Customer Posting Group"
         exit("Interest Account");
     end;
 
+    /// <summary>
+    /// Sets visibility flags for optional posting group account fields based on setup.
+    /// </summary>
+    /// <param name="PmtToleranceVisible">Returns whether payment tolerance accounts should be visible.</param>
+    /// <param name="PmtDiscountVisible">Returns whether payment discount accounts should be visible.</param>
+    /// <param name="InvRoundingVisible">Returns whether invoice rounding account should be visible.</param>
+    /// <param name="ApplnRoundingVisible">Returns whether application rounding accounts should be visible.</param>
     procedure SetAccountVisibility(var PmtToleranceVisible: Boolean; var PmtDiscountVisible: Boolean; var InvRoundingVisible: Boolean; var ApplnRoundingVisible: Boolean)
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -564,6 +669,11 @@ table 92 "Customer Posting Group"
         exit(GLSetup."VAT in Use");
     end;
 
+    /// <summary>
+    /// Raises an event after getting the receivables account to allow customization of the returned account.
+    /// </summary>
+    /// <param name="CustomerPostingGroup">The customer posting group record.</param>
+    /// <param name="Result">The receivables account code that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetReceivablesAccount(var CustomerPostingGroup: Record "Customer Posting Group"; var Result: Code[20])
     begin

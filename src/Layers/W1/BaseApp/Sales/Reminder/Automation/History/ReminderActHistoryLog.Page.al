@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays the individual action log entries for a reminder automation run as a subpage part.
+/// </summary>
 page 6757 "Reminder Act. History Log"
 {
     Caption = 'Action log';

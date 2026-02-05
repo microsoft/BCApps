@@ -137,6 +137,8 @@ page 10043 "Purchase Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -145,6 +147,8 @@ page 10043 "Purchase Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -153,6 +157,8 @@ page 10043 "Purchase Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -161,6 +167,8 @@ page 10043 "Purchase Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;

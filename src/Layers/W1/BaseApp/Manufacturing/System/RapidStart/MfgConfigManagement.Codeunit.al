@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000825 "Mfg. Config Management"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Management", 'OnFindPage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Management", 'OnFindPage', '', true, false)]
     local procedure OnFindPage(TableID: Integer; var PageID: Integer)
     begin
         case TableID of
@@ -43,7 +43,7 @@ codeunit 99000825 "Mfg. Config Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Management", 'OnAfterIsDefaultDimTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Management", 'OnAfterIsDefaultDimTable', '', true, false)]
     local procedure OnAfterIsDefaultDimTable(TableID: Integer; var Result: Boolean)
     begin
         case TableID of

@@ -94,6 +94,7 @@ page 89 "Job List"
                 field("% of Overdue Planning Lines"; Rec.PercentOverdue())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% of Overdue Planning Lines';
                     Editable = false;
                     ToolTip = 'Specifies the percent of planning lines that are overdue for this project.';
@@ -102,6 +103,7 @@ page 89 "Job List"
                 field("% Completed"; Rec.PercentCompleted())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% Completed';
                     Editable = false;
                     ToolTip = 'Specifies the completion percentage for this project.';
@@ -110,6 +112,7 @@ page 89 "Job List"
                 field("% Invoiced"; Rec.PercentInvoiced())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% Invoiced';
                     Editable = false;
                     ToolTip = 'Specifies the invoiced percentage for this project.';

@@ -27,6 +27,9 @@ using System.Environment;
 using System.Privacy;
 using System.Security.User;
 
+/// <summary>
+/// Displays and manages a single sales quote document for customer proposals.
+/// </summary>
 page 41 "Sales Quote"
 {
     Caption = 'Sales Quote';

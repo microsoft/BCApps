@@ -483,6 +483,7 @@ table 5349 "CRM Incident"
         }
         field(53; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -630,6 +631,7 @@ table 5349 "CRM Incident"
         }
         field(71; SentimentValue; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Sentiment Value';
             Description = 'Value derived after assessing words commonly associated with a negative, neutral, or positive sentiment that occurs in a social post. Sentiment information can also be reported as numeric values.';
             ExternalAccess = Insert;
@@ -638,6 +640,7 @@ table 5349 "CRM Incident"
         }
         field(72; InfluenceScore; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Influence Score';
             Description = 'Will contain the Influencer score coming from NetBreeze.';
             ExternalAccess = Insert;

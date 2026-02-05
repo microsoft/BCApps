@@ -45,6 +45,7 @@ table 99000854 "Inventory Profile Track Buffer"
         }
         field(72; "Quantity Tracked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Tracked';
             DataClassification = SystemMetadata;
         }

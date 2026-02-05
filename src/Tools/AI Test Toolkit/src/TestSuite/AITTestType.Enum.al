@@ -6,14 +6,14 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// Specifies the type of AI test.
+/// Specifies the type of AI eval.
 /// </summary>
 enum 149041 "AIT Test Type"
 {
     Extensible = false;
 
     /// <summary>
-    /// Copilot test type.
+    /// Copilot eval type.
     /// </summary>
     value(0; Copilot)
     {
@@ -21,7 +21,7 @@ enum 149041 "AIT Test Type"
     }
 
     /// <summary>
-    /// Agent test type.
+    /// Agent eval type.
     /// </summary>
     value(1; Agent)
     {
@@ -29,7 +29,7 @@ enum 149041 "AIT Test Type"
     }
 
     /// <summary>
-    /// MCP test type.
+    /// MCP eval type.
     /// </summary>
     value(2; MCP)
     {

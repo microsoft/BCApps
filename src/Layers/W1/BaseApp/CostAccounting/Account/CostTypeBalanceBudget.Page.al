@@ -169,6 +169,7 @@ page 1120 "Cost Type Balance/Budget"
                 field(BudgetPct; BudgetPct)
                 {
                     ApplicationArea = CostAccounting;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     Caption = 'Balance/Budget (%)';
                     DecimalPlaces = 1 : 1;

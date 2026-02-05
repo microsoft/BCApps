@@ -15,6 +15,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Converts blanket sales order lines into a regular sales order for fulfillment.
+/// </summary>
 codeunit 87 "Blanket Sales Order to Order"
 {
     TableNo = "Sales Header";
@@ -120,6 +123,14 @@ codeunit 87 "Blanket Sales Order to Order"
         Text003: Label 'Full automatic reservation was not possible.\Reserve items manually?';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Creates sales order lines from blanket sales order lines by transferring quantities and settings.
+    /// </summary>
+    /// <param name="SalesHeaderBlanketOrder">The blanket sales order header containing the source lines.</param>
+    /// <param name="SalesLineBlanketOrder">The blanket sales order lines to convert.</param>
+    /// <param name="SalesHeaderOrder">The target sales order header.</param>
+    /// <param name="SalesLineOrder">The target sales order lines that will be created.</param>
+    /// <param name="NextLineNo">The next line number to use for new order lines.</param>
     procedure CreateSalesOrderLines(var SalesHeaderBlanketOrder: Record "Sales Header"; var SalesLineBlanketOrder: Record "Sales Line";
                                     var SalesHeaderOrder: Record "Sales Header"; var SalesLineOrder: Record "Sales Line"; var NextLineNo: Integer)
     var
@@ -222,6 +233,12 @@ codeunit 87 "Blanket Sales Order to Order"
         until SalesLineBlanketOrder.Next() = 0;
     end;
 
+    /// <summary>
+    /// Reserves sales order lines automatically and tracks lines requiring manual reservation.
+    /// </summary>
+    /// <param name="SalesHeaderOrder">The sales order header for the lines to reserve.</param>
+    /// <param name="SalesLineOrder">The sales order lines to reserve.</param>
+    /// <param name="TempSalesLine">Temporary record to store lines that could not be fully auto-reserved.</param>
     procedure ReserveSalesOrderLines(SalesHeaderOrder: Record "Sales Header"; var SalesLineOrder: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
         TempSalesLine.DeleteAll();
@@ -349,16 +366,28 @@ codeunit 87 "Blanket Sales Order to Order"
         OnAfterResetQuantityFields(SalesLine);
     end;
 
+    /// <summary>
+    /// Retrieves the created sales order header after conversion.
+    /// </summary>
+    /// <param name="SalesHeader">Returns the sales order header that was created from the blanket order.</param>
     procedure GetSalesOrderHeader(var SalesHeader: Record "Sales Header")
     begin
         SalesHeader := SalesOrderHeader;
     end;
 
+    /// <summary>
+    /// Sets the sales order header to use as the target for conversion.
+    /// </summary>
+    /// <param name="SalesHeader">The sales order header to set as the target.</param>
     procedure SetSalesOrderHeader(var SalesHeader: Record "Sales Header")
     begin
         SalesOrderHeader := SalesHeader;
     end;
 
+    /// <summary>
+    /// Specifies whether to hide validation dialogs during the conversion process.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">True to suppress validation dialogs; false to show them.</param>
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;

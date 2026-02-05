@@ -144,6 +144,8 @@ page 1156 "Company Detail"
                         field(OverDuePurchInvoiceAmt; OverDuePurchInvoiceAmt)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Overdue Purch. Invoice Amount';
                             DecimalPlaces = 0 : 0;
                             Image = Cash;
@@ -159,6 +161,7 @@ page 1156 "Company Detail"
                         field("<PurchDocsDueToday>"; PurchDocsDueToday)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 0;
                             Caption = 'Purchase Documents Due Today';
                             DecimalPlaces = 0 : 0;
                             Image = Document;
@@ -174,6 +177,7 @@ page 1156 "Company Detail"
                         field(PurchInvoicesDueNextWeek; PurchInvoicesDueNextWeek)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 0;
                             Caption = 'Purch. Invoices Due Next Week';
                             DecimalPlaces = 0 : 0;
                             Image = Document;
@@ -203,6 +207,8 @@ page 1156 "Company Detail"
                     field("<TotalPurch>"; TotalPurch)
                     {
                         ApplicationArea = All;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Total';
                         DecimalPlaces = 0 : 2;
                         Importance = Promoted;
@@ -222,6 +228,8 @@ page 1156 "Company Detail"
                         field("<OverDueSalesInvoiceAmt>"; OverDueSalesInvoiceAmt)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Overdue Sales Invoice Amount';
                             DecimalPlaces = 0 : 0;
                             Image = Cash;
@@ -238,6 +246,7 @@ page 1156 "Company Detail"
                         field("<SalesDocsDueToday>"; SalesDocsDueToday)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 0;
                             Caption = 'Sales Documents Due Today';
                             DecimalPlaces = 0 : 0;
                             Image = Document;
@@ -253,6 +262,7 @@ page 1156 "Company Detail"
                         field("<SalesDocsDueNextWeek>"; SalesDocsDueNextWeek)
                         {
                             ApplicationArea = All;
+                            AutoFormatType = 0;
                             Caption = 'Sales Documents Due Next Week';
                             DecimalPlaces = 0 : 0;
                             Image = Document;
@@ -282,6 +292,8 @@ page 1156 "Company Detail"
                     field("<TotalSales>"; TotalSales)
                     {
                         ApplicationArea = All;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Total';
                         DecimalPlaces = 0 : 2;
                         Importance = Promoted;

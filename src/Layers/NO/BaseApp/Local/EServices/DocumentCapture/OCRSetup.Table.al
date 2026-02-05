@@ -68,6 +68,7 @@ table 15000100 "OCR Setup"
         }
         field(24; "Max. Divergence"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Max. Divergence';
         }
         field(25; "Divergence Account No."; Code[20])

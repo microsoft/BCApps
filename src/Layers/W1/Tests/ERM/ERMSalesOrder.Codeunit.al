@@ -5996,6 +5996,61 @@
         Assert.IsFalse(SalesOrderEntityBuffer.Get(SalesHeader."No."), 'Sales Order Entity Buffer should be deleted');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesHeader2: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvHeader: Record "Sales Invoice Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        SalesCreditMemo: TestPage "Sales Credit Memo";
+        GLAccountCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 615866] Verify Qty. to Ship and  Qty. to Invoice are updated for G/L Account lines
+        // after creating a Corrective Credit Memo from the Posted Sales Invoice.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+
+        // [GIVEN] Create a G/L Account.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        GLAccountCode := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+
+        // [GIVEN] Create Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create Sales Header.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] Create Sales Line with G/L Account and Quantity.
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccountCode, Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+
+        // [GIVEN] Update Qty to Ship in Sales Line.
+        SalesLine.Validate("Qty. to Ship", LibraryRandom.RandIntInRange(5, 5));
+        SalesLine.Modify(true);
+
+        // [GIVEN] Post partial Sales order.
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create Corrective Credit Memo.
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvHeader, SalesHeader2);
+
+        // [WHEN] Post the Corrective Credit Memo.
+        SalesCreditMemo.OpenView();
+        SalesCreditMemo.GotoRecord(SalesHeader2);
+        SalesCreditMemo.Post.Invoke();
+
+        // [THEN] Verify Sales Order Qty. to Ship and Qty. to Invoice are updated in Sales line.
+        VerifySalesOrderAfterPartialPostCorrectiveCreditMemo(SalesHeader."No.", Quantity);
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";

@@ -9,6 +9,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Globalization;
 
+/// <summary>
+/// Stores history of line fee notes that have been printed on reminder reports for customer ledger entries.
+/// </summary>
 table 1053 "Line Fee Note on Report Hist."
 {
     Caption = 'Line Fee Note on Report Hist.';
@@ -18,17 +21,26 @@ table 1053 "Line Fee Note on Report Hist."
 
     fields
     {
+        /// <summary>
+        /// Specifies the customer ledger entry number for which this line fee note was generated.
+        /// </summary>
         field(1; "Cust. Ledger Entry No"; Integer)
         {
             Caption = 'Cust. Ledger Entry No';
             Editable = false;
             TableRelation = "Cust. Ledger Entry"."Entry No." where("Entry No." = field("Cust. Ledger Entry No"));
         }
+        /// <summary>
+        /// Specifies the due date at which this line fee note applies.
+        /// </summary>
         field(2; "Due Date"; Date)
         {
             Caption = 'Due Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the language code used for this translated line fee note.
+        /// </summary>
         field(3; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
@@ -36,14 +48,23 @@ table 1053 "Line Fee Note on Report Hist."
             NotBlank = true;
             TableRelation = Language;
         }
+        /// <summary>
+        /// Specifies the reminder terms code for which this line fee note was generated.
+        /// </summary>
         field(4; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
         }
+        /// <summary>
+        /// Specifies the reminder level at which this line fee note applies.
+        /// </summary>
         field(5; "Reminder Level No"; Integer)
         {
             Caption = 'Reminder Level No';
         }
+        /// <summary>
+        /// Contains the formatted line fee note text that appeared on the reminder report.
+        /// </summary>
         field(6; ReportText; Text[200])
         {
             Caption = 'ReportText';
@@ -139,6 +160,10 @@ table 1053 "Line Fee Note on Report Hist."
             until ReminderTermsTranslation.Next() = 0;
     end;
 
+    /// <summary>
+    /// Saves the line fee note history for the specified customer ledger entry based on reminder terms.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry to save line fee history for.</param>
     procedure Save(CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         Customer: Record Customer;

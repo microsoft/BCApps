@@ -77,6 +77,7 @@ page 9003 "Acc. Receivables Adm. RC"
     {
         area(reporting)
         {
+#if not CLEAN28
             action("Customer Listing")
             {
                 ApplicationArea = Suite;
@@ -84,7 +85,11 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer Listing";
                 ToolTip = 'View various information for customers, such as customer posting group, discount group, finance charge and payment information, salesperson, the customer''s default currency and credit limit (in LCY), and the customer''s current balance (in LCY).';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Customer - &Balance to Date")
             {
                 ApplicationArea = Basic, Suite;

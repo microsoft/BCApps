@@ -10,6 +10,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using System.Threading;
 
+/// <summary>
+/// Posts a single sales document through the job queue for background processing.
+/// </summary>
 codeunit 88 "Sales Post via Job Queue"
 {
     TableNo = "Job Queue Entry";
@@ -75,11 +78,20 @@ codeunit 88 "Sales Post via Job Queue"
         end;
     end;
 
+    /// <summary>
+    /// Enqueues the sales document for background posting via the job queue and displays a confirmation message.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document to enqueue for posting.</param>
     procedure EnqueueSalesDoc(var SalesHeader: Record "Sales Header")
     begin
         EnqueueSalesDocWithUI(SalesHeader, true);
     end;
 
+    /// <summary>
+    /// Enqueues the sales document for background posting via the job queue with optional user interface feedback.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document to enqueue for posting.</param>
+    /// <param name="WithUI">Specifies whether to display a confirmation message to the user.</param>
     procedure EnqueueSalesDocWithUI(var SalesHeader: Record "Sales Header"; WithUI: Boolean)
     var
         TempInvoice: Boolean;
@@ -146,6 +158,10 @@ codeunit 88 "Sales Post via Job Queue"
           CopyStr(StrSubstNo(JobQueueEntry.Description, SalesHeader."Document Type", SalesHeader."No."), 1, MaxStrLen(JobQueueEntry.Description));
     end;
 
+    /// <summary>
+    /// Cancels the job queue entry for the sales document and resets the job queue status.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document to remove from the job queue.</param>
     procedure CancelQueueEntry(var SalesHeader: Record "Sales Header")
     begin
         if SalesHeader."Job Queue Status" <> SalesHeader."Job Queue Status"::" " then begin
@@ -187,6 +203,10 @@ codeunit 88 "Sales Post via Job Queue"
         exit(result);
     end;
 
+    /// <summary>
+    /// Gets the job queue category code for sales posting from setup, or creates a default category if needed.
+    /// </summary>
+    /// <returns>Returns the job queue category code to use for sales background posting.</returns>
     internal procedure GetJobQueueCategoryCode(): Code[10]
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -206,36 +226,69 @@ codeunit 88 "Sales Post via Job Queue"
         exit(JobQueueCategory.Code);
     end;
 
+    /// <summary>
+    /// Raised before enqueuing the sales document for background posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be enqueued.</param>
+    /// <param name="Handled">Set to true to skip the default enqueue logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnqueueSalesDoc(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before releasing the sales document prior to enqueuing.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be released.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleaseSalesDoc(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the job queue status on the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being updated.</param>
+    /// <param name="NewJobQueueStatus">The new job queue status to set.</param>
+    /// <param name="JobQueueEntry">The job queue entry associated with the document.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetJobQueueStatus(SalesHeader: Record "Sales Header"; NewJobQueueStatus: Option " ","Scheduled for Posting",Error,Posting; JobQueueEntry: Record "Job Queue Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before enqueuing the job entry for background posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being enqueued.</param>
+    /// <param name="JobQueueEntry">The job queue entry to be enqueued.</param>
     [IntegrationEvent(false, false)]
     local procedure OnEnqueueJobEntryOnBeforeEnqueue(SalesHeader: Record "Sales Header"; var JobQueueEntry: Record "Job Queue Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Sales-Post codeunit has successfully run in the job queue.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterRunSalesPost(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the Sales-Post codeunit runs in the job queue.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeRunSalesPost(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before resetting the batch ID after a posting error in the job queue.
+    /// </summary>
+    /// <param name="JobQueueEntry">The job queue entry that encountered an error.</param>
+    /// <param name="IsHandled">Set to true to skip the default batch ID reset logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBatchProcessingErrorReset(var JobQueueEntry: Record "Job Queue Entry"; var IsHandled: Boolean)
     begin

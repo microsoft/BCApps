@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.Sales.Document;
 using System.Utilities;
 
+/// <summary>
+/// Provides user confirmation dialog before correcting a posted sales invoice.
+/// </summary>
 codeunit 1322 "Correct PstdSalesInv (Yes/No)"
 {
     Permissions = TableData "Sales Invoice Header" = rm,
@@ -24,6 +27,11 @@ codeunit 1322 "Correct PstdSalesInv (Yes/No)"
         CorrectPostedInvoiceFromDeletedOrderQst: Label 'The invoice was posted from an order. The order has been deleted, and the invoice will be cancelled. You can create a new invoice or order by using the Copy Document action.\ \Do you want to continue?';
         CorrectPostedInvoiceFromMultipleOrderQst: Label 'The invoice was posted from multiple orders. It will now be cancelled, and you can make a correction manually in the original orders.\ \Do you want to continue?';
 
+    /// <summary>
+    /// Corrects the posted sales invoice after user confirmation by canceling it and opening the appropriate document for correction.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to correct.</param>
+    /// <returns>True if the invoice was successfully corrected, otherwise false.</returns>
     procedure CorrectInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
     var
         SalesHeader: Record "Sales Header";

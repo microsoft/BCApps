@@ -16,7 +16,7 @@ codeunit 99000984 "Mfg. WhseSourceCreateDocument"
         MfgCreatePutaway: Codeunit "Mfg. Create Put-away";
         CannotHandleMoreThanProdOrderLineQtyErr: Label 'You cannot handle more than %1 quantity in Production Order No. %2, Line No. %3', Comment = '%1 = Quantity, %2 - Production Order No., %3 - Production Order Line No.';
 
-    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnCreatePutawayFromProduction', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnCreatePutawayFromProduction', '', true, false)]
     local procedure OnCreatePutawayFromProduction(var WhsePutawayWorksheetLine: Record "Whse. Worksheet Line"; SourceType: Integer; var EverythingHandled: Boolean; var QtyHandledBase: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -47,33 +47,33 @@ codeunit 99000984 "Mfg. WhseSourceCreateDocument"
         SourceType := Database::"Prod. Order Line";
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutawaySetValues', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutawaySetValues', '', true, false)]
     local procedure OnAfterCreatePutawaySetValues(NewAssignedID: Code[50]; NewSortActivity: Enum "Whse. Activity Sorting Method"; NewDoNotFillQtytoHandle: Boolean; NewBreakbulkFilter: Boolean)
     begin
         Clear(MfgCreatePutaway);
         MfgCreatePutaway.SetValues(NewAssignedID, NewSortActivity, NewDoNotFillQtytoHandle, NewBreakbulkFilter);
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnGetProductionMessageText', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnGetProductionMessageText', '', true, false)]
     local procedure OnGetProductionMessageText(var CreateErrorText: Text)
     begin
         MfgCreatePutAway.GetMessageText(CreateErrorText);
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutawayGetWhseActivHeaderNo', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutawayGetWhseActivHeaderNo', '', true, false)]
     local procedure OnAfterCreatePutawayGetWhseActivHeaderNo(var FirstActivityNo: Code[20]; var LastActivityNo: Code[20])
     begin
         if FirstActivityNo = '' then
             MfgCreatePutAway.GetWhseActivHeaderNo(FirstActivityNo, LastActivityNo);
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutAwayDeleteBlankBinContent', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterCreatePutAwayDeleteBlankBinContent', '', true, false)]
     local procedure OnAfterCreatePutAwayDeleteBlankBinContent(var WarehouseActivityHeader: Record "Warehouse Activity Header")
     begin
         MfgCreatePutAway.DeleteBlankBinContent(WarehouseActivityHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Get Source Doc. Outbound", 'OnGetSingleOutboundDocOnSetFilterGroupFilters', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Get Source Doc. Outbound", 'OnGetSingleOutboundDocOnSetFilterGroupFilters', '', true, false)]
     local procedure OnGetSingleOutboundDocOnSetFilterGroupFilters(var WhseRqst: Record "Warehouse Request")
     begin
         WhseRqst.SetFilter("Source Document", '<>%1', WhseRqst."Source Document"::"Prod. Consumption");

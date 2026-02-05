@@ -24,7 +24,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterRoundAmounts', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterRoundAmounts', '', true, false)]
     local procedure OnAfterRoundAmounts(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; RndPrecLCY: Decimal; RndPrecACY: Decimal; ShareOfTotalCost: Decimal; RndResLCY: Decimal; RndResACY: Decimal)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
@@ -39,35 +39,35 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnGetSingleLevelCostsOnAfterCopyCostsLCY', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnGetSingleLevelCostsOnAfterCopyCostsLCY', '', true, false)]
     local procedure OnGetInsgleLevelCostsOnAfterCopyCostsLCY(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; Item: Record Item)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then
             InventoryAdjmtEntryOrder."Single-Lvl Mat. Non-Invt. Cost" := Item."Single-Lvl Mat. Non-Invt. Cost";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnGetSingleLevelCostsOnAfterCopyCostsACY', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnGetSingleLevelCostsOnAfterCopyCostsACY', '', true, false)]
     local procedure OnGetInsgleLevelCostsOnAfterCopyCostsACY(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; Item: Record Item; CurrExchRate: Decimal)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then
             InventoryAdjmtEntryOrder."Single-Lvl Mat.NonInvCost(ACY)" := InventoryAdjmtEntryOrder."Single-Lvl Mat. Non-Invt. Cost" * CurrExchRate;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnUpdatedFromSKUOnAfterCopyCostFromSKU', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnUpdatedFromSKUOnAfterCopyCostFromSKU', '', true, false)]
     local procedure OnUpdatedFromSKUOnAfterCopyCostFromSKU(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; StockkeepingUnit: Record "Stockkeeping Unit")
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then
             InventoryAdjmtEntryOrder."Single-Lvl Mat. Non-Invt. Cost" := StockkeepingUnit."Single-Lvl Mat. Non-Invt. Cost";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterCalcUnitCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterCalcUnitCost', '', true, false)]
     local procedure OnAfterCalcUnitCost(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then
             InventoryAdjmtEntryOrder."Unit Cost" += InventoryAdjmtEntryOrder."Direct Cost Non-Inventory";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterCalcDiff', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAfterCalcDiff', '', true, false)]
     local procedure OnAfterCalcDiff(var InvtAdjmtEntryOrderRec: Record "Inventory Adjmt. Entry (Order)"; var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; OnlyCostShares: Boolean)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
@@ -80,7 +80,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddDirectCostNonInv', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddDirectCostNonInv', '', true, false)]
     local procedure OnAddDirectCostNonInv(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; CostAmtLCY: Decimal; CostAmtACY: Decimal)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
@@ -89,7 +89,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddDirectCostNonInv', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddDirectCostNonInv', '', true, false)]
     local procedure OnAddSingleLvlNonInvMaterialCost(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; CostAmtLCY: Decimal; CostAmtACY: Decimal)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
@@ -98,7 +98,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnFindProdOrderLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnFindProdOrderLine', '', true, false)]
     local procedure OnFindProdOrderLine(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var Item: Record Item; var StockkeepingUnit: Record "Stockkeeping Unit"; var Found: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -114,7 +114,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
             Found := false;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Close Inventory Period - Test", 'OnStoreOrderInErrorBuffer', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Close Inventory Period - Test", 'OnStoreOrderInErrorBuffer', '', true, false)]
     local procedure OnStoreOrderInErrorBuffer(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; sender: Report "Close Inventory Period - Test")
     var
         ProductionOrder: Record "Production Order";
@@ -135,7 +135,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Inventory Adjmt. - Order", 'OnCalcActualCapacityCostsInternal', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Inventory Adjmt. - Order", 'OnCalcActualCapacityCostsInternal', '', true, false)]
     local procedure OnCalcActualCapacityCostsInternal(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
     begin
         CalcActualCapacityCosts(InvtAdjmtEntryOrder);
@@ -220,7 +220,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", 'OnAfterInitAdjmtJnlLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", 'OnAfterInitAdjmtJnlLine', '', true, false)]
     local procedure OnAfterInitAdjmtJnlLine(var ItemJnlLine: Record "Item Journal Line"; OrigValueEntry: Record "Value Entry"; EntryType: Enum "Cost Entry Type"; VarianceType: Enum "Cost Variance Type"; InvoicedQty: Decimal)
     begin
         if OrigValueEntry."Item Ledger Entry Type" = OrigValueEntry."Item Ledger Entry Type"::Output then

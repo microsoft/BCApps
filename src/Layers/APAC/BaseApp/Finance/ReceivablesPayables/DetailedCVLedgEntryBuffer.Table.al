@@ -397,6 +397,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         }
         field(6200; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Non-Deductible VAT Amount';
             Editable = false;

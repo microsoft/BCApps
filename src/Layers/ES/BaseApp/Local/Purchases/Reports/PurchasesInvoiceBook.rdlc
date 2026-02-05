@@ -3900,7 +3900,7 @@
                                   <Value>=Fields!VATBuffer2_Base_VATBuffer2_Amount.Value+Fields!VATEntry2_NonDeductibleVATBase.Value+Fields!VATEntry2_NonDeductibleVATAmt.Value</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
-                                    <Format>0.00;(0.00)</Format>
+                                    <Format>=Fields!VATBuffer2_BaseFormat.Value</Format>
                                   </Style>
                                 </TextRun>
                               </TextRuns>

@@ -52,6 +52,7 @@ page 7000032 "BG/PO Maturity Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     ToolTip = 'Specifies the amount for the bill group or payment order for the period.';
 

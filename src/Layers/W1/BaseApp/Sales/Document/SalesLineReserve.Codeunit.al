@@ -17,6 +17,9 @@ using Microsoft.Purchases.Document;
 using Microsoft.Sales.History;
 using Microsoft.Warehouse.Document;
 
+/// <summary>
+/// Manages item reservations for sales lines including creation, modification, and verification.
+/// </summary>
 codeunit 99000832 "Sales Line-Reserve"
 {
     Permissions = TableData "Reservation Entry" = rimd,
@@ -48,6 +51,15 @@ codeunit 99000832 "Sales Line-Reserve"
         SummaryTypeTxt: Label '%1, %2', Locked = true;
         SourceDoc3Txt: Label '%1 %2 %3', Locked = true;
 
+    /// <summary>
+    /// Creates a reservation entry for a sales line with the specified tracking and quantity details.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to create the reservation for.</param>
+    /// <param name="Description">Specifies the description for the reservation entry.</param>
+    /// <param name="ExpectedReceiptDate">Specifies the expected receipt date for the reservation.</param>
+    /// <param name="Quantity">Specifies the quantity to reserve.</param>
+    /// <param name="QuantityBase">Specifies the quantity to reserve in base unit of measure.</param>
+    /// <param name="ForReservationEntry">Specifies the reservation entry to link the new reservation to.</param>
     procedure CreateReservation(SalesLine: Record "Sales Line"; Description: Text[100]; ExpectedReceiptDate: Date; Quantity: Decimal; QuantityBase: Decimal; ForReservationEntry: Record "Reservation Entry")
     var
         ShipmentDate: Date;
@@ -119,6 +131,14 @@ codeunit 99000832 "Sales Line-Reserve"
         OnAfterCreateReservation(SalesLine);
     end;
 
+    /// <summary>
+    /// Creates a binding reservation for a sales line without linking to an existing reservation entry.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to create the reservation for.</param>
+    /// <param name="Description">Specifies the description for the reservation entry.</param>
+    /// <param name="ExpectedReceiptDate">Specifies the expected receipt date for the reservation.</param>
+    /// <param name="Quantity">Specifies the quantity to reserve.</param>
+    /// <param name="QuantityBase">Specifies the quantity to reserve in base unit of measure.</param>
     procedure CreateBindingReservation(SalesLine: Record "Sales Line"; Description: Text[100]; ExpectedReceiptDate: Date; Quantity: Decimal; QuantityBase: Decimal)
     var
         DummyReservationEntry: Record "Reservation Entry";
@@ -126,21 +146,39 @@ codeunit 99000832 "Sales Line-Reserve"
         CreateReservation(SalesLine, Description, ExpectedReceiptDate, Quantity, QuantityBase, DummyReservationEntry);
     end;
 
+    /// <summary>
+    /// Sets the tracking specification to use when creating reservation entries.
+    /// </summary>
+    /// <param name="TrackingSpecification">Specifies the tracking specification to use as the source.</param>
     procedure CreateReservationSetFrom(TrackingSpecification: Record "Tracking Specification")
     begin
         FromTrackingSpecification := TrackingSpecification;
     end;
 
+    /// <summary>
+    /// Sets the binding type for reservation entries to be created.
+    /// </summary>
+    /// <param name="Binding">Specifies the reservation binding type.</param>
     procedure SetBinding(Binding: Enum "Reservation Binding")
     begin
         CreateReservEntry.SetBinding(Binding);
     end;
 
+    /// <summary>
+    /// Sets whether cancellation of reservation entries is disallowed.
+    /// </summary>
+    /// <param name="DisallowCancellation">Specifies whether cancellation is disallowed.</param>
     procedure SetDisallowCancellation(DisallowCancellation: Boolean)
     begin
         CreateReservEntry.SetDisallowCancellation(DisallowCancellation);
     end;
 
+    /// <summary>
+    /// Calculates the quantity available for reservation on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to calculate reservation quantity for.</param>
+    /// <param name="QtyToReserve">Returns the quantity available for reservation.</param>
+    /// <param name="QtyToReserveBase">Returns the quantity available for reservation in base unit of measure.</param>
     procedure ReservQuantity(SalesLine: Record "Sales Line"; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
     begin
         case SalesLine."Document Type" of
@@ -163,11 +201,22 @@ codeunit 99000832 "Sales Line-Reserve"
         OnAfterReservQuantity(SalesLine, QtyToReserve, QtyToReserveBase);
     end;
 
+    /// <summary>
+    /// Returns a caption describing the sales line for reservation purposes.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to get the caption for.</param>
+    /// <returns>The caption text for the sales line.</returns>
     procedure Caption(SalesLine: Record "Sales Line") CaptionText: Text
     begin
         CaptionText := SalesLine.GetSourceCaption();
     end;
 
+    /// <summary>
+    /// Finds the last reservation entry for the specified sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to find reservation entries for.</param>
+    /// <param name="ReservationEntry">Returns the found reservation entry record.</param>
+    /// <returns>True if a reservation entry was found, otherwise false.</returns>
     procedure FindReservEntry(SalesLine: Record "Sales Line"; var ReservationEntry: Record "Reservation Entry"): Boolean
     begin
         ReservationEntry.InitSortingAndFilters(false);
@@ -175,6 +224,11 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(ReservationEntry.FindLast());
     end;
 
+    /// <summary>
+    /// Calculates the quantity reserved from inventory for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to calculate reserved quantity for.</param>
+    /// <returns>The quantity reserved from inventory in base unit of measure.</returns>
     procedure GetReservedQtyFromInventory(SalesLine: Record "Sales Line"): Decimal
     var
         ReservationEntry: Record "Reservation Entry";
@@ -189,6 +243,11 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(0);
     end;
 
+    /// <summary>
+    /// Calculates the total quantity reserved from inventory for all lines on a sales header.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to calculate reserved quantity for.</param>
+    /// <returns>The total quantity reserved from inventory in base unit of measure.</returns>
     procedure GetReservedQtyFromInventory(SalesHeader: Record "Sales Header"): Decimal
     var
         ReservationEntry: Record "Reservation Entry";
@@ -203,11 +262,21 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(0);
     end;
 
+    /// <summary>
+    /// Checks whether a reservation entry exists for the specified sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to check.</param>
+    /// <returns>True if a reservation entry exists, otherwise false.</returns>
     procedure ReservEntryExist(SalesLine: Record "Sales Line"): Boolean
     begin
         exit(SalesLine.ReservEntryExist());
     end;
 
+    /// <summary>
+    /// Verifies and handles changes to a sales line that affect reservations.
+    /// </summary>
+    /// <param name="NewSalesLine">Specifies the new version of the sales line.</param>
+    /// <param name="OldSalesLine">Specifies the original version of the sales line.</param>
     procedure VerifyChange(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line")
     var
         SalesLine: Record "Sales Line";
@@ -250,6 +319,11 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
+    /// <summary>
+    /// Verifies and handles quantity changes on a sales line that affect reservations.
+    /// </summary>
+    /// <param name="NewSalesLine">Specifies the new version of the sales line.</param>
+    /// <param name="OldSalesLine">Specifies the original version of the sales line.</param>
     procedure VerifyQuantity(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line")
     var
         SalesLine: Record "Sales Line";
@@ -279,6 +353,10 @@ codeunit 99000832 "Sales Line-Reserve"
         AssignForPlanning(NewSalesLine);
     end;
 
+    /// <summary>
+    /// Sets the quantity to ship on a sales line to the outstanding quantity. Called as an action from error handling.
+    /// </summary>
+    /// <param name="ErrorInfo">Specifies the error information containing the sales line record ID.</param>
     procedure SetSaleShipQty(ErrorInfo: ErrorInfo)
     var
         CurrSalesLine: Record "Sales Line";
@@ -288,6 +366,10 @@ codeunit 99000832 "Sales Line-Reserve"
         CurrSalesLine.Modify(true);
     end;
 
+    /// <summary>
+    /// Sets the quantity to invoice on a sales line to the maximum quantity. Called as an action from error handling.
+    /// </summary>
+    /// <param name="ErrorInfo">Specifies the error information containing the sales line record ID.</param>
     procedure SetSalesQtyInvoice(ErrorInfo: ErrorInfo)
     var
         CurrSalesLine: Record "Sales Line";
@@ -320,6 +402,15 @@ codeunit 99000832 "Sales Line-Reserve"
             ReservationManagement.DeleteReservEntries(false, NewSalesLine."Outstanding Qty. (Base)");
     end;
 
+    /// <summary>
+    /// Transfers reservation entries from a sales line to an item journal line during posting.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to transfer reservations from.</param>
+    /// <param name="ItemJournalLine">Specifies the item journal line to transfer reservations to.</param>
+    /// <param name="TransferQty">Specifies the quantity to transfer.</param>
+    /// <param name="CheckApplFromItemEntry">Specifies whether to check the applies-from item entry. Returns whether further checks are needed.</param>
+    /// <param name="OnlyILEReservations">Specifies whether to transfer only item ledger entry reservations.</param>
+    /// <returns>The remaining quantity that was not transferred.</returns>
     procedure TransferSalesLineToItemJnlLine(var SalesLine: Record "Sales Line"; var ItemJournalLine: Record "Item Journal Line"; TransferQty: Decimal; var CheckApplFromItemEntry: Boolean; OnlyILEReservations: Boolean): Decimal
     var
         OldReservationEntry: Record "Reservation Entry";
@@ -432,6 +523,12 @@ codeunit 99000832 "Sales Line-Reserve"
                     ItemJournalLine."Qty. per Unit of Measure", ReservationEntry, TransferQty);
     end;
 
+    /// <summary>
+    /// Transfers reservation entries from one sales line to another. Used when converting quotes or blanket orders to orders.
+    /// </summary>
+    /// <param name="OldSalesLine">Specifies the source sales line.</param>
+    /// <param name="NewSalesLine">Specifies the destination sales line.</param>
+    /// <param name="TransferQty">Specifies the quantity to transfer.</param>
     procedure TransferSaleLineToSalesLine(var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line"; TransferQty: Decimal)
     var
         OldReservationEntry: Record "Reservation Entry";
@@ -477,6 +574,11 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
+    /// <summary>
+    /// Prompts the user to confirm deletion of item tracking when deleting a sales line with reservations.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to check.</param>
+    /// <returns>True if deletion is confirmed or no reservations exist, otherwise false.</returns>
     procedure DeleteLineConfirm(var SalesLine: Record "Sales Line"): Boolean
     begin
         if not SalesLine.ReservEntryExist() then
@@ -492,6 +594,10 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(DeleteItemTracking);
     end;
 
+    /// <summary>
+    /// Deletes all reservation entries associated with a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to delete reservations for.</param>
     procedure DeleteLine(var SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -509,6 +615,10 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
+    /// <summary>
+    /// Creates or updates a planning assignment for a sales order line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to create a planning assignment for.</param>
     procedure AssignForPlanning(var SalesLine: Record "Sales Line")
     var
         PlanningAssignment: Record "Planning Assignment";
@@ -527,6 +637,10 @@ codeunit 99000832 "Sales Line-Reserve"
             PlanningAssignment.ChkAssignOne(SalesLine."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Shipment Date");
     end;
 
+    /// <summary>
+    /// Opens the Item Tracking Lines page for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to manage item tracking for.</param>
     procedure CallItemTracking(var SalesLine: Record "Sales Line")
     var
         TrackingSpecification: Record "Tracking Specification";
@@ -558,11 +672,22 @@ codeunit 99000832 "Sales Line-Reserve"
         ItemTrackingLines.RunModal();
     end;
 
+    /// <summary>
+    /// Opens the Item Tracking Lines page for a sales line with a second source quantity array.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to manage item tracking for.</param>
+    /// <param name="SecondSourceQuantityArray">Specifies the second source quantity array for tracking.</param>
     procedure CallItemTracking(var SalesLine: Record "Sales Line"; SecondSourceQuantityArray: array[3] of Decimal)
     begin
         CallItemTrackingSecondSource(SalesLine, SecondSourceQuantityArray, false);
     end;
 
+    /// <summary>
+    /// Opens the Item Tracking Lines page for a sales line with a second source and assembly-to-order option.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to manage item tracking for.</param>
+    /// <param name="SecondSourceQuantityArray">Specifies the second source quantity array for tracking.</param>
+    /// <param name="AsmToOrder">Specifies whether this is an assemble-to-order scenario.</param>
     procedure CallItemTrackingSecondSource(var SalesLine: Record "Sales Line"; SecondSourceQuantityArray: array[3] of Decimal; AsmToOrder: Boolean)
     var
         TrackingSpecification: Record "Tracking Specification";
@@ -584,6 +709,12 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the invoice specification tracking data for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to retrieve specification for.</param>
+    /// <param name="TempInvoicingTrackingSpecification">Returns the temporary tracking specification records.</param>
+    /// <returns>True if specifications were found.</returns>
     procedure RetrieveInvoiceSpecification(var SalesLine: Record "Sales Line"; var TempInvoicingTrackingSpecification: Record "Tracking Specification" temporary) OK: Boolean
     var
         SourceTrackingSpecification: Record "Tracking Specification";
@@ -609,6 +740,12 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves invoice specification for combined shipment or return scenarios.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to retrieve specification for.</param>
+    /// <param name="TempInvoicingTrackingSpecification">Returns the temporary tracking specification records.</param>
+    /// <returns>True if specifications were found.</returns>
     procedure RetrieveInvoiceSpecification2(var SalesLine: Record "Sales Line"; var TempInvoicingTrackingSpecification: Record "Tracking Specification" temporary) OK: Boolean
     var
         TrackingSpecification: Record "Tracking Specification";
@@ -643,6 +780,10 @@ codeunit 99000832 "Sales Line-Reserve"
         OK := TempInvoicingTrackingSpecification.FindFirst();
     end;
 
+    /// <summary>
+    /// Deletes invoice specifications for all lines in a sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header whose specifications to delete.</param>
     procedure DeleteInvoiceSpecFromHeader(var SalesHeader: Record "Sales Header")
     var
         IsHandled: Boolean;
@@ -669,6 +810,10 @@ codeunit 99000832 "Sales Line-Reserve"
           Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.");
     end;
 
+    /// <summary>
+    /// Updates item tracking quantities after posting a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
     procedure UpdateItemTrackingAfterPosting(SalesHeader: Record "Sales Header")
     var
         ReservationEntry: Record "Reservation Entry";
@@ -680,21 +825,37 @@ codeunit 99000832 "Sales Line-Reserve"
         CreateReservEntry.UpdateItemTrackingAfterPosting(ReservationEntry);
     end;
 
+    /// <summary>
+    /// Sets whether to apply specific item tracking when reserving.
+    /// </summary>
+    /// <param name="ApplySpecific">Whether to apply specific item tracking.</param>
     procedure SetApplySpecificItemTracking(ApplySpecific: Boolean)
     begin
         ApplySpecificItemTracking := ApplySpecific;
     end;
 
+    /// <summary>
+    /// Sets whether to overrule existing item tracking during reservation.
+    /// </summary>
+    /// <param name="Overrule">Whether to overrule item tracking.</param>
     procedure SetOverruleItemTracking(Overrule: Boolean)
     begin
         OverruleItemTracking := Overrule;
     end;
 
+    /// <summary>
+    /// Sets the blocked state for reservation operations.
+    /// </summary>
+    /// <param name="SetBlocked">Whether to block reservation operations.</param>
     procedure Block(SetBlocked: Boolean)
     begin
         Blocked := SetBlocked;
     end;
 
+    /// <summary>
+    /// Sets whether item tracking has already been overruled.
+    /// </summary>
+    /// <param name="HasBeenOverruled">Whether item tracking has been overruled.</param>
     procedure SetItemTrkgAlreadyOverruled(HasBeenOverruled: Boolean)
     begin
         ItemTrkgAlreadyOverruled := HasBeenOverruled;
@@ -716,6 +877,15 @@ codeunit 99000832 "Sales Line-Reserve"
             (NewReservationEntry."Source Type" <> Database::"Item Ledger Entry") and (WarehouseShipmentLine."Qty. Picked (Base)" >= TransferQty));
     end;
 
+    /// <summary>
+    /// Binds a sales line to item tracking with order-to-order binding.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to bind.</param>
+    /// <param name="TrackingSpecification">The tracking specification to bind to.</param>
+    /// <param name="Description">The reservation description.</param>
+    /// <param name="ExpectedDate">The expected date for the reservation.</param>
+    /// <param name="ReservQty">The quantity to reserve.</param>
+    /// <param name="ReservQtyBase">The quantity to reserve in base unit of measure.</param>
     procedure BindToTracking(SalesLine: Record "Sales Line"; TrackingSpecification: Record "Tracking Specification"; Description: Text[100]; ExpectedDate: Date; ReservQty: Decimal; ReservQtyBase: Decimal)
     begin
         SetBinding("Reservation Binding"::"Order-to-Order");
@@ -846,17 +1016,30 @@ codeunit 99000832 "Sales Line-Reserve"
             HasError := true;
     end;
 
+    /// <summary>
+    /// Deletes a sales line along with its item tracking entries.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to delete.</param>
     procedure DeleteLineWithItemTracking(var SalesLine: Record "Sales Line")
     begin
         DeleteItemTracking := true;
         DeleteLine(SalesLine);
     end;
 
+    /// <summary>
+    /// Sets whether to delete item tracking when deleting lines.
+    /// </summary>
+    /// <param name="NewDeleteItemTracking">Whether to delete item tracking.</param>
     procedure SetDeleteItemTracking(NewDeleteItemTracking: Boolean)
     begin
         DeleteItemTracking := NewDeleteItemTracking
     end;
 
+    /// <summary>
+    /// Copies reservation entries from a sales line to a temporary table.
+    /// </summary>
+    /// <param name="TempReservationEntry">The temporary table to copy entries to.</param>
+    /// <param name="OldSalesLine">The sales line whose reservations to copy.</param>
     procedure CopyReservEntryToTemp(var TempReservationEntry: Record "Reservation Entry" temporary; OldSalesLine: Record "Sales Line")
     var
         ReservationEntry: Record "Reservation Entry";
@@ -872,6 +1055,12 @@ codeunit 99000832 "Sales Line-Reserve"
         ReservationEntry.DeleteAll();
     end;
 
+    /// <summary>
+    /// Copies reservation entries from a temporary table back to the database with a new source reference.
+    /// </summary>
+    /// <param name="TempReservationEntry">The temporary table containing the reservations.</param>
+    /// <param name="OldSalesLine">The original sales line reference.</param>
+    /// <param name="NewSourceRefNo">The new source reference number (line number).</param>
     procedure CopyReservEntryFromTemp(var TempReservationEntry: Record "Reservation Entry" temporary; OldSalesLine: Record "Sales Line"; NewSourceRefNo: Integer)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -920,6 +1109,10 @@ codeunit 99000832 "Sales Line-Reserve"
         OnAfterTestSourceTableFields(SalesLine);
     end;
 
+    /// <summary>
+    /// Raised after testing source table fields for the sales line during reservation validation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line that was validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestSourceTableFields(SalesLine: Record "Sales Line")
     begin
@@ -1234,182 +1427,412 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(not SalesShipmentLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Raised after calculating the quantity to reserve for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the quantity was calculated.</param>
+    /// <param name="QtyToReserve">The quantity to reserve in the sales unit of measure.</param>
+    /// <param name="QtyToReserveBase">The quantity to reserve in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReservQuantity(SalesLine: Record "Sales Line"; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning a sales line for planning purposes.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to assign for planning.</param>
+    /// <param name="IsHandled">Set to true to skip the default assignment logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAssignForPlanning(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised before deleting sales reservation entries when a sales line is modified.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="ReservMgt">The reservation management codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteSalesReservEntries(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; var ReservMgt: Codeunit "Reservation Management"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the invoice specification for item tracking on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which to retrieve the specification.</param>
+    /// <param name="OK">Set to the result of the retrieval operation.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
+    /// <param name="TempInvoicingSpecification">The temporary tracking specification record for invoicing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRetrieveInvoiceSpecification(var SalesLine: Record "Sales Line"; var OK: Boolean; var IsHandled: Boolean; var TempInvoicingSpecification: Record "Tracking Specification" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the invoice specification (variant 2) for item tracking on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which to retrieve the specification.</param>
+    /// <param name="OK">Set to the result of the retrieval operation.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRetrieveInvoiceSpecification2(var SalesLine: Record "Sales Line"; var OK: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring reservation entries from one sales line to another.
+    /// </summary>
+    /// <param name="OldSalesLine">The source sales line from which to transfer.</param>
+    /// <param name="NewSalesLine">The destination sales line to which to transfer.</param>
+    /// <param name="TransferQty">The quantity to transfer.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferSaleLineToSalesLine(var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line"; var TransferQty: Decimal; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying changes to a sales line that may affect reservations.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default verification logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyChange(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the variant code during reservation creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation is being created.</param>
+    /// <param name="FromTrackingSpecification">The tracking specification containing variant information.</param>
+    /// <param name="IsHandled">Set to true to skip the default variant code test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateReservationOnBeforeTestVariantCode(SalesLine: Record "Sales Line"; FromTrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the location code during reservation creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation is being created.</param>
+    /// <param name="FromTrackingSpecification">The tracking specification containing location information.</param>
+    /// <param name="IsHandled">Set to true to skip the default location code test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateReservationOnBeforeTestLocationCode(SalesLine: Record "Sales Line"; FromTrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the bin code when verifying sales line modifications.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default bin code test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineModificationOnBeforeTestBinCode(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the job number when verifying sales line modifications.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being tested.</param>
+    /// <param name="IsHandled">Set to true to skip the default job number test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineModificationOnBeforeTestJobNo(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the variant code when verifying sales line modifications.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default variant code test.</param>
+    /// <param name="HasError">Set to true if an error condition was detected.</param>
+    /// <param name="ThrowError">Indicates whether errors should be thrown.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineModificationOnBeforeTestVariantCode(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; var IsHandled: Boolean; var HasError: Boolean; ThrowError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the location code when verifying sales line modifications.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default location code test.</param>
+    /// <param name="HasError">Set to true if an error condition was detected.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineModificationOnBeforeTestLocationCode(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; var IsHandled: Boolean; var HasError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the item journal line during transfer from sales line.
+    /// </summary>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default test.</param>
+    /// <param name="ItemJnlLine">The destination item journal line.</param>
+    /// <param name="TransferQty">The quantity being transferred.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSalesLineToItemJnlLineOnBeforeItemJournalLineTest(SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ItemJnlLine: Record "Item Journal Line"; var TransferQty: Decimal);
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record set during transfer of sales line to item journal line.
+    /// </summary>
+    /// <param name="OldReservationEntry">The reservation entry being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSalesLineToItemJnlLineOnBeforeInitRecordSet(var OldReservationEntry: Record "Reservation Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the old reservation entry during transfer from sales line to item journal line.
+    /// </summary>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default test.</param>
+    /// <param name="ItemJnlLine">The destination item journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSalesLineToItemJnlLineOnBeforeOldReservEntryTest(SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ItemJnlLine: Record "Item Journal Line");
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring the reservation entry from sales line to item journal line.
+    /// </summary>
+    /// <param name="ReservationEntry">The reservation entry being transferred.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="ItemJournalLine">The destination item journal line.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSalesLineToItemJnlLineOnBeforeTransferReservationEntry(var ReservationEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line"; ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the transfer quantity when transferring between sales lines.
+    /// </summary>
+    /// <param name="NewSalesLine">The destination sales line.</param>
+    /// <param name="OldReservationEntry">The source reservation entry.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSaleLineToSalesLineOnBeforeCalcTransferQty(var NewSalesLine: Record "Sales Line"; var OldReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if an error occurred when verifying changes to a sales line.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
+    /// <param name="HasError">Set to true if an error condition was detected.</param>
+    /// <param name="ShowError">Set to true if the error should be displayed to the user.</param>
     [IntegrationEvent(false, false)]
     local procedure OnVerifyChangeOnBeforeHasError(NewSalesLine: Record "Sales Line"; OldSalesLine: Record "Sales Line"; var HasError: Boolean; var ShowError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the Appl.-from Item Entry field during transfer from sales line to item journal line.
+    /// </summary>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="OldReservEntry">The source reservation entry.</param>
+    /// <param name="IsHandled">Set to true to skip the default test.</param>
+    /// <param name="ItemJnlLine">The destination item journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferSalesLineToItemJnlLineOnBeforeApplFromItemEntryTestField(SalesLine: Record "Sales Line"; OldReservEntry: Record "Reservation Entry"; var IsHandled: Boolean; var ItemJnlLine: Record "Item Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calling the item tracking page for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which to open item tracking.</param>
+    /// <param name="IsHandled">Set to true to skip the default item tracking call.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCallItemTracking(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a reservation for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which to create the reservation.</param>
+    /// <param name="IsHandled">Set to true to skip the default reservation creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateReservation(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting invoice specifications from a sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header from which to delete specifications.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteInvoiceSpecFromHeader(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting invoice specifications from a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line from which to delete specifications.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteInvoiceSpecFromLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before verifying quantity changes on a sales line that may affect reservations.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default quantity verification.</param>
+    /// <param name="OldSalesLine">The original sales line before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyQuantity(var NewSalesLine: Record "Sales Line"; var IsHandled: Boolean; var OldSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring a sales line to an item journal line.
+    /// </summary>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer logic.</param>
+    /// <param name="ItemJnlLine">The destination item journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferSalesLineToItemJnlLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ItemJnlLine: Record "Item Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the Item Tracking Lines page modally for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which item tracking is being opened.</param>
+    /// <param name="ItemTrackingLines">The Item Tracking Lines page instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCallItemTrackingOnBeforeItemTrackingLinesRunModal(var SalesLine: Record "Sales Line"; var ItemTrackingLines: Page "Item Tracking Lines")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the Item Tracking Lines page for a secondary source on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which item tracking is being opened.</param>
+    /// <param name="ItemTrackingLines">The Item Tracking Lines page instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCallItemTrackingSecondSourceOnBeforeItemTrackingLinesRun(var SalesLine: Record "Sales Line"; var ItemTrackingLines: Page "Item Tracking Lines")
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening item tracking lines for a secondary source on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which item tracking is being opened.</param>
+    /// <param name="TrackingSpecification">The tracking specification for the item.</param>
+    /// <param name="SecondSourceQuantityArray">Array containing secondary source quantities.</param>
+    /// <param name="IsHandled">Set to true to skip the default item tracking opening.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCallItemTrackingSecondSourceOnBeforeOpenItemTrackingLines(var SalesLine: Record "Sales Line"; TrackingSpecification: Record "Tracking Specification"; SecondSourceQuantityArray: array[3] of Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a tracking specification when retrieving invoice specifications.
+    /// </summary>
+    /// <param name="TempInvoicingSpecification">The temporary invoicing specification to insert.</param>
+    /// <param name="ReservEntry">The source reservation entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRetrieveInvoiceSpecificationOnBeforeInsert(var TempInvoicingSpecification: Record "Tracking Specification" temporary; ReservEntry: Record "Reservation Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the reserved quantity during reservation creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation is being created.</param>
+    /// <param name="IsHandled">Set to true to skip the default reserved quantity check.</param>
+    /// <param name="QuantityBase">The base quantity to check against.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateReservationOnBeforeCheckReservedQty(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; QuantityBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a reservation entry during reservation creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation is being created.</param>
+    /// <param name="Quantity">The quantity to reserve.</param>
+    /// <param name="QuantityBase">The base quantity to reserve.</param>
+    /// <param name="ForReservEntry">The reservation entry template.</param>
+    /// <param name="IsHandled">Set to true to skip the default reservation entry creation.</param>
+    /// <param name="FromTrackingSpecification">The source tracking specification.</param>
+    /// <param name="ExpectedReceiptDate">The expected receipt date for the reservation.</param>
+    /// <param name="Description">The description for the reservation entry.</param>
+    /// <param name="ShipmentDate">The shipment date for the reservation.</param>
+    /// <param name="DoCreateReservationEntry">Set to false to prevent the reservation entry from being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateReservationOnBeforeCreateReservEntry(var SalesLine: Record "Sales Line"; var Quantity: Decimal; var QuantityBase: Decimal; var ForReservEntry: Record "Reservation Entry"; var IsHandled: Boolean; var FromTrackingSpecification: Record "Tracking Specification"; ExpectedReceiptDate: Date; Description: Text[100]; ShipmentDate: Date; var DoCreateReservationEntry: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating a reservation for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation was created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateReservation(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting reservation entries for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being deleted.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before automatically reserving a sales line.
+    /// </summary>
+    /// <param name="ReservSummEntryNo">The reservation summary entry number.</param>
+    /// <param name="RemainingQtyToReserve">The remaining quantity to reserve.</param>
+    /// <param name="RemainingQtyToReserveBase">The remaining base quantity to reserve.</param>
+    /// <param name="Description">The description for the reservation.</param>
+    /// <param name="AvailabilityDate">The availability date for the reservation.</param>
+    /// <param name="IsReserved">Set to true if the reservation was handled.</param>
+    /// <param name="Search">The search direction for finding entries.</param>
+    /// <param name="NextStep">The next step value for iterating through entries.</param>
+    /// <param name="CalcReservEntry">The reservation entry used for calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserveSalesLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a reservation from the reservation management event handler.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the reservation is being created.</param>
+    /// <param name="TrackingSpecification">The tracking specification for the reservation.</param>
+    /// <param name="Description">The description for the reservation.</param>
+    /// <param name="ExpectedDate">The expected date for the reservation.</param>
+    /// <param name="Quantity">The quantity to reserve.</param>
+    /// <param name="QuantityBase">The base quantity to reserve.</param>
+    /// <param name="ReservationEntry">The reservation entry template.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateReservationOnBeforeCreateReservation(var SalesLine: Record "Sales Line"; var TrackingSpecification: Record "Tracking Specification"; var Description: Text[100]; var ExpectedDate: Date; var Quantity: Decimal; var QuantityBase: Decimal; var ReservationEntry: Record "Reservation Entry")
     begin
@@ -1515,6 +1938,11 @@ codeunit 99000832 "Sales Line-Reserve"
                 Enum::"Sales Document Type".FromInteger(ReservationEntry."Source Subtype"), ReservationEntry."Source ID");
     end;
 
+    /// <summary>
+    /// Initializes a tracking specification from a sales line for item tracking purposes.
+    /// </summary>
+    /// <param name="TransactionSpecification">Returns the initialized tracking specification.</param>
+    /// <param name="SalesLine">The sales line to initialize from.</param>
     procedure InitFromSalesLine(var TransactionSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line")
     begin
         TransactionSpecification.Init();
@@ -1536,6 +1964,11 @@ codeunit 99000832 "Sales Line-Reserve"
         OnAfterInitFromSalesLine(TransactionSpecification, SalesLine);
     end;
 
+    /// <summary>
+    /// Raised after initializing a tracking specification from a sales line.
+    /// </summary>
+    /// <param name="TrackingSpecification">The tracking specification that was initialized.</param>
+    /// <param name="SalesLine">The source sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromSalesLine(var TrackingSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line")
     begin
@@ -1662,6 +2095,12 @@ codeunit 99000832 "Sales Line-Reserve"
             end;
     end;
 
+    /// <summary>
+    /// Raised before checking the source type and subtype for error conditions in reservation entries.
+    /// </summary>
+    /// <param name="ReservationEntry">The reservation entry being checked.</param>
+    /// <param name="IsError">Set to true if an error condition was detected.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSourceTypeSubtypeOnBeforeIsError(var ReservationEntry: Record "Reservation Entry"; var IsError: Boolean; var IsHandled: Boolean)
     begin

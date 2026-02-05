@@ -10,6 +10,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Displays customer sales data lines including balance due, sales, and profit amounts by period.
+/// </summary>
 page 351 "Customer Sales Lines"
 {
     Caption = 'Lines';
@@ -129,6 +132,12 @@ page 351 "Customer Sales Lines"
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
 
+    /// <summary>
+    /// Sets the customer filter and display options for the sales lines.
+    /// </summary>
+    /// <param name="NewCust">The customer record to display sales data for.</param>
+    /// <param name="NewPeriodType">The period type for grouping sales data.</param>
+    /// <param name="NewAmountType">The amount type to display (net change or balance).</param>
     procedure SetLines(var NewCust: Record Customer; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
     begin
         Cust.Copy(NewCust);
@@ -186,11 +195,22 @@ page 351 "Customer Sales Lines"
             Cust.SetRange("Date Filter", 0D, Rec."Period End");
     end;
 
+    /// <summary>
+    /// Raised after calculating the sales line amounts for a customer.
+    /// </summary>
+    /// <param name="Customer">The customer record with calculated sales data.</param>
+    /// <param name="CustomerSalesBuffer">The buffer record containing the calculated amounts.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcLine(var Customer: Record Customer; var CustomerSalesBuffer: Record "Customer Sales Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the customer and display options for the sales lines.
+    /// </summary>
+    /// <param name="NewCust">The customer record being displayed.</param>
+    /// <param name="NewPeriodType">The period type for grouping sales data.</param>
+    /// <param name="NewAmountType">The amount type to display.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSet(var NewCust: Record Customer; NewPeriodType: Integer; NewAmountType: Enum "Analysis Amount Type")
     begin

@@ -177,9 +177,11 @@ codeunit 5056 "CustCont-Update"
                 OnInsertNewContactPersonOnBeforeValidateType(PersonContact, Cust, CompanyContact);
                 PersonContact.Validate(PersonContact.Type, PersonContact.Type::Person);
                 PersonContact.Insert(true);
-                PersonContact."Company No." := CompanyContact."No.";
+                if CompanyContact.Type = CompanyContact.Type::Company then
+                    PersonContact."Company No." := CompanyContact."No.";
                 PersonContact.Validate(PersonContact.Name, Cust.Contact);
-                PersonContact.InheritCompanyToPersonData(CompanyContact);
+                if CompanyContact.Type = CompanyContact.Type::Company then
+                    PersonContact.InheritCompanyToPersonData(CompanyContact);
                 PersonContact.UpdateBusinessRelation();
                 OnInsertNewContactPersonOnBeforeContactModify(PersonContact, Cust);
                 PersonContact.Modify(true);

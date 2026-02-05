@@ -215,6 +215,7 @@ table 181 "Posted Gen. Journal Line"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         /// <summary>
@@ -223,6 +224,7 @@ table 181 "Posted Gen. Journal Line"
         field(17; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Balance (LCY)';
             Editable = false;
         }
@@ -809,6 +811,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Currency = R;
             AutoFormatType = 1;
+            AutoFormatExpression = "Source Currency Code";
             Caption = 'Source Currency Amount';
             Editable = false;
         }
@@ -819,6 +822,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Currency = R;
             AutoFormatType = 1;
+            AutoFormatExpression = "Source Currency Code";
             Caption = 'Source Curr. VAT Base Amount';
             Editable = false;
         }
@@ -829,6 +833,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Currency = R;
             AutoFormatType = 1;
+            AutoFormatExpression = "Source Currency Code";
             Caption = 'Source Curr. VAT Amount';
             Editable = false;
         }
@@ -850,6 +855,7 @@ table 181 "Posted Gen. Journal Line"
         field(104; "VAT Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount (LCY)';
             Editable = false;
         }
@@ -859,6 +865,7 @@ table 181 "Posted Gen. Journal Line"
         field(105; "VAT Base Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base Amount (LCY)';
             Editable = false;
         }
@@ -868,6 +875,7 @@ table 181 "Posted Gen. Journal Line"
         field(106; "Bal. VAT Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Bal. VAT Amount (LCY)';
             Editable = false;
         }
@@ -877,6 +885,7 @@ table 181 "Posted Gen. Journal Line"
         field(107; "Bal. VAT Base Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Bal. VAT Base Amount (LCY)';
             Editable = false;
         }
@@ -1046,6 +1055,7 @@ table 181 "Posted Gen. Journal Line"
         field(127; "Orig. Pmt. Disc. Possible(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Orig. Pmt. Disc. Possible (LCY)';
             Editable = false;
         }
@@ -1194,6 +1204,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Project Unit Price (LCY)';
             Editable = false;
         }
@@ -1204,6 +1215,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Project Total Price (LCY)';
             Editable = false;
         }
@@ -1224,6 +1236,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Project Unit Cost (LCY)';
             Editable = false;
         }
@@ -1242,6 +1255,7 @@ table 181 "Posted Gen. Journal Line"
         field(1007; "Job Line Disc. Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Project Line Disc. Amount (LCY)';
             Editable = false;
         }
@@ -1331,6 +1345,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Project Total Cost (LCY)';
             Editable = false;
         }
@@ -1341,6 +1356,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Project Line Amount (LCY)';
             Editable = false;
         }
@@ -1486,6 +1502,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Salvage Value';
         }
         /// <summary>
@@ -1638,6 +1655,7 @@ table 181 "Posted Gen. Journal Line"
         field(6203; "Non-Deductible VAT Base LCY"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Base LCY';
         }
         /// <summary>
@@ -1646,6 +1664,7 @@ table 181 "Posted Gen. Journal Line"
         field(6204; "Non-Deductible VAT Amount LCY"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Amount LCY';
         }
         /// <summary>
@@ -1671,6 +1690,8 @@ table 181 "Posted Gen. Journal Line"
         /// </summary>
         field(6208; "Non-Deductible VAT Diff."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Non-Deductible VAT Difference';
         }
         /// <summary>
@@ -1753,6 +1774,7 @@ table 181 "Posted Gen. Journal Line"
         }
         field(12102; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1760,6 +1782,7 @@ table 181 "Posted Gen. Journal Line"
         }
         field(12103; "Bal. Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Bal. Deductible %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

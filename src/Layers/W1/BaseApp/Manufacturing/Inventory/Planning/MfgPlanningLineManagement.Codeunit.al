@@ -139,7 +139,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningRoutingLine.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateOnTransferBOM', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateOnTransferBOM', '', true, false)]
     local procedure OnCalculateOnTransferBOM(
         var RequisitionLine: Record "Requisition Line"; Item: Record Item; var PlanningComponent: Record "Planning Component";
         var TempPlanningErrorLog: Record "Planning Error Log" temporary; var TempPlanningComponent: Record "Planning Component" temporary;
@@ -329,6 +329,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningComponent."Variant Code" := ProdBOMLine."Variant Code";
         PlanningComponent."Location Code" := SKU."Components at Location";
         PlanningComponent.Description := ProdBOMLine.Description;
+        PlanningComponent."Description 2" := ProdBOMLine."Description 2";
         PlanningComponent."Planning Line Origin" := ReqLine."Planning Line Origin";
         PlanningComponent.Validate("Unit of Measure Code", ProdBOMLine."Unit of Measure Code");
         PlanningComponent."Quantity per" := ProdBOMLine."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM;
@@ -426,7 +427,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         exit(IsFound);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateRouting', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateRouting', '', true, false)]
     local procedure OnCalculateRouting(var RequisitionLine: Record "Requisition Line"; var TempPlanningErrorLog: Record "Planning Error Log" temporary; PlanningResiliency: Boolean)
     var
         PlanningRtngLine: Record "Planning Routing Line";
@@ -446,27 +447,27 @@ codeunit 99000819 "Mfg. Planning Line Management"
         TransferRouting(RequisitionLine, TempPlanningErrorLog, PlanningResiliency);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnTransferASMBOMOnAfterSetAsmBOMComp', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnTransferASMBOMOnAfterSetAsmBOMComp', '', true, false)]
     local procedure OnTransferASMBOMOnAfterSetAsmBOMComp(var PlanningComponent: Record "Planning Component")
     begin
         PlanningComponent.Validate("Routing Link Code");
         PlanningComponent.Validate("Scrap %", 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateComponentsOnbeforePlanningComponentModify', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCalculateComponentsOnbeforePlanningComponentModify', '', true, false)]
     local procedure OnCalculateComponentsOnbeforePlanningComponentModify(var PlanningComponent: Record "Planning Component")
     begin
         PlanningComponent.Validate("Routing Link Code");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCheckMultiLevelStructureOnBeforeReqLineModify', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnCheckMultiLevelStructureOnBeforeReqLineModify', '', true, false)]
     local procedure OnCheckMultiLevelStructureOnBeforeReqLineModify(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.Validate("Production BOM No.");
         RequisitionLine.Validate("Routing No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnTransferAsmBOMOnBeforePlanningComponentModify', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", 'OnTransferAsmBOMOnBeforePlanningComponentModify', '', true, false)]
     local procedure OnTransferAsmBOMOnBeforePlanningComponentModify(var PlanningComponent: Record "Planning Component")
     begin
         PlanningComponent.Validate("Routing Link Code", '');

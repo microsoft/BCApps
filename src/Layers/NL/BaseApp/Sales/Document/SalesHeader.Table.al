@@ -78,6 +78,9 @@ using System.Security.User;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Stores document-level information for sales quotes, orders, invoices, credit memos, blanket orders, and return orders.
+/// </summary>
 table 36 "Sales Header"
 {
     Caption = 'Sales Header';
@@ -89,10 +92,16 @@ table 36 "Sales Header"
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of sales document such as quote, order, invoice, or credit memo.
+        /// </summary>
         field(1; "Document Type"; Enum "Sales Document Type")
         {
             Caption = 'Document Type';
         }
+        /// <summary>
+        /// Specifies the customer number to whom the goods or services are sold.
+        /// </summary>
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
@@ -232,6 +241,9 @@ table 36 "Sales Header"
                     SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
             end;
         }
+        /// <summary>
+        /// Specifies the unique document number that identifies the sales document.
+        /// </summary>
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
@@ -248,6 +260,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the customer number to whom the invoice is sent for payment.
+        /// </summary>
         field(4; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
@@ -334,6 +349,9 @@ table 36 "Sales Header"
                     SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer to whom the invoice is sent.
+        /// </summary>
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
@@ -351,11 +369,17 @@ table 36 "Sales Header"
                         Validate("Bill-to Customer No.", Customer.GetCustNo("Bill-to Name"));
             end;
         }
+        /// <summary>
+        /// Specifies an additional part of the bill-to customer name.
+        /// </summary>
         field(6; "Bill-to Name 2"; Text[50])
         {
             Caption = 'Bill-to Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer that you send or sent the invoice or credit memo to.';
         }
+        /// <summary>
+        /// Specifies the street address of the customer to whom the invoice is sent.
+        /// </summary>
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
@@ -365,6 +389,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies additional street address information for the bill-to customer.
+        /// </summary>
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
@@ -374,6 +401,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the city of the customer to whom the invoice is sent.
+        /// </summary>
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
@@ -403,6 +433,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the bill-to customer's address.
+        /// </summary>
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
@@ -424,11 +457,17 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the customer's own reference number for tracking purposes.
+        /// </summary>
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
             ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
         }
+        /// <summary>
+        /// Specifies a code for an alternate shipping address different from the customer's default address.
+        /// </summary>
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
@@ -499,23 +538,38 @@ table 36 "Sales Header"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer at the shipping address.
+        /// </summary>
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
             ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
+        /// <summary>
+        /// Specifies an additional part of the ship-to customer name.
+        /// </summary>
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
         }
+        /// <summary>
+        /// Specifies the street address where items are shipped to.
+        /// </summary>
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
         }
+        /// <summary>
+        /// Specifies additional street address information for the shipping address.
+        /// </summary>
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
         }
+        /// <summary>
+        /// Specifies the city of the shipping address.
+        /// </summary>
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
@@ -544,11 +598,17 @@ table 36 "Sales Header"
                         "Ship-to City", "Ship-to Post Code", "Ship-to County", "Ship-to Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the shipping address.
+        /// </summary>
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
             ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
         }
+        /// <summary>
+        /// Specifies the date when the order was created.
+        /// </summary>
         field(19; "Order Date"; Date)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -562,6 +622,9 @@ table 36 "Sales Header"
                     PriceMessageIfSalesLinesExist(FieldCaption("Order Date"));
             end;
         }
+        /// <summary>
+        /// Specifies the date when the document is posted to the general ledger.
+        /// </summary>
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
@@ -614,6 +677,9 @@ table 36 "Sales Header"
                 SynchronizeAsmHeader();
             end;
         }
+        /// <summary>
+        /// Specifies the date when items on the sales document should be shipped.
+        /// </summary>
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
@@ -629,11 +695,17 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Shipment Date"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the text that appears in ledger entries when the document is posted.
+        /// </summary>
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
             ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
         }
+        /// <summary>
+        /// Specifies the payment terms code that determines due date and payment discount calculations.
+        /// </summary>
         field(23; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
@@ -694,11 +766,17 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the date when payment for the sales document is due.
+        /// </summary>
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
             ToolTip = 'Specifies when the sales invoice must be paid.';
         }
+        /// <summary>
+        /// Specifies the discount percentage granted for early payment.
+        /// </summary>
         field(25; "Payment Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -727,10 +805,16 @@ table 36 "Sales Header"
                 Validate("VAT Base Discount %");
             end;
         }
+        /// <summary>
+        /// Specifies the last date when payment discount is available.
+        /// </summary>
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
         }
+        /// <summary>
+        /// Specifies the delivery conditions such as FOB or CIF for the shipment.
+        /// </summary>
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
@@ -749,6 +833,9 @@ table 36 "Sales Header"
                 TestStatusOpen();
             end;
         }
+        /// <summary>
+        /// Specifies the default warehouse location from which items are shipped.
+        /// </summary>
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
@@ -776,6 +863,9 @@ table 36 "Sales Header"
                     CreateDimFromDefaultDim(Rec.FieldNo("Location Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the code for the first global dimension used for analysis and reporting.
+        /// </summary>
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -789,6 +879,9 @@ table 36 "Sales Header"
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the code for the second global dimension used for analysis and reporting.
+        /// </summary>
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -802,6 +895,9 @@ table 36 "Sales Header"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the customer posting group that determines which receivables account is used.
+        /// </summary>
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
@@ -812,6 +908,9 @@ table 36 "Sales Header"
                 CheckCustomerPostingGroupChange();
             end;
         }
+        /// <summary>
+        /// Specifies the currency code for amounts on the sales document.
+        /// </summary>
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -849,6 +948,9 @@ table 36 "Sales Header"
                     SetCompanyBankAccount();
             end;
         }
+        /// <summary>
+        /// Specifies the exchange rate factor used to convert amounts to the local currency.
+        /// </summary>
         field(33; "Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
@@ -865,6 +967,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Currency Factor"), false);
             end;
         }
+        /// <summary>
+        /// Specifies the customer price group for determining sales prices.
+        /// </summary>
         field(34; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
@@ -875,6 +980,9 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Customer Price Group"));
             end;
         }
+        /// <summary>
+        /// Indicates whether the unit prices on the lines include VAT.
+        /// </summary>
         field(35; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
@@ -955,6 +1063,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the code that determines invoice discount calculations for this customer.
+        /// </summary>
         field(37; "Invoice Disc. Code"; Code[20])
         {
             AccessByPermission = TableData "Cust. Invoice Disc." = R;
@@ -966,6 +1077,9 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Invoice Disc. Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the customer discount group for determining line discounts.
+        /// </summary>
         field(40; "Customer Disc. Group"; Code[20])
         {
             Caption = 'Customer Disc. Group';
@@ -984,6 +1098,9 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Customer Disc. Group"));
             end;
         }
+        /// <summary>
+        /// Specifies the language code used for printing documents for this customer.
+        /// </summary>
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
@@ -994,11 +1111,17 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Language Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the regional format used for dates, numbers, and currencies on documents.
+        /// </summary>
         field(42; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
             TableRelation = "Language Selection"."Language Tag";
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for this sales document.
+        /// </summary>
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
@@ -1022,10 +1145,16 @@ table 36 "Sales Header"
                 CreateDimensionsFromValidateSalesPersonCode();
             end;
         }
+        /// <summary>
+        /// Specifies the order class for categorizing sales documents.
+        /// </summary>
         field(45; "Order Class"; Code[10])
         {
             Caption = 'Order Class';
         }
+        /// <summary>
+        /// Indicates whether comments exist for this sales document.
+        /// </summary>
         field(46; Comment; Boolean)
         {
             CalcFormula = exist("Sales Comment Line" where("Document Type" = field("Document Type"),
@@ -1035,19 +1164,31 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number of times the document has been printed.
+        /// </summary>
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies a code indicating the document is on hold and should not be processed.
+        /// </summary>
         field(51; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
         }
+        /// <summary>
+        /// Specifies the type of document to apply this credit memo or payment to.
+        /// </summary>
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Specifies the document number to which this document applies for payment or credit.
+        /// </summary>
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
@@ -1110,6 +1251,9 @@ table 36 "Sales Header"
                 OnAfterValidateAppliesToDocNo(Rec, xRec, CustLedgEntry);
             end;
         }
+        /// <summary>
+        /// Specifies the balancing account number for the sales document.
+        /// </summary>
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -1136,6 +1280,9 @@ table 36 "Sales Header"
                     end;
             end;
         }
+        /// <summary>
+        /// Indicates whether the invoice discount needs to be recalculated.
+        /// </summary>
         field(56; "Recalculate Invoice Disc."; Boolean)
         {
             CalcFormula = exist("Sales Line" where("Document Type" = field("Document Type"),
@@ -1145,19 +1292,31 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether a shipment should be created when posting.
+        /// </summary>
         field(57; Ship; Boolean)
         {
             Caption = 'Ship';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an invoice should be created when posting.
+        /// </summary>
         field(58; Invoice; Boolean)
         {
             Caption = 'Invoice';
         }
+        /// <summary>
+        /// Indicates whether posted documents should be printed after posting.
+        /// </summary>
         field(59; "Print Posted Documents"; Boolean)
         {
             Caption = 'Print Posted Documents';
         }
+        /// <summary>
+        /// Contains the total amount of all lines on the sales document excluding VAT.
+        /// </summary>
         field(60; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1169,6 +1328,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total amount of all lines on the sales document including VAT.
+        /// </summary>
         field(61; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1180,44 +1342,71 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number assigned to the next shipment document.
+        /// </summary>
         field(62; "Shipping No."; Code[20])
         {
             Caption = 'Shipping No.';
         }
+        /// <summary>
+        /// Specifies the number assigned to the next posted invoice or credit memo.
+        /// </summary>
         field(63; "Posting No."; Code[20])
         {
             Caption = 'Posting No.';
         }
+        /// <summary>
+        /// Specifies the number of the last posted shipment document.
+        /// </summary>
         field(64; "Last Shipping No."; Code[20])
         {
             Caption = 'Last Shipping No.';
             Editable = false;
             TableRelation = "Sales Shipment Header";
         }
+        /// <summary>
+        /// Specifies the number of the last posted invoice or credit memo.
+        /// </summary>
         field(65; "Last Posting No."; Code[20])
         {
             Caption = 'Last Posting No.';
             Editable = false;
             TableRelation = "Sales Invoice Header";
         }
+        /// <summary>
+        /// Specifies the number assigned to the next prepayment invoice.
+        /// </summary>
         field(66; "Prepayment No."; Code[20])
         {
             Caption = 'Prepayment No.';
         }
+        /// <summary>
+        /// Specifies the number of the last posted prepayment invoice.
+        /// </summary>
         field(67; "Last Prepayment No."; Code[20])
         {
             Caption = 'Last Prepayment No.';
             TableRelation = "Sales Invoice Header";
         }
+        /// <summary>
+        /// Specifies the number assigned to the next prepayment credit memo.
+        /// </summary>
         field(68; "Prepmt. Cr. Memo No."; Code[20])
         {
             Caption = 'Prepmt. Cr. Memo No.';
         }
+        /// <summary>
+        /// Specifies the number of the last posted prepayment credit memo.
+        /// </summary>
         field(69; "Last Prepmt. Cr. Memo No."; Code[20])
         {
             Caption = 'Last Prepmt. Cr. Memo No.';
             TableRelation = "Sales Cr.Memo Header";
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number for tax reporting purposes.
+        /// </summary>
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
@@ -1287,20 +1476,32 @@ table 36 "Sales Header"
                     Message(InvalidVatRegNoMsg);
             end;
         }
+        /// <summary>
+        /// Indicates whether multiple shipments for this customer can be combined into one invoice.
+        /// </summary>
         field(71; "Combine Shipments"; Boolean)
         {
             Caption = 'Combine Shipments';
         }
+        /// <summary>
+        /// Specifies the company registration number of the customer.
+        /// </summary>
         field(72; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Specifies the reason code for this sales document.
+        /// </summary>
         field(73; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Specifies the general business posting group for VAT and account determination.
+        /// </summary>
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -1318,10 +1519,16 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates whether this is an EU triangular trade transaction.
+        /// </summary>
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
         }
+        /// <summary>
+        /// Specifies the transaction type for Intrastat reporting.
+        /// </summary>
         field(76; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
@@ -1332,6 +1539,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Transaction Type"), false);
             end;
         }
+        /// <summary>
+        /// Specifies the transport method for Intrastat reporting.
+        /// </summary>
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
@@ -1342,6 +1552,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Transport Method"), false);
             end;
         }
+        /// <summary>
+        /// Specifies the country/region code for VAT purposes.
+        /// </summary>
         field(78; "VAT Country/Region Code"; Code[10])
         {
             Caption = 'VAT Country/Region Code';
@@ -1352,6 +1565,9 @@ table 36 "Sales Header"
                 AltCustVATRegFacade.UpdateSetupOnVATCountryChangeInSalesHeader(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer to whom goods or services are sold.
+        /// </summary>
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
@@ -1387,11 +1603,17 @@ table 36 "Sales Header"
                 GetShippingTime(FieldNo("Sell-to Customer Name"));
             end;
         }
+        /// <summary>
+        /// Specifies an additional part of the sell-to customer name.
+        /// </summary>
         field(80; "Sell-to Customer Name 2"; Text[50])
         {
             Caption = 'Sell-to Customer Name 2';
             ToolTip = 'Specifies an additional part of the name of the customer who will receive the products and be billed by default.';
         }
+        /// <summary>
+        /// Specifies the street address of the sell-to customer.
+        /// </summary>
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
@@ -1402,6 +1624,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies additional street address information for the sell-to customer.
+        /// </summary>
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
@@ -1412,6 +1637,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the city of the sell-to customer.
+        /// </summary>
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
@@ -1442,6 +1670,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the sell-to customer's address.
+        /// </summary>
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
@@ -1475,6 +1706,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the postal code of the bill-to customer's address.
+        /// </summary>
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
@@ -1503,6 +1737,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the county or state of the bill-to customer's address.
+        /// </summary>
         field(86; "Bill-to County"; Text[30])
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
@@ -1513,6 +1750,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the country/region code of the bill-to customer's address.
+        /// </summary>
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
@@ -1528,6 +1768,9 @@ table 36 "Sales Header"
                 ModifyBillToCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the postal code of the sell-to customer's address.
+        /// </summary>
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
@@ -1563,6 +1806,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the county or state of the sell-to customer's address.
+        /// </summary>
         field(89; "Sell-to County"; Text[30])
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
@@ -1574,6 +1820,9 @@ table 36 "Sales Header"
                 ModifyCustomerAddress();
             end;
         }
+        /// <summary>
+        /// Specifies the country/region code of the sell-to customer's address.
+        /// </summary>
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
@@ -1591,6 +1840,9 @@ table 36 "Sales Header"
                 Validate("Ship-to Country/Region Code");
             end;
         }
+        /// <summary>
+        /// Specifies the postal code of the shipping address.
+        /// </summary>
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
@@ -1620,11 +1872,17 @@ table 36 "Sales Header"
                         "Ship-to City", "Ship-to Post Code", "Ship-to County", "Ship-to Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the county or state of the shipping address.
+        /// </summary>
         field(92; "Ship-to County"; Text[30])
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
         }
+        /// <summary>
+        /// Specifies the country/region code of the shipping address.
+        /// </summary>
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
@@ -1636,10 +1894,16 @@ table 36 "Sales Header"
                 AltCustVATRegFacade.UpdateSetupOnShipToCountryChangeInSalesHeader(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Specifies the type of balancing account used with the sales document.
+        /// </summary>
         field(94; "Bal. Account Type"; Enum "Payment Balance Account Type")
         {
             Caption = 'Bal. Account Type';
         }
+        /// <summary>
+        /// Specifies the point of exit for Intrastat reporting.
+        /// </summary>
         field(97; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
@@ -1650,10 +1914,16 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Exit Point"), false);
             end;
         }
+        /// <summary>
+        /// Indicates whether this is a correction document that reverses a previous posting.
+        /// </summary>
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
         }
+        /// <summary>
+        /// Specifies the date when the document was created.
+        /// </summary>
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
@@ -1680,6 +1950,9 @@ table 36 "Sales Header"
                 UpdateDocumentDate := false;
             end;
         }
+        /// <summary>
+        /// Specifies the customer's purchase order number or other external reference.
+        /// </summary>
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
@@ -1707,6 +1980,9 @@ table 36 "Sales Header"
                     WhseSalesRelease.UpdateExternalDocNoForReleasedOrder(Rec);
             end;
         }
+        /// <summary>
+        /// Specifies the area code for Intrastat reporting.
+        /// </summary>
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
@@ -1717,6 +1993,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo(Area), false);
             end;
         }
+        /// <summary>
+        /// Specifies additional transaction details for Intrastat reporting.
+        /// </summary>
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
@@ -1727,6 +2006,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Transaction Specification"), false);
             end;
         }
+        /// <summary>
+        /// Specifies the payment method code that determines how payment is received.
+        /// </summary>
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
@@ -1752,6 +2034,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the shipping agent responsible for transporting the items.
+        /// </summary>
         field(105; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -1779,6 +2064,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Shipping Agent Code"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the package tracking number from the shipping agent.
+        /// </summary>
 #if not CLEAN27
 #pragma warning disable AS0086
 #endif
@@ -1790,12 +2078,18 @@ table 36 "Sales Header"
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
         }
+        /// <summary>
+        /// Specifies the number series used to assign the document number.
+        /// </summary>
         field(107; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the number series used for the posted document number.
+        /// </summary>
         field(108; "Posting No. Series"; Code[20])
         {
             Caption = 'Posting No. Series';
@@ -1825,6 +2119,9 @@ table 36 "Sales Header"
                 TestField("Posting No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the number series used for the posted shipment document number.
+        /// </summary>
         field(109; "Shipping No. Series"; Code[20])
         {
             Caption = 'Shipping No. Series';
@@ -1866,6 +2163,9 @@ table 36 "Sales Header"
                 TestField("Shipping No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculation.
+        /// </summary>
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
@@ -1881,6 +2181,9 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Tax Area Code"));
             end;
         }
+        /// <summary>
+        /// Indicates whether the customer is liable for sales tax.
+        /// </summary>
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
@@ -1893,6 +2196,9 @@ table 36 "Sales Header"
                 MessageIfSalesLinesExist(FieldCaption("Tax Liable"));
             end;
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for VAT calculation.
+        /// </summary>
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -1907,12 +2213,18 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the default reservation method for items on the sales document.
+        /// </summary>
         field(117; Reserve; Enum "Reserve Method")
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Reserve';
             InitValue = Optional;
         }
+        /// <summary>
+        /// Specifies the ID used to link this document to customer ledger entries for application.
+        /// </summary>
         field(118; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
@@ -1935,6 +2247,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the discount percentage applied to the VAT base amount.
+        /// </summary>
         field(119; "VAT Base Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -1968,12 +2283,18 @@ table 36 "Sales Header"
                 UpdateSalesLineAmounts();
             end;
         }
+        /// <summary>
+        /// Specifies the current processing status of the sales document.
+        /// </summary>
         field(120; Status; Enum "Sales Document Status")
         {
             Caption = 'Status';
             ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies how the invoice discount is calculated.
+        /// </summary>
         field(121; "Invoice Discount Calculation"; Option)
         {
             Caption = 'Invoice Discount Calculation';
@@ -1981,6 +2302,9 @@ table 36 "Sales Header"
             OptionCaption = 'None,%,Amount';
             OptionMembers = "None","%",Amount;
         }
+        /// <summary>
+        /// Specifies the invoice discount value as a percentage or amount.
+        /// </summary>
         field(122; "Invoice Discount Value"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1988,6 +2312,9 @@ table 36 "Sales Header"
             Caption = 'Invoice Discount Value';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an intercompany document should be sent to the IC partner.
+        /// </summary>
         field(123; "Send IC Document"; Boolean)
         {
             Caption = 'Send IC Document';
@@ -2006,27 +2333,42 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the intercompany processing status of the document.
+        /// </summary>
         field(124; "IC Status"; Enum "Sales Document IC Status")
         {
             Caption = 'IC Status';
         }
+        /// <summary>
+        /// Specifies the intercompany partner code of the sell-to customer.
+        /// </summary>
         field(125; "Sell-to IC Partner Code"; Code[20])
         {
             Caption = 'Sell-to IC Partner Code';
             Editable = false;
             TableRelation = "IC Partner";
         }
+        /// <summary>
+        /// Specifies the intercompany partner code of the bill-to customer.
+        /// </summary>
         field(126; "Bill-to IC Partner Code"; Code[20])
         {
             Caption = 'Bill-to IC Partner Code';
             Editable = false;
             TableRelation = "IC Partner";
         }
+        /// <summary>
+        /// Specifies the document number from the intercompany partner.
+        /// </summary>
         field(127; "IC Reference Document No."; Code[20])
         {
             Caption = 'IC Reference Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies whether this is an outgoing or incoming intercompany document.
+        /// </summary>
         field(129; "IC Direction"; Enum "IC Direction Type")
         {
             Caption = 'IC Direction';
@@ -2037,6 +2379,9 @@ table 36 "Sales Header"
                     "Send IC Document" := false;
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment percentage required before delivery.
+        /// </summary>
         field(130; "Prepayment %"; Decimal)
         {
             AutoFormatType = 0;
@@ -2053,6 +2398,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Prepayment %"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the number series for prepayment invoices.
+        /// </summary>
         field(131; "Prepayment No. Series"; Code[20])
         {
             Caption = 'Prepayment No. Series';
@@ -2094,15 +2442,24 @@ table 36 "Sales Header"
                 TestField("Prepayment No.", '');
             end;
         }
+        /// <summary>
+        /// Indicates whether prepayment invoice lines should be combined.
+        /// </summary>
         field(132; "Compress Prepayment"; Boolean)
         {
             Caption = 'Compress Prepayment';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the date when the prepayment is due.
+        /// </summary>
         field(133; "Prepayment Due Date"; Date)
         {
             Caption = 'Prepayment Due Date';
         }
+        /// <summary>
+        /// Specifies the number series for prepayment credit memos.
+        /// </summary>
         field(134; "Prepmt. Cr. Memo No. Series"; Code[20])
         {
             Caption = 'Prepmt. Cr. Memo No. Series';
@@ -2144,14 +2501,23 @@ table 36 "Sales Header"
                 TestField("Prepmt. Cr. Memo No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the description for prepayment postings.
+        /// </summary>
         field(135; "Prepmt. Posting Description"; Text[100])
         {
             Caption = 'Prepmt. Posting Description';
         }
+        /// <summary>
+        /// Specifies the last date for prepayment payment discount.
+        /// </summary>
         field(138; "Prepmt. Pmt. Discount Date"; Date)
         {
             Caption = 'Prepmt. Pmt. Discount Date';
         }
+        /// <summary>
+        /// Specifies the payment terms code for prepayment invoices.
+        /// </summary>
         field(139; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
@@ -2200,6 +2566,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the payment discount percentage for prepayment invoices.
+        /// </summary>
         field(140; "Prepmt. Payment Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -2220,21 +2589,33 @@ table 36 "Sales Header"
                 Validate("VAT Base Discount %");
             end;
         }
+        /// <summary>
+        /// Specifies the quote number from which the order was created.
+        /// </summary>
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
             ToolTip = 'Specifies the number of the sales quote that the sales order was created from. You can track the number to sales quote documents that you have printed, saved, or emailed.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the date until which the sales quote is valid.
+        /// </summary>
         field(152; "Quote Valid Until Date"; Date)
         {
             Caption = 'Quote Valid To Date';
         }
+        /// <summary>
+        /// Specifies when the quote was sent to the customer.
+        /// </summary>
         field(153; "Quote Sent to Customer"; DateTime)
         {
             Caption = 'Quote Sent to Customer';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether the customer has accepted the quote.
+        /// </summary>
         field(154; "Quote Accepted"; Boolean)
         {
             Caption = 'Quote Accepted';
@@ -2248,11 +2629,17 @@ table 36 "Sales Header"
                     "Quote Accepted Date" := 0D;
             end;
         }
+        /// <summary>
+        /// Specifies the date when the customer accepted the quote.
+        /// </summary>
         field(155; "Quote Accepted Date"; Date)
         {
             Caption = 'Quote Accepted Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the status of background posting via the job queue.
+        /// </summary>
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
         {
             Caption = 'Job Queue Status';
@@ -2268,11 +2655,17 @@ table 36 "Sales Header"
                 JobQueueEntry.ShowStatusMsg(Rec."Job Queue Entry ID");
             end;
         }
+        /// <summary>
+        /// Specifies the unique identifier of the job queue entry for background posting.
+        /// </summary>
         field(161; "Job Queue Entry ID"; Guid)
         {
             Caption = 'Job Queue Entry ID';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the company bank account code for payment information on documents.
+        /// </summary>
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
@@ -2284,6 +2677,9 @@ table 36 "Sales Header"
                     TestStatusOpen();
             end;
         }
+        /// <summary>
+        /// Specifies the entry number of the incoming document that created this sales document.
+        /// </summary>
         field(165; "Incoming Document Entry No."; Integer)
         {
             Caption = 'Incoming Document Entry No.';
@@ -2301,26 +2697,41 @@ table 36 "Sales Header"
                     IncomingDocument.SetSalesDoc(Rec);
             end;
         }
+        /// <summary>
+        /// Indicates whether an alternative VAT registration number is used.
+        /// </summary>
         field(166; "Alt. VAT Registration No."; Boolean)
         {
             Caption = 'Alternative VAT Registration No.';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an alternative general business posting group is used.
+        /// </summary>
         field(167; "Alt. Gen. Bus Posting Group"; Boolean)
         {
             Caption = 'Alternative Gen. Bus. Posting Group';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether an alternative VAT business posting group is used.
+        /// </summary>
         field(168; "Alt. VAT Bus Posting Group"; Boolean)
         {
             Caption = 'Alternative VAT Bus. Posting Group';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether this is a test document.
+        /// </summary>
         field(170; IsTest; Boolean)
         {
             Caption = 'IsTest';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the phone number of the sell-to customer.
+        /// </summary>
         field(171; "Sell-to Phone No."; Text[30])
         {
             Caption = 'Sell-to Phone No.';
@@ -2338,6 +2749,9 @@ table 36 "Sales Header"
                 UpdateShipToAddressFromSellToAddress(Rec.FieldNo("Ship-to Phone No."));
             end;
         }
+        /// <summary>
+        /// Specifies the email address of the sell-to customer.
+        /// </summary>
         field(172; "Sell-to E-Mail"; Text[80])
         {
             Caption = 'Email';
@@ -2352,6 +2766,9 @@ table 36 "Sales Header"
                 MailManagement.CheckValidEmailAddresses("Sell-to E-Mail");
             end;
         }
+        /// <summary>
+        /// Specifies the journal template name used for posting.
+        /// </summary>
         field(178; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
@@ -2364,6 +2781,9 @@ table 36 "Sales Header"
                 Validate("Posting No. Series", GenJournalTemplate."Posting No. Series");
             end;
         }
+        /// <summary>
+        /// Specifies the date used for VAT reporting purposes.
+        /// </summary>
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -2381,11 +2801,17 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the country/region code from which the goods were received.
+        /// </summary>
         field(181; "Rcvd.-from Count./Region Code"; Code[10])
         {
             Caption = 'Received-from Country/Region Code';
             TableRelation = "Country/Region";
         }
+        /// <summary>
+        /// Contains the timestamp of when the last email was sent for this document.
+        /// </summary>
         field(185; "Last Email Sent Time"; DateTime)
         {
             Caption = 'Last Email Sent Time';
@@ -2393,21 +2819,33 @@ table 36 "Sales Header"
             CalcFormula = max("Email Related Record".SystemCreatedAt where("Table Id" = const(Database::"Sales Header"),
                                                                            "System Id" = field(SystemId)));
         }
+        /// <summary>
+        /// Contains the message ID of the last email sent for this document.
+        /// </summary>
         field(186; "Last Email Sent Message Id"; Guid)
         {
             Caption = 'Last Email Sent Message Id';
             FieldClass = FlowField;
             CalcFormula = lookup("Email Related Record"."Email Message Id" where(SystemCreatedAt = field("Last Email Sent Time")));
         }
+        /// <summary>
+        /// Contains a description of the work to be performed for this sales document.
+        /// </summary>
         field(200; "Work Description"; BLOB)
         {
             Caption = 'Work Description';
         }
+        /// <summary>
+        /// Specifies the phone number at the shipping address.
+        /// </summary>
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
+        /// <summary>
+        /// Contains the total amount shipped but not invoiced in local currency including VAT.
+        /// </summary>
         field(300; "Amt. Ship. Not Inv. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -2419,6 +2857,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total amount shipped but not invoiced in local currency excluding VAT.
+        /// </summary>
         field(301; "Amt. Ship. Not Inv. (LCY) Base"; Decimal)
         {
             AutoFormatType = 1;
@@ -2430,6 +2871,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the identifier for the combination of dimensions applied to the document.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -2446,6 +2890,9 @@ table 36 "Sales Header"
                 DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the payment service set identifier for online payment services.
+        /// </summary>
         field(600; "Payment Service Set ID"; Integer)
         {
             Caption = 'Payment Service Set ID';
@@ -2460,6 +2907,9 @@ table 36 "Sales Header"
             ObsoleteTag = '26.0';
         }
 #endif
+        /// <summary>
+        /// Indicates whether this document is coupled to Dynamics 365 Sales.
+        /// </summary>
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -2468,6 +2918,9 @@ table 36 "Sales Header"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Sales Header")));
         }
+        /// <summary>
+        /// Specifies the direct debit mandate used for collecting payments.
+        /// </summary>
         field(1200; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
@@ -2475,6 +2928,9 @@ table 36 "Sales Header"
                                                                Closed = const(false),
                                                                Blocked = const(false));
         }
+        /// <summary>
+        /// Contains the total invoice discount amount for the sales document.
+        /// </summary>
         field(1305; "Invoice Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -2485,6 +2941,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number of archived versions of this document.
+        /// </summary>
         field(5043; "No. of Archived Versions"; Integer)
         {
             CalcFormula = max("Sales Header Archive"."Version No." where("Document Type" = field("Document Type"),
@@ -2494,10 +2953,16 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the occurrence number when the same document number is reused.
+        /// </summary>
         field(5048; "Doc. No. Occurrence"; Integer)
         {
             Caption = 'Doc. No. Occurrence';
         }
+        /// <summary>
+        /// Specifies the marketing campaign number linked to this sales document.
+        /// </summary>
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
@@ -2510,6 +2975,9 @@ table 36 "Sales Header"
                 CreateDimFromDefaultDim(Rec.FieldNo("Campaign No."));
             end;
         }
+        /// <summary>
+        /// Specifies the contact number at the sell-to customer.
+        /// </summary>
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
@@ -2587,6 +3055,9 @@ table 36 "Sales Header"
                 GetShippingTime(FieldNo("Sell-to Contact No."));
             end;
         }
+        /// <summary>
+        /// Specifies the contact number at the bill-to customer.
+        /// </summary>
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
@@ -2656,6 +3127,9 @@ table 36 "Sales Header"
                 UpdateBillToCust("Bill-to Contact No.");
             end;
         }
+        /// <summary>
+        /// Specifies the sales opportunity linked to this document.
+        /// </summary>
         field(5055; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
@@ -2671,6 +3145,9 @@ table 36 "Sales Header"
                 LinkSalesDocWithOpportunity(xRec."Opportunity No.");
             end;
         }
+        /// <summary>
+        /// Specifies the customer template used for quotes without a customer.
+        /// </summary>
         field(5056; "Sell-to Customer Templ. Code"; Code[20])
         {
             Caption = 'Sell-to Customer Template Code';
@@ -2710,6 +3187,9 @@ table 36 "Sales Header"
                     RecreateSalesLines(CopyStr(FieldCaption("Sell-to Customer Templ. Code"), 1, 100));
             end;
         }
+        /// <summary>
+        /// Specifies the bill-to customer template used for quotes without a customer.
+        /// </summary>
         field(5057; "Bill-to Customer Templ. Code"; Code[20])
         {
             Caption = 'Bill-to Customer Template Code';
@@ -2754,6 +3234,9 @@ table 36 "Sales Header"
                     RecreateSalesLines(CopyStr(FieldCaption("Bill-to Customer Templ. Code"), 1, 100));
             end;
         }
+        /// <summary>
+        /// Specifies the responsibility center associated with this sales document.
+        /// </summary>
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
@@ -2781,6 +3264,9 @@ table 36 "Sales Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies whether the customer accepts partial shipment of orders.
+        /// </summary>
         field(5750; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -2799,6 +3285,9 @@ table 36 "Sales Header"
                 SalesWarehouseMgt.SalesHeaderVerifyChange(Rec, xRec);
             end;
         }
+        /// <summary>
+        /// Indicates whether there are shipped quantities that have not yet been invoiced.
+        /// </summary>
         field(5751; "Shipped Not Invoiced"; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -2809,6 +3298,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether all items on the order have been completely shipped.
+        /// </summary>
         field(5752; "Completely Shipped"; Boolean)
         {
             CalcFormula = min("Sales Line"."Completely Shipped" where("Document Type" = field("Document Type"),
@@ -2820,17 +3312,26 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains an internal reference used when posting from warehouse documents.
+        /// </summary>
         field(5753; "Posting from Whse. Ref."; Integer)
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Posting from Whse. Ref.';
         }
+        /// <summary>
+        /// Specifies the location filter for calculating flow fields.
+        /// </summary>
         field(5754; "Location Filter"; Code[10])
         {
             Caption = 'Location Filter';
             FieldClass = FlowFilter;
             TableRelation = Location;
         }
+        /// <summary>
+        /// Indicates whether any items on the order have been shipped.
+        /// </summary>
         field(5755; Shipped; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -2841,12 +3342,18 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the shipment date of the last posted shipment.
+        /// </summary>
         field(5756; "Last Shipment Date"; Date)
         {
             CalcFormula = lookup("Sales Shipment Header"."Shipment Date" where("No." = field("Last Shipping No.")));
             Caption = 'Last Shipment Date';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the date the customer requested for delivery.
+        /// </summary>
         field(5790; "Requested Delivery Date"; Date)
         {
             Caption = 'Requested Delivery Date';
@@ -2868,6 +3375,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Requested Delivery Date"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the date the company promised to deliver the order.
+        /// </summary>
         field(5791; "Promised Delivery Date"; Date)
         {
             AccessByPermission = TableData "Order Promising Line" = R;
@@ -2887,6 +3397,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Promised Delivery Date"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the time required for shipping from the location to the customer.
+        /// </summary>
         field(5792; "Shipping Time"; DateFormula)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -2899,6 +3412,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Shipping Time"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the time required for outbound warehouse handling before shipment.
+        /// </summary>
         field(5793; "Outbound Whse. Handling Time"; DateFormula)
         {
             AccessByPermission = TableData "Warehouse Shipment Header" = R;
@@ -2913,6 +3429,9 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Outbound Whse. Handling Time"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Specifies the shipping agent service code for delivery terms.
+        /// </summary>
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
@@ -2936,6 +3455,9 @@ table 36 "Sales Header"
                 UpdateSalesLinesByFieldNo(FieldNo("Shipping Agent Service Code"), CurrFieldNo <> 0);
             end;
         }
+        /// <summary>
+        /// Indicates whether there are lines with outstanding quantities past their shipment date.
+        /// </summary>
         field(5795; "Late Order Shipping"; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -2948,6 +3470,9 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the date filter used for calculating flow fields.
+        /// </summary>
         field(5796; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
@@ -4951,7 +5476,10 @@ table 36 "Sales Header"
             end;
     end;
 
-
+    /// <summary>
+    /// Validates that the posting date matches the work date when posting date check is enabled in sales setup.
+    /// </summary>
+    /// <param name="BatchPost">Specifies whether the validation is called from batch posting. If true, an error is raised; otherwise, a confirmation dialog is shown.</param>
     procedure TestPostingDate(BatchPost: Boolean)
     begin
         SalesSetup.Get();
@@ -6559,12 +7087,19 @@ table 36 "Sales Header"
         SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(Rec);
     end;
 
+    /// <summary>
+    /// Returns whether the statistics preparation step should be skipped.
+    /// </summary>
+    /// <returns>True if statistics preparation should be skipped.</returns>
     [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
     procedure SkipStatisticsPreparation(): Boolean
     begin
         exit(SkipStatsPrep)
     end;
 
+    /// <summary>
+    /// Resets the skip statistics preparation flag to false.
+    /// </summary>
     [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
     procedure ResetSkipStatisticsPreparationFlag()
     begin
@@ -6825,6 +7360,9 @@ table 36 "Sales Header"
                 "Outbound Whse. Handling Time" := InvtSetup."Outbound Whse. Handling Time";
     end;
 
+    /// <summary>
+    /// Raised to allow subscribers to add custom restrictions to the sales document posting process.
+    /// </summary>
     [IntegrationEvent(true, false)]
     procedure OnCheckSalesPostRestrictions()
     begin
@@ -6838,6 +7376,10 @@ table 36 "Sales Header"
         OnCheckSalesPostRestrictions();
     end;
 
+    /// <summary>
+    /// Raised when the calculated credit amount exceeds the customer's credit limit.
+    /// </summary>
+    /// <param name="NotificationId">Specifies the GUID of the credit limit notification.</param>
     [IntegrationEvent(true, false)]
     procedure OnCustomerCreditLimitExceeded(NotificationId: Guid)
     begin
@@ -6867,6 +7409,9 @@ table 36 "Sales Header"
         OnCustomerCreditLimitExceeded(NotificationId);
     end;
 
+    /// <summary>
+    /// Raised when the calculated credit amount does not exceed the customer's credit limit.
+    /// </summary>
     [IntegrationEvent(true, false)]
     procedure OnCustomerCreditLimitNotExceeded()
     begin
@@ -6881,6 +7426,9 @@ table 36 "Sales Header"
         OnCustomerCreditLimitNotExceeded();
     end;
 
+    /// <summary>
+    /// Raised to allow subscribers to add custom restrictions to the sales document release process.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnCheckSalesReleaseRestrictions()
     begin
@@ -7036,6 +7584,14 @@ table 36 "Sales Header"
         Commit();
     end;
 
+    /// <summary>
+    /// Updates the posting date, VAT reporting date, and document date on the sales header during batch posting.
+    /// </summary>
+    /// <param name="ReplacePostingDate">Specifies whether to replace the posting date.</param>
+    /// <param name="PostingDateReq">Specifies the new posting date to set.</param>
+    /// <param name="ReplaceVATDate">Specifies whether to replace the VAT reporting date.</param>
+    /// <param name="VATDateReq">Specifies the new VAT reporting date to set.</param>
+    /// <param name="ReplaceDocDate">Specifies whether to replace the document date.</param>
     procedure BatchConfirmUpdatePostingDate(ReplacePostingDate: Boolean; PostingDateReq: Date; ReplaceVATDate: Boolean; VATDateReq: Date; ReplaceDocDate: Boolean)
     begin
         if not ReplacePostingDate then
@@ -8227,6 +8783,10 @@ table 36 "Sales Header"
           ModifyBillToCustomerAddressNotificationNameTxt, ModifyBillToCustomerAddressNotificationDescriptionTxt, true);
     end;
 
+    /// <summary>
+    /// Sets the default state for the external document already exists notification in My Notifications.
+    /// </summary>
+    /// <param name="DefaultState">Specifies whether the notification is enabled by default.</param>
     procedure SetShowExternalDocAlreadyExistNotificationDefaultState(DefaultState: Boolean)
     var
         MyNotifications: Record "My Notifications";
@@ -8824,6 +9384,10 @@ table 36 "Sales Header"
             Error(Text028, FieldCaption("Requested Delivery Date"), FieldCaption("Promised Delivery Date"));
     end;
 
+    /// <summary>
+    /// Sets the bill-to customer number based on the provided customer record.
+    /// </summary>
+    /// <param name="Cust">Specifies the customer record to determine the bill-to customer number.</param>
     procedure SetBillToCustomerNo(var Cust: Record Customer)
     var
         IsHandled: Boolean;
@@ -9136,6 +9700,10 @@ table 36 "Sales Header"
           DocAlreadyExistNotification, RecordId, GetShowExternalDocAlreadyExistNotificationId());
     end;
 
+    /// <summary>
+    /// Returns the GUID for the external document already exists notification.
+    /// </summary>
+    /// <returns>The notification GUID.</returns>
     procedure GetShowExternalDocAlreadyExistNotificationId(): Guid
     begin
         exit('0677e7f8-cc39-442e-b9c2-65aadaa85ae9');
@@ -9159,6 +9727,9 @@ table 36 "Sales Header"
         exit(InstructionMgt.IsMyNotificationEnabled(GetShowExternalDocAlreadyExistNotificationId()));
     end;
 
+    /// <summary>
+    /// Updates the related sales order line if a posted credit memo exists for this document.
+    /// </summary>
     procedure UpdateSalesOrderLineIfExist()
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
@@ -9259,6 +9830,10 @@ table 36 "Sales Header"
                 Rec."Document Date" := Rec."Posting Date";
     end;
 
+    /// <summary>
+    /// Sends filtered sales documents to intercompany partners through the IC inbox/outbox.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the filtered sales header records to send.</param>
     procedure SendICSalesDoc(var SalesHeader: Record "Sales Header")
     var
         ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
@@ -9288,636 +9863,1382 @@ table 36 "Sales Header"
         if UnbindSubscription(DisableAggregateTableUpdate) then;
     end;
 
+    /// <summary>
+    /// Raised after the default VAT business posting group is assigned to the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="GenBusinessPostingGroup">The general business posting group used to determine the VAT business posting group.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignDefaultVATBusPostingGroup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; GenBusinessPostingGroup: Record "Gen. Business Posting Group")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the default dimension sources are initialized for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
+    /// <param name="FieldNo">The field number that triggered the dimension initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var SalesHeader: Record "Sales Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header record is initialized.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was initialized.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInitRecord(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the number series is initialized for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitNoSeries(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the rounding precision is initialized from the currency.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Currency">The currency record used to initialize rounding precision.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitializeRoundingPrecision(var SalesHeader: Record "Sales Header"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the bill-to address equals the sell-to address.
+    /// </summary>
+    /// <param name="SellToSalesHeader">The sales header with sell-to address information.</param>
+    /// <param name="BillToSalesHeader">The sales header with bill-to address information.</param>
+    /// <param name="Result">The result of the address comparison.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsBillToAddressEqualToSellToAddress(SellToSalesHeader: Record "Sales Header"; BillToSalesHeader: Record "Sales Header"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the credit limit check condition is evaluated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="RunCheck">Specifies whether to run the credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckCreditLimitCondition(var SalesHeader: Record "Sales Header"; var RunCheck: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the credit maximum is checked before inserting the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckCreditMaxBeforeInsert(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the bill-to customer is validated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="Customer">The bill-to customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckBillToCust(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sell-to customer is validated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="Customer">The sell-to customer record.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckSellToCust(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; Customer: Record Customer; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the shipping advice is checked.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Result">The result of the shipping advice check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckShippingAdvice(var SalesHeader: Record "Sales Header"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the user confirms sales price changes.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="SalesLine">The sales line record affected by price changes.</param>
+    /// <param name="RecalculateLines">Specifies whether to recalculate the sales lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConfirmSalesPrice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var RecalculateLines: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the user confirms the currency factor update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Confirmed">Specifies whether the user confirmed the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConfirmCurrencyFactorUpdate(var SalesHeader: Record "Sales Header"; var Confirmed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if dimensions could be kept when changing header fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="Result">The result indicating if dimensions can be kept.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCouldDimensionsBeKept(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after a sales line is recreated from temporary storage.
+    /// </summary>
+    /// <param name="SalesLine">The recreated sales line record.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecreateSalesLine(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after all temporary sales lines are deleted.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record whose temporary lines were deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteAllTempSalesLines(SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after sales lines are deleted from the sales header.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record that was deleted.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterDeleteSalesLines(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header is initialized from another sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="SourceSalesHeader">The source sales header used for initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromSalesHeader(var SalesHeader: Record "Sales Header"; SourceSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header is initialized from a bill-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="BillToCustTemplate">The customer template used for initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromBillToCustTemplate(var SalesHeader: Record "Sales Header"; BillToCustTemplate: Record "Customer Templ.")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a sales line is inserted into temporary storage.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being stored.</param>
+    /// <param name="TempSalesLine">The temporary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertTempSalesLine(SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the sales header is approved for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Approved">Specifies whether the sales header is approved for posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsApprovedForPosting(SalesHeader: Record "Sales Header"; var Approved: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the sales header is approved for batch posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Approved">Specifies whether the sales header is approved for batch posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsApprovedForPostingBatch(SalesHeader: Record "Sales Header"; var Approved: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the number series code is retrieved for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesReceivablesSetup">The sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">The number series code that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetNoSeriesCode(var SalesHeader: Record "Sales Header"; SalesReceivablesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the posting number series code is retrieved.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostingNos">The posting number series code that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPostingNoSeriesCode(SalesHeader: Record "Sales Header"; var PostingNos: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the prepayment posting number series code is retrieved.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostingNos">The prepayment posting number series code that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPrepaymentPostingNoSeriesCode(SalesHeader: Record "Sales Header"; var PostingNos: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales and receivables setup is retrieved.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesReceivablesSetup">The sales and receivables setup record that was retrieved.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesSetup(SalesHeader: Record "Sales Header"; var SalesReceivablesSetup: Record "Sales & Receivables Setup"; CalledByFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document type text is retrieved.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="TypeText">The document type text that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetDocTypeText(var SalesHeader: Record "Sales Header"; var TypeText: Text[50])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the status style text is retrieved.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="StatusStyleText">The status style text that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetStatusStyleText(SalesHeader: Record "Sales Header"; var StatusStyleText: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header record is inserted.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnInsert(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the sales header has a different sell-to address than the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Customer">The customer record to compare with.</param>
+    /// <param name="Result">The result of the address comparison.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasDifferentSellToAddress(var SalesHeader: Record "Sales Header"; Customer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the sales header has a different bill-to address than the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Customer">The customer record to compare with.</param>
+    /// <param name="Result">The result of the address comparison.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasDifferentBillToAddress(var SalesHeader: Record "Sales Header"; Customer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the sales header has a different ship-to address than the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Customer">The customer record to compare with.</param>
+    /// <param name="Result">The result of the address comparison.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasDifferentShipToAddress(var SalesHeader: Record "Sales Header"; Customer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if the sales lines are editable.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsEditable">Specifies whether the sales lines are editable.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesLinesEditable(SalesHeader: Record "Sales Header"; var IsEditable: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing the number series for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="SalesReceivablesSetup">The sales and receivables setup record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestNoSeries(var SalesHeader: Record "Sales Header"; var SalesReceivablesSetup: Record "Sales & Receivables Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the ship-to address is updated on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the update.</param>
+    /// <param name="Location">The location record used for the update.</param>
+    /// <param name="CompanyInformation">The company information record used for the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateShipToAddress(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; Location: Record Location; CompanyInformation: Record "Company Information")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the currency factor is updated on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="HideValidationDialog">Specifies whether to hide the validation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateCurrencyFactor(var SalesHeader: Record "Sales Header"; HideValidationDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the applies-to document number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry selected from the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAppliesToDocNoOnLookup(var SalesHeader: Record "Sales Header"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised during sales line update when a field changes by name.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record being updated.</param>
+    /// <param name="ChangedFieldName">The name of the changed field.</param>
+    /// <param name="ChangedFieldNo">The number of the changed field.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLineByChangedFieldName(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ChangedFieldName: Text[100]; ChangedFieldNo: Integer; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set on sales lines during update by field number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
+    /// <param name="ChangedFieldNo">The number of the changed field.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLinesByFieldNoOnAfterSalesLineSetFilters(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ChangedFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header is modified during sales line amounts update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was modified.</param>
+    /// <param name="SalesLine">The sales line record being updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLineAmountsOnAfterSalesHeaderModify(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the ship-to contact during ship-to contact update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateShipToContactOnBeforeValidateShipToContact(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the opportunity during opportunity update.
+    /// </summary>
+    /// <param name="Opportunity">The opportunity record being modified.</param>
+    /// <param name="SalesHeader">The related sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateOpportunityOnBeforeModify(var Opportunity: Record Opportunity; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the opportunity during opportunity link update.
+    /// </summary>
+    /// <param name="Opportunity">The opportunity record being modified.</param>
+    /// <param name="SalesHeader">The related sales header record.</param>
+    /// <param name="SalesDocumentType">The sales document type option value.</param>
+    /// <param name="SalesHeaderNo">The sales header document number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateOpportunityLinkOnBeforeModify(var Opportunity: Record Opportunity; var SalesHeader: Record "Sales Header"; SalesDocumentType: Option; SalesHeaderNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating all line dimensions during shortcut dimension code validation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="FieldNumber">The shortcut dimension field number being validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateShortcutDimCodeOnBeforeUpdateAllLineDim(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNumber: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the shortcut dimension code is validated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="FieldNumber">The shortcut dimension field number that was validated.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after a sales line is created from temporary storage.
+    /// </summary>
+    /// <param name="SalesLine">The created sales line record.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesLine(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the ship-to address equals the sell-to address.
+    /// </summary>
+    /// <param name="SellToSalesHeader">The sales header with sell-to address information.</param>
+    /// <param name="ShipToSalesHeader">The sales header with ship-to address information.</param>
+    /// <param name="Result">The result of the address comparison.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsShipToAddressEqualToSellToAddress(SellToSalesHeader: Record "Sales Header"; ShipToSalesHeader: Record "Sales Header"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after a sales quote is accepted.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was accepted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesQuoteAccepted(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Prices Including VAT field is changed.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterChangePricesIncludingVAT(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sell-to customer number is validated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSelltoCustomerNoOnAfterValidate(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header is sent.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was sent.</param>
+    /// <param name="ShowDialog">Specifies whether a dialog was shown during sending.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendSalesHeader(var SalesHeader: Record "Sales Header"; ShowDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set for applying customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record with filters applied.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetApplyToFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after bill-to customer fields are set on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The bill-to customer record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="SkipBillToContact">Specifies whether to skip bill-to contact update.</param>
+    /// <param name="CUrrentFieldNo">The field number that triggered the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFieldsBilltoCustomer(var SalesHeader: Record "Sales Header"; Customer: Record Customer; xSalesHeader: Record "Sales Header"; SkipBillToContact: Boolean; CUrrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after extended text is transferred for sales line recreation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record receiving extended text.</param>
+    /// <param name="TempSalesLine">The temporary sales line with extended text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferExtendedTextForSalesLineRecreation(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying fields from a new sell-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="SellToCustTemplate">The customer template used for copying.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromNewSellToCustTemplate(var SalesHeader: Record "Sales Header"; SellToCustTemplate: Record "Customer Templ.")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sell-to address is copied to the ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopySellToAddressToShipToAddress(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sell-to address is copied to the bill-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopySellToAddressToBillToAddress(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after sell-to customer address fields are copied from the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="SellToCustomer">The sell-to customer record used as source.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the copy.</param>
+    /// <param name="SkipBillToContact">Specifies whether to skip bill-to contact update.</param>
+    /// <param name="SkipSellToContact">Specifies whether to skip sell-to contact update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopySellToCustomerAddressFieldsFromCustomer(var SalesHeader: Record "Sales Header"; SellToCustomer: Record Customer; CurrentFieldNo: Integer; var SkipBillToContact: Boolean; var SkipSellToContact: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after ship-to customer address fields are copied from the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="SellToCustomer">The customer record used as source.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyShipToCustomerAddressFieldsFromCustomer(var SalesHeader: Record "Sales Header"; SellToCustomer: Record Customer; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after ship-to customer address fields are copied from a ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="ShipToAddress">The ship-to address record used as source.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyShipToCustomerAddressFieldsFromShipToAddr(var SalesHeader: Record "Sales Header"; ShipToAddress: Record "Ship-to Address"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after sales lines are updated by field number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="ChangedFieldNo">The field number that triggered the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesLinesByFieldNo(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the assist edit function is executed.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="OldSalesHeader">The original sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default assist edit logic.</param>
+    /// <param name="Result">The result of the assist edit operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAssistEdit(var SalesHeader: Record "Sales Header"; OldSalesHeader: Record "Sales Header"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the available credit limit.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="ReturnValue">The available credit limit value.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAvailableCreditLimit(var SalesHeader: Record "Sales Header"; var ReturnValue: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the customer credit limit.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCreditLimit(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit maximum before inserting the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit check.</param>
+    /// <param name="HideCreditCheckDialogue">Specifies whether to hide the credit check dialog.</param>
+    /// <param name="FilterCustNo">The customer number filter.</param>
+    /// <param name="FilterContNo">The contact number filter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCreditMaxBeforeInsert(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; HideCreditCheckDialogue: Boolean; FilterCustNo: Code[20]; FilterContNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit when no sales line is inserted yet.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCreditLimitIfLineNotInsertedYet(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the customer-contact relation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Cont">The contact record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default relation check.</param>
+    /// <param name="CustomerNo">The customer number being validated.</param>
+    /// <param name="ContBusinessRelationNo">The contact business relation number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerContactRelation(var SalesHeader: Record "Sales Header"; Cont: Record Contact; var IsHandled: Boolean; CustomerNo: Code[20]; ContBusinessRelationNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking document numbers and showing a confirmation dialog.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="SalesShptHeader">The sales shipment header record.</param>
+    /// <param name="SalesInvHeader">The sales invoice header record.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header record.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header record.</param>
+    /// <param name="SalesInvHeaderPrePmt">The prepayment sales invoice header record.</param>
+    /// <param name="SalesCrMemoHeaderPrePmt">The prepayment sales credit memo header record.</param>
+    /// <param name="SourceCode">The source code record.</param>
+    /// <param name="Result">The result of the check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoAndShowConfirm(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnRcptHeader: Record "Return Receipt Header"; var SalesInvHeaderPrePmt: Record "Sales Invoice Header"; var SalesCrMemoHeaderPrePmt: Record "Sales Cr.Memo Header"; SourceCode: Record "Source Code"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking prepayment information on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="SalesLine">The sales line record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default prepayment check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtInfo(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking return information on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default return info check.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="BillTo">Specifies whether checking bill-to information.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckReturnInfo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; BillTo: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking shipment information on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="SalesLine">The sales line record being checked.</param>
+    /// <param name="BillTo">Specifies whether checking bill-to information.</param>
+    /// <param name="IsHandled">Set to true to skip the default shipment check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckShipmentInfo(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; BillTo: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the shipping advice on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default shipping advice check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckShippingAdvice(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions from bill-to customer number validation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimensionsFromValidateBillToCustomerNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions from salesperson code validation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimensionsFromValidateSalesPersonCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming to clear the opportunity number.
+    /// </summary>
+    /// <param name="Opportunity">The opportunity record being cleared.</param>
+    /// <param name="Confirmed">The user confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCofirmClearOpportunityNo(Opportunity: Record Opportunity; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming whether to keep existing dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="FieldNo">The field number that triggered the dimension change.</param>
+    /// <param name="OldDimSetID">The old dimension set ID.</param>
+    /// <param name="Confirmed">The user confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmKeepExistingDimensions(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNo: Integer; OldDimSetID: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming to update all line dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="NewParentDimSetID">The new parent dimension set ID.</param>
+    /// <param name="OldParentDimSetID">The old parent dimension set ID.</param>
+    /// <param name="Confirmed">The user confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmUpdateAllLineDim(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; NewParentDimSetID: Integer; OldParentDimSetID: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the bill-to contact number change.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the change.</param>
+    /// <param name="Confirmed">The user confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmBillToContactNoChange(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the sell-to contact number change.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the change.</param>
+    /// <param name="Confirmed">The user confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmSellToContactNoChange(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the currency factor update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="HideValidationDialog">Specifies whether to hide the validation dialog.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
+    /// <param name="ForceConfirm">Specifies whether to force the confirmation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmUpdateCurrencyFactor(var SalesHeader: Record "Sales Header"; var HideValidationDialog: Boolean; var xSalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ForceConfirm: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the contact as a company.
+    /// </summary>
+    /// <param name="Contact">The contact record to search.</param>
+    /// <param name="SearchContact">The contact record used for searching.</param>
+    /// <param name="IsHandled">Set to true to skip the default search logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetContactAsCompany(Contact: Record Contact; var SearchContact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming deletion of the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record to be deleted.</param>
+    /// <param name="Result">The result of the deletion confirmation.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmDeletion(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying ship-to customer address fields from the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The customer record used as source.</param>
+    /// <param name="IsHandled">Set to true to skip the default copy logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyShipToCustomerAddressFieldsFromCustomer(var SalesHeader: Record "Sales Header"; Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying sell-to customer address fields from the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The customer record used as source.</param>
+    /// <param name="IsHandled">Set to true to skip the default copy logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopySellToCustomerAddressFieldsFromCustomer(var SalesHeader: Record "Sales Header"; Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying the sell-to address to the bill-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopySellToAddressToBillToAddress(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying ship-to customer address fields from a ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="ShipToAddress">The ship-to address record used as source.</param>
+    /// <param name="IsHandled">Set to true to skip the default copy logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyShipToCustomerAddressFieldsFromShipToAddr(var SalesHeader: Record "Sales Header"; var ShipToAddress: Record "Ship-to Address"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a customer from the sell-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Cont">The contact record associated with the customer.</param>
+    /// <param name="IsHandled">Set to true to skip the default customer creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCustomerFromSellToCustomerTemplate(var SalesHeader: Record "Sales Header"; var Cont: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a customer from the bill-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Cont">The contact record associated with the customer.</param>
+    /// <param name="IsHandled">Set to true to skip the default customer creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCustomerFromBillToCustomerTemplate(var SalesHeader: Record "Sales Header"; var Cont: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a sales line from temporary storage.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales line creation.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
+    /// <param name="SalesLine">The sales line record being created.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCreateSalesLine(var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean; var SalesHeader: record "Sales Header"; var SalesLine: record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension creation.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating inventory put-away or pick documents.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateInvtPutAwayPick(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting sales lines from the sales header.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record to be deleted.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeDeleteSalesLines(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting the record in the approval request.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default deletion logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeDeleteRecordInApprovalRequest(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before ensuring the document type is Quote.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the check.</param>
+    /// <param name="IsHandled">Set to true to skip the default document type check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnsureDocumentTypeIsQuote(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer record.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Customer">The customer record being retrieved.</param>
+    /// <param name="CustNo">The customer number to retrieve.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCust(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; CustNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer VAT registration number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ReturnValue">The VAT registration number value.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustomerVATRegistrationNumber(var SalesHeader: Record "Sales Header"; var ReturnValue: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer VAT registration number label.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ReturnValue">The VAT registration number label value.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustomerVATRegistrationNumberLbl(var SalesHeader: Record "Sales Header"; var ReturnValue: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the number series code for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">The number series code being retrieved.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNoSeriesCode(var SalesHeader: Record "Sales Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting posted document lines to reverse.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPstdDocLinesToReverse(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the posting number series code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">The posting number series code being retrieved.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPostingNoSeriesCode(var SalesHeader: Record "Sales Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the shipping time for the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the retrieval.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetShippingTime(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var CalledByFieldNo: Integer; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the shipment method code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetShipmentMethodCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the sales header from another sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="SourceSalesHeader">The source sales header used for initialization.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitFromSalesHeader(var SalesHeader: Record "Sales Header"; SourceSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the sales header during insert.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitInsert(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the posting description.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitPostingDescription(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the sales header record.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitRecord(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the document type is a credit document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="CreditDocType">Specifies whether the document is a credit document type.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsCreditDocType(SalesHeader: Record "Sales Header"; var CreditDocType: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales header is approved for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Approved">Specifies whether the sales header is approved.</param>
+    /// <param name="IsHandled">Set to true to skip the default approval check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsApprovedForPosting(var SalesHeader: Record "Sales Header"; var Approved: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales header is approved for batch posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being checked.</param>
+    /// <param name="Approved">Specifies whether the sales header is approved for batch posting.</param>
+    /// <param name="IsHandled">Set to true to skip the default approval check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsApprovedForPostingBatch(var SalesHeader: Record "Sales Header"; var Approved: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the applies-to document number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry record for lookup.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupAppliesToDocNo(var SalesHeader: Record "Sales Header"; var CustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the bill-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupBillToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the bill-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupBillToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the contact.
+    /// </summary>
+    /// <param name="CustomerNo">The customer number for the contact lookup.</param>
+    /// <param name="ContactNo">The contact number for the lookup.</param>
+    /// <param name="Contact">The contact record for lookup.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupContact(CustomerNo: Code[20]; ContactNo: Code[20]; var Contact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the sell-to contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupSelltoContact(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the sell-to contact number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
+    /// <param name="Result">The result of the lookup operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupSellToContactNo(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the sell-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupSellToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the sell-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupSellToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the ship-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupShipToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the ship-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupShipToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the ship-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupShipToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the bill-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupBillToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the bill-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupBillToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the sell-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupSellToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the sell-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record from the lookup.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupSellToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the ship-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="PostCodeRec">The post code record for lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupShipToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the shipping number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupShippingNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the return receipt number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupReturnReceiptNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -9925,1236 +11246,2690 @@ table 36 "Sales Header"
 
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
+    /// <summary>
+    /// Raised before opening the sales order statistics page.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default statistics page.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenSalesOrderStatistics(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 #endif
+    /// <summary>
+    /// Raised before checking if the quantity to ship is zero.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record being checked.</param>
+    /// <param name="Result">The result of the check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeQtyToShipIsZero(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the document dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension display.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDocDim(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing interaction log entries.
+    /// </summary>
+    /// <param name="InteractionLogEntry">The interaction log entry record to display.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowInteractionLogEntries(var InteractionLogEntry: Record "Interaction Log Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the customer should be searched by name.
+    /// </summary>
+    /// <param name="CustomerNo">The customer number being searched.</param>
+    /// <param name="Result">The result of the search decision.</param>
+    /// <param name="IsHandled">Set to true to skip the default search logic.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the search.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShouldSearchForCustomerByName(CustomerNo: Code[20]; var Result: Boolean; var IsHandled: Boolean; var CallingFieldNo: Integer; var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring item charge assignments to temporary storage.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ItemChargeAssgntSales">The item charge assignment record.</param>
+    /// <param name="TempItemChargeAssgntSales">The temporary item charge assignment record.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferItemChargeAssgntSalesToTemp(var SalesHeader: Record "Sales Header"; var ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the currency factor.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Updated">Specifies whether the currency factor was updated.</param>
+    /// <param name="CurrencyExchangeRate">The currency exchange rate record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateCurrencyFactor(var SalesHeader: Record "Sales Header"; var Updated: Boolean; var CurrencyExchangeRate: Record "Currency Exchange Rate"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the bill-to contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="CustomerNo">The customer number.</param>
+    /// <param name="SkipBillToContact">Specifies whether to skip the bill-to contact update.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBillToCont(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; var SkipBillToContact: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sell-to email from the contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Contact">The contact record with email information.</param>
+    /// <param name="IsHandled">Set to true to skip the default email update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSellToEmail(var SalesHeader: Record "Sales Header"; Contact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the bill-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBillToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the bill-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBillToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the document date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDocumentDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the promised delivery date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePromisedDeliveryDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the location code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateLocationCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="UpdateDocumentDate">Specifies whether to update the document date.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePaymentTermsCode(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CallingFieldNo: Integer; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the return receipt number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateReturnReceiptNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the sell-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateSellToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the sell-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    /// <param name="DoExit">Specifies whether to exit after handling.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateSellToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean; var DoExit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the ship-to city.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToCity(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the ship-to post code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToPostCode(var SalesHeader: Record "Sales Header"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the VAT registration number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateVATRegistrationNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the requested delivery date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateRequestedDeliveryDate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing a message when sales lines exist and a field changes.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChangedFieldCaption">The caption of the changed field.</param>
+    /// <param name="IsHandled">Set to true to skip the default message display.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMessageIfSalesLinesExist(var SalesHeader: Record "Sales Header"; ChangedFieldCaption: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing a price message when sales lines exist.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChangedFieldCaption">The caption of the changed field.</param>
+    /// <param name="IsHandled">Set to true to skip the default message display.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePriceMessageIfSalesLinesExist(SalesHeader: Record "Sales Header"; ChangedFieldCaption: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a dimension set for prepayment account default dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension set creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimSetForPrepmtAccDefaultDim(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recreating sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRecreateSalesLines(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before handling the recreate sales lines process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="ChangedFieldName">The name of the changed field.</param>
+    /// <param name="IsHandled">Set to true to skip the default recreation handling.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRecreateSalesLinesHandler(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldName: Text[100]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before handling supplement types during sales line recreation.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default supplement type handling.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRecreateSalesLinesHandleSupplementTypes(var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales line by changed field number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record being updated.</param>
+    /// <param name="ChangedFieldNo">The number of the changed field.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineByChangedFieldNo(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ChangedFieldNo: Integer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales line during line recreation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being inserted.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineInsert(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the customer location code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default location code setting.</param>
+    /// <param name="SellToCustomer">The sell-to customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetCustomerLocationCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SellToCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default payment services.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default payment services setting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultPaymentServices(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the default salesperson.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default salesperson setting.</param>
+    /// <param name="InsertMode">Specifies whether the record is being inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultSalesperson(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; InsertMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before storing sales comment lines to temporary storage.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="IsHandled">Set to true to skip the default storage logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeStoreSalesCommentLineToTemp(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="IsHandled">Set to true to skip the default number series test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the security filter on the responsibility center.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default security filter setting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the posted documents to print created message.
+    /// </summary>
+    /// <param name="ShowPostedDocsToPrint">Specifies whether to show the posted documents to print message.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeShowPostedDocsToPrintCreatedMsg(var ShowPostedDocsToPrint: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before synchronizing for reservations.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="NewSalesLine">The new sales line record.</param>
+    /// <param name="OldSalesLine">The old sales line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default synchronization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSynchronizeForReservations(var SalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; OldSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the bill-to customer contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Conact">The contact record.</param>
+    /// <param name="IsHandled">Set to true to skip the default contact update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBillToCustContact(var SalesHeader: Record "Sales Header"; Conact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating direct debit payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default payment terms update.</param>
+    /// <param name="PaymentMethod">The payment method record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDirectDebitPmtTermsCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var PaymentMethod: Record "Payment Method")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="ContactNo">The contact number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSellToCust(var SalesHeader: Record "Sales Header"; var Contact: Record Contact; var Customer: Record Customer; ContactNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating all line dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="NewParentDimSetID">The new parent dimension set ID.</param>
+    /// <param name="OldParentDimSetID">The old parent dimension set ID.</param>
+    /// <param name="IsHandled">Set to true to skip the default dimension update.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAllLineDim(var SalesHeader: Record "Sales Header"; NewParentDimSetID: Integer; OldParentDimSetID: Integer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the location code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="LocationCode">The new location code.</param>
+    /// <param name="IsHandled">Set to true to skip the default location code update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateLocationCode(var SalesHeader: Record "Sales Header"; LocationCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the outbound warehouse handling time.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default handling time update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOutboundWhseHandlingTime(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales line amounts.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default amounts update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesLineAmounts(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales lines by field number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChangedFieldNo">The number of the changed field.</param>
+    /// <param name="AskQuestion">Specifies whether to ask the user a confirmation question.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesLinesByFieldNo(var SalesHeader: Record "Sales Header"; ChangedFieldNo: Integer; var AskQuestion: Boolean; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChangedFieldName">The name of the changed field.</param>
+    /// <param name="AskQuestion">Specifies whether to ask the user a confirmation question.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesLines(var SalesHeader: Record "Sales Header"; ChangedFieldName: Text[100]; var AskQuestion: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sell-to customer contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Conact">The contact record.</param>
+    /// <param name="IsHandled">Set to true to skip the default contact update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSellToCustContact(var SalesHeader: Record "Sales Header"; Conact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default address update.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateShipToAddress(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; CurrFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the ship-to code from the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default ship-to code update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateShipToCodeFromCust(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostingDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set on sales lines during item availability check.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckItemAvailabilityInLinesOnAfterSetFilters(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set on temporary sales lines during dimension set collection.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record with filters applied.</param>
+    /// <param name="SalesLine">The source sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCollectParamsInBufferForCreateDimSetOnAfterSetTempSalesLineFilters(var TempSalesLine: Record "Sales Line" temporary; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning the responsibility center during sell-to customer address copy.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the copy.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopySelltoCustomerAddressFieldsFromCustomerOnAfterAssignRespCenter(var SalesHeader: Record "Sales Header"; Customer: Record Customer; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning the sell-to customer address during customer address copy.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="Customer">The customer record.</param>
     [IntegrationEvent(false, false)]
     procedure OnCopySellToCustomerAddressFieldsFromCustomerOnAfterAssignSellToCustomerAddress(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating lines during dimension creation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="CurrentFieldNo">The field number that triggered the dimension creation.</param>
+    /// <param name="OldDimSetID">The old dimension set ID.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnBeforeUpdateLines(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; OldDimSetID: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales header during dimension creation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="FieldNo">The field number that triggered the dimension creation.</param>
+    /// <param name="OldDimSetID">The old dimension set ID.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnBeforeModify(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNo: Integer; OldDimSetID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating global dimensions when keeping dimensions during dimension creation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="xSalesHeader">The sales header record before modification.</param>
+    /// <param name="FieldNo">The field number that triggered the dimension creation.</param>
+    /// <param name="OldDimSetID">The old dimension set ID.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnKeepDimensionsOnAfterUpdateGlobalDim(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNo: Integer; OldDimSetID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning the type during sales line creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnAfterAssignType(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the quantity during sales line creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="ShouldValidateQuantity">Specifies whether to validate the quantity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnBeforeValidateQuantity(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var ShouldValidateQuantity: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring fields from temporary sales line during sales line creation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnBeforeTransferFieldsFromTempSalesLine(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting a line during sales lines deletion.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteSalesLinesOnBeforeDeleteLine(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the sales header is deleted during post-sales delete processing.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnAfterPostSalesDeleteDeleteHeader(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before archiving the sales document during deletion.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being deleted.</param>
+    /// <param name="xSalesHeader">The sales header record before deletion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnBeforeArchiveSalesDocument(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the number series during initialization from a contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitFromContactOnAfterInitNoSeries(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record during initialization from a contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitFromContactOnBeforeInitRecord(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the number series during initialization from a template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitFromTemplateOnAfterInitNoSeries(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record during initialization from a template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitFromTemplateOnBeforeInitRecord(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the record during insert initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The sales header record before initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitInsertOnBeforeInitRecord(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the shipment date during record initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default shipment date assignment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitRecordOnBeforeAssignShipmentDate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the order date during record initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="NewOrderDate">The new order date to be assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitRecordOnBeforeAssignOrderDate(var SalesHeader: Record "Sales Header"; var NewOrderDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a temporary sales line during buffer insertion.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record being inserted.</param>
+    /// <param name="SalesLine">The source sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertTempSalesLineInBufferOnBeforeTempSalesLineInsert(var TempSalesLine: Record "Sales Line" temporary; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the bill-to customer on a sales quote.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Contact">The contact record associated with the bill-to customer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBillToCustOnAfterSalesQuote(var SalesHeader: Record "Sales Header"; Contact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recreating sales lines when validating the bill-to customer template code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBilltoCustomerTemplCodeOnBeforeRecreateSalesLines(var SalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recreating sales lines when validating the responsibility center.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateResponsibilityCenterOnBeforeRecreateSalesLines(var SalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initialization when validating the sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoAfterInit(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to skip the confirm sell-to customer dialog during sell-to customer number validation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="ShouldSkipConfirmSellToCustomerDialog">Set to true to skip the confirmation dialog.</param>
+    /// <param name="ConfirmedShouldBeFalse">Set to true to indicate that the confirmed result should be false.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnAfterCalcShouldSkipConfirmSellToCustomerDialog(var SalesHeader: Record "Sales Header"; var ShouldSkipConfirmSellToCustomerDialog: Boolean; var ConfirmedShouldBeFalse: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to update the opportunity when validating the sell-to contact number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="ShouldUpdateOpportunity">Set to true to update the related opportunity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSelltoContactNoOnAfterCalcShouldUpdateOpportunity(var SalesHeader: Record "Sales Header"; var ShouldUpdateOpportunity: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing the quantity shipped field on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record that was tested.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestQuantityShippedField(SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing sales line fields before recreating lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
+    /// <param name="SalesLine">The sales line record being tested.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLineFieldsBeforeRecreate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the quantity shipped field on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being tested.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestQuantityShippedField(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
 #if not CLEAN26
+    /// <summary>
+    /// Raised before opening document statistics.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default statistics opening logic.</param>
     [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenDocumentStatistics(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 #endif
+    /// <summary>
+    /// Raised after preparing to open document statistics.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPrepareOpeningDocumentStatistics(var SalesHeader: Record "Sales Header")
     begin
     end;
 
 #if not CLEAN26
+    /// <summary>
+    /// Raised to get the statistics page ID for a sales header.
+    /// </summary>
+    /// <param name="PageID">The page ID to use for statistics.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetStatisticsPageID(var PageID: Integer; SalesHeader: Record "Sales Header")
     begin
     end;
 #endif
+    /// <summary>
+    /// Raised before testing if the status is open.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the test.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeTestStatusOpen(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing if the status is open.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was tested.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterTestStatusOpen(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the bill-to contact from customer and contact records.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="Contact">The contact record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateBillToCont(var SalesHeader: Record "Sales Header"; Customer: Record Customer; Contact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the bill-to customer from a contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Contact">The contact record used to update the bill-to customer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateBillToCust(var SalesHeader: Record "Sales Header"; Contact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the sell-to contact from customer and contact records.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="HideValidationDialog">Indicates whether validation dialogs should be hidden.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSellToCont(var SalesHeader: Record "Sales Header"; Customer: Record Customer; Contact: Record Contact; HideValidationDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the sell-to customer from a contact.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Contact">The contact record used to update the sell-to customer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSellToCust(var SalesHeader: Record "Sales Header"; Contact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record whose lines were updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesLines(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the company bank account.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCompanyBankAccount(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the applies-to document number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry to apply.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAppliesToDocNo(var SalesHeader: Record "Sales Header"; var CustLedgEntry: Record "Cust. Ledger Entry"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the bill-to customer name.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Customer">The customer record to validate against.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBillToCustomerName(var SalesHeader: Record "Sales Header"; var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the sell-to customer name.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Customer">The customer record to validate against.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateSellToCustomerName(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a shortcut dimension code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="FieldNumber">The field number of the shortcut dimension being validated.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code value.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales header when linking a sales document with an opportunity.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being linked.</param>
+    /// <param name="OldOpportunityNo">The previous opportunity number.</param>
+    /// <param name="Opportunity">The opportunity record being linked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLinkSalesDocWithOpportunityOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; OldOpportunityNo: Code[20]; Opportunity: Record Opportunity)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting sales line filters during sales line recreation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnAfterSetSalesLineFilters(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the recreation of sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="ChangedFieldName">The name of the field that was changed.</param>
+    /// <param name="HideValidationDialog">Indicates whether validation dialogs should be hidden.</param>
+    /// <param name="Confirmed">The confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnBeforeConfirm(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldName: Text[100]; HideValidationDialog: Boolean; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting all sales lines during recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record to be deleted.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default delete logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnBeforeSalesLineDeleteAll(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after processing temporary sales lines during recreation.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record that was processed.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="ChangedFieldName">The name of the field that was changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnAfterProcessTempSalesLines(var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Raised after the loop during reservation entry and requisition line recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateReservEntryReqLineOnAfterLoop(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to validate the location code during reservation entry recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="SalesLine">The sales line record being processed.</param>
+    /// <param name="ShouldValidateLocationCode">Set to true to validate the location code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateReservEntryReqLineOnAfterCalcShouldValidateLocationCode(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ShouldValidateLocationCode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to create a sales line when handling supplement types during recreation.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record.</param>
+    /// <param name="ShouldCreateSalsesLine">Set to true to create the sales line.</param>
+    /// <param name="SalesLine">The sales line record being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesHandleSupplementTypesOnAfterCalcShouldCreateSalsesLine(var TempSalesLine: Record "Sales Line"; var ShouldCreateSalsesLine: Boolean; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning the bill-to customer address from the customer record.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Customer">The customer record used as the source.</param>
     [IntegrationEvent(false, false)]
     procedure OnSetBillToCustomerAddressFieldsFromCustomerOnAfterAssignBillToCustomerAddress(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to copy location code and salesperson code from ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="ShouldCopyLocationCode">Set to true to copy the location code.</param>
+    /// <param name="ShouldCopySalespersonCode">Set to true to copy the salesperson code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetShipToCustomerAddressFieldsFromShipToAddrOnAfterCalcShouldCopyLocationCode(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ShipToAddress: Record "Ship-to Address"; var ShouldCopyLocationCode: Boolean; var ShouldCopySalespersonCode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised to test if the status is not pending approval.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="NotPending">Set to true if the status is not pending approval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestStatusIsNotPendingApproval(SalesHeader: Record "Sales Header"; var NotPending: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised to test if the status is not pending prepayment.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="NotPending">Set to true if the status is not pending prepayment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestStatusIsNotPendingPrepayment(SalesHeader: Record "Sales Header"; var NotPending: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised to test if the status is not released.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
+    /// <param name="NotReleased">Set to true if the status is not released.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestStatusIsNotReleased(SalesHeader: Record "Sales Header"; var NotReleased: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after modifying a sales line when updating all line dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record that was modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllLineDimOnAfterSalesLineModify(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a sales line when updating all line dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being modified.</param>
+    /// <param name="xSalesLine">The previous version of the sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllLineDimOnBeforeSalesLineModify(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a sales line when updating sales lines by field number.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being modified.</param>
+    /// <param name="ChangedFieldNo">The field number that was changed.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLinesByFieldNoOnBeforeSalesLineModify(var SalesLine: Record "Sales Line"; ChangedFieldNo: Integer; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to confirm a reservation date conflict when updating sales lines by field number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChangedFieldNo">The field number that was changed.</param>
+    /// <param name="ShouldConfirmReservationDateConflict">Set to true to confirm the reservation date conflict.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLinesByFieldNoOnAfterCalcShouldConfirmReservationDateConflict(var SalesHeader: Record "Sales Header"; ChangedFieldNo: Integer; var ShouldConfirmReservationDateConflict: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying an error that the contact is not related to any customer when updating bill-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="ContactBusinessRelation">The contact business relation record.</param>
+    /// <param name="IsHandled">Set to true to skip the default error logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBillToCustOnBeforeContactIsNotRelatedToAnyCostomerErr(var SalesHeader: Record "Sales Header"; Contact: Record Contact; var ContactBusinessRelation: Record "Contact Business Relation"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the contact business relation when updating bill-to customer.
+    /// </summary>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="ContBusinessRelation">The contact business relation record to find.</param>
+    /// <param name="ContactBusinessRelationFound">Indicates whether the contact business relation was found.</param>
+    /// <param name="IsHandled">Set to true to skip the default find logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBillToCustOnBeforeFindContactBusinessRelation(Contact: Record Contact; var ContBusinessRelation: Record "Contact Business Relation"; var ContactBusinessRelationFound: Boolean; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the sales header from a search contact when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="SearchContact">The search contact record used as the source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnAfterSetFromSearchContact(var SalesHeader: Record "Sales Header"; var SearchContact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the ship-to address when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="SearchContact">The search contact record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnAfterSetShipToAddress(var SalesHeader: Record "Sales Header"; var SearchContact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the sell-to contact number when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="Cont">The contact record.</param>
+    /// <param name="IsHandled">Set to true to indicate custom handling was performed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnAfterSetSellToContactNo(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var Cont: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying an error that the contact is not related to any customer when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="ContactBusinessRelation">The contact business relation record.</param>
+    /// <param name="IsHandled">Set to true to skip the default error logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnBeforeContactIsNotRelatedToAnyCostomerErr(var SalesHeader: Record "Sales Header"; Contact: Record Contact; var ContactBusinessRelation: Record "Contact Business Relation"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the contact business relation when updating sell-to customer.
+    /// </summary>
+    /// <param name="Cont">The contact record.</param>
+    /// <param name="ContBusinessRelation">The contact business relation record to find.</param>
+    /// <param name="ContactBusinessRelationFound">Indicates whether the contact business relation was found.</param>
+    /// <param name="IsHandled">Set to true to skip the default find logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnBeforeFindContactBusinessRelation(Cont: Record Contact; var ContBusinessRelation: Record "Contact Business Relation"; var ContactBusinessRelationFound: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after confirming the bill-to customer number change.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBillToCustomerNoOnAfterConfirmed(var SalesHeader: Record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the due date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CalledByFieldNo">The field number that called the validation.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeCalcDueDate(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CalledByFieldNo: Integer; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the payment discount date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CalledByFieldNo">The field number that called the validation.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CalledByFieldNo: Integer; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the due date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the due date when payment terms code is blank.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDateWhenBlank(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the document date when validating posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default assignment logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingDateOnBeforeAssignDocumentDate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before resetting the invoice discount value when validating posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingDateOnBeforeResetInvoiceDiscountValue(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the currency factor needs to be updated when validating posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsConfirmed">The confirmation result for updating the currency factor.</param>
+    /// <param name="NeedUpdateCurrencyFactor">Indicates whether the currency factor needs to be updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingDateOnBeforeCheckNeedUpdateCurrencyFactor(var SalesHeader: Record "Sales Header"; var IsConfirmed: Boolean; var NeedUpdateCurrencyFactor: Boolean; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the prepayment due date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePrepaymentDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a sales line when validating prices including VAT.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="SalesLine">The sales line record being modified.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="RecalculatePrice">Indicates whether the price should be recalculated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePricesIncludingVATOnBeforeSalesLineModify(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; Currency: Record Currency; RecalculatePrice: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating lines when validating shipping agent code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="HideValidationDialog">Indicates whether validation dialogs should be hidden.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateShippingAgentCodeOnBeforeUpdateLines(var SalesHeader: Record "Sales Header"; CallingFieldNo: Integer; HideValidationDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the full document type text.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="FullDocTypeTxt">The full document type text to return.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetFullDocTypeTxt(var SalesHeader: Record "Sales Header"; var FullDocTypeTxt: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a temporary sales line in the buffer when collecting parameters for creating a dimension set.
+    /// </summary>
+    /// <param name="GenPostingSetup">The general posting setup record.</param>
+    /// <param name="DefaultDimension">The default dimension record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCollectParamsInBufferForCreateDimSetOnBeforeInsertTempSalesLineInBuffer(var GenPostingSetup: Record "General Posting Setup"; var DefaultDimension: Record "Default Dimension")
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying a document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default copy logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyDocument(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the bill-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="ContactNo">The contact number to use for the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBillToCust(var SalesHeader: Record "Sales Header"; ContactNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the temporary sales line set during recreation.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnBeforeTempSalesLineFindSet(var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if a contact is related to a customer company.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="ContactNo">The contact number to check.</param>
+    /// <param name="CustomerNo">The customer number to check against.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckContactRelatedToCustomerCompany(SalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var IsHandled: Boolean; ContactNo: Code[20]; CustomerNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the modify address notification.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default notification logic.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="CustomerNumber">The customer number for the notification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowModifyAddressNotification(var IsHandled: Boolean; SalesHeader: Record "Sales Header"; CustomerNumber: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales lines when showing document dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowDocDimOnBeforeUpdateSalesLines(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming price recalculation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="Result">The confirmation result.</param>
+    /// <param name="HideValidationDialog">Indicates whether validation dialogs should be hidden.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmRecalculatePrice(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var Result: Boolean; var HideValidationDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting a new dimension set ID for a sales line when updating all line dimensions.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being updated.</param>
+    /// <param name="NewParentDimSetID">The new parent dimension set ID.</param>
+    /// <param name="OldParentDimSetID">The old parent dimension set ID.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllLineDimOnBeforeGetSalesLineNewDimSetID(var SalesLine: Record "Sales Line"; NewParentDimSetID: Integer; OldParentDimSetID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting a new dimension set ID for a sales line when updating all line dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="SalesLine">The sales line record being updated.</param>
+    /// <param name="NewDimSetID">The new dimension set ID.</param>
+    /// <param name="NewParentDimSetID">The new parent dimension set ID.</param>
+    /// <param name="OldParentDimSetID">The old parent dimension set ID.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllLineDimOnAfterGetSalesLineNewDimsetID(SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var NewDimSetID: Integer; NewParentDimSetID: Integer; OldParentDimSetID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipping number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShippingNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before renaming the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being renamed.</param>
+    /// <param name="IsHandled">Set to true to skip the default rename logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRename(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the bill-to contact number.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeLookupBillToContactNo(var IsHandled: Boolean; var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the opportunity.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateOpportunity(var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the promised delivery date.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckPromisedDeliveryDate(var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the ship-to address from the sell-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="FieldNumber">The field number triggering the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateShipToAddressFromSellToAddress(var SalesHeader: Record "Sales Header"; FieldNumber: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the ship-to salesperson code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateShipToSalespersonCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the salesperson code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="SalesPersonCodeToCheck">The salesperson code to check.</param>
+    /// <param name="SalesPersonCodeToAssign">The salesperson code to assign.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSalespersonCode(var SalesHeader: Record "Sales Header"; SalesPersonCodeToCheck: Code[20]; var SalesPersonCodeToAssign: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
 #if not CLEAN26
+    /// <summary>
+    /// Raised when the ship-to salesperson code is not assigned.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     [Obsolete('This event is obsolete. Use OnBeforeUpdateShipToSalespersonCode instead.', '26.0')]
     local procedure OnUpdateShiptoSalespersonCodeNotAssigned(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 #endif
+    /// <summary>
+    /// Raised after updating the ship-to address from the sell-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="FieldNumber">The field number that triggered the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateShipToAddressFromSellToAddress(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNumber: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the ship-to code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="Cust">The customer record.</param>
+    /// <param name="ShipToAddr">The ship-to address record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToCode(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; Cust: Record Customer; ShipToAddr: Record "Ship-to Address"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer is blocked on documents when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Cust">The customer record to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeCheckBlockedCustOnDocs(var SalesHeader: Record "Sales Header"; var Cust: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer is blocked on documents when validating bill-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Cust">The customer record to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var SalesHeader: Record "Sales Header"; var Cust: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting bill-to customer address fields from the customer record.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="BillToCustomer">The bill-to customer record.</param>
+    /// <param name="SkipBillToContact">Set to true to skip updating the bill-to contact.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="GLSetup">The general ledger setup record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetBillToCustomerAddressFieldsFromCustomer(var SalesHeader: Record "Sales Header"; var BillToCustomer: Record Customer; var SkipBillToContact: Boolean; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; var GLSetup: Record "General Ledger Setup"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recalling the modify address notification when validating bill-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBillToCustomerNoOnBeforeRecallModifyAddressNotification(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
 #if not CLEAN27
+    /// <summary>
+    /// Raised before validating the bill-to name.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [Obsolete('This event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBillToName(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
     begin
     end;
 #endif
+    /// <summary>
+    /// Raised before validating tax liable when validating the ship-to code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateShipToCodeOnBeforeValidateTaxLiable(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying the ship-to address when validating the ship-to code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CopyShipToAddress">Set to true to copy the ship-to address.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateShipToCodeOnBeforeCopyShipToAddress(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; var CopyShipToAddress: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipment method code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipmentMethodCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipping agent code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShippingAgentCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the work date to the posting date during record initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default assignment logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitRecordOnBeforeAssignWorkDateToPostingDate(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the bill-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="Cust">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetBillToCustomerNo(var SalesHeader: Record "Sales Header"; var Cust: Record Customer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; var CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipping agent service code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShippingAgentServiceCode(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CalledByFieldNo">The field number that called the validation.</param>
+    /// <param name="CallingFieldNo">The field number that triggered the validation.</param>
+    /// <param name="UpdateDocumentDate">Indicates whether the document date should be updated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtPaymentTermsCode(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CalledByFieldNo: Integer; CallingFieldNo: Integer; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after recreating sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record whose lines were recreated.</param>
+    /// <param name="ChangedFieldName">The name of the field that was changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecreateSalesLines(var SalesHeader: Record "Sales Header"; ChangedFieldName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the sell-to customer from a filter.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetSellToCustomerFromFilter(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the invoice discount for the header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcInvDiscForHeader(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if dimensions could be kept.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="Result">The result indicating whether dimensions could be kept.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCouldDimensionsBeKept(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the bill-to customer change.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="Confirmed">The confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmBillToCustomerChange(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recalling the modify address notification when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeRecallModifyAddressNotification(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the sales header case during credit max check before insert.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record to check.</param>
+    /// <param name="Rec">The sales header record being inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCreditMaxBeforeInsertOnCaseIfOnBeforeSalesHeaderCheckCase(var SalesHeader: Record "Sales Header"; Rec: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after confirming the customer creation process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustomerCreatedOnAfterConfirmProcess(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment due date in the else case of prepayment payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrepmtPaymentTermsCodeOnCaseElseOnBeforeValidatePrepaymentDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment due date in the if case when validating prepayment payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePrepmtPaymentTermsCodeOnCaseIfOnBeforeValidatePrepaymentDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after handling supplement types during sales lines recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecreateSalesLinesHandleSupplementTypes(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the posting number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitPostingNoSeries(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing from the bill-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="BillToCustTemplate">The bill-to customer template record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitFromBillToCustTemplate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var BillToCustTemplate: Record "Customer Templ.")
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying from a new sell-to customer template.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="SellToCustTemplate">The sell-to customer template record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyFromNewSellToCustTemplate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var SellToCustTemplate: Record "Customer Templ.")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the customer address.
+    /// </summary>
+    /// <param name="Rec">The sales header record.</param>
+    /// <param name="xRec">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyCustomerAddress(var Rec: Record "Sales Header"; var xRec: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the address should be copied from the bill-to customer.
+    /// </summary>
+    /// <param name="BillToCustomer">The bill-to customer record.</param>
+    /// <param name="Rec">The sales header record.</param>
+    /// <param name="xRec">The previous version of the sales header record.</param>
+    /// <param name="Result">The result indicating whether to copy the address.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShouldCopyAddressFromBillToCustomer(BillToCustomer: Record Customer; Rec: Record "Sales Header"; xRec: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the bill-to customer is replaced.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="Result">The result indicating whether the bill-to customer was replaced.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBillToCustomerIsReplaced(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding a sales line during recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record that was found.</param>
+    /// <param name="ChangedFieldName">The name of the field that was changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnAfterFindSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ChangedFieldName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the responsibility center when copying sell-to customer address fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="SellToCustomer">The sell-to customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default assignment logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopySelltoCustomerAddressFieldsFromCustomerOnBeforeAssignRespCenter(var SalesHeader: Record "Sales Header"; var SellToCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the external document number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateExternalDocumentNo(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if the currency factor needs to be updated when validating posting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="NeedUpdateCurrencyFactor">Indicates whether the currency factor needs to be updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingDateOnAfterCheckNeedUpdateCurrencyFactor(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var NeedUpdateCurrencyFactor: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the customer when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeGetCust(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the responsibility center during record initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default assignment logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitRecordOnBeforeAssignResponsibilityCenter(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the location code when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Cust">The customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="LocationCode">The location code to validate.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeValidateLocationCode(var SalesHeader: Record "Sales Header"; var Cust: Record Customer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header"; var LocationCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the IC direction when validating send IC document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSendICDocumentOnBeforeCheckICDirection(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting posted document lines to reverse.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPstdDocLinesToReverse(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating shipping agent fields when copying ship-to customer address fields from customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="SellToCustomer">The sell-to customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyShipToCustomerAddressFieldsFromCustOnBeforeValidateShippingAgentFields(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; SellToCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating shipping agent fields when setting ship-to customer address fields from ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="ShipToAddr">The ship-to address record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetShipToCustomerAddressFieldsFromShipToAddrOnBeforeValidateShippingAgentFields(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ShipToAddr: Record "Ship-to Address"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the next archive document occurrence number during record initialization.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being initialized.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitRecordOnBeforeGetNextArchiveDocOccurrenceNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying reservation entries from temporary records during sales lines recreation.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="TempSalesLine">The temporary sales line record.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="ChangedFieldName">The name of the field that was changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesOnBeforeCopyReservEntryFromTemp(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer posting group has changed.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerPostingGroupChange(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the payment discount when payment terms code is blank.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaymentTermsCodeOnAfterValidatePaymentDiscountWhenBlank(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting sales line filters when updating sales line amounts.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLineAmountsOnAfterSalesLineSetFilters(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised for the else case of document type when looking up adjustment value entries.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="QtyType">The quantity type (General or Invoicing).</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupAdjmtValueEntriesCaseDocumentTypeElse(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; QtyType: Option General,Invoicing);
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if sales lines exist.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="Result">The result indicating whether sales lines exist.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLinesExist(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the VAT base discount percentage.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateVATBaseDiscountPct(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the first sales line when validating prices including VAT.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePricesIncludingVATOnBeforeSalesLineFindFirst(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the payment method code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="PaymentMethod">The payment method record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePaymentMethodCode(var SalesHeader: Record "Sales Header"; PaymentMethod: Record "Payment Method"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the OnInsert trigger.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being inserted.</param>
+    /// <param name="IsHandled">Set to true to skip the default insert logic.</param>
+    /// <param name="InsertMode">Indicates the insert mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnInsert(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var InsertMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sell-to contact when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="SellToCustomer">The sell-to customer record.</param>
+    /// <param name="SkipSellToContact">Set to true to skip updating the sell-to contact.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeUpdateSellToCont(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; SellToCustomer: Record Customer; var SkipSellToContact: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters when checking if deferral headers exist.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="DeferralHeader">The deferral header record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeferralHeadersExistOnAfterSetFilters(var SalesHeader: Record "Sales Header"; var DeferralHeader: Record "Deferral Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the location when copying sell-to customer address fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="SellToCustomer">The sell-to customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopySellToCustomerAddressFieldsFromCustomerOnBeforeUpdateLocation(var SalesHeader: Record "Sales Header"; var SellToCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the VAT date when validating VAT reporting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATReportingDateOnBeforeInitVATDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales header when showing document dimensions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowDocDimOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions on a temporary sales line for prepayment account default dimensions.
+    /// </summary>
+    /// <param name="DefaultDimSource">The default dimension source list.</param>
+    /// <param name="SalesLine">The sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimSetForPrepmtAccDefaultDimOnBeforeTempSalesLineCreateDim(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing default dimension sources.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="DefaultDimSource">The default dimension source list to initialize.</param>
+    /// <param name="FieldNo">The field number triggering the initialization.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitDefaultDimensionSources(var SalesHeader: Record "Sales Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised before validating the salesperson code when validating sell-to contact number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSelltoContactNoOnBeforeValidateSalespersonCode(var SalesHeader: Record "Sales Header"; Contact: Record Contact; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the status when creating inventory put-away or pick.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being tested.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateInvtPutAwayPickOnBeforeTestingStatus(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting when sending to posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendToPostingOnAfterPost(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item availability in lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemAvailabilityInLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing status open when validating sell-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip further processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnAfterTestStatusOpen(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if bill-to customer number changed when validating bill-to customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip further processing.</param>
+    /// <param name="IsHandledDoExist">Set to true to indicate that the do exist check was handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBillToCustomerNoOnAfterCheckBilltoCustomerNoChanged(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var IsHandled: Boolean; var IsHandledDoExist: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if contact is privacy blocked when validating sell-to contact number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip further processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToContactNoOnAfterContCheckIfPrivacyBlockedGeneric(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating a sales line when handling supplement types during recreation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record that was created.</param>
+    /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesHandleSupplementTypesOnAfterCreateSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised when confirming close unposted and sales lines exist.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Result">The result indicating whether to proceed with closing.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmCloseUnpostedOnSalesLinesExist(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before resetting the invoice discount value.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default reset logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeResetInvoiceDiscountValue(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before assigning the type when creating a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnBeforeAssignType(var SalesLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipment date when creating a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnBeforeValidateShipmentDate(var SalesLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the drop shipment flag when creating a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record being created.</param>
+    /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnBeforeSetDropShipment(var SalesLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the number field when creating a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record that was created.</param>
+    /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLineOnAfterValidateNo(var SalesLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the customer creation process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Prompt">Indicates whether to prompt the user.</param>
+    /// <param name="Result">The result of the check.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustomerCreatedOnBeforeConfirmProcess(SalesHeader: Record "Sales Header"; var Prompt: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the deferral date update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmUpdateDeferralDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the company bank account.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetCompanyBankAccount(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding the contact business relation when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="ContactBusinessRelation">The contact business relation record that was found.</param>
+    /// <param name="ContactBusinessRelationFound">Indicates whether the contact business relation was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnAfterFindContactBusinessRelation(SalesHeader: Record "Sales Header"; Contact: Record Contact; var ContactBusinessRelation: Record "Contact Business Relation"; var ContactBusinessRelationFound: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding the contact business relation when updating bill-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Contact">The contact record.</param>
+    /// <param name="ContactBusinessRelation">The contact business relation record that was found.</param>
+    /// <param name="ContactBusinessRelationFound">Indicates whether the contact business relation was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBillToCustOnAfterFindContactBusinessRelation(SalesHeader: Record "Sales Header"; Contact: Record Contact; var ContactBusinessRelation: Record "Contact Business Relation"; var ContactBusinessRelationFound: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning the address from sell-to customer when copying ship-to customer address fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was updated.</param>
+    /// <param name="SellToCustomer">The sell-to customer record used as source.</param>
     [IntegrationEvent(false, false)]
     procedure OnCopyShipToCustomerAddressFieldsFromCustOnAfterAssignAddressFromSellToCustomer(var SalesHeader: Record "Sales Header"; SellToCustomer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales header has a sell-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Result">The result indicating whether the sales header has a sell-to address.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHasSellToAddress(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales header has a ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Result">The result indicating whether the sales header has a ship-to address.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHasShipToAddress(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales header has a bill-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Result">The result indicating whether the sales header has a bill-to address.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHasBillToAddress(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the ship-to address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetShipToAddress(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the shipment date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipmentDate(var SalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the payment discount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePaymentDiscount(var SalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales order lines if they exist.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLineIfExist(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before linking a sales document with an opportunity.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being linked.</param>
+    /// <param name="OldOpportunityNo">The old opportunity number.</param>
+    /// <param name="IsHandled">Set to true to skip the default link logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLinkSalesDocWithOpportunity(var SalesHeader: Record "Sales Header"; OldOpportunityNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the VAT reporting date.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="CalledByFieldNo">The field number that called the update.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateVATReportingDate(var SalesHeader: Record "Sales Header"; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending the document to posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being posted.</param>
+    /// <param name="IsSuccess">Indicates whether the posting was successful.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="PostingCodeunitID">The codeunit ID used for posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendToPosting(var SalesHeader: Record "Sales Header"; var IsSuccess: Boolean; var IsHandled: Boolean; PostingCodeunitID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the bill-to contact number when updating sell-to customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSellToCustOnBeforeValidateBillToContactNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before performing a manual release.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being released.</param>
+    /// <param name="IsHandled">Set to true to skip the default release logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePerformManualRelease(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
 #if not CLEAN27
+    /// <summary>
+    /// Raised before checking if the document is not fully cancelled.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header record.</param>
+    /// <param name="Result">The result indicating whether the document is not fully cancelled.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [Obsolete('Removed Not used anymore.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsNotFullyCancelled(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var Result: Boolean; var IsHandled: Boolean)
@@ -11162,31 +13937,63 @@ table 36 "Sales Header"
     end;
 #endif
 
+    /// <summary>
+    /// Raised after the credit limit check.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was checked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCreditLimitOnAfterCreditLimitCheck(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions from default dimensions.
+    /// </summary>
+    /// <param name="Rec">The sales header record.</param>
+    /// <param name="FieldNo">The field number triggering the dimension creation.</param>
+    /// <param name="IsHandled">Set to true to skip the default creation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimFromDefaultDim(var Rec: Record "Sales Header"; FieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the customer discount group.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCustomerDiscGroup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the work description.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="NewWorkDescription">The new work description text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetWorkDescription(var SalesHeader: Record "Sales Header"; var NewWorkDescription: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the prepayment credit memo number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupPrepmtCrMemoNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment credit memo number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtCrMemoNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -11194,6 +14001,10 @@ table 36 "Sales Header"
 
 
 #if not CLEAN27
+    /// <summary>
+    /// Raised after setting sales line filters when calculating outstanding quantity base.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
     [Obsolete('Not used anymore due to new implementation that uses Query. Replaced by OnBeforeCalculateReservableOutstandingQuantityBase.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCalcOutstandingQuantityBaseOnAfterSalesLineSetFilters(var SalesLine: Record "Sales Line")
@@ -11201,41 +14012,83 @@ table 36 "Sales Header"
     end;
 #endif
 
+    /// <summary>
+    /// Raised before calculating the reservable outstanding quantity base.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
+    /// <param name="OutstandingQtyBase">The outstanding quantity base to calculate.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateReservableOutstandingQuantityBase(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var OutstandingQtyBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the bill-to customer address.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
+    /// <param name="IsHandled">Set to true to skip the default modification logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyBillToCustomerAddress(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the applies-to document number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry that was applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateAppliesToDocNo(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the prepayment number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupPrepmtNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the prepayment number series.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the sell-to customer filter when copying.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SellToCustomerFilter">The sell-to customer filter text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopySellToCustomerFilterOnAfterGetSellToCustomerFilter(var SalesHeader: Record "Sales Header"; var SellToCustomerFilter: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the sell-to customer from a filter.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSellToCustomerFromFilter(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before selecting a customer when looking up sell-to customer name.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Customer">The customer record to select.</param>
+    /// <param name="CustomerName">The customer name text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupSellToCustomerNameOnBeforeSelectCustomer(SalesHeader: Record "Sales Header"; var Customer: Record Customer; var CustomerName: Text)
     begin

@@ -161,6 +161,7 @@ table 15000003 "Remittance Account"
         }
         field(47; "Futures Contract Exch. Rate"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Futures Contract Exch. Rate';
             DecimalPlaces = 5 : 5;
@@ -205,6 +206,8 @@ table 15000003 "Remittance Account"
         }
         field(56; "Max. Round off/Diverg. (LCY)"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Max. Round off/Diverg. (LCY)';
         }
     }

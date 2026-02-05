@@ -4,27 +4,45 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Stores execution history records for reminder automation group runs including status and timing.
+/// </summary>
 table 6753 "Reminder Action Group Log"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique auto-incrementing identifier for this automation run.
+        /// </summary>
         field(1; "Run Id"; Integer)
         {
             AutoIncrement = true;
         }
+        /// <summary>
+        /// Specifies the reminder action group that was executed.
+        /// </summary>
         field(3; "Reminder Action Group ID"; Code[50])
         {
         }
+        /// <summary>
+        /// Specifies the current status of the automation run: running, completed, or failed.
+        /// </summary>
         field(10; Status; Enum "Reminder Log Status")
         {
         }
+        /// <summary>
+        /// Specifies the identifier of the last step that was processed in this run.
+        /// </summary>
         field(11; "Last Step ID"; Integer)
         {
         }
 #if not CLEAN26
 #pragma warning disable AA0232
+        /// <summary>
+        /// Contains the total number of errors encountered during this automation run.
+        /// </summary>
         field(15; "Number of Errors"; Integer)
 #pragma warning restore AA0232
         {
@@ -38,9 +56,15 @@ table 6753 "Reminder Action Group Log"
             Editable = false;
         }
 #endif
+        /// <summary>
+        /// Specifies the date and time when the automation run started.
+        /// </summary>
         field(16; "Started On"; DateTime)
         {
         }
+        /// <summary>
+        /// Specifies the date and time when the automation run completed.
+        /// </summary>
         field(17; "Completed On"; DateTime)
         {
         }

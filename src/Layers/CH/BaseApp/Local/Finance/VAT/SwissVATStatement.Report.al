@@ -645,6 +645,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(NormalRatePct; NormalRateCur)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Normal Rate %';
@@ -654,6 +655,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(ReducedRatePct; ReducedRateCur)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Reduced Rate %';
@@ -663,6 +665,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(HotelRatePct; HotelRateCur)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Hotel Rate %';
@@ -672,6 +675,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(NormalRateOldPct; NormalRateOld)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Normal (Earlier Rate) %';
@@ -681,6 +685,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(ReducedRateOldPct; ReducedRateOld)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Reduced (Earlier Rate) %';
@@ -690,6 +695,7 @@ report 26100 "Swiss VAT Statement"
                     }
                     field(HotelRateOldPct; HotelRateOld)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Hotel (Earlier Rate) %';

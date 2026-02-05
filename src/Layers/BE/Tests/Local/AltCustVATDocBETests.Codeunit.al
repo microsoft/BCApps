@@ -22,6 +22,7 @@ codeunit 144007 "Alt. Cust. VAT Doc. BE Tests"
         EnterpriseNoTakenFromCustomerMsg: Label 'The following fields have been updated from the customer card: Enterprise No.', Comment = '%1 = list of the fields';
         AddAlternativeCustVATRegQst: Label 'The VAT country is different than the customer''s. Do you want to add an alternative VAT registration for this VAT country?';
         ShipToAddAlternativeCustVATRegQst: Label 'The country for the address is different than the customer''s. Do you want to add an alternative VAT registration for the customer?';
+        VATRegistrationNoErr: Label 'VAT Registration No. should be %1 in %2.', Comment = '%1= Field Value, %2= Table Caption';
 
     [Test]
     [HandlerFunctions('NoNotificationOtherThanShipToAddressSendNotificationHandler')]
@@ -591,6 +592,52 @@ codeunit 144007 "Alt. Cust. VAT Doc. BE Tests"
         VerifyVATRegDataInSalesHeader(SalesHeader, '', AltCustVATReg."VAT Registration No.");
         // [THEN] Sales order does not have "Alt. Enterprise No."
         VerifySalesDocAltVATReg(SalesHeader, false);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    [HandlerFunctions('NoNotificationOtherThanShipToAddressSendNotificationHandler')]
+    procedure GetCustomerVATRegistrationNumberForPostedInvoiceUsesVATCountryCode()
+    var
+        ShipToAddress: Record "Ship-to Address";
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATRegNo: Text;
+    begin
+        // [SCENARIO 615534] GetCustomerVATRegistrationNumber returns VAT Registration No. for posted invoice when VAT Country/Region Code is set to foreign country.
+        Initialize();
+
+        // [GIVEN] Create a Belgian Customer.
+        LibraryBEHelper.CreateDomesticCustomer(Customer);
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddSalesDocsCreate();
+        LibraryLowerPermissions.AddSalesDocsPost();
+
+        // [GIVEN] Ship-To Address with foreign country.
+        CreateShipToAddressWithForeignCountryCode(ShipToAddress, Customer."No.");
+
+        // [GIVEN] Alternative Customer VAT Reg. with foreign country, "VAT Registration No.".
+        CreateAlternativeCustVATRegWithVATRegNo(AltCustVATReg, Customer."No.", ShipToAddress."Country/Region Code");
+
+        // [GIVEN] Posted sales invoice for the Belgian customer with the foreign ship-to address.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Modify(true);
+
+        // [WHEN] GetCustomerVATRegistrationNumber is called on posted invoice
+        VATRegNo := SalesHeader.GetCustomerVATRegistrationNumber();
+
+        // [THEN] VAT Registration No. is returned (not Enterprise No.)
+        Assert.AreEqual(
+            AltCustVATReg."VAT Registration No.",
+            VATRegNo,
+            StrSubstNo(
+                VATRegistrationNoErr,
+                AltCustVATReg."VAT Registration No.",
+                SalesInvoiceHeader.TableCaption()));
+
         LibraryLowerPermissions.SetOutsideO365Scope();
     end;
 

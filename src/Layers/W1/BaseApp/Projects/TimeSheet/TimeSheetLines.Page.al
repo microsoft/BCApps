@@ -122,6 +122,7 @@ page 949 "Time Sheet Lines"
                 field(Field1; CellData[1])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[1];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -131,6 +132,7 @@ page 949 "Time Sheet Lines"
                 field(Field2; CellData[2])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[2];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -140,6 +142,7 @@ page 949 "Time Sheet Lines"
                 field(Field3; CellData[3])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[3];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -149,6 +152,7 @@ page 949 "Time Sheet Lines"
                 field(Field4; CellData[4])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[4];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -158,6 +162,7 @@ page 949 "Time Sheet Lines"
                 field(Field5; CellData[5])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[5];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -167,6 +172,7 @@ page 949 "Time Sheet Lines"
                 field(Field6; CellData[6])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[6];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -176,6 +182,7 @@ page 949 "Time Sheet Lines"
                 field(Field7; CellData[7])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[7];
                     ToolTip = 'Specifies the number of hours registered for this day.';
@@ -185,6 +192,7 @@ page 949 "Time Sheet Lines"
                 field("Total Quantity"; LineTotal)
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = 'Total';
                     Editable = false;
                     ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';

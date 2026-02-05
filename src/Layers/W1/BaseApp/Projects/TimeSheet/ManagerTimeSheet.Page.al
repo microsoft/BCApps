@@ -147,6 +147,7 @@ page 952 "Manager Time Sheet"
                 field(Field1; CellData[1])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[1];
                     DecimalPlaces = 0 : 2;
@@ -156,6 +157,7 @@ page 952 "Manager Time Sheet"
                 field(Field2; CellData[2])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[2];
                     DecimalPlaces = 0 : 2;
@@ -165,6 +167,7 @@ page 952 "Manager Time Sheet"
                 field(Field3; CellData[3])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[3];
                     DecimalPlaces = 0 : 2;
@@ -174,6 +177,7 @@ page 952 "Manager Time Sheet"
                 field(Field4; CellData[4])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[4];
                     DecimalPlaces = 0 : 2;
@@ -183,6 +187,7 @@ page 952 "Manager Time Sheet"
                 field(Field5; CellData[5])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[5];
                     DecimalPlaces = 0 : 2;
@@ -192,6 +197,7 @@ page 952 "Manager Time Sheet"
                 field(Field6; CellData[6])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[6];
                     Editable = false;
@@ -200,6 +206,7 @@ page 952 "Manager Time Sheet"
                 field(Field7; CellData[7])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[7];
                     Editable = false;
@@ -213,6 +220,7 @@ page 952 "Manager Time Sheet"
                 field("Total Quantity"; Rec."Total Quantity")
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = 'Total';
                     DrillDown = false;
                     ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';

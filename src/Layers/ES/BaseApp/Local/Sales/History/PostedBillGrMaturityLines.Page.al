@@ -51,6 +51,7 @@ page 7000034 "Posted Bill Gr. Maturity Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     DrillDown = true;
                     ToolTip = 'Specifies the amount for the posted bill group for the period.';

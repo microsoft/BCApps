@@ -125,6 +125,12 @@ codeunit 6060 "Hybrid Deployment"
 
     [Scope('OnPrem')]
     procedure EnableReplication(OnPremConnectionString: Text; DatabaseConfiguration: Text; IntegrationRuntimeName: Text)
+    begin
+        EnableReplication(OnPremConnectionString, DatabaseConfiguration, IntegrationRuntimeName, '', '', '');
+    end;
+
+    [Scope('OnPrem')]
+    procedure EnableReplication(OnPremConnectionString: Text; DatabaseConfiguration: Text; IntegrationRuntimeName: Text; SourceCompaniesTableName: Text; SetupMappingsTableName: Text; ReplicationMappingsTableName: Text)
     var
         PermissionManager: Codeunit "Permission Manager";
         NotificationUrl: Text;
@@ -143,7 +149,7 @@ codeunit 6060 "Hybrid Deployment"
 
         if not TryEnableReplication(
              InstanceId, OnPremConnectionString, DatabaseConfiguration, IntegrationRuntimeName, NotificationUrl, ClientState,
-             SubscriptionId, ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId)
+             SubscriptionId, ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId, SourceCompaniesTableName, SetupMappingsTableName, ReplicationMappingsTableName)
         then
             Error(FailedEnableReplicationErr);
 
@@ -445,7 +451,7 @@ codeunit 6060 "Hybrid Deployment"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnEnableReplication(OnPremiseConnectionString: Text; DatabaseType: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; var InstanceId: Text)
+    local procedure OnEnableReplication(OnPremiseConnectionString: Text; DatabaseType: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; var InstanceId: Text; SourceCompaniesTableName: Text; SetupMappingsTableName: Text; ReplicationMappingsTableName: Text)
     begin
     end;
 
@@ -533,11 +539,11 @@ codeunit 6060 "Hybrid Deployment"
     end;
 
     [TryFunction]
-    local procedure TryEnableReplication(var InstanceId: Text; OnPremConnectionString: Text; DatabaseConfiguration: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text)
+    local procedure TryEnableReplication(var InstanceId: Text; OnPremConnectionString: Text; DatabaseConfiguration: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; SourceCompaniesTableName: Text; SetupMappingsTableName: Text; ReplicationMappingsTableName: Text)
     begin
         OnEnableReplication(
           OnPremConnectionString, DatabaseConfiguration, IntegrationRuntimeName, NotificationUrl, ClientState, SubscriptionId,
-          ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId, InstanceId);
+          ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId, InstanceId, SourceCompaniesTableName, SetupMappingsTableName, ReplicationMappingsTableName);
         ValidateInstanceId(InstanceId);
     end;
 

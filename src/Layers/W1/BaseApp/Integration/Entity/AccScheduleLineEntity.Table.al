@@ -23,6 +23,7 @@ table 5503 "Acc. Schedule Line Entity"
         }
         field(3; "Net Change"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Change';
         }
         field(4; "Date Filter"; Date)

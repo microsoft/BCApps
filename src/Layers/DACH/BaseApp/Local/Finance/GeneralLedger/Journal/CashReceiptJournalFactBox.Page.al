@@ -34,6 +34,8 @@ page 35516 "Cash Receipt Journal FactBox"
             }
             field(OeRemainAmountFC; OeRemainAmountFC)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Open Amt.';
                 Editable = false;
@@ -41,6 +43,8 @@ page 35516 "Cash Receipt Journal FactBox"
             }
             field(PaymentAmt; PaymentAmt)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Payment';
                 Editable = false;
@@ -56,6 +60,8 @@ page 35516 "Cash Receipt Journal FactBox"
             }
             field(PMTDiscount; PMTDiscount)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Pmt. Discount';
                 Editable = false;
@@ -63,6 +69,8 @@ page 35516 "Cash Receipt Journal FactBox"
             }
             field(PaymDiscDeductAmount; PaymDiscDeductAmount)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Deduction';
                 Editable = false;
@@ -70,6 +78,8 @@ page 35516 "Cash Receipt Journal FactBox"
             }
             field(AcceptedPaymentTol; AcceptedPaymentTol)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Pmt. Tolerance';
                 Editable = false;
@@ -124,6 +134,7 @@ page 35516 "Cash Receipt Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Payments';
                 Editable = false;
                 ToolTip = 'Specifies the total of payments in LCY.';
@@ -132,6 +143,7 @@ page 35516 "Cash Receipt Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Balance';
                 Editable = false;
                 ToolTip = 'Specifies the balance on the actual line in LCY.';
@@ -140,6 +152,7 @@ page 35516 "Cash Receipt Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Total Balance';
                 Editable = false;
                 ToolTip = 'Specifies the total balance in LCY.';

@@ -104,7 +104,7 @@ report 99003800 "Reg. Abs. (from Machine Ctr.)"
                     field(Capacity; Capacity2)
                     {
                         ApplicationArea = Manufacturing;
-                        AutoFormatType = 1;
+                        AutoFormatType = 0;
                         Caption = 'Capacity';
                         MinValue = 0;
                         ToolTip = 'Specifies the amount of capacity that cannot be used during the absence period.';

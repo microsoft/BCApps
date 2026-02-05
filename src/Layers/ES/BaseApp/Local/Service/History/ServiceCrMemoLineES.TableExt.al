@@ -20,6 +20,7 @@ tableextension 10795 "Service Cr.Memo Line ES" extends "Service Cr.Memo Line"
         }
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = CustomerContent;
         }

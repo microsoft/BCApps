@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Transfers negative quantity sales lines to a separate return document for proper processing.
+/// </summary>
 report 6699 "Move Negative Sales Lines"
 {
     Caption = 'Move Negative Sales Lines';
@@ -141,11 +144,18 @@ report 6699 "Move Negative Sales Lines"
         FromSalesHeader: Record "Sales Header";
         ToDocType2: Option ,,"Order",Invoice,"Return Order","Credit Memo";
 
+    /// <summary>
+    /// Sets the source sales header from which to move negative lines.
+    /// </summary>
+    /// <param name="NewFromSalesHeader">The source sales header.</param>
     procedure SetSalesHeader(var NewFromSalesHeader: Record "Sales Header")
     begin
         FromSalesHeader := NewFromSalesHeader;
     end;
 
+    /// <summary>
+    /// Shows the target document after moving negative lines, prompting for confirmation.
+    /// </summary>
     procedure ShowDocument()
     var
         ConfirmManagement: Codeunit "Confirm Management";
@@ -158,6 +168,12 @@ report 6699 "Move Negative Sales Lines"
                 CopyDocMgt.ShowSalesDoc(ToSalesHeader);
     end;
 
+    /// <summary>
+    /// Initializes the request with document type options.
+    /// </summary>
+    /// <param name="NewFromDocType">The source document type.</param>
+    /// <param name="NewToDocType">The target document type for positive quantities.</param>
+    /// <param name="NewToDocType2">The secondary target document type option.</param>
     procedure InitializeRequest(NewFromDocType: Option; NewToDocType: Option; NewToDocType2: Option)
     begin
         FromDocType := NewFromDocType;

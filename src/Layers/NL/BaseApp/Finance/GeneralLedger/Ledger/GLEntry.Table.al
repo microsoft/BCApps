@@ -730,6 +730,7 @@ table 17 "G/L Entry"
         }
         field(11302; "Remaining Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Remaining Amount';
         }
@@ -743,6 +744,7 @@ table 17 "G/L Entry"
         }
         field(11305; "Closed by Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Closed by Amount';
         }

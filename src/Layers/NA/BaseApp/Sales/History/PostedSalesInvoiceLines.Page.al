@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.Finance.Dimension;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales invoice lines across documents for analysis and reporting.
+/// </summary>
 page 526 "Posted Sales Invoice Lines"
 {
     ApplicationArea = Basic, Suite;

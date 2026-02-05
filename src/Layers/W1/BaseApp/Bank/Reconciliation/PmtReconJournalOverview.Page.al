@@ -81,6 +81,8 @@ page 1291 "Pmt. Recon. Journal Overview"
                 field(StatementToRemAmtDifference; StatementToRemAmtDifference)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Difference from Remaining Amount';
                     Enabled = false;
@@ -103,6 +105,8 @@ page 1291 "Pmt. Recon. Journal Overview"
                 field(RemainingAmount; RemainingAmountAfterPosting)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Remaining Amount After Posting';
                     Editable = false;

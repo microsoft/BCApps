@@ -41,6 +41,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field1; MATRIX_CellData[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[1];
 
@@ -56,6 +57,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field2; MATRIX_CellData[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[2];
 
@@ -71,6 +73,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field3; MATRIX_CellData[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[3];
 
@@ -86,6 +89,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field4; MATRIX_CellData[4])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[4];
 
@@ -101,6 +105,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field5; MATRIX_CellData[5])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[5];
 
@@ -116,6 +121,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field6; MATRIX_CellData[6])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[6];
 
@@ -131,6 +137,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field7; MATRIX_CellData[7])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[7];
 
@@ -146,6 +153,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field8; MATRIX_CellData[8])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[8];
 
@@ -161,6 +169,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field9; MATRIX_CellData[9])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[9];
 
@@ -176,6 +185,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field10; MATRIX_CellData[10])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[10];
 
@@ -191,6 +201,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field11; MATRIX_CellData[11])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[11];
 
@@ -206,6 +217,7 @@ page 9237 "Resource Capacity Matrix"
                 }
                 field(Field12; MATRIX_CellData[12])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[12];
 

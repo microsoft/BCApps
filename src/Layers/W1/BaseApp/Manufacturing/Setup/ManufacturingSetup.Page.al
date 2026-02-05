@@ -217,6 +217,7 @@ page 99000768 "Manufacturing Setup"
                 field("Default Dampener %"; Rec."Default Dampener %")
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies a percentage of an item''s lot size by which an existing supply must change before a planning suggestion is made. Use Inventory Setup page to change this field.';
                     ObsoleteReason = 'Moved to page Inventory Setup';
                     ObsoleteState = Pending;

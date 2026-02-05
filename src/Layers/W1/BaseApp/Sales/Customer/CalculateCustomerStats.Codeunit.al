@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Calculates customer statistics as a background task for the Customer Statistics FactBox.
+/// </summary>
 codeunit 9082 "Calculate Customer Stats."
 {
     trigger OnRun()
@@ -93,6 +96,11 @@ codeunit 9082 "Calculate Customer Stats."
         exit(LinkedVendorNoLbl);
     end;
 
+    /// <summary>
+    /// Raised to allow calculation of custom customer statistics.
+    /// </summary>
+    /// <param name="Params">The input parameters for the calculation.</param>
+    /// <param name="Results">The dictionary to populate with calculated statistics.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalculateCustomerStatistics(Params: Dictionary of [Text, Text]; var Results: Dictionary of [Text, Text])
     begin

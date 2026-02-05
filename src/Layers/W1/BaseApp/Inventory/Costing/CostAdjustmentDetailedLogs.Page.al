@@ -68,6 +68,8 @@ page 5809 "Cost Adjustment Detailed Logs"
                 }
                 field("Adjusted Cost Amount"; AdjustedCostAmount)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost Amount';
                     ToolTip = 'Specifies the adjusted cost amount for the item. Blank value indicates that the cost adjustment has not produced any new value entries.';
                     BlankZero = true;

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Calculates total sales and profit amounts for customers within a specified period.
+/// </summary>
 query 3 "Customer Sales per Period"
 {
     QueryType = Normal;

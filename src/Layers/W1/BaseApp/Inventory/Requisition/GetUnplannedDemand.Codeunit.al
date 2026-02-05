@@ -349,7 +349,7 @@ codeunit 5520 "Get Unplanned Demand"
                 OnCalcNeededDemandsOnBeforeCalcNeededQtyBase(UnplannedDemand, IsHandled);
                 if not IsHandled then
                     if UnplannedDemand."Special Order" or UnplannedDemand."Drop Shipment" then
-                        UnplannedDemand."Needed Qty. (Base)" := TempUnplannedDemand."Quantity (Base)"
+                        UnplannedDemand."Needed Qty. (Base)" := TempUnplannedDemand."Quantity (Base)" - CalcNeededQtyOnDropShipment(UnplannedDemand)
                     else
                         UnplannedDemand."Needed Qty. (Base)" :=
                           OrderPlanningMgt.CalcNeededQty(
@@ -390,6 +390,28 @@ codeunit 5520 "Get Unplanned Demand"
             TempUnplannedDemand.SetRange("Demand SubType");
             TempUnplannedDemand.SetRange("Demand Order No.");
         end;
+    end;
+
+    local procedure CalcNeededQtyOnDropShipment(UnplannedDemand: Record "Unplanned Demand"): Decimal
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        if not UnplannedDemand."Drop Shipment" then
+            exit(0);
+
+        if UnplannedDemand."Demand Type" <> UnplannedDemand."Demand Type"::Sales then
+            exit(0);
+
+        if UnplannedDemand."Demand SubType" <> 1 then
+            exit(0);
+
+        SalesLine.SetLoadFields("Drop Shipment", "Purchase Order No.", "Quantity (Base)");
+        SalesLine.Get(SalesLine."Document Type"::Order, UnplannedDemand."Demand Order No.", UnplannedDemand."Demand Line No.");
+        SalesLine.TestField("Drop Shipment", true);
+        if SalesLine."Purchase Order No." = '' then
+            exit(0);
+
+        exit(SalesLine."Quantity (Base)");
     end;
 
     local procedure GetJobTask(var UnplannedDemand: Record "Unplanned Demand"; var JobPlanningLine: Record "Job Planning Line")

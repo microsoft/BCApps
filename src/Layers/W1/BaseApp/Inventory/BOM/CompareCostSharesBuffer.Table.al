@@ -41,37 +41,47 @@ table 5873 "Compare Cost Shares Buffer"
         }
         field(6; "Item 1 Qty. per Top Item"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Item 1 Qty. per Top Item';
             DecimalPlaces = 0 : 5;
         }
         field(7; "Item 2 Qty. per Top Item"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Item 2 Qty. per Top Item';
             DecimalPlaces = 0 : 5;
         }
         field(8; "Item 1 Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Item 1 Unit Cost';
         }
         field(9; "Item 2 Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Item 2 Unit Cost';
             DataClassification = SystemMetadata;
         }
         field(10; "Item 1 Total Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Item 1 Total Cost';
             DecimalPlaces = 2 : 5;
         }
         field(11; "Item 2 Total Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Item 2 Total Cost';
             DecimalPlaces = 2 : 5;
         }
         field(12; "Difference Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Difference Cost';
             DecimalPlaces = 2 : 5;
         }

@@ -10,6 +10,9 @@ using Microsoft.Utilities;
 using System.Integration;
 using System.Visualization;
 
+/// <summary>
+/// Displays a chart visualization of aged accounts receivable for a customer.
+/// </summary>
 page 768 "Aged Acc. Receivable Chart"
 {
     Caption = 'Aged Accounts Receivable';
@@ -325,6 +328,10 @@ page 768 "Aged Acc. Receivable Chart"
         StatusText := AgedAccReceivable.UpdateStatusText(BusinessChartBuffer);
     end;
 
+    /// <summary>
+    /// Updates the chart data for a specific customer.
+    /// </summary>
+    /// <param name="NewCustomerNo">The customer number to display aged receivables for.</param>
     procedure UpdateChartForCustomer(NewCustomerNo: Code[20])
     begin
         CustomerNo := NewCustomerNo;

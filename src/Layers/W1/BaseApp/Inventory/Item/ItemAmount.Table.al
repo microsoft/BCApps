@@ -19,11 +19,13 @@ table 268 "Item Amount"
         field(2; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(3; "Amount 2"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount 2';
         }
     }

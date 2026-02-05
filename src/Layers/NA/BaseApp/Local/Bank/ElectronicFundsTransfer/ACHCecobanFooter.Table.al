@@ -44,6 +44,7 @@ table 10308 "ACH Cecoban Footer"
         }
         field(8; TCO; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'TCO';
         }
     }

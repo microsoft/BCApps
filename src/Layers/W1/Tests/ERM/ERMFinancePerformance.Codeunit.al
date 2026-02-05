@@ -1964,6 +1964,7 @@ codeunit 134923 "ERM Finance Performance"
     begin
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName);
         AccScheduleLine.Validate("Row No.", Format(LibraryRandom.RandInt(100)));
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate(
           Description, CopyStr(LibraryUtility.GenerateRandomCode(AccScheduleLine.FieldNo(Description), DATABASE::"Acc. Schedule Line"),
             1, LibraryUtility.GetFieldLength(DATABASE::"Acc. Schedule Line", AccScheduleLine.FieldNo(Description))));
@@ -2159,8 +2160,8 @@ codeunit 134923 "ERM Finance Performance"
           AccScheduleOverview.CurrentSchedName.Value,
           'Unexpected account schedule in the overview page.');
         Assert.AreEqual(
-          DrillDownAccScheduleLine."Row No.",
-          AccScheduleOverview."Row No.".Value,
+          DrillDownAccScheduleLine.Description,
+          AccScheduleOverview.Description.Value,
           'Unexpected account schedule line selected in the overview page.');
         Assert.AreEqual(
           BusinessChartBuffer."Period Length",

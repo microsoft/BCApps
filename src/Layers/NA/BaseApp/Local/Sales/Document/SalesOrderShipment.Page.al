@@ -214,6 +214,8 @@ page 10026 "Sales Order Shipment"
                 field(FreightAmount; FreightAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Freight Amount';
                     ToolTip = 'Specifies the freight amount for the shipment. When you create a sales order, you can specify freight charges as item charges on the sales order, or you can specify the freight charges in the Sales Order Shipment window.';
                 }

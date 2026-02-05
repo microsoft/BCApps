@@ -2182,6 +2182,8 @@ table 27 Item
 #endif
         field(11505; "Inventory Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Inventory Price';
         }
         field(99000752; "Single-Level Material Cost"; Decimal)
@@ -2215,6 +2217,7 @@ table 27 Item
         field(99000756; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
             Editable = false;
         }

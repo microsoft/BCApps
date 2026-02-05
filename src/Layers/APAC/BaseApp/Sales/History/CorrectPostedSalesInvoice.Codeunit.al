@@ -28,6 +28,9 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Request;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Handles the correction of posted sales invoices by creating a corrective sales credit memo.
+/// </summary>
 codeunit 1303 "Correct Posted Sales Invoice"
 {
     Permissions = TableData "Sales Invoice Header" = rm,
@@ -126,6 +129,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
         DropShipmentDocumentExistsErr: Label 'You cannot use the cancel or correct functionality because the invoice line is associated with purchase order %1 due to Drop Shipment.', Comment = '%1 - Purchase Order No.';
         CreateCreditMemoQst: Label 'The invoice was posted from an order. A Sales Credit memo will be created which you complete and post manually. The quantities will be corrected in the existing Sales Order.\ \Do you want to continue?';
 
+    /// <summary>
+    /// Cancels the posted sales invoice by creating and posting a corrective credit memo.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to cancel.</param>
+    /// <returns>True if the invoice was successfully canceled, otherwise false.</returns>
     procedure CancelPostedInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
     begin
         CancellingOnly := true;
@@ -191,6 +199,12 @@ codeunit 1303 "Correct Posted Sales Invoice"
         OnAfterCreateCopyDocument(SalesHeader, SalesInvoiceHeader);
     end;
 
+    /// <summary>
+    /// Creates a credit memo document as a copy of the posted sales invoice without posting it.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to copy from.</param>
+    /// <param name="SalesHeader">Returns the created sales credit memo header.</param>
+    /// <returns>True if the credit memo was successfully created, otherwise false.</returns>
     procedure CreateCreditMemoCopyDocument(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"): Boolean
     var
         SalesHdr: Record "Sales Header";
@@ -217,6 +231,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         exit(true);
     end;
 
+    /// <summary>
+    /// Creates a corrective credit memo from a notification action triggered on a posted sales invoice.
+    /// </summary>
+    /// <param name="InvoiceNotification">Specifies the notification containing the invoice number to correct.</param>
     procedure CreateCorrectiveCreditMemo(var InvoiceNotification: Notification)
     var
         SalesHeader: Record "Sales Header";
@@ -237,6 +255,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
             PAGE.Run(PAGE::"Sales Credit Memo", SalesHeader);
     end;
 
+    /// <summary>
+    /// Shows the applied customer ledger entries for the posted sales invoice referenced in the notification.
+    /// </summary>
+    /// <param name="InvoiceNotification">Specifies the notification containing the invoice number.</param>
     procedure ShowAppliedEntries(var InvoiceNotification: Notification)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -247,6 +269,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         PAGE.RunModal(PAGE::"Applied Customer Entries", CustLedgerEntry);
     end;
 
+    /// <summary>
+    /// Dismisses the corrective credit memo notification without taking any action.
+    /// </summary>
+    /// <param name="InvoiceNotification">Specifies the notification to dismiss.</param>
     procedure SkipCorrectiveCreditMemo(var InvoiceNotification: Notification)
     begin
         InvoiceNotification.Recall();
@@ -294,6 +320,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
         exit(ToJobPlanningLine."Job Contract Entry No.");
     end;
 
+    /// <summary>
+    /// Cancels the posted sales invoice and creates a new sales invoice as a copy for correction.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to cancel.</param>
+    /// <param name="SalesHeader">Returns the newly created sales invoice header for correction.</param>
     procedure CancelPostedInvoiceCreateNewInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header")
     begin
         CancellingOnly := false;
@@ -305,6 +336,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
         end;
     end;
 
+    /// <summary>
+    /// Tests whether the posted sales invoice can be corrected or canceled by checking payment status, customer blocks, and other conditions.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to validate.</param>
+    /// <param name="Cancelling">Specifies whether the operation is a cancellation or correction.</param>
     procedure TestCorrectInvoiceIsAllowed(var SalesInvoiceHeader: Record "Sales Invoice Header"; Cancelling: Boolean)
     begin
         CancellingOnly := Cancelling;
@@ -789,6 +825,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
         end;
     end;
 
+    /// <summary>
+    /// Finds all item ledger entries associated with the specified posted sales invoice.
+    /// </summary>
+    /// <param name="ItemLedgEntry">Returns the item ledger entries found for the invoice.</param>
+    /// <param name="InvNo">Specifies the posted sales invoice number to search for.</param>
     procedure FindItemLedgEntries(var ItemLedgEntry: Record "Item Ledger Entry"; InvNo: Code[20])
     var
         SalesInvLine: Record "Sales Invoice Line";
@@ -819,6 +860,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
         exit(TempItemApplicationEntry.FindSet());
     end;
 
+    /// <summary>
+    /// Raises an error message based on the header error type encountered during invoice correction validation.
+    /// </summary>
+    /// <param name="HeaderErrorType">Specifies the type of error that occurred.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice that caused the error.</param>
     procedure ErrorHelperHeader(HeaderErrorType: Enum "Correct Sales Inv. Error Type"; SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         Customer: Record Customer;
@@ -968,14 +1014,17 @@ codeunit 1303 "Correct Posted Sales Invoice"
         OnHasLineDiscountSetup(SalesReceivablesSetup, Result);
     end;
 
+    /// <summary>
+    /// Updates the related sales order lines when a credit memo exists for the specified credit memo number.
+    /// </summary>
+    /// <param name="SalesCreditMemoNo">Specifies the posted sales credit memo number.</param>
     internal procedure UpdateSalesOrderLineIfExist(SalesCreditMemoNo: Code[20])
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
     begin
-        SalesCrMemoLine.SetLoadFields("Document No.", Type, "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
+        SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
-        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
         SalesCrMemoLine.SetFilter("No.", '<>%1', '');
         SalesCrMemoLine.SetFilter(Quantity, '<>%1', 0);
         if SalesCrMemoLine.FindSet() then
@@ -1202,41 +1251,82 @@ codeunit 1303 "Correct Posted Sales Invoice"
         end;
     end;
 
+    /// <summary>
+    /// Raised after creating a copy document from a posted sales invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The newly created sales header.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateCopyDocument(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining whether a sales invoice line is a comment line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being checked.</param>
+    /// <param name="Result">The result indicating whether it is a comment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsCommentLine(SalesInvoiceLine: Record "Sales Invoice Line"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing whether the invoice correction or cancellation is allowed.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being validated.</param>
+    /// <param name="Cancelling">Indicates whether this is a cancellation operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestCorrectInvoiceIsAllowed(var SalesInvoiceHeader: Record "Sales Invoice Header"; Cancelling: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing whether the sales invoice line type is allowed for correction.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default line type error.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestSalesLineType(SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating a corrective sales invoice from a posted invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The newly created corrective sales invoice header.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateCorrSalesInvoice(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating a corrective sales credit memo from a posted invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
+    /// <param name="SalesHeader">The newly created corrective sales credit memo header.</param>
+    /// <param name="CancellingOnly">Indicates whether only cancellation is being performed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateCorrectiveSalesCrMemo(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; var CancellingOnly: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the invoiced quantity on a sales order line during cancellation.
+    /// </summary>
+    /// <param name="SalesLine">The updated sales order line.</param>
+    /// <param name="CancelledQuantity">The cancelled quantity.</param>
+    /// <param name="CancelledQtyBase">The cancelled quantity in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesOrderLineInvoicedQuantity(var SalesLine: Record "Sales Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a corrective sales credit memo from a posted invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice to correct.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDefaultCancelReasonCode(var SalesHeader: Record "Sales Header")
     begin
@@ -1247,16 +1337,31 @@ codeunit 1303 "Correct Posted Sales Invoice"
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a credit memo copy document from a posted invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice to copy from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCreditMemoCopyDocument(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the sales header during invoice correction.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be inserted.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
+    /// <param name="CancellingOnly">Indicates whether only cancellation is being performed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesHeaderInsert(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; CancellingOnly: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting tracking information for invoice cancellation.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being cancelled.</param>
+    /// <param name="IsHandled">Set to true to skip default tracking setup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetTrackInfoForCancellation(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
@@ -1265,106 +1370,218 @@ codeunit 1303 "Correct Posted Sales Invoice"
 #pragma warning disable AS0018
 #pragma warning restore AS0018
 
+    /// <summary>
+    /// Raised before testing whether there are free number series for the correction.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
+    /// <param name="IsHandled">Set to true to skip default number series validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestIfAnyFreeNumberSeries(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised to determine whether line discount setup is configured.
+    /// </summary>
+    /// <param name="SalesReceivablesSetup">The sales and receivables setup record.</param>
+    /// <param name="Result">The result indicating whether line discount setup exists.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHasLineDiscountSetup(SalesReceivablesSetup: Record "Sales & Receivables Setup"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing inventory posting setup for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default inventory posting setup validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestInventoryPostingSetup(SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the invoiced quantity on a sales order line during cancellation.
+    /// </summary>
+    /// <param name="SalesLine">The sales order line to be updated.</param>
+    /// <param name="CancelledQuantity">The cancelled quantity.</param>
+    /// <param name="CancelledQtyBase">The cancelled quantity in base unit of measure.</param>
+    /// <param name="IsHandled">Set to true to skip default quantity update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLineInvoicedQuantity(var SalesLine: Record "Sales Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the credit memo page during invoice correction.
+    /// </summary>
+    /// <param name="SalesHeader">The sales credit memo header to display.</param>
+    /// <param name="IsHandled">Set to true to skip opening the default page.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateCreditMemoOnBeforePageRun(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the posted credit memo page during invoice correction.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header to display.</param>
+    /// <param name="IsHandled">Set to true to skip opening the default page.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateCreditMemoOnBeforePostedPageRun(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before unapplying cost applications for the invoice.
+    /// </summary>
+    /// <param name="InvNo">The invoice number to unapply cost applications for.</param>
+    /// <param name="IsHandled">Set to true to skip default cost unapplication.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUnapplyCostApplication(InvNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the shipped quantity not returned during sales line validation.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="ShippedQtyNoReturned">The calculated shipped quantity not returned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLinesOnAfterCalcShippedQtyNoReturned(SalesInvoiceLine: Record "Sales Invoice Line"; var ShippedQtyNoReturned: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating sales order lines from a cancelled invoice during the OnRun trigger.
+    /// </summary>
+    /// <param name="Rec">The posted sales invoice header being cancelled.</param>
+    /// <param name="SalesHeader">The credit memo header created for cancellation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOnRunOnAfterUpdateSalesOrderLinesFromCancelledInvoice(var Rec: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing whether the invoice has been paid.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default payment validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestIfInvoiceIsPaid(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the corrective credit memo page from a notification action.
+    /// </summary>
+    /// <param name="SalesHeader">The corrective sales credit memo header to display.</param>
+    /// <param name="IsHandled">Set to true to skip opening the default page.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateCorrectiveCreditMemoOnBeforePageRun(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing VAT posting setup for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default VAT posting setup validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestVATPostingSetup(SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before raising a header-level error during invoice correction validation.
+    /// </summary>
+    /// <param name="HeaderErrorType">The type of header error being raised.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being validated.</param>
+    /// <param name="CancellingOnly">Indicates whether only cancellation is being performed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeErrorHelperHeader(HeaderErrorType: Enum "Correct Sales Inv. Error Type"; SalesInvoiceHeader: Record "Sales Invoice Header"; CancellingOnly: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing whether the invoice has already been corrected.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default correction validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestIfInvoiceIsCorrectedOnce(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether the invoice was not cancelled.
+    /// </summary>
+    /// <param name="InvNo">The invoice number to check.</param>
+    /// <param name="Result">The result indicating whether the invoice was not cancelled.</param>
+    /// <param name="IsHandled">Set to true to skip default cancellation check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeWasNotCancelled(InvNo: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the corrective sales credit memo during the OnRun trigger.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
+    /// <param name="SalesHeader">The corrective credit memo header to be posted.</param>
+    /// <param name="IsHandled">Set to true to skip default posting.</param>
+    /// <param name="SuppressCommit">Indicates whether to suppress the commit operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostCorrectiveSalesCrMemo(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var SuppressCommit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing warehouse management system location for the sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default WMS location validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestWMSLocation(var SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating and processing project planning lines during invoice correction.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for which project planning lines are being created.</param>
+    /// <param name="IsHandled">Set to true to skip default project planning line processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateAndProcessJobPlanningLines(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing general posting setup for item type lines.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default item type posting setup test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestGenPostingSetupOnBeforeTestTypeItem(SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating sales order lines from a cancelled invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeaderNo">The cancelled invoice number.</param>
+    /// <param name="IsHandled">Set to true to skip default order line update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing a project planning line from another project planning line during correction.
+    /// </summary>
+    /// <param name="ToJobPlanningLine">The newly created project planning line.</param>
+    /// <param name="FromJobPlanningLine">The source project planning line.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateJobPlanningLineOnAfterInitFromJobPlanningLine(var ToJobPlanningLine: Record "Job Planning Line"; FromJobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line")
     begin

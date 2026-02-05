@@ -1303,8 +1303,6 @@ report 10705 "Purchases Invoice Book"
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         Vendor: Record Vendor;
         CompanyInfo: Record "Company Information";
-        VATBuffer: Record "Sales/Purch. Book VAT Buffer" temporary;
-        VATBuffer2: Record "Sales/Purch. Book VAT Buffer";
         VATBuffer3: Record "Sales/Purch. Book VAT Buffer" temporary;
         VATBuffer4: Record "Sales/Purch. Book VAT Buffer" temporary;
         GLSetup: Record "General Ledger Setup";
@@ -1315,12 +1313,7 @@ report 10705 "Purchases Invoice Book"
         CompanyAddr: array[7] of Text[100];
         LineNo: Decimal;
         Fin: Boolean;
-        PrintAmountsInAddCurrency: Boolean;
-        NoSeriesAux: Code[20];
         AutoDocNo: Code[20];
-        AmountVatReverse: Decimal;
-        NotBaseReverse: Decimal;
-        NotAmountReverse: Decimal;
         NoSeriesAuxPrev: Code[20];
         AuxVatEntry: Text[250];
         SortVATDate: Boolean;
@@ -1337,7 +1330,6 @@ report 10705 "Purchases Invoice Book"
         VarNotAmountReverse: Decimal;
         AmountVatReverse3: Decimal;
         BaseImport: Decimal;
-        TotalBaseImport: Decimal;
         MaxLines: Integer;
         Text1100005: Label 'Corrective Invoice';
         DocType: Text[30];
@@ -1384,5 +1376,15 @@ report 10705 "Purchases Invoice Book"
         NoTaxableText: Text;
         NoTaxablePrinted: Boolean;
         OnlyIncludeSIIDocuments: Boolean;
+
+    protected var
+        VATBuffer: Record "Sales/Purch. Book VAT Buffer" temporary;
+        VATBuffer2: Record "Sales/Purch. Book VAT Buffer";
+        PrintAmountsInAddCurrency: Boolean;
+        TotalBaseImport: Decimal;
+        AmountVatReverse: Decimal;
+        NotBaseReverse: Decimal;
+        NotAmountReverse: Decimal;
+        NoSeriesAux: Code[20];
 }
 

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Archive;
 using Microsoft.Foundation.Reporting;
 using System.Security.User;
 
+/// <summary>
+/// Lists all archived blanket sales order versions for viewing and reference.
+/// </summary>
 page 6622 "Blanket Sales Order Archives"
 {
     ApplicationArea = Suite;

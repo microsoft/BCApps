@@ -864,17 +864,20 @@ codeunit 1173 "Document Attachment Mgmt"
 
         FromRecRef.GetTable(PurchaseHeader);
 
-        if PurchInvHeader."No." <> '' then
+        if PurchInvHeader."No." <> '' then begin
             ToRecRef.GetTable(PurchInvHeader);
-
-        if PurchCrMemoHdr."No." <> '' then
-            ToRecRef.GetTable(PurchCrMemoHdr);
-
-        if PurchRcptHeader."No." <> '' then
-            ToRecRef.GetTable(PurchRcptHeader);
-
-        if ToRecRef.Number > 0 then
             CopyAttachmentsForPostedDocs(FromRecRef, ToRecRef);
+        end;
+
+        if PurchCrMemoHdr."No." <> '' then begin
+            ToRecRef.GetTable(PurchCrMemoHdr);
+            CopyAttachmentsForPostedDocs(FromRecRef, ToRecRef);
+        end;
+
+        if PurchRcptHeader."No." <> '' then begin
+            ToRecRef.GetTable(PurchRcptHeader);
+            CopyAttachmentsForPostedDocs(FromRecRef, ToRecRef);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Vendor", 'OnAfterDeleteEvent', '', false, false)]

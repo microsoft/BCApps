@@ -115,6 +115,7 @@ page 10150 "O365 Tax Settings Card"
                     field(GSTorHSTrate; GSTorHSTrate)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'GST/HST Rate';
                         DecimalPlaces = 1 : 3;
                         Editable = (GSTorHST <> '');
@@ -142,6 +143,7 @@ page 10150 "O365 Tax Settings Card"
                     field(PSTrate; PSTrate)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'PST Rate';
                         DecimalPlaces = 1 : 3;
                         Editable = (PST <> '');
@@ -154,6 +156,7 @@ page 10150 "O365 Tax Settings Card"
                 field(Total; TotalRate)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Total rate';
                     DecimalPlaces = 1 : 3;
                     Editable = false;

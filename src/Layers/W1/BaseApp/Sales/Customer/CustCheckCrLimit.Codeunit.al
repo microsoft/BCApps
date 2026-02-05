@@ -9,6 +9,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Checks customer credit limits and overdue balances, sending notifications when thresholds are exceeded.
+/// </summary>
 codeunit 312 "Cust-Check Cr. Limit"
 {
     Permissions = TableData "My Notifications" = rimd;
@@ -28,6 +31,10 @@ codeunit 312 "Cust-Check Cr. Limit"
         OverdueBalanceNotificationMsg: Label 'This customer has an overdue balance.';
         OverdueBalanceNotificationDescriptionTxt: Label 'Show warning when a sales document is for a customer with an overdue balance.';
 
+    /// <summary>
+    /// Checks customer credit limit for a general journal line and sends notification if exceeded.
+    /// </summary>
+    /// <param name="GenJnlLine">Specifies the general journal line to check credit limit for.</param>
     procedure GenJnlLineCheck(GenJnlLine: Record "Gen. Journal Line")
     var
         SalesHeader: Record "Sales Header";
@@ -50,6 +57,11 @@ codeunit 312 "Cust-Check Cr. Limit"
             CreateAndSendNotification(SalesHeader.RecordId, AdditionalContextId, '');
     end;
 
+    /// <summary>
+    /// Checks customer credit limit for a sales header and sends notification if exceeded.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to check credit limit for.</param>
+    /// <returns>True if the credit limit is exceeded, otherwise false.</returns>
     procedure SalesHeaderCheck(var SalesHeader: Record "Sales Header") CreditLimitExceeded: Boolean
     var
         AdditionalContextId: Guid;
@@ -77,6 +89,11 @@ codeunit 312 "Cust-Check Cr. Limit"
         end;
     end;
 
+    /// <summary>
+    /// Checks customer credit limit for a sales line and sends notification if exceeded.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to check credit limit for.</param>
+    /// <returns>True if the credit limit is exceeded, otherwise false.</returns>
     procedure SalesLineCheck(SalesLine: Record "Sales Line") CreditLimitExceeded: Boolean
     var
         SalesHeader: Record "Sales Header";
@@ -111,11 +128,21 @@ codeunit 312 "Cust-Check Cr. Limit"
 
 
 
+    /// <summary>
+    /// Generates an instruction type code for credit limit checking based on document type and number.
+    /// </summary>
+    /// <param name="DocumentType">Specifies the document type code.</param>
+    /// <param name="DocumentNumber">Specifies the document number.</param>
+    /// <returns>The instruction type code for the credit limit check.</returns>
     procedure GetInstructionType(DocumentType: Code[30]; DocumentNumber: Code[20]): Code[50]
     begin
         exit(CopyStr(StrSubstNo('%1 %2 %3', DocumentType, DocumentNumber, InstructionTypeTxt), 1, 50));
     end;
 
+    /// <summary>
+    /// Checks customer credit limit when converting a blanket sales order to a sales order.
+    /// </summary>
+    /// <param name="SalesOrderHeader">Specifies the sales order header created from the blanket order.</param>
     procedure BlanketSalesOrderToOrderCheck(SalesOrderHeader: Record "Sales Header")
     var
         AdditionalContextId: Guid;
@@ -136,6 +163,10 @@ codeunit 312 "Cust-Check Cr. Limit"
             CreateAndSendNotification(SalesOrderHeader.RecordId, AdditionalContextId, '');
     end;
 
+    /// <summary>
+    /// Displays the credit limit notification details page with information from the notification.
+    /// </summary>
+    /// <param name="CreditLimitNotification">Specifies the notification containing credit limit details.</param>
     procedure ShowNotificationDetails(CreditLimitNotification: Notification)
     var
         CreditLimitNotificationPage: Page "Credit Limit Notification";
@@ -180,21 +211,38 @@ codeunit 312 "Cust-Check Cr. Limit"
         NotificationLifecycleMgt.SendNotificationWithAdditionalContext(NotificationToSend, RecordId, AdditionalContextId);
     end;
 
+    /// <summary>
+    /// Retrieves the unique identifier for the credit limit notification.
+    /// </summary>
+    /// <returns>The GUID identifier for the credit limit notification.</returns>
     procedure GetCreditLimitNotificationId(): Guid
     begin
         exit('C80FEEDA-802C-4879-B826-34A10FB77087');
     end;
 
+    /// <summary>
+    /// Retrieves the unique identifier for the overdue balance notification.
+    /// </summary>
+    /// <returns>The GUID identifier for the overdue balance notification.</returns>
     procedure GetOverdueBalanceNotificationId(): Guid
     begin
         exit('EC8348CB-07C1-499A-9B70-B3B081A33C99');
     end;
 
+    /// <summary>
+    /// Retrieves the unique identifier for combined credit limit and overdue balance notifications.
+    /// </summary>
+    /// <returns>The GUID identifier for both notifications combined.</returns>
     procedure GetBothNotificationsId(): Guid
     begin
         exit('EC8348CB-07C1-499A-9B70-B3B081A33D00');
     end;
 
+    /// <summary>
+    /// Checks if the credit limit notification is enabled for the specified customer.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record to check notification settings for.</param>
+    /// <returns>True if the credit limit notification is enabled, otherwise false.</returns>
     procedure IsCreditLimitNotificationEnabled(Customer: Record Customer): Boolean
     var
         MyNotifications: Record "My Notifications";
@@ -202,6 +250,11 @@ codeunit 312 "Cust-Check Cr. Limit"
         exit(MyNotifications.IsEnabledForRecord(GetCreditLimitNotificationId(), Customer));
     end;
 
+    /// <summary>
+    /// Checks if the overdue balance notification is enabled for the specified customer.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record to check notification settings for.</param>
+    /// <returns>True if the overdue balance notification is enabled, otherwise false.</returns>
     procedure IsOverdueBalanceNotificationEnabled(Customer: Record Customer): Boolean
     var
         MyNotifications: Record "My Notifications";
@@ -224,26 +277,50 @@ codeunit 312 "Cust-Check Cr. Limit"
           DATABASE::Customer);
     end;
 
+    /// <summary>
+    /// Raises an event to remove existing customer credit and overdue notifications before sending new ones.
+    /// </summary>
+    /// <param name="RecId">Specifies the record ID associated with the notifications to remove.</param>
+    /// <param name="RecallCreditOverdueNotif">Specifies whether to recall credit and overdue notifications.</param>
     [IntegrationEvent(false, false)]
     procedure OnNewCheckRemoveCustomerNotifications(RecId: RecordID; RecallCreditOverdueNotif: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Retrieves the message text displayed for credit limit notifications.
+    /// </summary>
+    /// <returns>The credit limit notification message text.</returns>
     procedure GetCreditLimitNotificationMsg(): Text
     begin
         exit(CreditLimitNotificationMsg);
     end;
 
+    /// <summary>
+    /// Retrieves the message text displayed for overdue balance notifications.
+    /// </summary>
+    /// <returns>The overdue balance notification message text.</returns>
     procedure GetOverdueBalanceNotificationMsg(): Text
     begin
         exit(OverdueBalanceNotificationMsg);
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit for a general journal line.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlLineCheck(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit for a sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
+    /// <param name="CreditLimitExceeded">Returns whether the credit limit is exceeded.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesHeaderCheck(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var CreditLimitExceeded: Boolean);
     begin
@@ -251,21 +328,44 @@ codeunit 312 "Cust-Check Cr. Limit"
 
 
 
+    /// <summary>
+    /// Raised before creating and sending a credit limit notification.
+    /// </summary>
+    /// <param name="RecordId">The record ID associated with the notification.</param>
+    /// <param name="AdditionalContextId">The additional context identifier for the notification.</param>
+    /// <param name="Heading">The heading text for the notification.</param>
+    /// <param name="NotificationToSend">The notification object to send.</param>
+    /// <param name="IsHandled">Set to true to skip the default notification creation.</param>
+    /// <param name="CustCheckCreditLimit">The credit limit check page for retrieving notification data.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCreateAndSendNotification(RecordId: RecordID; AdditionalContextId: Guid; Heading: Text[250]; NotificationToSend: Notification; var IsHandled: Boolean; var CustCheckCreditLimit: Page "Check Credit Limit");
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
+    /// <param name="CreditLimitExceeded">Returns whether the credit limit is exceeded.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineCheck(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var CreditLimitExceeded: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the credit limit warning for a sales header.
+    /// </summary>
+    /// <param name="CustCheckCreditLimit">The credit limit check page to configure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSalesHeaderCheckOnBeforeShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the credit limit warning for a sales line.
+    /// </summary>
+    /// <param name="CustCheckCreditLimit">The credit limit check page to configure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSalesLineCheckOnBeforeShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
     begin
@@ -291,11 +391,20 @@ codeunit 312 "Cust-Check Cr. Limit"
     end;
 #endif
 
+    /// <summary>
+    /// Raised before showing the credit limit warning when converting a blanket order to a sales order.
+    /// </summary>
+    /// <param name="CustCheckCreditLimit">The credit limit check page to configure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBlanketSalesOrderToOrderCheckOnBeforeSalesHeaderShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the credit limit when converting a blanket order to a sales order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header created from the blanket order.</param>
+    /// <param name="IsHandled">Set to true to skip the default credit limit check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBlanketSalesOrderToOrderCheck(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin

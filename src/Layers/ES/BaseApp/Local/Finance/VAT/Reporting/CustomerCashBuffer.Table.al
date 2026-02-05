@@ -23,6 +23,7 @@ table 10743 "Customer Cash Buffer"
         }
         field(21; "Operation Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Operation Amount';
             DataClassification = SystemMetadata;
         }

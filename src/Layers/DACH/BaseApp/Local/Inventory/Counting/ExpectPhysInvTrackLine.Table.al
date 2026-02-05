@@ -33,6 +33,7 @@ table 5005361 "Expect. Phys. Inv. Track. Line"
         }
         field(30; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -52,5 +53,5 @@ table 5005361 "Expect. Phys. Inv. Track. Line"
     }
 }
 
- 
+
 #endif

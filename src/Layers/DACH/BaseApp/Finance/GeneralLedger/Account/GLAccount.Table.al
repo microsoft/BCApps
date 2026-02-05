@@ -1022,6 +1022,7 @@ table 15 "G/L Account"
         field(11000; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("G/L Entry"."VAT Amount" where("G/L Account No." = field("No."),
                                                               "G/L Account No." = field(filter(Totaling)),
                                                               "Business Unit Code" = field("Business Unit Filter"),

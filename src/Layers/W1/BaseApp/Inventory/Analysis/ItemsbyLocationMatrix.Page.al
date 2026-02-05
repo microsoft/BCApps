@@ -37,6 +37,7 @@ page 9231 "Items by Location Matrix"
                 field(Field1; MATRIX_CellData[1])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[1];
                     DecimalPlaces = 0 : 5;
@@ -50,6 +51,7 @@ page 9231 "Items by Location Matrix"
                 field(Field2; MATRIX_CellData[2])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[2];
                     DecimalPlaces = 0 : 5;
@@ -63,6 +65,7 @@ page 9231 "Items by Location Matrix"
                 field(Field3; MATRIX_CellData[3])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[3];
                     DecimalPlaces = 0 : 5;
@@ -76,6 +79,7 @@ page 9231 "Items by Location Matrix"
                 field(Field4; MATRIX_CellData[4])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[4];
                     DecimalPlaces = 0 : 5;
@@ -89,6 +93,7 @@ page 9231 "Items by Location Matrix"
                 field(Field5; MATRIX_CellData[5])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[5];
                     DecimalPlaces = 0 : 5;
@@ -102,6 +107,7 @@ page 9231 "Items by Location Matrix"
                 field(Field6; MATRIX_CellData[6])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[6];
                     DecimalPlaces = 0 : 5;
@@ -115,6 +121,7 @@ page 9231 "Items by Location Matrix"
                 field(Field7; MATRIX_CellData[7])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[7];
                     DecimalPlaces = 0 : 5;
@@ -128,6 +135,7 @@ page 9231 "Items by Location Matrix"
                 field(Field8; MATRIX_CellData[8])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[8];
                     DecimalPlaces = 0 : 5;
@@ -141,6 +149,7 @@ page 9231 "Items by Location Matrix"
                 field(Field9; MATRIX_CellData[9])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[9];
                     DecimalPlaces = 0 : 5;
@@ -154,6 +163,7 @@ page 9231 "Items by Location Matrix"
                 field(Field10; MATRIX_CellData[10])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[10];
                     DecimalPlaces = 0 : 5;
@@ -167,6 +177,7 @@ page 9231 "Items by Location Matrix"
                 field(Field11; MATRIX_CellData[11])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[11];
                     DecimalPlaces = 0 : 5;
@@ -180,6 +191,7 @@ page 9231 "Items by Location Matrix"
                 field(Field12; MATRIX_CellData[12])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[12];
                     DecimalPlaces = 0 : 5;
@@ -193,6 +205,7 @@ page 9231 "Items by Location Matrix"
                 field(Field13; MATRIX_CellData[13])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[13];
                     DecimalPlaces = 0 : 5;
@@ -206,6 +219,7 @@ page 9231 "Items by Location Matrix"
                 field(Field14; MATRIX_CellData[14])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[14];
                     DecimalPlaces = 0 : 5;
@@ -219,6 +233,7 @@ page 9231 "Items by Location Matrix"
                 field(Field15; MATRIX_CellData[15])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[15];
                     DecimalPlaces = 0 : 5;
@@ -232,6 +247,7 @@ page 9231 "Items by Location Matrix"
                 field(Field16; MATRIX_CellData[16])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[16];
                     DecimalPlaces = 0 : 5;
@@ -245,6 +261,7 @@ page 9231 "Items by Location Matrix"
                 field(Field17; MATRIX_CellData[17])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[17];
                     DecimalPlaces = 0 : 5;
@@ -258,6 +275,7 @@ page 9231 "Items by Location Matrix"
                 field(Field18; MATRIX_CellData[18])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[18];
                     DecimalPlaces = 0 : 5;
@@ -271,6 +289,7 @@ page 9231 "Items by Location Matrix"
                 field(Field19; MATRIX_CellData[19])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[19];
                     DecimalPlaces = 0 : 5;
@@ -284,6 +303,7 @@ page 9231 "Items by Location Matrix"
                 field(Field20; MATRIX_CellData[20])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[20];
                     DecimalPlaces = 0 : 5;
@@ -297,6 +317,7 @@ page 9231 "Items by Location Matrix"
                 field(Field21; MATRIX_CellData[21])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[21];
                     DecimalPlaces = 0 : 5;
@@ -310,6 +331,7 @@ page 9231 "Items by Location Matrix"
                 field(Field22; MATRIX_CellData[22])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[22];
                     DecimalPlaces = 0 : 5;
@@ -323,6 +345,7 @@ page 9231 "Items by Location Matrix"
                 field(Field23; MATRIX_CellData[23])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[23];
                     DecimalPlaces = 0 : 5;
@@ -336,6 +359,7 @@ page 9231 "Items by Location Matrix"
                 field(Field24; MATRIX_CellData[24])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[24];
                     DecimalPlaces = 0 : 5;
@@ -349,6 +373,7 @@ page 9231 "Items by Location Matrix"
                 field(Field25; MATRIX_CellData[25])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[25];
                     DecimalPlaces = 0 : 5;
@@ -362,6 +387,7 @@ page 9231 "Items by Location Matrix"
                 field(Field26; MATRIX_CellData[26])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[26];
                     DecimalPlaces = 0 : 5;
@@ -375,6 +401,7 @@ page 9231 "Items by Location Matrix"
                 field(Field27; MATRIX_CellData[27])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[27];
                     DecimalPlaces = 0 : 5;
@@ -388,6 +415,7 @@ page 9231 "Items by Location Matrix"
                 field(Field28; MATRIX_CellData[28])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[28];
                     DecimalPlaces = 0 : 5;
@@ -401,6 +429,7 @@ page 9231 "Items by Location Matrix"
                 field(Field29; MATRIX_CellData[29])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[29];
                     DecimalPlaces = 0 : 5;
@@ -414,6 +443,7 @@ page 9231 "Items by Location Matrix"
                 field(Field30; MATRIX_CellData[30])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[30];
                     DecimalPlaces = 0 : 5;
@@ -427,6 +457,7 @@ page 9231 "Items by Location Matrix"
                 field(Field31; MATRIX_CellData[31])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[31];
                     DecimalPlaces = 0 : 5;
@@ -440,6 +471,7 @@ page 9231 "Items by Location Matrix"
                 field(Field32; MATRIX_CellData[32])
                 {
                     ApplicationArea = Location;
+                    AutoFormatType = 0;
                     BlankNumbers = BlankZero;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[32];
                     DecimalPlaces = 0 : 5;

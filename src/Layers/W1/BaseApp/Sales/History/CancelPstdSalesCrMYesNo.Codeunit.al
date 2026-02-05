@@ -6,6 +6,9 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides user confirmation dialog before canceling a posted sales credit memo.
+/// </summary>
 codeunit 1334 "Cancel PstdSalesCrM (Yes/No)"
 {
     Permissions = TableData "Sales Invoice Header" = rm,

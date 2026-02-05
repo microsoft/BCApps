@@ -103,6 +103,7 @@ page 5404 "Item Units of Measure"
                 field(ItemBaseUOMQtyPrecision; ItemBaseUOMQtyPrecision)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity Rounding Precision';
                     Tooltip = 'Specifies how to round quantities when converting the base unit of measure, such as from Box to Each, on an order. For example, Each is the base unit of measure but you also sell the item in a Box of 6. If you only have five of the items available and you must sell in boxes, enter 1 to ensure that after conversion you will get 5 each and not 4.99998.';
                     DecimalPlaces = 0 : 5;

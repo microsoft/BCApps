@@ -45,6 +45,12 @@ page 99000916 "Machine Center Task List"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the description of the operation.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;

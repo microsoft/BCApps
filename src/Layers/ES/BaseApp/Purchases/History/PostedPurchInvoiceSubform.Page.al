@@ -9,6 +9,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
@@ -144,6 +145,20 @@ page 139 "Posted Purch. Invoice Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the price, in LCY, of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
+                }
+                field("Matched Order Lines"; Rec."Matched Order Lines")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Matched Order Lines';
+                    ToolTip = 'Specifies the number of purchase order lines to which this posted purchase invoice line is matched.';
+
+                    trigger OnDrillDown()
+                    var
+                        MatchedOrderLines: Page "Matched Order Lines";
+                    begin
+                        MatchedOrderLines.InitializePage("Matched Order Line Source"::"Posted Purchase Invoice", false, Rec.SystemId);
+                        MatchedOrderLines.RunModal();
+                    end;
                 }
                 field("VAT %"; Rec."VAT %")
                 {
@@ -525,6 +540,21 @@ page 139 "Posted Purch. Invoice Subform"
                         RecRef.GetTable(Rec);
                         DocumentAttachmentDetails.OpenForRecRef(RecRef);
                         DocumentAttachmentDetails.RunModal();
+                    end;
+                }
+                action(MatchedOrdLines)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Matched Order Lines';
+                    Image = TransferToLines;
+                    ToolTip = 'View order lines related to this posted purchase invoice line.';
+
+                    trigger OnAction()
+                    var
+                        MatchedOrderLines: Page "Matched Order Lines";
+                    begin
+                        MatchedOrderLines.InitializePage("Matched Order Line Source"::"Posted Purchase Invoice", false, Rec.SystemId);
+                        MatchedOrderLines.RunModal();
                     end;
                 }
             }

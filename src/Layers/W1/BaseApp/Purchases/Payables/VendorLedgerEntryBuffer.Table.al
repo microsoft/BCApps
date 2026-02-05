@@ -46,6 +46,7 @@ table 2250 "Vendor Ledger Entry Buffer"
         }
         field(14; "Remaining Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Amount';
         }
         field(36; Open; Boolean)

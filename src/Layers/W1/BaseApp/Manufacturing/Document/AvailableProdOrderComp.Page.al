@@ -61,6 +61,7 @@ page 99000898 "Available - Prod. Order Comp."
                 field(QtyToReserveBase; QtyToReserveBase)
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     Caption = 'Available Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -69,6 +70,7 @@ page 99000898 "Available - Prod. Order Comp."
                 field(ReservedQuantity; GetReservedQtyInLine())
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Current Reserved Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that is reserved for the document type.';

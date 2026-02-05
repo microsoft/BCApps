@@ -21,6 +21,9 @@ page 9882 "Report Res. Govern. Settings"
     InsertAllowed = false;
     ModifyAllowed = true;
 
+    AboutTitle = 'About Report Limits and Settings';
+    AboutText = 'Manage operational limits and language settings for reports. For operational limits, if no value is chosen for a report, the default settings from the environment are used. For language settings, if no value is chosen for a report, the report will be formatted according to the user''s current language and region settings.';
+
     layout
     {
         area(Content)

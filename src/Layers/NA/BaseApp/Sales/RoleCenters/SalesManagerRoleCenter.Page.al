@@ -24,6 +24,9 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reports;
 using System.Threading;
 
+/// <summary>
+/// Provides the Role Center page for sales managers with access to sales analysis, budgets, pricing, and team management.
+/// </summary>
 page 9005 "Sales Manager Role Center"
 {
     Caption = 'Sales Manager';
@@ -108,6 +111,7 @@ page 9005 "Sales Manager Role Center"
             separator(Action17)
             {
             }
+#if not CLEAN28
             action("Customer Sales Statistics")
             {
                 ApplicationArea = Suite;
@@ -115,7 +119,11 @@ page 9005 "Sales Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Customer Sales Statistics";
                 ToolTip = 'View detailed information about sales to your customers.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Customer/Item Statistics")
             {
                 ApplicationArea = Suite;

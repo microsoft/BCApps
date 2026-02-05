@@ -83,8 +83,7 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
           WorkDate());
 
         // Setup: Create new Exchange Rate for a WORKDATE.
-        LibraryERM.CreateExchRate(CurrencyExchangeRate, CurrencyExchangeRate."Currency Code", WorkDate());
-        UpdateExchangeRate(CurrencyExchangeRate, 100 * LibraryRandom.RandInt(4), 200 * LibraryRandom.RandInt(4));
+        CreateNewExchangeRate(CurrencyExchangeRate);
 
         // 2. Exercise: Run the report Adjust Exchange Rate.
         DocumentNo := Format(LibraryRandom.RandInt(100));

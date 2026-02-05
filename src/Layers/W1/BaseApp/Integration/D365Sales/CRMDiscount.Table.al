@@ -35,6 +35,7 @@ table 5365 "CRM Discount"
         }
         field(3; LowQuantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Begin Quantity';
             Description = 'Lower boundary for the quantity range to which a particular discount is applied.';
             ExternalName = 'lowquantity';
@@ -42,6 +43,7 @@ table 5365 "CRM Discount"
         }
         field(4; HighQuantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'End Quantity';
             Description = 'Upper boundary for the quantity range to which a particular discount can be applied.';
             ExternalName = 'highquantity';
@@ -49,6 +51,7 @@ table 5365 "CRM Discount"
         }
         field(5; Percentage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Percentage';
             Description = 'Percentage discount value.';
             ExternalName = 'percentage';
@@ -56,6 +59,7 @@ table 5365 "CRM Discount"
         }
         field(6; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             Description = 'Amount of the discount, specified either as a percentage or as a monetary amount.';
             ExternalName = 'amount';
@@ -176,6 +180,7 @@ table 5365 "CRM Discount"
         }
         field(20; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -192,6 +197,7 @@ table 5365 "CRM Discount"
         }
         field(22; Amount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount (Base)';
             Description = 'Shows the Amount field converted to the system''s default base currency, if specified as a fixed amount. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

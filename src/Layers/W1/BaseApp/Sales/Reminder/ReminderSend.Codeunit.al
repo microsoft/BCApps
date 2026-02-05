@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Sends issued reminders to customers using configured document sending profiles via email or print.
+/// </summary>
 codeunit 6762 "Reminder-Send"
 {
     var
@@ -19,12 +22,20 @@ codeunit 6762 "Reminder-Send"
         SendReminder();
     end;
 
+    /// <summary>
+    /// Sends the issued reminder using the configured document sending profile settings.
+    /// </summary>
     procedure SendReminder()
     begin
         SendReminderImplementation(GlobalIssuedReminderHeader, false, true, true);
         OnAfterSendReminder(GlobalIssuedReminderHeader);
     end;
 
+    /// <summary>
+    /// Initializes the reminder send parameters with the issued reminder and sending setup.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">Specifies the issued reminder header to send.</param>
+    /// <param name="SendReminderSetup">Specifies the send reminders setup with delivery configuration.</param>
     procedure Set(var IssuedReminderHeader: Record "Issued Reminder Header"; var SendReminderSetup: Record "Send Reminders Setup")
     begin
         GlobalIssuedReminderHeader.Copy(IssuedReminderHeader);

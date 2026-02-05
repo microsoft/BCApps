@@ -27,7 +27,7 @@ table 1315 "Purch. Price Line Disc. Buff."
         }
         field(5; "Line Discount %"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DataClassification = SystemMetadata;
             MaxValue = 100;
@@ -43,6 +43,7 @@ table 1315 "Purch. Price Line Disc. Buff."
         }
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DataClassification = SystemMetadata;
             MinValue = 0;

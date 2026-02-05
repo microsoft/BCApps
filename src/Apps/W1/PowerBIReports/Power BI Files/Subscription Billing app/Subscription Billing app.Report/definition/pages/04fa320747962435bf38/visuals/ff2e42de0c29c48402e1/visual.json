@@ -4,10 +4,10 @@
   "position": {
     "x": 27.510044495616402,
     "y": 463.74075006896226,
-    "z": 9000,
+    "z": 5000,
     "height": 229.90537185622281,
     "width": 599.32596936878588,
-    "tabOrder": 13000
+    "tabOrder": 9000
   },
   "visualGroup": {
     "displayName": "Purchasing Metrics Group",

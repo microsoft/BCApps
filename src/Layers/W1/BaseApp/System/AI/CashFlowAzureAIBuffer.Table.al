@@ -17,14 +17,17 @@ table 852 "Cash Flow Azure AI Buffer"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(4; Delta; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Delta';
         }
         field(5; "Delta %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Delta %';
         }
         field(6; "Period Start"; Date)

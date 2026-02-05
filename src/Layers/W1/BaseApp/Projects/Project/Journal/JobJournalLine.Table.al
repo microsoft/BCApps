@@ -196,6 +196,7 @@ table 210 "Job Journal Line"
         }
         field(10; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -228,12 +229,14 @@ table 210 "Job Journal Line"
         field(12; "Direct Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost (LCY)';
             MinValue = 0;
         }
         field(13; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
             Editable = false;
             MinValue = 0;
@@ -256,12 +259,14 @@ table 210 "Job Journal Line"
         field(14; "Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost (LCY)';
             Editable = false;
         }
         field(15; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
             Editable = false;
 
@@ -275,6 +280,7 @@ table 210 "Job Journal Line"
         field(16; "Total Price (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price (LCY)';
             Editable = false;
         }
@@ -350,6 +356,7 @@ table 210 "Job Journal Line"
         }
         field(19; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -359,6 +366,7 @@ table 210 "Job Journal Line"
         }
         field(20; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -622,18 +630,21 @@ table 210 "Job Journal Line"
         field(94; "Source Currency Total Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Source Currency Total Cost';
             Editable = false;
         }
         field(95; "Source Currency Total Price"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Source Currency Total Price';
             Editable = false;
         }
         field(96; "Source Currency Line Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Source Currency Line Amount';
             Editable = false;
         }
@@ -767,6 +778,7 @@ table 210 "Job Journal Line"
         }
         field(1006; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -812,6 +824,7 @@ table 210 "Job Journal Line"
         }
         field(1010; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -838,6 +851,7 @@ table 210 "Job Journal Line"
         field(1012; "Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount (LCY)';
             Editable = false;
 
@@ -851,6 +865,7 @@ table 210 "Job Journal Line"
         field(1013; "Line Discount Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Discount Amount (LCY)';
             Editable = false;
 
@@ -870,6 +885,7 @@ table 210 "Job Journal Line"
         }
         field(1015; "Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Factor';
             Editable = false;
         }
@@ -952,6 +968,7 @@ table 210 "Job Journal Line"
         }
         field(1030; "Remaining Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty.';
             DecimalPlaces = 0 : 5;
 
@@ -980,6 +997,7 @@ table 210 "Job Journal Line"
         }
         field(1031; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
 
             trigger OnValidate()
@@ -989,6 +1007,7 @@ table 210 "Job Journal Line"
         }
         field(1081; "Qty. to Transfer to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Transfer to Invoice';
             DecimalPlaces = 0 : 5;
         }
@@ -1058,6 +1077,7 @@ table 210 "Job Journal Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1065,6 +1085,7 @@ table 210 "Job Journal Line"
         }
         field(5410; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1075,6 +1096,7 @@ table 210 "Job Journal Line"
         }
         field(5468; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Item = R;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Journal Template Name"),
                                                                            "Source Ref. No." = field("Line No."),
@@ -1952,7 +1974,8 @@ table 210 "Job Journal Line"
             ApplyPrice(PriceType::Purchase, CalledByFieldNo);
             if Type = Type::Resource then begin
                 "Unit Cost (LCY)" := ConvertAmountToLCY("Unit Cost", UnitAmountRoundingPrecision);
-                "Direct Unit Cost (LCY)" := ConvertAmountToLCY("Direct Unit Cost (LCY)", UnitAmountRoundingPrecision);
+                if (xRec.Quantity = Quantity) or (Quantity = 0) then
+                    "Direct Unit Cost (LCY)" := ConvertAmountToLCY("Direct Unit Cost (LCY)", UnitAmountRoundingPrecision);
             end;
         end;
     end;

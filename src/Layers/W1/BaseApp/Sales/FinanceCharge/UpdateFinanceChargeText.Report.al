@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Updates the beginning and ending text on finance charge memos from the associated finance charge terms.
+/// </summary>
 report 186 "Update Finance Charge Text"
 {
     Caption = 'Update Finance Charge Text';

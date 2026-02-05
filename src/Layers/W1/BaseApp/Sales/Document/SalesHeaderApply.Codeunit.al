@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Applies customer ledger entries to a sales document for payment matching.
+/// </summary>
 codeunit 401 "Sales Header Apply"
 {
     TableNo = "Sales Header";

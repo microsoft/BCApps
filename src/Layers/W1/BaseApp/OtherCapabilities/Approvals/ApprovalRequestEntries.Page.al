@@ -126,6 +126,8 @@ page 662 "Approval Request Entries"
                 }
                 field("Available Credit Limit (LCY)"; Rec."Available Credit Limit (LCY)")
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the remaining credit (in LCY) that exists for the customer.';
                 }
@@ -136,6 +138,8 @@ page 662 "Approval Request Entries"
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the total amount in LCY (excl. VAT) on the document awaiting approval.';
                 }

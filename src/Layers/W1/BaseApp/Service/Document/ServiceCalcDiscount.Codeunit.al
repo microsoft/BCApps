@@ -44,6 +44,8 @@ codeunit 5950 "Service-Calc. Discount"
         Text000: Label 'Service Charge';
 #pragma warning restore AA0074
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Service Header", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Service Line", 'rimd')]
     local procedure CalculateInvoiceDiscount(var ServHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServiceLine2: Record "Service Line")
     var
         TempVATAmountLine: Record "VAT Amount Line" temporary;

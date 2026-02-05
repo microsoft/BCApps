@@ -20,7 +20,7 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
         ProdAsmJobWhseHandlingTelemetryCategoryTok: Label 'Prod/Asm/Project Whse. Handling', Locked = true;
         ProdAsmJobWhseHandlingTelemetryTok: Label 'Prod/Asm/Project Whse. Handling in used for warehouse pick.', Locked = true;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnGetSourceDocHeaderFromWhseRequest', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnGetSourceDocHeaderFromWhseRequest', '', true, false)]
     local procedure OnGetSourceDocHeaderFromWhseRequest(var WarehouseRequest: Record "Warehouse Request"; var SourceDocRecRef: RecordRef; var PostingDate: Date; var RecordExists: Boolean; var SourceDocRecordVar: Variant);
     var
         ProductionOrder: Record "Production Order";
@@ -35,7 +35,7 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnCheckSourceDocForWhseRequest', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnCheckSourceDocForWhseRequest', '', true, false)]
     local procedure OnCheckSourceDocForWhseRequest(
         var WarehouseRequest: Record "Warehouse Request"; var SourceDocRecordVar: Variant; var Result: Boolean;
         var WhseActivHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter";
@@ -54,7 +54,7 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnCreatePickOrMoveFromWhseRequest', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnCreatePickOrMoveFromWhseRequest', '', true, false)]
     local procedure OnCreatePickOrMoveFromWhseRequest(
         var WarehouseRequest: Record "Warehouse Request"; SourceDocRecRef: RecordRef; var LineCreated: Boolean; var SourceDocRecVar: Variant;
         var WhseActivityHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter";
@@ -68,7 +68,7 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnAutoCreatePickOrMoveFromWhseRequest', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", 'OnAutoCreatePickOrMoveFromWhseRequest', '', true, false)]
     local procedure OnAutoCreatePickOrMoveFromWhseRequest(
         var WarehouseRequest: Record "Warehouse Request"; SourceDocRecRef: RecordRef; var LineCreated: Boolean; var SourceDocRecVar: Variant;
         var WhseActivityHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter";
@@ -131,6 +131,7 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
                         NewWarehouseActivityLine."Qty. Rounding Precision" := ProdOrderComponent."Qty. Rounding Precision";
                         NewWarehouseActivityLine."Qty. Rounding Precision (Base)" := ProdOrderComponent."Qty. Rounding Precision (Base)";
                         NewWarehouseActivityLine.Description := ProdOrderComponent.Description;
+                        NewWarehouseActivityLine."Description 2" := ProdOrderComponent."Description 2";
                         NewWarehouseActivityLine."Source Document" := NewWarehouseActivityLine."Source Document"::"Prod. Consumption";
                         NewWarehouseActivityLine."Due Date" := ProdOrderComponent."Due Date";
                         if WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick" then

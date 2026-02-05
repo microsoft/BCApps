@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Manages the ending text lines for reminder PDF attachment documents.
+/// </summary>
 page 547 "Reminder Attach Ending Line"
 {
     PageType = ListPart;

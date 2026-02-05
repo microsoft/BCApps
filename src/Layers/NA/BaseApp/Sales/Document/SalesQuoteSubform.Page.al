@@ -24,6 +24,9 @@ using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Integration.Excel;
 
+/// <summary>
+/// Displays the line items subform for a sales quote document.
+/// </summary>
 page 95 "Sales Quote Subform"
 {
     AutoSplitKey = true;
@@ -674,6 +677,7 @@ page 95 "Sales Quote Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
                         Editable = InvDiscAmountEditable;
@@ -1272,6 +1276,9 @@ page 95 "Sales Quote Subform"
         ExtendedPriceEnabled := PriceCalculationMgt.IsExtendedPriceCalculationEnabled();
     end;
 
+    /// <summary>
+    /// Approves and calculates the invoice discount for the current line.
+    /// </summary>
     procedure ApproveCalcInvDisc()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Disc. (Yes/No)", Rec);
@@ -1291,6 +1298,9 @@ page 95 "Sales Quote Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Calculates the invoice discount for the current line.
+    /// </summary>
     procedure CalcInvDisc()
     var
         SalesCalcDiscount: Codeunit "Sales-Calc. Discount";
@@ -1299,12 +1309,19 @@ page 95 "Sales Quote Subform"
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Explodes the bill of materials for the current item line.
+    /// </summary>
     procedure ExplodeBOM()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Explode BOM", Rec);
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Inserts extended text for the current line if available.
+    /// </summary>
+    /// <param name="Unconditionally">Whether to insert text without conditions.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec);
@@ -1329,11 +1346,18 @@ page 95 "Sales Quote Subform"
         Rec.ShowItemChargeAssgnt();
     end;
 
+    /// <summary>
+    /// Updates the current page with optional record save.
+    /// </summary>
+    /// <param name="SetSaveRecord">Whether to save the record before updating.</param>
     procedure UpdateForm(SetSaveRecord: Boolean)
     begin
         CurrPage.Update(SetSaveRecord);
     end;
 
+    /// <summary>
+    /// Handles post-validation logic after the No. field is validated.
+    /// </summary>
     procedure NoOnAfterValidate()
     begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
@@ -1391,6 +1415,9 @@ page 95 "Sales Quote Subform"
         end;
     end;
 
+    /// <summary>
+    /// Updates the editable state of fields on the current row.
+    /// </summary>
     procedure UpdateEditableOnRow()
     begin
         IsCommentLine := not Rec.HasTypeToFillMandatoryFields();
@@ -1419,11 +1446,17 @@ page 95 "Sales Quote Subform"
         DocumentTotals.GetTotalSalesHeaderAndCurrency(Rec, TotalSalesHeader, Currency);
     end;
 
+    /// <summary>
+    /// Clears the total sales header variable.
+    /// </summary>
     procedure ClearTotalSalesHeader();
     begin
         Clear(TotalSalesHeader);
     end;
 
+    /// <summary>
+    /// Calculates the document totals for all sales lines.
+    /// </summary>
     procedure CalculateTotals()
     begin
         OnBeforeCalculateTotals(TotalSalesLine, SuppressTotals);
@@ -1436,6 +1469,9 @@ page 95 "Sales Quote Subform"
         DocumentTotals.RefreshSalesLine(Rec);
     end;
 
+    /// <summary>
+    /// Performs an incremental update of document totals based on line changes.
+    /// </summary>
     procedure DeltaUpdateTotals()
     var
         IsHandled: Boolean;
@@ -1453,11 +1489,17 @@ page 95 "Sales Quote Subform"
             Rec.SendLineInvoiceDiscountResetNotification();
     end;
 
+    /// <summary>
+    /// Forces a recalculation of document totals on the next update.
+    /// </summary>
     procedure ForceTotalsCalculation()
     begin
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Redistributes invoice discount amounts across lines after validation.
+    /// </summary>
     procedure RedistributeTotalsOnAfterValidate()
     var
         SalesHeader: Record "Sales Header";
@@ -1472,6 +1514,9 @@ page 95 "Sales Quote Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Updates the type text display based on the current line type.
+    /// </summary>
     procedure UpdateTypeText()
     var
         RecRef: RecordRef;
@@ -1482,6 +1527,9 @@ page 95 "Sales Quote Subform"
         TypeAsText := TempOptionLookupBuffer.FormatOption(RecRef.Field(Rec.FieldNo(Type)));
     end;
 
+    /// <summary>
+    /// Sets the style for item charge fields based on assignment status.
+    /// </summary>
     procedure SetItemChargeFieldsStyle()
     begin
         ItemChargeStyleExpression := '';

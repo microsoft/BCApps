@@ -8,6 +8,9 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
 using System.Security.User;
 
+/// <summary>
+/// Lists all archived sales order versions for viewing and restoration.
+/// </summary>
 page 9349 "Sales Order Archives"
 {
     ApplicationArea = Basic, Suite;

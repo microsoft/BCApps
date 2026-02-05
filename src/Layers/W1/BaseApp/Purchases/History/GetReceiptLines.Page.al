@@ -283,7 +283,7 @@ page 5709 "Get Receipt Lines"
         if IsHandled then
             exit(Result);
 
-        if CloseAction in [ACTION::OK, ACTION::LookupOK] then
+        if not SelectionOnly and (CloseAction in [ACTION::OK, ACTION::LookupOK]) then
             CreateLines();
     end;
 
@@ -295,6 +295,7 @@ page 5709 "Get Receipt Lines"
         VendorShptNo: Code[35];
         OrderNo: Code[20];
         ItemReferenceNo: Code[50];
+        SelectionOnly: Boolean;
 
     protected var
         PurchHeader: Record "Purchase Header";
@@ -333,6 +334,11 @@ page 5709 "Get Receipt Lines"
         end;
         if Rec."Line No." = TempPurchRcptLine."Line No." then
             exit(true);
+    end;
+
+    procedure SetSelectionOnly(NewSelectionOnly: Boolean)
+    begin
+        SelectionOnly := NewSelectionOnly;
     end;
 
     local procedure CreateLines()

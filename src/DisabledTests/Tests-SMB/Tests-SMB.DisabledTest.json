@@ -85,6 +85,11 @@
     "method": "ItemTemplCardControls"
   },
   {
+    "codeunitId": 138008,
+    "codeunitName": "Cust/Vend/Item/Empl Templates",
+    "method": "VendorTemplCardControls"
+  },
+  {
     "codeunitId": 138023,
     "codeunitName": "O365 Generic Chart Page Tests",
     "method": "Top10CustPointClickedTest"

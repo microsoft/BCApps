@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +24,14 @@ table 10864 "Payment Post. Buffer"
 {
     Caption = 'Payment Post. Buffer';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -60,6 +69,7 @@ table 10864 "Payment Post. Buffer"
         field(7; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -73,11 +83,13 @@ table 10864 "Payment Post. Buffer"
         field(8; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'VAT Amount';
         }
         field(9; "Line Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Line Discount Amount';
         }
         field(10; "Gen. Bus. Posting Group"; Code[20])
@@ -97,11 +109,13 @@ table 10864 "Payment Post. Buffer"
         field(13; "Inv. Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Inv. Discount Amount';
         }
         field(14; "VAT Base Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'VAT Base Amount';
         }
         field(15; "Line Discount Account"; Code[20])
@@ -134,6 +148,7 @@ table 10864 "Payment Post. Buffer"
         }
         field(21; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 1 : 5;
         }
@@ -154,26 +169,31 @@ table 10864 "Payment Post. Buffer"
         field(25; "Amount (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Amount (ACY)';
         }
         field(26; "VAT Amount (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'VAT Amount (ACY)';
         }
         field(27; "Line Discount Amt. (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Line Discount Amt. (ACY)';
         }
         field(28; "Inv. Discount Amt. (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Inv. Discount Amt. (ACY)';
         }
         field(29; "VAT Base Amount (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'VAT Base Amount (ACY)';
         }
         field(30; "Dimension Entry No."; Integer)
@@ -183,10 +203,12 @@ table 10864 "Payment Post. Buffer"
         field(31; "VAT Difference"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'VAT Difference';
         }
         field(32; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 1 : 1;
         }
@@ -204,6 +226,8 @@ table 10864 "Payment Post. Buffer"
         }
         field(36; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(37; "Currency Code"; Code[10])
@@ -212,6 +236,7 @@ table 10864 "Payment Post. Buffer"
         }
         field(38; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(63; "External Document No."; Code[35])
@@ -271,6 +296,7 @@ table 10864 "Payment Post. Buffer"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -370,5 +396,14 @@ table 10864 "Payment Post. Buffer"
     fieldgroups
     {
     }
-}
 
+    var
+        GLSetup: Record "General Ledger Setup";
+
+    local procedure GetAdditionalCurrencyCode(): Code[10]
+    begin
+        GLSetup.GetRecordOnce();
+        exit(GLSetup."Additional Reporting Currency");
+    end;
+}
+#endif

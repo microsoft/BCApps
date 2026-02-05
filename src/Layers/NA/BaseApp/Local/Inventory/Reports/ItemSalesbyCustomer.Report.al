@@ -340,12 +340,16 @@ report 10145 "Item Sales by Customer"
                         Caption = 'Items with Net Sales ($)';
                         field(MinSales; MinSales)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             BlankZero = true;
                             Caption = 'Greater than';
                             ToolTip = 'Specifies a maximum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
                         }
                         field(MaxSales; MaxSales)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             BlankZero = true;
                             Caption = 'Less than';
                             ToolTip = 'Specifies a minimum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
@@ -356,12 +360,14 @@ report 10145 "Item Sales by Customer"
                         Caption = 'Items with Net Sales (Qty)';
                         field(MinQty; MinQty)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Greater than';
                             ToolTip = 'Specifies a maximum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';
                         }
                         field(MaxQty; MaxQty)
                         {
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Less than';
                             ToolTip = 'Specifies a minimum dollar value for sales. You can limit which items appear on the report by indicating a sales dollar range.';

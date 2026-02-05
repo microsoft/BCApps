@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@ report 10862 "Suggest Vendor Payments FR"
     Caption = 'Suggest Vendor Payments';
     Permissions = TableData "Vendor Ledger Entry" = rm;
     ProcessingOnly = true;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -164,6 +168,8 @@ report 10862 "Suggest Vendor Payments FR"
                     }
                     field(AvailableAmountLCY; AmountAvailable)
                     {
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         ApplicationArea = Basic, Suite;
                         Caption = 'Available Amount (LCY)';
                         ToolTip = 'Specifies a maximum amount available in local currency for payments. ';
@@ -521,4 +527,4 @@ report 10862 "Suggest Vendor Payments FR"
         TempPayableVendLedgEntry.SetRange("Vendor No.");
     end;
 }
-
+#endif

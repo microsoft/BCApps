@@ -105,7 +105,7 @@ codeunit 99000898 "Mfg. Item Substitution"
         ProdOrderComp := TempProdOrderComp;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", 'OnDelNonStockItemOnAfterCheckRelations', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", 'OnDelNonStockItemOnAfterCheckRelations', '', true, false)]
     local procedure OnDelNonStockItemOnAfterCheckRelations(var Item: Record Item; var ShouldExit: Boolean)
     var
         ProdBOMHeader: Record "Production BOM Header";

@@ -62,6 +62,8 @@ page 11500 "G/L Acc. Provisional Balance"
                         }
                         field(AccBalance; AccBalance)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                             Caption = 'Balance';
@@ -70,12 +72,16 @@ page 11500 "G/L Acc. Provisional Balance"
                         }
                         field(AccNotPosted; AccNotPosted)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                             Caption = 'Not Posted (w/o VAT)';
                         }
                         field("AccBalance + AccNotPosted"; AccBalance + AccNotPosted)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                             Caption = 'Total';
@@ -101,17 +107,23 @@ page 11500 "G/L Acc. Provisional Balance"
                         }
                         field(AccBalanceFC; AccBalanceFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = AccCurrency;
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                             DrillDown = false;
                         }
                         field(AccNotPostedFC; AccNotPostedFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
                         field("AccBalanceFC + AccNotPostedFC"; AccBalanceFC + AccNotPostedFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
@@ -133,16 +145,22 @@ page 11500 "G/L Acc. Provisional Balance"
                         }
                         field(BalAccBalance; BalAccBalance)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
                         field(BalAccNotPosted; BalAccNotPosted)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
                         field("BalAccBalance + BalAccNotPosted"; BalAccBalance + BalAccNotPosted)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
@@ -166,16 +184,22 @@ page 11500 "G/L Acc. Provisional Balance"
                         }
                         field(BalAccBalanceFC; BalAccBalanceFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = AccCurrency;
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
                         field(BalAccNotPostedFC; BalAccNotPostedFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = AccCurrency;
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }
                         field("BalAccBalanceFC + BalAccNotPostedFC"; BalAccBalanceFC + BalAccNotPostedFC)
                         {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = AccCurrency;
                             ApplicationArea = Basic, Suite;
                             BlankZero = true;
                         }

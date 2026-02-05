@@ -378,6 +378,7 @@ table 5505 "Sales Quote Entity Buffer"
         field(122; "Invoice Discount Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Invoice Discount Value';
             DataClassification = CustomerContent;
         }

@@ -16,6 +16,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Telemetry;
 
+/// <summary>
+/// Lists all posted sales invoices for viewing, printing, and navigation.
+/// </summary>
 page 143 "Posted Sales Invoices"
 {
     AdditionalSearchTerms = 'posted bill';

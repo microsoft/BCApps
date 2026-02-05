@@ -3594,6 +3594,14 @@ table 5050 Contact
         end;
     end;
 
+    internal procedure CreateInteractionForEmail()
+    var
+        TempSegmentLine: Record "Segment Line" temporary;
+    begin
+        CheckIfPrivacyBlockedGeneric();
+        TempSegmentLine.CreateSegLineInteractionFromContactForEmail(Rec);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalutation(var SalutationType: Enum "Salutation Formula Salutation Type"; var LanguageCode: Code[10]; var NamePart: array[5] of Text[100]; var Contact: Record Contact; var SalutationFormula: Record "Salutation Formula")
     begin

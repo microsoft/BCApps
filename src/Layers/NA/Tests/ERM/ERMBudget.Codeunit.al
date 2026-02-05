@@ -2342,7 +2342,7 @@ codeunit 134922 "ERM Budget"
 
         // [GIVEN] Initialized values of Quantity, Cost Amount, Sales Amount.
         Quantity[1] := LibraryRandom.RandDecInRange(10, 20, 1);
-        Quantity[2] := LibraryRandom.RandDecInRange(1, 5, 1);
+        Quantity[2] := LibraryRandom.RandDecInRange(1, 10, 1);
         CostAmount[1] := LibraryRandom.RandDecInRange(100, 200, 1);
         CostAmount[2] := LibraryRandom.RandDecInRange(10, 50, 1);
         SalesAmount[1] := LibraryRandom.RandDecInRange(1000, 2000, 1);
@@ -2419,7 +2419,7 @@ codeunit 134922 "ERM Budget"
         VerifyGLBudgetAmountAndDimensions(GLBudgetName, WorkDate(), GLAccount."No.", EntryAmount, DimensionValue);
     end;
 
-    
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

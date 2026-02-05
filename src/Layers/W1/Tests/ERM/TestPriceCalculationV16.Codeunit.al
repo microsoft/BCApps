@@ -5731,6 +5731,76 @@ codeunit 134159 "Test Price Calculation - V16"
         LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes,MessageHandlerOK,GetPriceLineHandler')]
+    procedure VerifySalesLinePriceUpdateUsingGetPriceFunction()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        PriceListHeader: array[2] of Record "Price List Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+        UnitPrice: array[2] of Decimal;
+        FirstDayOfYear, LastDayOfYear : Date;
+    begin
+        // [SCENARIO 614325] Confirm sales price in sales line when sales price is updated via GetPrice function.
+        Initialize();
+
+        // [GIVEN] Calculate the first and last day of the year.
+        FirstDayOfYear := CalcDate('<-CY>', WorkDate());
+        LastDayOfYear := CalcDate('<CY>', WorkDate());
+
+        // [GIVEN] Create an Item and customer.
+        CreateItemAndCustomer(Item, Customer);
+
+        // [GIVEN] Create First Sales Price.
+        UnitPrice[1] := CreatePriceListHeader(
+            PriceListHeader[1], Customer."No.", Item."No.", FirstDayOfYear, LastDayOfYear);
+
+        // [GIVEN] Create Second Sales Price.
+        UnitPrice[2] := CreatePriceListHeader(
+            PriceListHeader[2], Customer."No.", Item."No.", CalcDate('<6M>', FirstDayOfYear), LastDayOfYear);
+
+        // [GIVEN] Set WorkDate.
+        WorkDate := CalcDate('<5M>', FirstDayOfYear);
+
+        // [GIVEN] Create a sales order.
+        LibraryVariableStorage.Enqueue(PriceListHeader[2]."Starting Date");
+
+        // [GIVEN] Create Sales Order.
+        SalesOrder.OpenNew();
+        SalesOrder."Sell-to Customer No.".SetValue(Customer."No.");
+        SalesOrder.SalesLines.Type.SetValue(2);
+        SalesOrder.SalesLines."No.".SetValue(Item."No.");
+
+        // [WHEN] Quantity is inserted in the Sales Line table.
+        SalesOrder.SalesLines.Quantity.SetValue(1);
+
+        // [THEN] Verify Sales Line Unit Price.
+        Assert.Equal(UnitPrice[1], SalesOrder.SalesLines."Unit Price".AsDecimal());
+
+        // [GIVEN] Update the Posting Date and Order Date on the Sales Order.
+        SalesOrder."Posting Date".SetValue(CalcDate('<2M>', WorkDate()));
+        SalesOrder."Order Date".SetValue(CalcDate('<2M>', WorkDate()));
+
+        // [WHEN] Get Prices Action was invoked.
+        SalesOrder.SalesLines.GetPrices.Invoke();
+
+        // [GIVEN] Find Updated Sales Line.
+        FindSalesLine(SalesLine, SalesOrder."No.".Value(), Item."No.");
+
+        // [THEN] No error occurred and the unit price is updating in the sales line from the sales price.
+        Assert.AreEqual(
+            UnitPrice[2], SalesLine."Unit Price",
+            StrSubstNo(
+                ValueMustBeEqualErr,
+                SalesLine.FieldCaption("Unit Price"),
+                UnitPrice[2],
+                SalesLine.TableCaption()));
+        LibraryNotificationMgt.RecallNotificationsForRecord(SalesLine);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6563,10 +6633,10 @@ codeunit 134159 "Test Price Calculation - V16"
             SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, LibraryRandom.RandInt(10));
     end;
 
-    local procedure FindSalesLine(var SalesLine: Record "Sales Line"; SalesOrdertNo: Code[20]; ItemNo: Code[20])
+    local procedure FindSalesLine(var SalesLine: Record "Sales Line"; SalesOrderNo: Code[20]; ItemNo: Code[20])
     begin
         SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
-        SalesLine.SetRange("Document No.", SalesOrdertNo);
+        SalesLine.SetRange("Document No.", SalesOrderNo);
         SalesLine.SetRange("No.", ItemNo);
         SalesLine.FindFirst();
     end;

@@ -66,18 +66,26 @@ table 10881 "Payment Application Buffer"
         }
         field(20; "Entry Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Entry Amount (LCY)';
         }
         field(21; "Pmt. Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Amount (LCY)';
         }
         field(22; "Remaining Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Amount (LCY)';
         }
         field(23; "Entry Amount Corrected (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Entry Amount Corrected (LCY)';
         }
         field(30; "Days Since Due Date"; Integer)
@@ -197,5 +205,5 @@ table 10881 "Payment Application Buffer"
     end;
 }
 
- 
+
 #endif

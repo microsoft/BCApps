@@ -210,6 +210,7 @@ table 7000020 "Payment Order"
         field(34; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Cartera Doc."."Remaining Amt. (LCY)" where("Bill Gr./Pmt. Order No." = field("No."),
                                                                            "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                            "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -278,10 +279,10 @@ table 7000020 "Payment Order"
         if "No." = '' then begin
             CarteraSetup.Get();
             CarteraSetup.TestField("Payment Order Nos.");
-                "No. Series" := CarteraSetup."Payment Order Nos.";
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series");
+            "No. Series" := CarteraSetup."Payment Order Nos.";
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series");
         end;
 
         if GetFilter("Bank Account No.") <> '' then

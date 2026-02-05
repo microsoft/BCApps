@@ -177,6 +177,8 @@ page 1287 "Payment Application Review"
                         field("Remaining Amount"; RemainingAmountAfterPosting)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = Rec.GetCurrencyCode();
                             Caption = 'Remaining Amount After Posting';
                             ToolTip = 'Specifies the amount that remains to be paid on the open entry that the payment is applied to.';
                         }
@@ -185,6 +187,8 @@ page 1287 "Payment Application Review"
                     field("Difference"; StatementToRemAmtDifference)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec.GetCurrencyCode();
                         Caption = 'Difference';
                         Editable = false;
                         ToolTip = 'Specifies the difference between the amount in the Statement Amount field and the amount in the Applied Amount field.';

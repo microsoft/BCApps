@@ -32,11 +32,11 @@ page 4310 "Agent Setup Part"
                     Editable = false;
                     ToolTip = 'The badge of the agent.';
                 }
-                field(Type; Rec."Agent Metadata Provider")
+                field(Type; AgentPublisherText)
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the agent.';
+                    ToolTip = 'Specifies the publisher/type of the agent.';
                 }
                 field(Name; Rec."Display Name")
                 {
@@ -63,7 +63,7 @@ page 4310 "Agent Setup Part"
 
                     trigger OnDrillDown()
                     begin
-                        if AgentSetup.SetupLanguageAndRegion(Rec) then begin
+                        if AgentSetup.OpenLanguageAndRegionPage(Rec) then begin
                             UpdateAgentSummaryDisplayText();
                             CurrPage.Update(false);
                         end;
@@ -111,6 +111,7 @@ page 4310 "Agent Setup Part"
         AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
         UpdateAgentSummaryDisplayText();
+        UpdateAgentPublisherText();
     end;
 
     /// <summary>
@@ -138,6 +139,7 @@ page 4310 "Agent Setup Part"
         AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
         AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
         UpdateAgentSummaryDisplayText();
+        UpdateAgentPublisherText();
     end;
 
     /// <summary>
@@ -169,10 +171,33 @@ page 4310 "Agent Setup Part"
         AgentSummaryDisplayText := AgentSetupImpl.AppendAgentSummary(Rec, AgentSummary);
     end;
 
+    local procedure UpdateAgentPublisherText()
+    begin
+        AgentPublisherText := GetAgentPublisherText();
+    end;
+
+    local procedure GetAgentPublisherText(): Text
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+        AgentPublisherType: Enum "Agent Publisher Type";
+        AgentPublisherName: Text[250];
+    begin
+        if not AgentUtilities.TryGetAgentPublisherInfo(Rec."Agent Metadata Provider", AgentPublisherName, AgentPublisherType) then
+            exit('');
+
+        if AgentPublisherType = AgentPublisherType::User then
+            exit(UserCreatedAgentPublisherLbl);
+
+        exit(StrSubstNo(AgentPublisherLbl, AgentPublisherName));
+    end;
+
     var
         AgentSetup: Codeunit "Agent Setup";
         AgentSummaryDisplayText: Text;
         AgentSummary: Text;
+        AgentPublisherText: Text;
+        AgentPublisherLbl: Label 'By %1', Comment = '%1 is The agent publisher name';
+        UserCreatedAgentPublisherLbl: Label 'Agent';
         ManageUserAccessLbl: Label 'Manage user access';
         LanguageAndRegionLbl: Label 'Language and region';
 }

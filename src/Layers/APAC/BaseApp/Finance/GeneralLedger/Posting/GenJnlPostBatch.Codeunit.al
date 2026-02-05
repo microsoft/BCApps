@@ -220,6 +220,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         RecRef: RecordRef;
         ICLastDocNo: Code[20];
         CurrentICPartner: Code[20];
+        LastTaxLineNo: Integer;
         LastLineNo: Integer;
         LastICTransactionNo: Integer;
         ICTransactionNo: Integer;
@@ -307,6 +308,8 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 repeat
                     PostGenJournalLine(WHTGenJournalLine, GenJnlLine, CurrentICPartner, ICTransactionNo);
                 until WHTGenJournalLine.Next() = 0;
+
+            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, CurrentICPartner, ICTransactionNo, LastTaxLineNo);
             ErrorMessageMgt.PopContext(ErrorContextElement);
         until GenJnlLine.Next() = 0;
 
@@ -314,6 +317,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
 
         GenJnlLine.SetRange("Is WHT");
+        OnBeforeFindGenJnlLineOnProcessLines(GenJnlLine);
         GenJnlLine.FindSet(true);
         // Post reversing lines
         RecRef.GetTable(TempGenJnlLine4);
@@ -1641,6 +1645,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             until GenJnlLine.Next() = 0;
     end;
 
+    internal procedure PostGenJournalLines(var GenJournalLine: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
+    begin
+        PostGenJournalLine(GenJournalLine, CurrGenJnlLine, CurrentICPartner, ICTransactionNo)
+    end;
+    
     local procedure PostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
     var
         IsPosted: Boolean;
@@ -2648,6 +2657,16 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostGenJournalLineOnBeforeMultiplyAmounts(var GenJournalLine: Record "Gen. Journal Line"; SavedPostingDate: Date; SavedVATReportingDate: Date; var PostingGenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFindGenJnlLineOnProcessLines(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 }

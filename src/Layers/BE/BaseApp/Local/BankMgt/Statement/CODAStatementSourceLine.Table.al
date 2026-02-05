@@ -63,6 +63,8 @@ table 2000042 "CODA Statement Source Line"
         }
         field(11; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(12; "Transaction Date"; Date)
@@ -164,6 +166,8 @@ table 2000042 "CODA Statement Source Line"
         }
         field(61; "Original Transaction Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Original Transaction Currency";
             Caption = 'Original Transaction Amount';
             Editable = false;
         }

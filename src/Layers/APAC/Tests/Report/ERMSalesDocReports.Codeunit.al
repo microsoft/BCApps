@@ -742,7 +742,7 @@ codeunit 134390 "ERM Sales Doc. Reports"
             LibrarySales.CreateSalesLine(
               SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(VATPostingSetup."VAT Prod. Posting Group"),
               LibraryRandom.RandInt(10));
-            TotalAmount += Round((SalesLine.Amount * SalesLine."VAT %") / 100);
+            TotalAmount += SalesLine."Amount Including VAT" - SalesLine.Amount;
         end;
         exit(TotalAmount);
     end;

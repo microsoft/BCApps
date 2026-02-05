@@ -9,6 +9,9 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Creates reminder documents in batch for customers with overdue entries based on reminder terms configuration.
+/// </summary>
 report 188 "Create Reminders"
 {
     Caption = 'Create Reminders';
@@ -252,6 +255,14 @@ report 188 "Create Reminders"
         UseHeaderLevel: Boolean;
         IncludeEntriesOnHold: Boolean;
 
+    /// <summary>
+    /// Initializes the report request parameters for reminder creation.
+    /// </summary>
+    /// <param name="DocumentDate">Specifies the document date for the reminders.</param>
+    /// <param name="PostingDate">Specifies the posting date for the reminders.</param>
+    /// <param name="OverdueEntries">Specifies whether to include only overdue entries.</param>
+    /// <param name="NewUseHeaderLevel">Specifies whether to use the header level for all lines.</param>
+    /// <param name="IncludeEntries">Specifies whether to include entries on hold.</param>
     procedure InitializeRequest(DocumentDate: Date; PostingDate: Date; OverdueEntries: Boolean; NewUseHeaderLevel: Boolean; IncludeEntries: Boolean)
     begin
         ReminderHeaderReq."Document Date" := DocumentDate;
@@ -261,6 +272,10 @@ report 188 "Create Reminders"
         IncludeEntriesOnHold := IncludeEntries;
     end;
 
+    /// <summary>
+    /// Sets the filters for customer ledger entries to apply line fees on.
+    /// </summary>
+    /// <param name="CustLedgEntryLineFeeOn2">Specifies the customer ledger entry filters for line fees.</param>
     procedure SetApplyLineFeeOnFilters(var CustLedgEntryLineFeeOn2: Record "Cust. Ledger Entry")
     begin
         CustLedgEntryLineFeeOnFilters.CopyFilters(CustLedgEntryLineFeeOn2);
@@ -314,36 +329,72 @@ report 188 "Create Reminders"
         OnAfterUpdateProgressWindow(Customer, Window);
     end;
 
+    /// <summary>
+    /// Raised after the pre-report trigger completes and filters are set up.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry filter record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnPreReport(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the progress window during batch processing.
+    /// </summary>
+    /// <param name="Customer">The current customer being processed.</param>
+    /// <param name="Window">The progress dialog window.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateProgressWindow(Customer: Record Customer; var Window: Dialog)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the pre-report trigger executes.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPreReport()
     begin
     end;
 
+    /// <summary>
+    /// Raised before the post-report trigger executes.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPostReport()
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating reminders for a customer in the batch process.
+    /// </summary>
+    /// <param name="Customer">The customer for reminder creation.</param>
+    /// <param name="CustLedgEntry">The customer ledger entries filter.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold">Indicates whether entries on hold are included.</param>
+    /// <param name="CustLedgEntryLineFeeOn">The customer ledger entries filter for line fees.</param>
+    /// <param name="Result">Returns the result when handling is skipped.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ReminderMake">The reminder creation codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetRecordCustomerOnBeforeMakeReminder(Customer: Record Customer; var CustLedgEntry: Record "Cust. Ledger Entry"; ReminderHeaderReq: Record "Reminder Header"; OverdueEntriesOnly: Boolean; IncludeEntriesOnHold: Boolean; var CustLedgEntryLineFeeOn: Record "Cust. Ledger Entry"; var Result: Boolean; var IsHandled: Boolean; var ReminderMake: Codeunit "Reminder-Make")
     begin
     end;
 
+    /// <summary>
+    /// Raised before counting the number of customers in the pre-data item trigger.
+    /// </summary>
+    /// <param name="Customer">The customer record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCustomerOnPreDataItemOnBeforeCount(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the progress window for batch processing.
+    /// </summary>
+    /// <param name="NoOfRecords">The number of records to process.</param>
+    /// <param name="ProgressBarText">The text to display in the progress bar.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenProgressWindowOnBeforeWindowOpen(NoOfRecords: Integer; var ProgressBarText: Text)
     begin

@@ -122,12 +122,16 @@ page 1206 "Credit Transfer Reg. Entries"
                 field(AppliesToEntryAmount; Rec.AppliesToEntryAmount())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Applies-to Entry Amount';
                     ToolTip = 'Specifies the payment amount on the purchase invoice that the vendor ledger entry behind this credit transfer entry applies to.';
                 }
                 field(AppliesToEntryRemainingAmount; Rec.AppliesToEntryRemainingAmount())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Applies-to Entry Remaining Amount';
                     ToolTip = 'Specifies the amount that remains to be paid on the purchase invoice that the vendor ledger entry behind this credit transfer entry applies to.';
                 }

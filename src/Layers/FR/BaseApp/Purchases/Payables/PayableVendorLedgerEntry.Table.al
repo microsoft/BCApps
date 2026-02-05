@@ -35,11 +35,13 @@ table 317 "Payable Vendor Ledger Entry"
         field(5; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(6; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(7; "Currency Code"; Code[10])

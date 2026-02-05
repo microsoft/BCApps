@@ -78,6 +78,7 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'BGPO Amount';
                             Editable = false;
                             ToolTip = 'Specifies the amount on the bill group or payment order.';
@@ -97,6 +98,7 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Open';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is not processed yet. ';
@@ -105,6 +107,7 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Closed';
                             Editable = false;
                             ToolTip = 'Specifies if the document is closed.';
@@ -113,6 +116,7 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';
@@ -121,6 +125,7 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                         }
                     }
@@ -130,6 +135,7 @@ page 7000068 "Posted Bills Analysis"
                         field(OpenPercentage; OpenPercentage)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
@@ -137,6 +143,7 @@ page 7000068 "Posted Bills Analysis"
                         field(HonoredPercentage; HonoredPercentage)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
@@ -144,6 +151,7 @@ page 7000068 "Posted Bills Analysis"
                         field(RejectedPercentage; RejectedPercentage)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
@@ -151,6 +159,7 @@ page 7000068 "Posted Bills Analysis"
                         field(RedrawnPercentage; RedrawnPercentage)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;

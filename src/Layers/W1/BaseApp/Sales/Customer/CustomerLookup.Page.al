@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides a simplified lookup page for selecting customers with essential fields.
+/// </summary>
 page 33 "Customer Lookup"
 {
     Caption = 'Customers';

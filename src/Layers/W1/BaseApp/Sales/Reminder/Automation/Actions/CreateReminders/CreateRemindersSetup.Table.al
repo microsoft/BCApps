@@ -8,36 +8,66 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Automation;
 
+/// <summary>
+/// Stores the configuration settings for an automated create reminders action including customer and entry filters.
+/// </summary>
 table 6757 "Create Reminders Setup"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique code identifying this create reminders setup.
+        /// </summary>
         field(1; Code; Code[50])
         {
         }
+        /// <summary>
+        /// Specifies the reminder action group to which this setup belongs.
+        /// </summary>
         field(2; "Action Group Code"; Code[50])
         {
         }
+        /// <summary>
+        /// Specifies a description of this create reminders setup.
+        /// </summary>
         field(3; Description; Text[50])
         {
         }
+        /// <summary>
+        /// Indicates whether only overdue entries with outstanding amounts should be included.
+        /// </summary>
         field(10; "Only Overdue Amount Entries"; Boolean)
         {
         }
+        /// <summary>
+        /// Indicates whether entries that are on hold should be included in the reminder.
+        /// </summary>
         field(11; "Include Entries On Hold"; Boolean)
         {
         }
+        /// <summary>
+        /// Indicates whether the header level should be applied to all lines on the reminder.
+        /// </summary>
         field(12; "Set Header Level to all Lines"; Boolean)
         {
         }
+        /// <summary>
+        /// Stores the filter criteria for selecting customers when creating reminders.
+        /// </summary>
         field(20; "Customer Filter"; Blob)
         {
         }
+        /// <summary>
+        /// Stores the filter criteria for selecting customer ledger entries to include.
+        /// </summary>
         field(21; "Ledger Entries Filter"; Blob)
         {
         }
+        /// <summary>
+        /// Stores the filter criteria for selecting ledger entries for line fee calculation.
+        /// </summary>
         field(22; "Issue Fee Ledg. Entries Filter"; Blob)
         {
         }
@@ -50,6 +80,9 @@ table 6757 "Create Reminders Setup"
         }
     }
 
+    /// <summary>
+    /// Opens a filter page to allow the user to set the customer selection filter.
+    /// </summary>
     procedure SetCustomerSelectionFilter()
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -67,6 +100,9 @@ table 6757 "Create Reminders Setup"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Opens a filter page to allow the user to set the customer ledger entries selection filter.
+    /// </summary>
     procedure SetCustomerLedgerEntriesSelectionFilter()
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -84,6 +120,9 @@ table 6757 "Create Reminders Setup"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Opens a filter page to allow the user to set the fee customer ledger entries selection filter.
+    /// </summary>
     procedure SetFeeCustomerLedgerEntriesSelectionFilter()
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -101,6 +140,10 @@ table 6757 "Create Reminders Setup"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Gets the stored customer selection filter text.
+    /// </summary>
+    /// <returns>The customer selection filter text.</returns>
     procedure GetCustomerSelectionFilter(): Text
     var
         SelectionFilterInStream: InStream;
@@ -116,6 +159,10 @@ table 6757 "Create Reminders Setup"
         exit(SelectionFilterText);
     end;
 
+    /// <summary>
+    /// Gets the stored customer ledger entries selection filter text.
+    /// </summary>
+    /// <returns>The customer ledger entries selection filter text.</returns>
     procedure GetCustomerLedgerEntriesSelectionFilter(): Text
     var
         SelectionFilterInStream: InStream;
@@ -131,6 +178,10 @@ table 6757 "Create Reminders Setup"
         exit(SelectionFilterText);
     end;
 
+    /// <summary>
+    /// Gets the stored fee customer ledger entries selection filter text.
+    /// </summary>
+    /// <returns>The fee customer ledger entries selection filter text.</returns>
     procedure GetFeeCustomerLegerEntriesSelectionFilter(): Text
     var
         SelectionFilterInStream: InStream;
@@ -146,6 +197,10 @@ table 6757 "Create Reminders Setup"
         exit(SelectionFilterText);
     end;
 
+    /// <summary>
+    /// Gets the display text for the customer selection filter.
+    /// </summary>
+    /// <returns>A formatted display text showing the filter criteria.</returns>
     procedure GetCustomerSelectionDisplayText(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -153,6 +208,10 @@ table 6757 "Create Reminders Setup"
         exit(RequestPageParametersHelper.GetFilterDisplayText(Rec, Database::Customer, Rec.FieldNo("Customer Filter")));
     end;
 
+    /// <summary>
+    /// Gets the display text for the customer ledger entries selection filter.
+    /// </summary>
+    /// <returns>A formatted display text showing the filter criteria.</returns>
     procedure GetCustomerLedgerEntriesSelectionDisplayText(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -160,6 +219,10 @@ table 6757 "Create Reminders Setup"
         exit(RequestPageParametersHelper.GetFilterDisplayText(Rec, Database::"Cust. Ledger Entry", Rec.FieldNo("Ledger Entries Filter")));
     end;
 
+    /// <summary>
+    /// Gets the display text for the fee customer ledger entries selection filter.
+    /// </summary>
+    /// <returns>A formatted display text showing the filter criteria.</returns>
     procedure GetFeeCustomerLedgerEntriesSelectionDisplayText(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -167,6 +230,10 @@ table 6757 "Create Reminders Setup"
         exit(RequestPageParametersHelper.GetFilterDisplayText(Rec, Database::"Cust. Ledger Entry", Rec.FieldNo("Issue Fee Ledg. Entries Filter")));
     end;
 
+    /// <summary>
+    /// Gets the view filter for the customer selection that can be applied to a record.
+    /// </summary>
+    /// <returns>The view filter string for customer records.</returns>
     procedure GetCustomerSelectionViewFilter(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -174,6 +241,10 @@ table 6757 "Create Reminders Setup"
         exit(RequestPageParametersHelper.GetFilterViewFilters(Rec, Database::Customer, Rec.FieldNo("Customer Filter")));
     end;
 
+    /// <summary>
+    /// Gets the view filter for the customer ledger entries selection that can be applied to a record.
+    /// </summary>
+    /// <returns>The view filter string for customer ledger entry records.</returns>
     procedure GetCustomerLedgerEntriesSelectionViewFilter(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
@@ -181,6 +252,10 @@ table 6757 "Create Reminders Setup"
         exit(RequestPageParametersHelper.GetFilterViewFilters(Rec, Database::"Cust. Ledger Entry", Rec.FieldNo("Ledger Entries Filter")));
     end;
 
+    /// <summary>
+    /// Gets the view filter for the fee customer ledger entries selection that can be applied to a record.
+    /// </summary>
+    /// <returns>The view filter string for fee customer ledger entry records.</returns>
     procedure GetFeeCustomerLedgerEntriesSelectionViewFilter(): Text
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";

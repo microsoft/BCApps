@@ -17,6 +17,9 @@ using System.Globalization;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Generates a test report to preview reminder documents before issuing them.
+/// </summary>
 report 122 "Reminder - Test"
 {
     DefaultLayout = RDLC;
@@ -908,6 +911,10 @@ report 122 "Reminder - Test"
         ErrorText[ErrorCounter] := Text;
     end;
 
+    /// <summary>
+    /// Initializes the report request options.
+    /// </summary>
+    /// <param name="NewShowDim">True to show dimensions on the test report.</param>
     procedure InitializeRequest(NewShowDim: Boolean)
     begin
         ShowDim := NewShowDim;

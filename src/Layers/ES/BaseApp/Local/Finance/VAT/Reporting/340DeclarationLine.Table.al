@@ -85,10 +85,13 @@ table 10744 "340 Declaration Line"
         }
         field(16; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(17; Base; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base';
         }
         field(21; "Document No."; Text[40])
@@ -141,22 +144,30 @@ table 10744 "340 Declaration Line"
         }
         field(30; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
         }
         field(31; "EC Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'EC Amount';
         }
         field(32; "VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount';
         }
         field(33; "VAT Amount / EC Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Amount / EC Amount';
         }
         field(34; "Amount Including VAT / EC"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount Including VAT / EC';
         }
         field(35; Type; Enum "General Posting Type")
@@ -182,6 +193,8 @@ table 10744 "340 Declaration Line"
         }
         field(10706; "Collection Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Collection Amount';
         }
     }

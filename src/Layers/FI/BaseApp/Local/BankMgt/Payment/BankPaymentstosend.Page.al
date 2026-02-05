@@ -127,6 +127,7 @@ page 32000006 "Bank Payments to send"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of the entry in LCY.';

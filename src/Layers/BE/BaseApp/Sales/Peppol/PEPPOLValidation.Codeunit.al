@@ -15,6 +15,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
 
+/// <summary>
+/// Validates sales documents against PEPPOL requirements before electronic invoice export.
+/// </summary>
 codeunit 1620 "PEPPOL Validation"
 {
     TableNo = "Sales Header";
@@ -47,6 +50,10 @@ codeunit 1620 "PEPPOL Validation"
         OnlyOneOCategoryVatPostingSetupErr: Label 'There can be only one tax subtotal present on invoice used with "Not subject to VAT" (O) tax category.';
         VATGreaterThanZeroErr: Label 'Line should have greater VAT than 0% for tax category %1', Comment = '%1 - Tax Category code';
 
+    /// <summary>
+    /// Validates a sales document header against PEPPOL requirements including company information, customer data, and required fields.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales document header to validate.</param>
     procedure CheckSalesDocument(SalesHeader: Record "Sales Header")
     var
         CompanyInfo: Record "Company Information";
@@ -126,6 +133,10 @@ codeunit 1620 "PEPPOL Validation"
         OnAfterCheckSalesDocument(SalesHeader, CompanyInfo);
     end;
 
+    /// <summary>
+    /// Validates all lines of a sales document against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales document header whose lines are to be validated.</param>
     procedure CheckSalesDocumentLines(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -138,6 +149,10 @@ codeunit 1620 "PEPPOL Validation"
             until SalesLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates a single sales document line against PEPPOL requirements including unit of measure codes, descriptions, and VAT settings.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales document line to validate.</param>
     procedure CheckSalesDocumentLine(SalesLine: Record "Sales Line")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -173,6 +188,10 @@ codeunit 1620 "PEPPOL Validation"
         end;
     end;
 
+    /// <summary>
+    /// Validates a posted sales invoice and all its lines against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice header to validate.</param>
     procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -191,6 +210,10 @@ codeunit 1620 "PEPPOL Validation"
             until SalesInvoiceLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates a posted sales credit memo and all its lines against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">Specifies the posted sales credit memo header to validate.</param>
     procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -319,37 +342,73 @@ codeunit 1620 "PEPPOL Validation"
             OutsideScopeVATBreakdowns.Add(BreakdownKey, Format(SalesLine."VAT %"));
     end;
 
+    /// <summary>
+    /// Checks if a sales line has a type set but is missing a description.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to check.</param>
+    /// <returns>Returns true if the line has a type but no description, false otherwise.</returns>
     procedure CheckSalesLineTypeAndDescription(SalesLine: Record "Sales Line"): Boolean
     begin
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine.Description = '') then
             exit(true);
     end;
 
+    /// <summary>
+    /// Raised after validating a sales document header against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record that was validated.</param>
+    /// <param name="CompanyInfo">Specifies the company information record used for validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckSalesDocument(SalesHeader: Record "Sales Header"; CompanyInfo: Record "Company Information")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the ship-to address of a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record to validate.</param>
+    /// <param name="IsHandled">Set to true to skip the default ship-to address validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckShipToAddress(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the PEPPOL validation codeunit.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record to validate.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if a sales line has an empty description.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the empty description check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentLineOnBeforeCheckEmptyDescription(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a sales document header against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record to validate.</param>
+    /// <param name="CompanyInformation">Specifies the company information record used for validation.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales document validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesDocument(var SalesHeader: Record "Sales Header"; var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a sales document line against PEPPOL requirements.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line record to validate.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales line validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -358,16 +417,33 @@ codeunit 1620 "PEPPOL Validation"
 
 
 
+    /// <summary>
+    /// Raised before checking the company VAT registration number during sales document validation.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record being validated.</param>
+    /// <param name="CompanyInformation">Specifies the company information record.</param>
+    /// <param name="IsHandled">Set to true to skip the company VAT registration number check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentOnBeforeCheckCompanyVATRegNo(SalesHeader: Record "Sales Header"; CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the customer VAT registration number during sales document validation.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record being validated.</param>
+    /// <param name="Customer">Specifies the customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the customer VAT registration number check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentOnBeforeCheckCustomerVATRegNo(SalesHeader: Record "Sales Header"; Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the Your Reference field during sales document validation.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the Your Reference field check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentOnBeforeCheckYourReference(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin

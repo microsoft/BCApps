@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Displays a list of standard sales codes for managing recurring sales templates.
+/// </summary>
 page 172 "Standard Sales Codes"
 {
     AdditionalSearchTerms = 'recurring sales,reorder,repeat sales';

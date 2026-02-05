@@ -80,6 +80,7 @@ page 7000019 "Documents Analysis"
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     DrillDown = true;
                     Editable = false;

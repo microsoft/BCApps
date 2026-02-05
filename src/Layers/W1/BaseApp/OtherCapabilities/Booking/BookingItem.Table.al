@@ -56,6 +56,7 @@ table 6707 "Booking Item"
         }
         field(8; Price; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price';
             ExternalName = 'price';
             ExternalType = 'Edm.Double';
@@ -112,6 +113,7 @@ table 6707 "Booking Item"
         }
         field(22; "Invoice Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoice Amount';
             ExternalName = 'invoiceAmount';
             ExternalType = 'Edm.Double';

@@ -185,6 +185,7 @@ codeunit 99000771 "BOM Matrix Management"
                                 TempComponentList."Item No." := ProductionBOMLine."No.";
                                 TempComponentList."Variant Code" := ProductionBOMLine."Variant Code";
                                 TempComponentList.Description := ProductionBOMLine.Description;
+                                TempComponentList."Description 2" := ProductionBOMLine."Description 2";
                                 TempComponentList."Unit of Measure Code" := Item."Base Unit of Measure";
                                 OnBuildMatrixForItemOnBeforeComponentListFind(ProductionBOMLine, TempComponentList);
                                 if not TempComponentList.Find() then

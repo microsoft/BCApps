@@ -10,6 +10,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Security.User;
 
+/// <summary>
+/// Displays the details of an archived blanket sales order document.
+/// </summary>
 page 6620 "Blanket Sales Order Archive"
 {
     Caption = 'Blanket Sales Order Archive';

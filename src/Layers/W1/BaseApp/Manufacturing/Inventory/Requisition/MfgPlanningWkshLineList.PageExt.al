@@ -13,6 +13,7 @@ pageextension 99000860 "Mfg. Planning Wksh. Line List" extends "Planning Workshe
             field("Scrap %"; Rec."Scrap %")
             {
                 ApplicationArea = Manufacturing;
+                AutoFormatType = 0;
                 ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
                 Visible = false;
             }

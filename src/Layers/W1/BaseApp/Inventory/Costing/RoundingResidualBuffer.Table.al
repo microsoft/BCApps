@@ -21,6 +21,8 @@ table 5810 "Rounding Residual Buffer"
         }
         field(2; "Adjusted Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Adjusted Cost';
             DataClassification = SystemMetadata;
         }

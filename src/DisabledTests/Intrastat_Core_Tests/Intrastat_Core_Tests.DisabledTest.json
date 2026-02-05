@@ -308,5 +308,10 @@
     "codeunitId": 139550,
     "codeunitName": "Intrastat Report Test",
     "method": "VerifyNoIntraLinesCreatedForCrossedBoardItemChargeInNextPeriod"
+  },
+  {
+    "method": "IntrastatReportLineUsesIntrastatCode",
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test"
   }
 ]

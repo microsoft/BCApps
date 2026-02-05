@@ -106,6 +106,7 @@ page 522 "View Applied Entries"
                 field(ApplQty; ApplQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Applied Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item ledger entry linked to an inventory decrease, or increase, as appropriate.';
@@ -113,6 +114,7 @@ page 522 "View Applied Entries"
                 field(Qty; Qty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item ledger entry.';
@@ -125,6 +127,8 @@ page 522 "View Applied Entries"
                 field(GetUnitCostLCY; Rec.GetUnitCostLCY())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Unit Cost(LCY)';
                     ToolTip = 'Specifies the unit cost of the item in the item ledger entry.';
                     Visible = false;
@@ -149,6 +153,8 @@ page 522 "View Applied Entries"
                 field("CostAvailable(Rec)"; CostAvailable(Rec))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Quantity Available for Cost Applications';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item ledger entry that can be cost applied.';
@@ -156,6 +162,7 @@ page 522 "View Applied Entries"
                 field("QuantityAvailable(Rec)"; QuantityAvailable(Rec))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Available for Quantity Application';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item ledger entry that can be applied.';

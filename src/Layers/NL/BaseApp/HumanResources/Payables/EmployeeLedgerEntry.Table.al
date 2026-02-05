@@ -93,6 +93,7 @@ table 5222 "Employee Ledger Entry"
         field(15; "Original Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Employee Ledger Entry"."Amount (LCY)" where("Employee Ledger Entry No." = field("Entry No."),
                                                                                      "Entry Type" = filter("Initial Entry"),
                                                                                      "Posting Date" = field("Date Filter")));
@@ -103,6 +104,7 @@ table 5222 "Employee Ledger Entry"
         field(16; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Employee Ledger Entry"."Amount (LCY)" where("Employee Ledger Entry No." = field("Entry No."),
                                                                                      "Posting Date" = field("Date Filter")));
             Caption = 'Remaining Amt. (LCY)';
@@ -112,6 +114,7 @@ table 5222 "Employee Ledger Entry"
         field(17; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Employee Ledger Entry"."Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                      "Employee Ledger Entry No." = field("Entry No."),
                                                                                      "Posting Date" = field("Date Filter")));
@@ -240,6 +243,7 @@ table 5222 "Employee Ledger Entry"
         field(54; "Closed by Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Closed by Amount (LCY)';
         }
         field(58; "Debit Amount"; Decimal)
@@ -271,6 +275,7 @@ table 5222 "Employee Ledger Entry"
         field(60; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Employee Ledger Entry"."Debit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                            "Employee Ledger Entry No." = field("Entry No."),
@@ -282,6 +287,7 @@ table 5222 "Employee Ledger Entry"
         field(61; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Employee Ledger Entry"."Credit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                             "Employee Ledger Entry No." = field("Entry No."),
@@ -311,11 +317,13 @@ table 5222 "Employee Ledger Entry"
         }
         field(73; "Adjusted Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Adjusted Currency Factor';
             DecimalPlaces = 0 : 15;
         }
         field(74; "Original Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Currency Factor';
             DecimalPlaces = 0 : 15;
         }
@@ -498,6 +506,8 @@ table 5222 "Employee Ledger Entry"
         }
         field(11000002; "Payments in Process"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             BlankZero = true;
             CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
                                                                     Status = const("In process"),

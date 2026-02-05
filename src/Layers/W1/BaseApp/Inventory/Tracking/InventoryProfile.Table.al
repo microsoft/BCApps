@@ -107,16 +107,19 @@ table 99000853 "Inventory Profile"
         }
         field(31; "Original Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(32; "Remaining Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(33; "Untracked Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Untracked Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -147,11 +150,13 @@ table 99000853 "Inventory Profile"
         }
         field(40; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(41; "Min. Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Min. Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -169,21 +174,25 @@ table 99000853 "Inventory Profile"
         }
         field(45; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
         }
         field(46; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(47; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(48; "Finished Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Finished Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -248,11 +257,13 @@ table 99000853 "Inventory Profile"
         }
         field(63; "Max. Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Max. Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(64; "Safety Stock Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Safety Stock Quantity';
             DecimalPlaces = 0 : 5;
         }

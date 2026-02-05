@@ -11,6 +11,9 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using System.Environment;
 
+/// <summary>
+/// Processes multiple sales invoices for posting in a single batch operation.
+/// </summary>
 report 297 "Batch Post Sales Invoices"
 {
     Caption = 'Batch Post Sales Invoices';

@@ -19,6 +19,7 @@ table 12101 "Interest on Arrears"
         }
         field(2; "Interest Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Interest Rate';
         }
         field(3; "Starting Date"; Date)

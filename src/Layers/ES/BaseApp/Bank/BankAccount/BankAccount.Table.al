@@ -1170,6 +1170,7 @@ table 270 "Bank Account"
         field(7000013; "Posted R.Bills Rmg. Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Remaining Amt. (LCY)" where("Bank Account No." = field("No."),
                                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                   "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -1187,6 +1188,7 @@ table 270 "Bank Account"
         field(7000014; "Posted Receiv Bills Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Amt. for Collection (LCY)" where("Bank Account No." = field("No."),
                                                                                        "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                        "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -1204,6 +1206,7 @@ table 270 "Bank Account"
         field(7000015; "Closed Receiv Bills Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Closed Cartera Doc."."Amt. for Collection (LCY)" where("Bank Account No." = field("No."),
                                                                                        "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                        "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -1281,6 +1284,7 @@ table 270 "Bank Account"
         field(7000021; "Posted P.Bills Rmg. Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Remaining Amt. (LCY)" where("Bank Account No." = field("No."),
                                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                   "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -1298,6 +1302,7 @@ table 270 "Bank Account"
         field(7000022; "Posted Pay. Bills Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Amt. for Collection (LCY)" where("Bank Account No." = field("No."),
                                                                                        "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                        "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -1315,6 +1320,7 @@ table 270 "Bank Account"
         field(7000023; "Closed Pay. Bills Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Closed Cartera Doc."."Amt. for Collection (LCY)" where("Bank Account No." = field("No."),
                                                                                        "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                        "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),

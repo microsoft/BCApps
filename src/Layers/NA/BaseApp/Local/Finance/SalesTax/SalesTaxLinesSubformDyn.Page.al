@@ -46,6 +46,7 @@ page 36740 "Sales Tax Lines Subform Dyn"
                 field("Tax %"; Rec."Tax %")
                 {
                     ApplicationArea = SalesTax;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the Tax Percentage that was used on the sales tax amount lines with this combination of Tax Area Code and Tax Group Code.';
                 }
                 field("Line Amount"; Rec."Line Amount")
@@ -64,12 +65,15 @@ page 36740 "Sales Tax Lines Subform Dyn"
                 }
                 field(Quantity; Rec.Quantity)
                 {
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the sum of quantities from sales or purchase lines matching the combination of Tax Area Code and Tax Group Code found on this line.';
                     Visible = false;
                 }
                 field("Tax Amount"; Rec."Tax Amount")
                 {
                     ApplicationArea = SalesTax;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = CurrencyCode;
                     DecimalPlaces = 2 : 5;
                     Editable = "Tax AmountEditable";
                     ToolTip = 'Specifies the sales tax calculated for this Sales Tax Amount Line.';
@@ -87,6 +91,8 @@ page 36740 "Sales Tax Lines Subform Dyn"
                 }
                 field("Tax Difference"; Rec."Tax Difference")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = CurrencyCode;
                     DecimalPlaces = 2 : 5;
                     ToolTip = 'Specifies the difference for the sales tax amount that is used for tax calculations.';
                     Visible = false;

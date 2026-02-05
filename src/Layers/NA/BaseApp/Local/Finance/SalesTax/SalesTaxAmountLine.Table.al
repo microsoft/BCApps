@@ -25,6 +25,7 @@ table 10011 "Sales Tax Amount Line"
         }
         field(3; "Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -32,11 +33,14 @@ table 10011 "Sales Tax Amount Line"
         field(4; "Tax Base Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Base Amount';
             Editable = false;
         }
         field(5; "Tax Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Amount';
 
             trigger OnValidate()
@@ -51,12 +55,14 @@ table 10011 "Sales Tax Amount Line"
         field(6; "Amount Including Tax"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount Including Tax';
             Editable = false;
         }
         field(7; "Line Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount';
             Editable = false;
         }
@@ -68,6 +74,7 @@ table 10011 "Sales Tax Amount Line"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -83,11 +90,14 @@ table 10011 "Sales Tax Amount Line"
         field(14; "Calculated Tax Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Calculated Tax Amount';
             Editable = false;
         }
         field(15; "Tax Difference"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Difference';
             Editable = false;
         }
@@ -109,12 +119,14 @@ table 10011 "Sales Tax Amount Line"
         field(25; "Invoice Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoice Discount Amount';
             Editable = false;
         }
         field(26; "Inv. Disc. Base Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Disc. Base Amount';
             Editable = false;
         }
@@ -152,6 +164,7 @@ table 10011 "Sales Tax Amount Line"
         }
         field(10044; "Tax Base Amount FCY"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax Base Amount FCY';
         }
     }

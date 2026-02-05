@@ -5,6 +5,9 @@
 namespace Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Provides editing capabilities for specific fields on posted sales invoices that can be modified after posting.
+/// </summary>
 page 1355 "Posted Sales Inv. - Update"
 {
     DeleteAllowed = false;
@@ -197,6 +200,10 @@ page 1355 "Posted Sales Inv. - Update"
         OnAfterRecordChanged(Rec, xSalesInvoiceHeader, IsChanged);
     end;
 
+    /// <summary>
+    /// Sets the record for this page to edit.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header to edit.</param>
     procedure SetRec(SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         Rec := SalesInvoiceHeader;

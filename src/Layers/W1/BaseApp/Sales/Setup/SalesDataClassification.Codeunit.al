@@ -18,6 +18,9 @@ using Microsoft.Sales.RoleCenters;
 using Microsoft.Utilities;
 using System.Privacy;
 
+/// <summary>
+/// Classifies data sensitivity levels for sales-related tables to support GDPR compliance. Marks fields as personal, confidential, or normal based on data privacy requirements.
+/// </summary>
 codeunit 1762 "Sales-Data Classification"
 {
     var

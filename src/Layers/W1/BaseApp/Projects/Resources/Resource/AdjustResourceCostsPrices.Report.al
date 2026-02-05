@@ -92,6 +92,7 @@ report 1195 "Adjust Resource Costs/Prices"
                     field(AdjFactor; AdjFactor)
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         Caption = 'Adjustment Factor';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies an adjustment factor to multiply the amounts that you want suggested. By entering an adjustment factor, you can increase or decrease the amounts that are suggested.';

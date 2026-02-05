@@ -35,7 +35,6 @@ codeunit 137061 "SCM Purchases & Payables"
         CostAmountActualErr: Label 'Cost Amount (Actual) must be same.';
         SalesAmountExpectedErr: Label 'Sales Amount (Expected) must be same.';
         SalesAmountActualErr: Label 'Sales Amount (Actual) must be same.';
-        DropshipmentMsg: Label 'A drop shipment from a purchase order cannot be received and invoiced at the same time.';
         ChangedOnSalesLineErr: Label 'Location Code gets changed on sales line.';
         ChangedOnPurchaseLineErr: Label 'Location Code gets changed on purchase line.';
         ChangedOnReservationEntryErr: Label 'Location Code gets changed on Reservation Entry for sales & purchases.';
@@ -214,8 +213,10 @@ codeunit 137061 "SCM Purchases & Payables"
         SalesHeader: Record "Sales Header";
         Purchasing: Record Purchasing;
         PurchaseHeader: Record "Purchase Header";
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
     begin
         // Processing a drop shipment sales order - receive & invoice purchase.
+        // [SCENARIO 614781] Verify that the purchase order can be received and invoiced at the same time for drop shipment.
         // Setup.
         Initialize();
         CreateItem(Item);
@@ -228,12 +229,11 @@ codeunit 137061 "SCM Purchases & Payables"
         PurchaseHeader.Modify(true);
 
         // Post receipt of the created Purchase Order.
-        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-        // Verify: verify error msg.
-        Assert.IsTrue(
-          StrPos(GetLastErrorText, DropshipmentMsg) > 0, GetLastErrorText);
-        ClearLastError();
+        // [THEN] Verify that the Posted Purchase Invoice has been created.
+        PurchaseInvoiceHeader.SetRange("Order No.", PurchaseHeader."No.");
+        Assert.RecordIsNotEmpty(PurchaseInvoiceHeader);
     end;
 
     [Test]

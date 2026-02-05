@@ -70,6 +70,7 @@ table 6505 "Lot No. Information"
         }
         field(20; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item No."),
                                                                   "Variant Code" = field("Variant Code"),
                                                                   "Lot No." = field("Lot No."),
@@ -98,6 +99,7 @@ table 6505 "Lot No. Information"
         }
         field(24; "Expired Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry"."Remaining Quantity" where("Item No." = field("Item No."),
                                                                               "Variant Code" = field("Variant Code"),
                                                                               "Lot No." = field("Lot No."),

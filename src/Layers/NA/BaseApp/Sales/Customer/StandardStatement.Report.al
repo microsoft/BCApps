@@ -17,6 +17,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates standard customer statements with Word and RDLC layout options for email distribution.
+/// </summary>
 report 1316 "Standard Statement"
 {
     Caption = 'Customer Statement';
@@ -1240,6 +1243,11 @@ report 1316 "Standard Statement"
         TempAgingBandBuf.Modify();
     end;
 
+    /// <summary>
+    /// Determines whether to skip a detailed customer ledger entry based on reversed and unapplied settings.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry to check.</param>
+    /// <returns>True if the entry should be skipped, false otherwise.</returns>
     procedure SkipReversedUnapplied(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"): Boolean
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -1257,6 +1265,20 @@ report 1316 "Standard Statement"
         exit(false);
     end;
 
+    /// <summary>
+    /// Initializes the report request with the specified parameters.
+    /// </summary>
+    /// <param name="NewPrintEntriesDue">Whether to print entries due.</param>
+    /// <param name="NewPrintAllHavingEntry">Whether to print all customers with entries.</param>
+    /// <param name="NewPrintAllHavingBal">Whether to print all customers with balance.</param>
+    /// <param name="NewPrintReversedEntries">Whether to print reversed entries.</param>
+    /// <param name="NewPrintUnappliedEntries">Whether to print unapplied entries.</param>
+    /// <param name="NewIncludeAgingBand">Whether to include aging band.</param>
+    /// <param name="NewPeriodLength">The period length for aging.</param>
+    /// <param name="NewDateChoice">The date type to use (Due Date or Posting Date).</param>
+    /// <param name="NewLogInteraction">Whether to log interaction.</param>
+    /// <param name="NewStartDate">The statement start date.</param>
+    /// <param name="NewEndDate">The statement end date.</param>
     procedure InitializeRequest(NewPrintEntriesDue: Boolean; NewPrintAllHavingEntry: Boolean; NewPrintAllHavingBal: Boolean; NewPrintReversedEntries: Boolean; NewPrintUnappliedEntries: Boolean; NewIncludeAgingBand: Boolean; NewPeriodLength: Text[30]; NewDateChoice: Option "Due Date","Posting Date"; NewLogInteraction: Boolean; NewStartDate: Date; NewEndDate: Date)
     begin
         InitRequestPageDataInternal();
@@ -1281,6 +1303,9 @@ report 1316 "Standard Statement"
         exit(CurrReport.Preview or MailManagement.IsHandlingGetEmailBody());
     end;
 
+    /// <summary>
+    /// Initializes the request page data with default values if not already initialized.
+    /// </summary>
     procedure InitRequestPageDataInternal()
     begin
         if isInitialized then
@@ -1371,36 +1396,79 @@ report 1316 "Standard Statement"
         FirstRecordPrinted := true;
     end;
 
+    /// <summary>
+    /// Raises an event after setting filters on the detailed customer ledger entries data item.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDtldCustLedgEntriesOnPreDataItemOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after getting the customer ledger entry for a detailed entry during statement generation.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry record being processed.</param>
+    /// <param name="CustLedgerEntry">The associated customer ledger entry record.</param>
+    /// <param name="Skip">Set to true to skip processing of this entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDtldCustLedgEntriesOnAfterGetRecordnAfterGetCustLedgerEntry(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; var Skip: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after checking if customer ledger entries exist for printing.
+    /// </summary>
+    /// <param name="Customer">The customer record being processed.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry record used for the check.</param>
+    /// <param name="PrintLine">Set to control whether to print the line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCurrencyLoopOnAfterGetRecordOnAfterCustLedgerEntryCheckIsEmpty(Customer: Record Customer; var CustLedgerEntry: Record "Cust. Ledger Entry"; var PrintLine: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after setting filters on the overdue customer ledger entries data item.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCustLedgEntry2OnPreDataItemOnAfterSetFilters(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event during report initialization to allow setting global variables for legal office information.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to indicate custom handling was performed.</param>
+    /// <param name="LegalOfficeTxt">The legal office text value to display.</param>
+    /// <param name="LegalOfficeLbl">The legal office label caption.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitReportForGlobalVariable(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after calculating the start balance for open item statement style.
+    /// </summary>
+    /// <param name="Customer">The customer record being processed.</param>
+    /// <param name="CustLedgerEntryBalance">The customer ledger entry record used for balance calculation.</param>
+    /// <param name="StartDate">The statement start date.</param>
+    /// <param name="EndDate">The statement end date.</param>
+    /// <param name="CurrencyCode">The currency code for the balance calculation.</param>
+    /// <param name="StartBalance">The calculated start balance that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCurrencyLoopOnAfterGetRecordOnAfterCalculateStartBalanceStatementTypeOpenItems(Customer: Record Customer; var CustLedgerEntryBalance: Record "Cust. Ledger Entry"; StartDate: Date; EndDate: Date; CurrencyCode: Code[10]; var StartBalance: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after calculating the start balance for balance statement style.
+    /// </summary>
+    /// <param name="Customer">The customer record being processed.</param>
+    /// <param name="StartDate">The statement start date.</param>
+    /// <param name="EndDate">The statement end date.</param>
+    /// <param name="CurrencyCode">The currency code for the balance calculation.</param>
+    /// <param name="StartBalance">The calculated start balance that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCurrencyLoopOnAfterGetRecordOnAfterCalculateStartBalanceStatementTypeBalance(Customer: Record Customer; StartDate: Date; EndDate: Date; CurrencyCode: Code[10]; var StartBalance: Decimal)
     begin

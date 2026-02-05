@@ -57,6 +57,8 @@ table 10732 "Customer/Vendor Warning 349"
         }
         field(8; "Previous Declared Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Previous Declared Amount';
             Editable = false;
         }
@@ -71,6 +73,8 @@ table 10732 "Customer/Vendor Warning 349"
         }
         field(11; "Original Declared Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Original Declared Amount';
 
             trigger OnValidate()

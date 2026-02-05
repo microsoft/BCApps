@@ -639,11 +639,11 @@ codeunit 137603 "SCM CETAF Costing Revaluation"
 
         // [THEN] The cost of revalued item entry has not changed.
         ItemLedgerEntry[1].CalcFields("Cost Amount (Actual)");
-        ItemLedgerEntry[1].TestField("Cost Amount (Actual)", NewCost);
+        ItemLedgerEntry[1].TestField("Cost Amount (Actual)", NewCost * Qty);
 
         // [THEN] The revaluation does not affect average cost.
         ItemLedgerEntry[2].CalcFields("Cost Amount (Actual)");
-        ItemLedgerEntry[2].TestField("Cost Amount (Actual)", Cost);
+        ItemLedgerEntry[2].TestField("Cost Amount (Actual)", Cost * Qty);
     end;
 
     [Test]

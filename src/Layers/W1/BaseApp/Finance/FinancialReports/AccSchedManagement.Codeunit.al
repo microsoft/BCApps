@@ -97,7 +97,7 @@ codeunit 8 AccSchedManagement
         QuarterTxt: Label 'Q%1', Comment = '%1 = Quarter number';
         WeekTxt: Label 'W%1', Comment = '%1 = Week number';
         Recalculate: Boolean;
-        SystemGeneratedAccSchedQst: Label 'This account schedule may be automatically updated by the system, so any changes you make may be lost. Do you want to make a copy?';
+        SystemGeneratedAccSchedQst: Label 'This report definition may be automatically updated by the system, so any changes you make may be lost. Do you want to make a copy?';
         PerspectiveDimensionMismatchErr: Label 'The %1 on %2 must be one of the dimension codes specified on the %3 %4.', Comment = '%1 = Perspective Type, %2 = Dimension Perspective Name, %3 = Analysis View, %4 = Analysis View Name';
 
     /// <summary>

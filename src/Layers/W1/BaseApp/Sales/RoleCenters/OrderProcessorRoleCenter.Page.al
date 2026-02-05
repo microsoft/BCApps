@@ -36,6 +36,9 @@ using System.Integration.PowerBI;
 using System.Threading;
 using System.Visualization;
 
+/// <summary>
+/// Provides the Role Center page for sales order processors with access to sales documents, activities, and reports.
+/// </summary>
 page 9006 "Order Processor Role Center"
 {
     Caption = 'Sales Order Processor';

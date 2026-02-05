@@ -1812,7 +1812,7 @@ table 5901 "Service Item Line"
         ServHeader := NewServHeader;
     end;
 
-    local procedure GetServHeader()
+    procedure GetServHeader()
     begin
         if ServHeader."No." <> "Document No." then
             ServHeader.Get(Rec."Document Type", Rec."Document No.");

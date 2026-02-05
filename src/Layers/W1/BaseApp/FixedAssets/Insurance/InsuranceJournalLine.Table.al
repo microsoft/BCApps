@@ -97,6 +97,7 @@ table 5635 "Insurance Journal Line"
         field(13; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(14; Description; Text[100])
@@ -204,7 +205,7 @@ table 5635 "Insurance Journal Line"
 
     procedure SetUpNewLine(LastInsuranceJnlLine: Record "Insurance Journal Line")
     var
-        NoSeries: Codeunit "No. Series";    
+        NoSeries: Codeunit "No. Series";
     begin
         InsuranceJnlTempl.Get("Journal Template Name");
         InsuranceJnlBatch.Get("Journal Template Name", "Journal Batch Name");
@@ -215,7 +216,7 @@ table 5635 "Insurance Journal Line"
             "Document No." := LastInsuranceJnlLine."Document No.";
         end else begin
             "Posting Date" := WorkDate();
-            if InsuranceJnlBatch."No. Series" <> '' then 
+            if InsuranceJnlBatch."No. Series" <> '' then
                 "Document No." := NoSeries.PeekNextNo(InsuranceJnlBatch."No. Series", "Posting Date");
         end;
         "Source Code" := InsuranceJnlTempl."Source Code";

@@ -9,6 +9,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores sales line discounts by item or item discount group, customer type, and validity period.
+/// </summary>
 table 7004 "Sales Line Discount"
 {
     Caption = 'Sales Line Discount';
@@ -16,6 +19,9 @@ table 7004 "Sales Line Discount"
 
     fields
     {
+        /// <summary>
+        /// Specifies the item number or item discount group code that the line discount applies to.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
@@ -38,6 +44,9 @@ table 7004 "Sales Line Discount"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the customer, customer discount group, or campaign that the line discount applies to.
+        /// </summary>
         field(2; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
@@ -62,11 +71,17 @@ table 7004 "Sales Line Discount"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the currency that the line discount is valid for. A blank value indicates the local currency.
+        /// </summary>
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the date from which the line discount is valid.
+        /// </summary>
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
@@ -82,6 +97,9 @@ table 7004 "Sales Line Discount"
                     Error(Text003, FieldCaption("Starting Date"), FieldCaption("Ending Date"), FieldCaption("Sales Type"), "Sales Type");
             end;
         }
+        /// <summary>
+        /// Specifies the discount percentage to apply to the sales line.
+        /// </summary>
         field(5; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -89,6 +107,9 @@ table 7004 "Sales Line Discount"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the type of sales target for the discount, such as customer, customer discount group, all customers, or campaign.
+        /// </summary>
         field(13; "Sales Type"; Option)
         {
             Caption = 'Sales Type';
@@ -101,11 +122,18 @@ table 7004 "Sales Line Discount"
                     Validate("Sales Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the minimum quantity that must be ordered to qualify for the line discount.
+        /// </summary>
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the last date on which the line discount is valid.
+        /// </summary>
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
@@ -120,6 +148,9 @@ table 7004 "Sales Line Discount"
                     Error(Text003, FieldCaption("Starting Date"), FieldCaption("Ending Date"), FieldCaption("Sales Type"), "Sales Type");
             end;
         }
+        /// <summary>
+        /// Specifies whether the line discount applies to an item or an item discount group.
+        /// </summary>
         field(21; Type; Enum "Sales Line Discount Type")
         {
             Caption = 'Type';
@@ -130,11 +161,17 @@ table 7004 "Sales Line Discount"
                     Validate(Code, '');
             end;
         }
+        /// <summary>
+        /// Specifies the unit of measure that the line discount applies to for the item.
+        /// </summary>
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field(Code));
         }
+        /// <summary>
+        /// Specifies the item variant that the line discount applies to.
+        /// </summary>
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';

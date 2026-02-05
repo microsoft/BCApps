@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Displays and edits customer bank account details including transfer information and direct debit mandates.
+/// </summary>
 page 423 "Customer Bank Account Card"
 {
     Caption = 'Customer Bank Account Card';
@@ -79,25 +82,38 @@ page 423 "Customer Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     MaskType = Concealed;
                 }
+#if not CLEAN28
                 field("Agency Code"; Rec."Agency Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the five-number code of the agency of the bank, for example, 00300.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     MaskType = Concealed;
                 }
+#if not CLEAN28
                 field("RIB Key"; Rec."RIB Key")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the two-digit RIB key associated with the Bank Account No. RIB key value in range from 01 to 09 is represented in the single-digit form, without leading zero digit.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("RIB Checked"; Rec."RIB Checked")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Communication)
             {

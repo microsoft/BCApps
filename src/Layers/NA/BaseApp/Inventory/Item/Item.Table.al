@@ -2153,6 +2153,7 @@ table 27 Item
         }
         field(10011; "Consumptions (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Item Ledger Entry"."Invoiced Quantity" where("Entry Type" = const(Consumption),
                                                                               "Item No." = field("No."),
                                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -2168,6 +2169,7 @@ table 27 Item
         }
         field(10012; "Outputs (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry"."Invoiced Quantity" where("Entry Type" = const(Output),
                                                                              "Item No." = field("No."),
                                                                              "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -2232,6 +2234,7 @@ table 27 Item
         field(99000756; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
             Editable = false;
         }

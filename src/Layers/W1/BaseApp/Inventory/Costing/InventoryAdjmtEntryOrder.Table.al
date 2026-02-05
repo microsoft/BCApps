@@ -40,12 +40,13 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         }
         field(21; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
         }
         field(29; "Cost is Adjusted"; Boolean)
@@ -61,41 +62,49 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(41; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
         }
         field(42; "Direct Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Cost';
         }
         field(43; "Indirect Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Indirect Cost';
         }
         field(44; "Single-Level Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Cost';
         }
         field(45; "Single-Level Capacity Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Capacity Cost';
         }
         field(46; "Single-Level Subcontrd. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Subcontrd. Cost';
         }
         field(47; "Single-Level Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Cap. Ovhd Cost';
         }
         field(48; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
         }
         field(52; "Direct Cost (ACY)"; Decimal)
@@ -151,6 +160,7 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(70; "Direct Cost Non-Inventory"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Cost Non-Inventory';
         }
         field(71; "Direct Cost Non-Inv. (ACY)"; Decimal)
@@ -162,6 +172,7 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(72; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Non-Inventory Cost';
             DataClassification = CustomerContent;
             Editable = false;

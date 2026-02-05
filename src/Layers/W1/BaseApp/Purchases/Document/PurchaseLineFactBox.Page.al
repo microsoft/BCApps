@@ -33,6 +33,7 @@ page 9100 "Purchase Line FactBox"
             field(Availability; PurchInfoPaneMgt.CalcAvailability(Rec))
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Availability';
                 DecimalPlaces = 0 : 5;
                 DrillDown = true;

@@ -1222,6 +1222,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         // 1. Setup: Create 2 Fixed Assets, Create FA Depreciation Books, Create and Post FA G/L Journal Lines with FA Posting Type
         // Acquisition cost and Depreciation for first Fixed Asset, create and Post Reclassify Journal.
         Initialize();
+        SetDepreciationBook();
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
         CreateFADepreciationBook(
@@ -1335,6 +1336,81 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryReportValidation.DownloadFile();
         LibraryReportValidation.OpenFile();
         LibraryReportValidation.VerifyCellValueByRef('B', 27, 1, Format(WorkDate() + 1));
+    end;
+
+    [Test]
+    procedure FAReclassificationRespectsDepreciationRounding()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAReclassJournalBatch: Record "FA Reclass. Journal Batch";
+        FAReclassJournalLine: Record "FA Reclass. Journal Line";
+        FASetup: Record "FA Setup";
+        FixedAsset2: Record "Fixed Asset";
+        FixedAsset: Record "Fixed Asset";
+        GenJournalLine: Record "Gen. Journal Line";
+        DepreciationCalculation: Codeunit "Depreciation Calculation";
+        AcquisitionCostAmount: Decimal;
+        DepreciationCostAmount: Decimal;
+    begin
+        // [SCENARIO 614879] Depreciation amounts during FA reclassification should respect the rounding settings defined in the Depreciation Book
+        Initialize();
+
+        // [GIVEN] Depreciation Book having "Use Rounding in Periodic Depr." = True.
+        FASetup.Get();
+        DepreciationBook.Get(FASetup."Default Depr. Book");
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", true);
+        DepreciationBook.Modify();
+
+        // [GIVEN] Two Fixed Assets with FA Depreciation Books, FA G/L Journal Lines posted with FA Posting Type Acquisition cost and Depreciation for first Fixed Asset.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
+
+        // [GIVEN] FA Depreciation Books created for Fixed Assets "A".
+        CreateFADepreciationBook(
+            FADepreciationBook,
+            FixedAsset."No.",
+            FixedAsset."FA Posting Group",
+            LibraryFixedAsset.GetDefaultDeprBook());
+
+        // [GIVEN] FA Depreciation Books created for Fixed Assets "B".
+        CreateFADepreciationBook(
+            FADepreciationBook,
+            FixedAsset2."No.",
+            FixedAsset2."FA Posting Group",
+            LibraryFixedAsset.GetDefaultDeprBook());
+
+        // [GIVEN] FA G/L Journal Lines posted with FA Posting Type Acquisition cost and Depreciation for Fixed Asset "A".
+        AcquisitionCostAmount := LibraryRandom.RandDec(1000, 2);
+        DepreciationCostAmount := AcquisitionCostAmount / 2;
+        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::"Acquisition Cost", AcquisitionCostAmount);
+        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::Depreciation, -DepreciationCostAmount);
+
+        // [GIVEN] Create Reclassification Journal is created and posted from Fixed Asset "A" to Fixed Asset "B".
+        CreateFAReclassJournalBatch(FAReclassJournalBatch);
+
+        // [GIVEN] FA Reclassification Journal is created and posted from Fixed Asset "A" to Fixed Asset "B".
+        LibraryFixedAsset.CreateFAReclassJournal(
+            FAReclassJournalLine,
+            FAReclassJournalBatch."Journal Template Name",
+            FAReclassJournalBatch.Name);
+
+        // [GIVEN] Depreciation Cost Amount is rounded as per Depreciation Book Rounding Setup.
+        DepreciationCostAmount := DepreciationCalculation.CalcRounding(DepreciationBook.Code, DepreciationCostAmount);
+
+        // [WHEN] FA Reclassification Journal is posted.
+        UpdateFAReclassJournal(FAReclassJournalLine, FixedAsset."No.", FixedAsset2."No.");
+        CODEUNIT.Run(CODEUNIT::"FA Reclass. Transfer Batch", FAReclassJournalLine);
+
+        // [THEN] General Journal Lines are created for both Fixed Assets with correct rounded Depreciation Amounts.
+        FAJournalSetup.SetRange("Depreciation Book Code", DepreciationBook.Code);
+        FAJournalSetup.FindFirst();
+        GenJournalLine.SetRange("Journal Template Name", FAJournalSetup."Gen. Jnl. Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", FAJournalSetup."Gen. Jnl. Batch Name");
+        GenJournalLine.SetRange(Amount, DepreciationCostAmount);
+        GenJournalLine.FindFirst();
+        Assert.RecordIsNotEmpty(GenJournalLine);
     end;
 
     local procedure Initialize()
@@ -1729,6 +1805,17 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Assert.IsTrue(
           LibraryReportValidation.CheckIfValueExists(StrSubstNo(GroupTotalsTxt, FieldCaption)), StrSubstNo(ExistErr, FieldCaption));
         Assert.IsTrue(LibraryReportValidation.CheckIfValueExists(GroupTotalTxt + ' ' + FieldValue), StrSubstNo(ExistErr, FieldValue));
+    end;
+
+    local procedure SetDepreciationBook()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FASetup: Record "FA Setup";
+    begin
+        FASetup.Get();
+        DepreciationBook.Get(FASetup."Default Depr. Book");
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", false);
+        DepreciationBook.Modify();
     end;
 
     [RequestPageHandler]

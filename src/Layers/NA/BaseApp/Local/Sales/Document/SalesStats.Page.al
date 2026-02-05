@@ -96,6 +96,7 @@ page 10042 "Sales Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     ToolTip = 'Specifies the original profit that was associated with the sales when they were originally posted.';
@@ -103,6 +104,7 @@ page 10042 "Sales Stats."
                 field(ProfitPct; ProfitPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -154,6 +156,8 @@ page 10042 "Sales Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -162,6 +166,8 @@ page 10042 "Sales Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -170,6 +176,8 @@ page 10042 "Sales Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -178,6 +186,8 @@ page 10042 "Sales Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;
@@ -210,6 +220,7 @@ page 10042 "Sales Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Expended Percentage of Credit Limit ($).';

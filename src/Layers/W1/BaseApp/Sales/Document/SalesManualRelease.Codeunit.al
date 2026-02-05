@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Releases a sales document through manual user action for further processing.
+/// </summary>
 codeunit 4140 "Sales Manual Release"
 {
     TableNo = "Sales Header";

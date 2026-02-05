@@ -117,6 +117,8 @@ page 10126 "Posted Bank Rec. Chk Lines Sub"
                 field("""Cleared Amount"" - Amount"; Rec."Cleared Amount" - Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Difference';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the Amount field and the Cleared Amount field.';

@@ -57,6 +57,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Qtytoallocate; QtytoAllocate)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Qty. To Allocate';
                     Enabled = QtytoallocateEnable;
                     MinValue = 0;
@@ -99,6 +100,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field1; MATRIX_CellData[1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[1];
                     DecimalPlaces = 0 : 5;
                     Visible = Field1Visible;
@@ -111,6 +113,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field2; MATRIX_CellData[2])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[2];
                     DecimalPlaces = 0 : 5;
                     Visible = Field2Visible;
@@ -123,6 +126,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field3; MATRIX_CellData[3])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[3];
                     DecimalPlaces = 0 : 5;
                     Visible = Field3Visible;
@@ -135,6 +139,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field4; MATRIX_CellData[4])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[4];
                     DecimalPlaces = 0 : 5;
                     Visible = Field4Visible;
@@ -147,6 +152,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field5; MATRIX_CellData[5])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[5];
                     DecimalPlaces = 0 : 5;
                     Visible = Field5Visible;
@@ -159,6 +165,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field6; MATRIX_CellData[6])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[6];
                     DecimalPlaces = 0 : 5;
                     Visible = Field6Visible;
@@ -171,6 +178,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field7; MATRIX_CellData[7])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[7];
                     DecimalPlaces = 0 : 5;
                     Visible = Field7Visible;
@@ -183,6 +191,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field8; MATRIX_CellData[8])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[8];
                     DecimalPlaces = 0 : 5;
                     Visible = Field8Visible;
@@ -195,6 +204,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field9; MATRIX_CellData[9])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[9];
                     DecimalPlaces = 0 : 5;
                     Visible = Field9Visible;
@@ -207,6 +217,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field10; MATRIX_CellData[10])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[10];
                     DecimalPlaces = 0 : 5;
                     Visible = Field10Visible;
@@ -219,6 +230,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field11; MATRIX_CellData[11])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[11];
                     DecimalPlaces = 0 : 5;
                     Visible = Field11Visible;
@@ -231,6 +243,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field12; MATRIX_CellData[12])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[12];
                     DecimalPlaces = 0 : 5;
                     Visible = Field12Visible;
@@ -243,6 +256,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field13; MATRIX_CellData[13])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[13];
                     DecimalPlaces = 0 : 5;
                     Visible = Field13Visible;
@@ -255,6 +269,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field14; MATRIX_CellData[14])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[14];
                     DecimalPlaces = 0 : 5;
                     Visible = Field14Visible;
@@ -267,6 +282,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field15; MATRIX_CellData[15])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[15];
                     DecimalPlaces = 0 : 5;
                     Visible = Field15Visible;
@@ -279,6 +295,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field16; MATRIX_CellData[16])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[16];
                     DecimalPlaces = 0 : 5;
                     Visible = Field16Visible;
@@ -291,6 +308,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field17; MATRIX_CellData[17])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[17];
                     DecimalPlaces = 0 : 5;
                     Visible = Field17Visible;
@@ -303,6 +321,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field18; MATRIX_CellData[18])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[18];
                     DecimalPlaces = 0 : 5;
                     Visible = Field18Visible;
@@ -315,6 +334,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field19; MATRIX_CellData[19])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[19];
                     DecimalPlaces = 0 : 5;
                     Visible = Field19Visible;
@@ -327,6 +347,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field20; MATRIX_CellData[20])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[20];
                     DecimalPlaces = 0 : 5;
                     Visible = Field20Visible;
@@ -339,6 +360,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field21; MATRIX_CellData[21])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[21];
                     DecimalPlaces = 0 : 5;
                     Visible = Field21Visible;
@@ -351,6 +373,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field22; MATRIX_CellData[22])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[22];
                     DecimalPlaces = 0 : 5;
                     Visible = Field22Visible;
@@ -363,6 +386,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field23; MATRIX_CellData[23])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[23];
                     DecimalPlaces = 0 : 5;
                     Visible = Field23Visible;
@@ -375,6 +399,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field24; MATRIX_CellData[24])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[24];
                     DecimalPlaces = 0 : 5;
                     Visible = Field24Visible;
@@ -387,6 +412,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field25; MATRIX_CellData[25])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[25];
                     DecimalPlaces = 0 : 5;
                     Visible = Field25Visible;
@@ -399,6 +425,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field26; MATRIX_CellData[26])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[26];
                     DecimalPlaces = 0 : 5;
                     Visible = Field26Visible;
@@ -411,6 +438,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field27; MATRIX_CellData[27])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[27];
                     DecimalPlaces = 0 : 5;
                     Visible = Field27Visible;
@@ -423,6 +451,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field28; MATRIX_CellData[28])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[28];
                     DecimalPlaces = 0 : 5;
                     Visible = Field28Visible;
@@ -435,6 +464,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field29; MATRIX_CellData[29])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[29];
                     DecimalPlaces = 0 : 5;
                     Visible = Field29Visible;
@@ -447,6 +477,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field30; MATRIX_CellData[30])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[30];
                     DecimalPlaces = 0 : 5;
                     Visible = Field30Visible;
@@ -459,6 +490,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field31; MATRIX_CellData[31])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[31];
                     DecimalPlaces = 0 : 5;
                     Visible = Field31Visible;
@@ -471,6 +503,7 @@ page 9229 "Res. Avail. (Service) Matrix"
                 field(Field32; MATRIX_CellData[32])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     CaptionClass = '3,' + MatrixColumnCaptions[32];
                     DecimalPlaces = 0 : 5;
                     Visible = Field32Visible;

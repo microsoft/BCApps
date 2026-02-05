@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Retrieves sales and profit data for the current user's favorite customers.
+/// </summary>
 query 9150 "My Customers"
 {
     Caption = 'My Customers';

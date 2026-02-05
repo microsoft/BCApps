@@ -26,6 +26,7 @@ table 1150 "Report Totals Buffer"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

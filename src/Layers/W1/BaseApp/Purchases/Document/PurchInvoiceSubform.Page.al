@@ -17,6 +17,7 @@ using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Utilities;
@@ -342,6 +343,20 @@ page 55 "Purch. Invoice Subform"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the price for one unit of the item.';
                     Visible = false;
+                }
+                field("Matched Order Lines"; Rec."Matched Order Lines")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Matched Order Lines';
+                    ToolTip = 'Specifies the number of purchase order lines to which this line is matched.';
+
+                    trigger OnDrillDown()
+                    var
+                        MatchedOrderLines: Page "Matched Order Lines";
+                    begin
+                        MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
+                        MatchedOrderLines.RunModal();
+                    end;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
@@ -864,6 +879,7 @@ page 55 "Purch. Invoice Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
                         Editable = InvDiscAmountEditable;
@@ -983,6 +999,21 @@ page 55 "Purch. Invoice Subform"
                         begin
                             GetReceipt();
                             RedistributeTotalsOnAfterValidate();
+                        end;
+                    }
+                    action(GetOrderLines)
+                    {
+                        ApplicationArea = Suite;
+                        Caption = 'Get Order Lines';
+                        Ellipsis = true;
+                        Image = GetLines;
+                        ToolTip = 'Select order lines related to this purchase invoice line.';
+
+                        trigger OnAction()
+                        var
+                            MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+                        begin
+                            MatchedOrderLineMgmt.GetPurchaseOrderLines(Rec);
                         end;
                     }
                     action(RedistributeAccAllocations)
@@ -1193,6 +1224,21 @@ page 55 "Purch. Invoice Subform"
                             RecRef.GetTable(Rec);
                             DocumentAttachmentDetails.OpenForRecRef(RecRef);
                             DocumentAttachmentDetails.RunModal();
+                        end;
+                    }
+                    action(MatchedOrdLines)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Matched Order Lines';
+                        Image = TransferToLines;
+                        ToolTip = 'View and match order lines related to this purchase invoice line.';
+
+                        trigger OnAction()
+                        var
+                            MatchedOrderLines: Page "Matched Order Lines";
+                        begin
+                            MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
+                            MatchedOrderLines.RunModal();
                         end;
                     }
                 }

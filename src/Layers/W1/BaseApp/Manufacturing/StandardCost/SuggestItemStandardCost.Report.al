@@ -58,6 +58,7 @@ report 5851 "Suggest Item Standard Cost"
                         field("AmtAdjustFactor[1]"; AmtAdjustFactor[1])
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
                             MinValue = 0;
@@ -78,6 +79,7 @@ report 5851 "Suggest Item Standard Cost"
                         field("AmtAdjustFactor[2]"; AmtAdjustFactor[2])
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
                             MinValue = 0;
@@ -98,6 +100,7 @@ report 5851 "Suggest Item Standard Cost"
                         field("AmtAdjustFactor[3]"; AmtAdjustFactor[3])
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
                             MinValue = 0;

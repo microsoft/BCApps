@@ -93,6 +93,8 @@ page 1292 "Payment Application"
                     field(RemainingAmountAfterPosting; Rec.GetRemainingAmountAfterPostingValue())
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec."Currency Code";
                         Caption = 'Remaining Amount After Posting';
                         ToolTip = 'Specifies the amount that remains to be paid for the open entry after you have posted the payment in the Payment Reconciliation Journal window.';
                     }
@@ -246,6 +248,7 @@ page 1292 "Payment Application"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = BankAccReconLine.GetCurrencyCode();
                     Caption = 'Difference';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

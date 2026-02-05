@@ -278,16 +278,19 @@ table 5744 "Transfer Shipment Header"
         }
         field(12101; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(12102; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(12103; "Parcel Units"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Parcel Units';
             DecimalPlaces = 0 : 5;
         }
@@ -365,6 +368,7 @@ table 5744 "Transfer Shipment Header"
         }
         field(12184; Volume; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume';
         }
         field(12185; "Shipping Notes"; Text[100])

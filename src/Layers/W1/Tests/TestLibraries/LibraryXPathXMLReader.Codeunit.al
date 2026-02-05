@@ -28,6 +28,7 @@ codeunit 131337 "Library - XPath XML Reader"
         DeclarationEncodingErr: Label 'XMLDeclaration: Wrong Encoding property.';
         DeclarationStandaloneErr: Label 'XMLDeclaration: Wrong Standalone property.';
         DeclarationVersionErr: Label 'XMLDeclaration: Wrong Version property.';
+        UnexpectedElementValueErr: Label 'Unexpected value in xml file for element <%1>', Comment = '%1 - element name';
 
     procedure Initialize(FullFilePath: Text; NameSpace: Text)
     var
@@ -73,6 +74,7 @@ codeunit 131337 "Library - XPath XML Reader"
         XMLNsMgr.AddNamespace(DefaultNamespacePrefixTxt, NameSpace);
     end;
 
+    #region NativeXmlTypes
     procedure InitializeXml(InStreamXml: InStream; Namespace: Text)
     begin
         InitializeXml(InStreamXml, DefaultNamespacePrefixTxt, Namespace);
@@ -116,10 +118,9 @@ codeunit 131337 "Library - XPath XML Reader"
         XmlNamespaceManagerNative.AddNamespace(Prefix, Namespace);
     end;
 
-    procedure GetElementValue(ElementName: Text): Text
+    procedure AddAdditionalXmlNamespace(Prefix: Text; Namespace: Text)
     begin
-        GetNodeByElementName(ElementName, XMLNode);
-        exit(XMLNode.Value);
+        XmlNamespaceManagerNative.AddNamespace(Prefix, Namespace);
     end;
 
     procedure GetXmlElementValue(ElementName: Text): Text
@@ -128,12 +129,73 @@ codeunit 131337 "Library - XPath XML Reader"
         exit(XmlNodeNative.AsXmlElement().InnerText())
     end;
 
-    procedure VerifyNodeAbsence(ElementName: Text)
+    procedure GetXmlNodeInnerTextByXPathWithIndex(XPath: Text; Index: Integer): Text
     var
-        Node: DotNet XmlNode;
+        NodeList: XmlNodeList;
+        Node: XmlNode;
     begin
-        asserterror GetNodeByElementName(ElementName, Node);
-        Assert.ExpectedError('Element is missing!');
+        XmlDocumentNative.SelectNodes(XPath, XmlNamespaceManagerNative, NodeList);
+        Assert.AreNotEqual(0, NodeList.Count, StrSubstNo(NodeNotFoundErr, XPath));
+        Assert.IsTrue(NodeList.Get(Index + 1, Node), StrSubstNo(NodeIndexOutOfBoundsErr, XPath, Index, NodeList.Count));
+        exit(Node.AsXmlElement().InnerText());
+    end;
+
+    procedure VerifyXmlNodeCountByXPath(XPath: Text; ExpectedNodeCount: Integer)
+    var
+        NodeList: XmlNodeList;
+    begin
+        XmlDocumentNative.SelectNodes(XPath, XmlNamespaceManagerNative, NodeList);
+        Assert.AreEqual(ExpectedNodeCount, NodeList.Count, StrSubstNo(NodeCountErr, XPath));
+    end;
+
+    procedure VerifyXmlNodeValue(XPath: Text; Expected: Text)
+    var
+        Node: XmlNode;
+        Actual: Text;
+    begin
+        Assert.IsTrue(
+            XmlDocumentNative.SelectSingleNode(XPath, XmlNamespaceManagerNative, Node),
+            StrSubstNo(NodeNotFoundErr, XPath));
+        Actual := Node.AsXmlElement().InnerText();
+        Assert.AreEqual(Expected, Actual, StrSubstNo(UnexpectedElementValueErr, XPath));
+    end;
+
+    procedure VerifyXmlNodeValueByIndex(XPath: Text; ExpectedNodeValue: Text; Index: Integer)
+    var
+        NodeList: XmlNodeList;
+        Node: XmlNode;
+        ActualNodeValue: Text;
+    begin
+        XmlDocumentNative.SelectNodes(XPath, XmlNamespaceManagerNative, NodeList);
+        Assert.AreNotEqual(0, NodeList.Count, StrSubstNo(NodeNotFoundErr, XPath));
+        Assert.IsTrue(NodeList.Get(Index + 1, Node), StrSubstNo(NodeIndexOutOfBoundsErr, XPath, Index, NodeList.Count));
+        ActualNodeValue := Node.AsXmlElement().InnerText();
+        Assert.AreEqual(ExpectedNodeValue, ActualNodeValue, StrSubstNo(UnexpectedNodeValueErr, XPath, ExpectedNodeValue, ActualNodeValue));
+    end;
+
+    procedure VerifyXmlAttributeValue(XPath: Text; AttributeName: Text; Expected: Text)
+    var
+        Node: XmlNode;
+        XmlAttribute: XmlAttribute;
+        Actual: Text;
+    begin
+        Assert.IsTrue(
+            XmlDocumentNative.SelectSingleNode(XPath, XmlNamespaceManagerNative, Node),
+            StrSubstNo(NodeNotFoundErr, XPath));
+        Assert.IsTrue(
+            Node.AsXmlElement().Attributes().Get(AttributeName, XmlAttribute),
+            StrSubstNo(MissingAttributeErr, AttributeName, XPath));
+        Actual := XmlAttribute.Value();
+        Assert.AreEqual(Expected, Actual, StrSubstNo(UnexpectedAttributeValueErr, AttributeName));
+    end;
+
+    procedure VerifyXmlNodeAbsence(XPath: Text)
+    var
+        Node: XmlNode;
+    begin
+        Assert.IsFalse(
+            XmlDocumentNative.SelectSingleNode(XPath, XmlNamespaceManagerNative, Node),
+            StrSubstNo(NodeShouldNotExistInSubtreeErr, XPath));
     end;
 
     procedure VerifyNodeAbsenceInSubtree(ParentNodeXPath: Text; NodeName: Text)
@@ -152,6 +214,21 @@ codeunit 131337 "Library - XPath XML Reader"
 
         ChildNodeFound := ParentNode.SelectSingleNode(NodeXPath, XmlNamespaceManagerNative, ChildNode);
         Assert.IsFalse(ChildNodeFound, StrSubstNo(NodeShouldNotExistInSubtreeErr, NodeName));
+    end;
+    #endregion
+
+    procedure GetElementValue(ElementName: Text): Text
+    begin
+        GetNodeByElementName(ElementName, XMLNode);
+        exit(XMLNode.Value);
+    end;
+
+    procedure VerifyNodeAbsence(ElementName: Text)
+    var
+        Node: DotNet XmlNode;
+    begin
+        asserterror GetNodeByElementName(ElementName, Node);
+        Assert.ExpectedError('Element is missing!');
     end;
 
     procedure VerifyNodeValue(ElementName: Text; Expected: Text)

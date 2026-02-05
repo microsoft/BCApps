@@ -99,27 +99,32 @@ table 5802 "Value Entry"
         }
         field(12; "Valued Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Valued Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(13; "Item Ledger Entry Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Item Ledger Entry Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(14; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(15; "Cost per Unit"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Cost per Unit';
         }
         field(17; "Sales Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount (Actual)';
         }
         field(20; "Item Register No."; Integer)
@@ -142,6 +147,7 @@ table 5802 "Value Entry"
         field(23; "Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Discount Amount';
         }
         field(24; "User ID"; Code[50])
@@ -178,11 +184,13 @@ table 5802 "Value Entry"
         field(43; "Cost Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Actual)';
         }
         field(45; "Cost Posted to G/L"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Posted to G/L';
         }
         field(46; "Reason Code"; Code[10])
@@ -302,29 +310,34 @@ table 5802 "Value Entry"
         field(148; "Purchase Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Purchase Amount (Actual)';
         }
         field(149; "Purchase Amount (Expected)"; Decimal)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Purchase Amount (Expected)';
         }
         field(150; "Sales Amount (Expected)"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount (Expected)';
         }
         field(151; "Cost Amount (Expected)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Expected)';
         }
         field(152; "Cost Amount (Non-Invtbl.)"; Decimal)
         {
             AccessByPermission = TableData "Item Charge" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Non-Invtbl.)';
         }
         field(156; "Cost Amount (Expected) (ACY)"; Decimal)
@@ -343,6 +356,7 @@ table 5802 "Value Entry"
         field(158; "Expected Cost Posted to G/L"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Expected Cost Posted to G/L';
         }
         field(159; "Exp. Cost Posted to G/L (ACY)"; Decimal)
@@ -488,9 +502,9 @@ table 5802 "Value Entry"
         {
             IncludedFields = "Invoiced Quantity", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected) (ACY)", "Cost Amount (Actual) (ACY)", "Entry Type", "Expected Cost", "Item Charge No.";
         }
-        key(Key5; "Item No.", "Posting Date", "Item Ledger Entry Type", "Entry Type", "Variance Type", "Item Charge No.", "Location Code", "Variant Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Source Type", "Source No.", "SIFT Bucket No.")
+        key(Key5; "Item No.", "Posting Date", "Item Ledger Entry Type", "Entry Type", "Variance Type", "Item Charge No.", "Location Code", "Variant Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Source Type", "Source No.")
         {
-            SumIndexFields = "Invoiced Quantity", "Sales Amount (Expected)", "Sales Amount (Actual)", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)", "Purchase Amount (Actual)", "Expected Cost Posted to G/L", "Cost Posted to G/L", "Item Ledger Entry Quantity";
+            IncludedFields = "Invoiced Quantity", "Sales Amount (Expected)", "Sales Amount (Actual)", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)", "Purchase Amount (Actual)", "Expected Cost Posted to G/L", "Cost Posted to G/L", "Item Ledger Entry Quantity";
         }
         key(Key6; "Document No.")
         {
@@ -502,7 +516,7 @@ table 5802 "Value Entry"
         }
         key(Key8; "Source Type", "Source No.", "Item No.", "Posting Date", "Entry Type", Adjustment, "Item Ledger Entry Type")
         {
-            IncludedFields = "Discount Amount", "Cost Amount (Non-Invtbl.)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Sales Amount (Actual)", "Sales Amount (Expected)", "Invoiced Quantity";
+            IncludedFields = "Discount Amount", "Cost Amount (Non-Invtbl.)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Sales Amount (Actual)", "Sales Amount (Expected)", "Invoiced Quantity", "Global Dimension 1 Code", "Global Dimension 2 Code";
         }
         key(Key9; "Item Charge No.", "Inventory Posting Group", "Item No.")
         {
@@ -872,12 +886,12 @@ table 5802 "Value Entry"
         exit(false);
     end;
 
-/// <summary>
-/// Returns true if EntryNo parameter and Rec."Entry No." both are positive or negative.
-/// Used in scenarios where we posting preview entries are negative
-/// </summary>
-/// <param name="EntryNo">The entry no. of the entry we are comparing to</param>
-/// <returns>Boolean</returns>
+    /// <summary>
+    /// Returns true if EntryNo parameter and Rec."Entry No." both are positive or negative.
+    /// Used in scenarios where we posting preview entries are negative
+    /// </summary>
+    /// <param name="EntryNo">The entry no. of the entry we are comparing to</param>
+    /// <returns>Boolean</returns>
     internal procedure EntryNoHasSameSign(EntryNo: integer): Boolean
     begin
         if (Rec."Entry No." >= 0) and (EntryNo >= 0) then

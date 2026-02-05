@@ -24,6 +24,8 @@ page 2678 "Redistribute Acc. Allocations"
                 ShowCaption = false;
                 field(AmountToAllocate; AmountToAllocate)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Amount to Allocate';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount to be allocated to the Destination Account.';
@@ -38,6 +40,8 @@ page 2678 "Redistribute Acc. Allocations"
                 }
                 field(RemainingAmountToAllocate; DifferenceAmount)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Remaining Amount to Allocate';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the remaining amount to be allocated to one of the lines.';
@@ -48,6 +52,7 @@ page 2678 "Redistribute Acc. Allocations"
                 {
                     Caption = 'Quantity to Allocate';
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Visible = QuantityVisible;
                     ToolTip = 'Specifies the quantity to be allocated to the Destination Account.';
                     Editable = false;
@@ -56,6 +61,7 @@ page 2678 "Redistribute Acc. Allocations"
                 {
                     Caption = 'Remaining Quantity to Allocate';
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Visible = QuantityVisible;
                     ToolTip = 'Specifies the remaining quantity to be allocated to one of the lines.';
                     StyleExpr = DifferenceQuantityStyle;

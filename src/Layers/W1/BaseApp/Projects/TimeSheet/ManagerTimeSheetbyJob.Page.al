@@ -112,6 +112,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field1; CellData[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[1];
@@ -121,6 +122,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field2; CellData[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[2];
@@ -130,6 +132,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field3; CellData[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[3];
@@ -139,6 +142,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field4; CellData[4])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[4];
@@ -148,6 +152,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field5; CellData[5])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[5];
@@ -157,6 +162,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field6; CellData[6])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[6];
@@ -165,6 +171,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field(Field7; CellData[7])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[7];
@@ -178,6 +185,7 @@ page 954 "Manager Time Sheet by Job"
                 }
                 field("Total Quantity"; Rec."Total Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
                     Style = Strong;

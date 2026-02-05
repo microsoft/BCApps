@@ -181,13 +181,18 @@ page 8907 "Sales & Marketing Manager RC"
                             RunObject = report "Salesperson - Opportunities";
                             Tooltip = 'Run the Salesperson Opportunities report.';
                         }
+#if not CLEAN28
                         action("Sales Statistics")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Sales Statistics';
                             RunObject = report "Sales Statistics";
                             Tooltip = 'Run the Sales Statistics report.';
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                         action("Team - Tasks")
                         {
                             ApplicationArea = RelationshipMgmt;
@@ -252,13 +257,18 @@ page 8907 "Sales & Marketing Manager RC"
                     group("Group5")
                     {
                         Caption = 'Customers';
+#if not CLEAN28
                         action("Customer - List")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - List';
                             RunObject = report "Customer - List";
                             Tooltip = 'Run the Customer - List report.';
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                         action("Customer - Labels")
                         {
                             ApplicationArea = Suite;
@@ -320,13 +330,18 @@ page 8907 "Sales & Marketing Manager RC"
                             RunObject = report "Customer - Trial Balance";
                             Tooltip = 'Run the Customer Trial Balance report.';
                         }
+#if not CLEAN28
                         action("Customer - Sales List")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - Sales List';
                             RunObject = report "Customer - Sales List";
                             Tooltip = 'Run the Customer - Sales List report.';
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                     }
                     group("Group6")
                     {
@@ -539,12 +554,16 @@ page 8907 "Sales & Marketing Manager RC"
                         RunObject = report "Customer - Order Detail";
                         Tooltip = 'Run the Customer - Order Detail report.';
                     }
+#if not CLEAN28
                     action("Sales Reservation Avail.")
                     {
                         ApplicationArea = Reservation;
                         Caption = 'Sales Reservation Avail.';
                         RunObject = report "Sales Reservation Avail.";
                         Tooltip = 'Run the Sales Reservation Avail. report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
                     action("Sales Order Picking List")
                     {
@@ -552,6 +571,9 @@ page 8907 "Sales & Marketing Manager RC"
                         Caption = 'Sales Order Picking List';
                         RunObject = report "Sales Order Picking List";
                         Tooltip = 'Run the Sales Order Picking List report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
                     action("Sales Statistics1")
                     {
@@ -559,6 +581,9 @@ page 8907 "Sales & Marketing Manager RC"
                         Caption = 'Sales Statistics';
                         RunObject = report "Sales Statistics";
                         Tooltip = 'Run the Sales Statistics report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
                     action("Customer - Sales List1")
                     {
@@ -566,7 +591,11 @@ page 8907 "Sales & Marketing Manager RC"
                         Caption = 'Customer - Sales List';
                         RunObject = report "Customer - Sales List";
                         Tooltip = 'Run the Customer - Sales List report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("EC Sales List")
                     {
                         ApplicationArea = Basic, Suite;

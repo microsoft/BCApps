@@ -812,6 +812,9 @@ codeunit 333 "Req. Wksh.-Make Order"
             if not HideProgressWindow then
                 Window.Update(3, OrderCounter);
 
+        if (ReqLine2."Prod. Order No." <> '') and (OrderDateReq = 0D) then
+            OrderDateReq := ReqLine2."Order Date";
+
         PurchSetup.Get();
         PurchSetup.TestField("Order Nos.");
         Clear(PurchOrderHeader);
@@ -850,6 +853,8 @@ codeunit 333 "Req. Wksh.-Make Order"
                 PurchOrderHeader.SetShipToForSpecOrder();
             if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
                 PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
+            if ReqLine2."Order Date" <> 0D then
+                PurchOrderHeader."Order Date" := ReqLine2."Order Date";
         end;
         if not SpecialOrder then
             if SalesHeader.Get(SalesHeader."Document Type"::Order, ReqLine2."Sales Order No.") then begin

@@ -486,6 +486,7 @@ table 312 "Purchases & Payables Setup"
         field(10610; "Amt. Spec limit to Norges Bank"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amt. Spec limit to Norges Bank';
             DecimalPlaces = 0 : 0;
 

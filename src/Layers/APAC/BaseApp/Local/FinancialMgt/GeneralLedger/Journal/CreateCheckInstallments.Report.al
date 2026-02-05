@@ -91,6 +91,7 @@ report 28091 "Create Check Installments"
                     }
                     field(InterestPct; "Interest %")
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Interest %';
                         ToolTip = 'Specifies the percent.';

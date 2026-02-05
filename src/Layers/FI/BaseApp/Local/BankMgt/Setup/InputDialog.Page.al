@@ -26,6 +26,7 @@ page 32000007 "Input Dialog"
                 }
                 field(DecimalControl; Dec)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = All;
                     CaptionClass = StrSubstNo('3,%1', Caption);
                     Caption = 'Decimal';

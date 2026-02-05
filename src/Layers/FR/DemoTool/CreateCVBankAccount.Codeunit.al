@@ -268,8 +268,10 @@ codeunit 101287 "Create C/V Bank Account"
                 "Customer Bank Account"."Bank Branch No." := "Bank Branch No.";
                 "Customer Bank Account"."Bank Account No." := "Bank Account No.";
                 // Modif Demo Finance (CM) : validation de la clé rib et code agence
+#if not CLEAN28
                 "Customer Bank Account".Validate("Agency Code", "Agency Code");
                 "Customer Bank Account".Validate("RIB Key", "RIB Key");
+#endif
                 if "Customer Bank Account"."Customer No." = '10000' then
                     "Customer Bank Account".Validate(IBAN, IBAN1);
                 "Customer Bank Account".Insert(true);
@@ -318,8 +320,10 @@ codeunit 101287 "Create C/V Bank Account"
                 if "Vendor Bank Account"."Vendor No." = '10000' then
                     "Vendor Bank Account".Validate(IBAN, IBAN2);
                 // Modif Demo Finance (CM) : validation de la cl¦ rib et code agence
+#if not CLEAN28
                 "Vendor Bank Account".Validate("Agency Code", "Agency Code");
                 "Vendor Bank Account".Validate("RIB Key", "RIB Key");
+#endif
                 "Vendor Bank Account".Insert(true);
             until CodeSort.Next() = 0;
     end;

@@ -73,6 +73,7 @@ table 7335 "Bin Template"
         }
         field(22; "Maximum Cubage"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Cubage';
             DecimalPlaces = 0 : 5;
@@ -80,6 +81,7 @@ table 7335 "Bin Template"
         }
         field(23; "Maximum Weight"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Weight';
             DecimalPlaces = 0 : 5;

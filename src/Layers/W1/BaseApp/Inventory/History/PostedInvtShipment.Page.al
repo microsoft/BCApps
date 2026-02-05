@@ -103,6 +103,7 @@ page 6570 "Posted Invt. Shipment"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -111,6 +112,7 @@ page 6570 "Posted Invt. Shipment"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -119,6 +121,7 @@ page 6570 "Posted Invt. Shipment"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -127,6 +130,7 @@ page 6570 "Posted Invt. Shipment"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -135,6 +139,7 @@ page 6570 "Posted Invt. Shipment"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

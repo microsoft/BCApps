@@ -153,7 +153,7 @@ codeunit 144000 "VAT Rounding"
         SalesInvoiceHeader.FindFirst();
 
         Assert.AreEqual(1, SalesInvoiceHeader.Count, 'There should be one sales invoice.');
-        Assert.AreEqual(Round(Quantity * Price * PrepaymentPercent / 100, RoundingPrecision), SalesInvoiceHeader.Amount, 'Wrong amount.');
+        Assert.AreEqual(Round(Quantity * Price * PrepaymentPercent / 100), SalesInvoiceHeader.Amount, 'Wrong amount.');
     end;
 
     [Test]
@@ -564,7 +564,7 @@ codeunit 144000 "VAT Rounding"
         TotalSalesLine.SetRange("Document Type", SalesHeader."Document Type");
         TotalSalesLine.SetRange("Document No.", SalesHeader."No.");
         TotalSalesLine.CalcSums("Line Amount", Amount, "Amount Including VAT", "Inv. Discount Amount");
-        exit(TotalSalesLine.Amount);
+        exit(TotalSalesLine."Line Amount");
     end;
 
     [ModalPageHandler]

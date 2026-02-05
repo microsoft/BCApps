@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays the line items of an issued reminder as a read-only subpage part.
+/// </summary>
 page 439 "Issued Reminder Lines"
 {
     AutoSplitKey = true;

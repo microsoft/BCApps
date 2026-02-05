@@ -127,6 +127,7 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -160,12 +161,14 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(16; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(19; "Qty. Outstanding"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -178,12 +181,14 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(20; "Qty. Outstanding (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(23; "Qty. Put Away"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -196,12 +201,14 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(24; "Qty. Put Away (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(25; "Put-away Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = const("Put-away"),
                                                                                   "Whse. Document Type" = const("Internal Put-away"),
                                                                                   "Whse. Document No." = field("No."),
@@ -216,6 +223,7 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(26; "Put-away Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = const("Put-away"),
                                                                                          "Whse. Document Type" = const("Internal Put-away"),
                                                                                          "Whse. Document No." = field("No."),
@@ -258,6 +266,7 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -305,11 +314,13 @@ table 7332 "Whse. Internal Put-away Line"
         }
         field(37; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
         }
         field(38; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
         }

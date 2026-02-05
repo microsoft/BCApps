@@ -74,6 +74,7 @@ table 5352 "CRM Quotedetail"
         }
         field(8; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Description = 'Type the amount or quantity of the product requested by the customer.';
             ExternalName = 'quantity';
@@ -92,6 +93,7 @@ table 5352 "CRM Quotedetail"
         }
         field(10; ManualDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Manual Discount';
             Description = 'Type the manual discount amount for the quote product to deduct any negotiated or other savings from the product total on the quote.';
             ExternalName = 'manualdiscountamount';
@@ -106,6 +108,7 @@ table 5352 "CRM Quotedetail"
         }
         field(12; VolumeDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume Discount';
             Description = 'Shows the discount amount per unit if a specified volume is purchased. Configure volume discounts in the Product Catalog in the Settings area.';
             ExternalAccess = Read;
@@ -114,6 +117,7 @@ table 5352 "CRM Quotedetail"
         }
         field(13; PricePerUnit; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price Per Unit';
             Description = 'Type the price per unit of the quote product. The default is to the value in the price list specified on the quote for existing products.';
             ExternalName = 'priceperunit';
@@ -121,6 +125,7 @@ table 5352 "CRM Quotedetail"
         }
         field(14; BaseAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             Description = 'Shows the total price of the quote product, based on the price per unit, volume discount, and quantity.';
             ExternalAccess = Modify;
@@ -129,6 +134,7 @@ table 5352 "CRM Quotedetail"
         }
         field(15; ExtendedAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Extended Amount';
             Description = 'Shows the total amount due for the quote product, based on the sum of the unit price, quantity, discounts ,and tax.';
             ExternalAccess = Modify;
@@ -159,6 +165,7 @@ table 5352 "CRM Quotedetail"
         }
         field(19; Tax; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax';
             Description = 'Type the tax amount for the quote product.';
             ExternalName = 'tax';
@@ -417,6 +424,7 @@ table 5352 "CRM Quotedetail"
         }
         field(51; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -433,6 +441,7 @@ table 5352 "CRM Quotedetail"
         }
         field(53; Tax_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax (Base)';
             Description = 'Shows the Tax field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -441,6 +450,7 @@ table 5352 "CRM Quotedetail"
         }
         field(54; ExtendedAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Extended Amount (Base)';
             Description = 'Shows the Extended Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -449,6 +459,7 @@ table 5352 "CRM Quotedetail"
         }
         field(55; PricePerUnit_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price Per Unit (Base)';
             Description = 'Shows the Price Per Unit field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -466,6 +477,7 @@ table 5352 "CRM Quotedetail"
         }
         field(57; BaseAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount (Base)';
             Description = 'Shows the Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -474,6 +486,7 @@ table 5352 "CRM Quotedetail"
         }
         field(58; ManualDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Manual Discount (Base)';
             Description = 'Shows the Manual Discount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -482,6 +495,7 @@ table 5352 "CRM Quotedetail"
         }
         field(59; VolumeDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume Discount (Base)';
             Description = 'Shows the discount amount per unit if a specified volume is purchased. Configure volume discounts in the Product Catalog in the Settings area.';
             ExternalAccess = Read;

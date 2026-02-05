@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Capacity;
 codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Purchase Receipt Line", 'OnUpdateItemJnlLineProdOrderSubcontracting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Purchase Receipt Line", 'OnUpdateItemJnlLineProdOrderSubcontracting', '', true, false)]
     local procedure OnUpdateItemJnlLineProdOrderSubcontracting(var ItemJnlLine: Record "Item Journal Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var TempOutputItemLedgerEntry: Record "Item Ledger Entry" temporary; var OneLinePostingUndo: Boolean)
     begin
         UpdateItemJnlLineProdOrderSubcontracting(ItemJnlLine, PurchRcptLine, TempOutputItemLedgerEntry, OneLinePostingUndo);
@@ -121,7 +121,7 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
         ItemLedgEntry.SetRange("Item Register No.", ItemRegisterNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnCollectOutputItemLedgEntriesForSubcontructingPurcReceiptLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnCollectOutputItemLedgEntriesForSubcontructingPurcReceiptLine', '', true, false)]
     local procedure OnCollectOutputItemLedgEntriesForSubcontructingPurcReceiptLine(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; PurchRcptLine: Record "Purch. Rcpt. Line"; var Result: Boolean)
     begin
         Result := CollectOutputItemLedgEntriesForSubcontructingPurcReceiptLine(TempItemLedgerEntry, PurchRcptLine);
@@ -160,7 +160,7 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
         exit(OutputEntriesExist);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty', '', true, false)]
     local procedure OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty(var ItemJournalLine: Record "Item Journal Line"; TempApplyToItemLedgEntry: Record "Item Ledger Entry" temporary)
     begin
         if ItemJournalLine.Correction and ItemJournalLine.Subcontracting then

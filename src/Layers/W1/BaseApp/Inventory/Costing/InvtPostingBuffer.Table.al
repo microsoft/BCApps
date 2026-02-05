@@ -38,6 +38,8 @@ table 48 "Invt. Posting Buffer"
         }
         field(5; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

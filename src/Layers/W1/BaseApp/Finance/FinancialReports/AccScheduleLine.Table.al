@@ -379,6 +379,20 @@ table 85 "Acc. Schedule Line"
             FieldClass = FlowFilter;
         }
         /// <summary>
+        /// Extended internal description for detailed documentation of the account schedule line definition purpose and usage.
+        /// </summary>
+#if not CLEAN28
+#pragma warning disable AS0086
+#endif
+        field(46; "Internal Description"; Text[500])
+#if not CLEAN28
+#pragma warning restore AS0086
+#endif
+        {
+            Caption = 'Internal Description';
+            ToolTip = 'Specifies the internal description for the row definition line that highlights complex logic or areas needing review for the next report designer.';
+        }
+        /// <summary>
         /// Cash flow forecast filter for cash flow-based calculations and analysis.
         /// </summary>
         field(840; "Cash Flow Forecast Filter"; Code[20])

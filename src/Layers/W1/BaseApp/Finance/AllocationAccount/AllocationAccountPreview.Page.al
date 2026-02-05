@@ -25,6 +25,8 @@ page 2674 "Allocation Account Preview"
                 field(AmountToAllocate; AmountToAllocate)
                 {
                     Caption = 'Amount to Allocate';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount to be allocated to the Destination Account.';
                     trigger OnValidate()

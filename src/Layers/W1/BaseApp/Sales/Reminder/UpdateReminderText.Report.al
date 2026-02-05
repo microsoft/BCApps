@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Updates the beginning and ending text on reminder documents to match a specified reminder level.
+/// </summary>
 report 187 "Update Reminder Text"
 {
     Caption = 'Update Reminder Text';

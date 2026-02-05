@@ -112,5 +112,10 @@
     "codeunitId": 139628,
     "codeunitName": "E-Doc. Receive Test",
     "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment26"
+  },
+  {
+    "method": "GetTaxSubtotalInfo",
+    "codeunitId": 139235,
+    "codeunitName": "PEPPOL30 Management Tests"
   }
 ]

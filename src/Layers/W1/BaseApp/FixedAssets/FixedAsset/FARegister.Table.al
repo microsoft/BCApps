@@ -54,11 +54,9 @@ table 5617 "FA Register"
         {
             Caption = 'Journal Batch Name';
         }
-        field(8; "Journal Type"; Option)
+        field(8; "Journal Type"; Enum "FA Journal Type")
         {
             Caption = 'Journal Type';
-            OptionCaption = 'G/L,Fixed Asset';
-            OptionMembers = "G/L","Fixed Asset";
         }
         field(9; "G/L Register No."; Integer)
         {

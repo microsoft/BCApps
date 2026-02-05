@@ -323,6 +323,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         AppliedQty: Decimal;
+        NeedsAdjustment: Boolean;
     begin
         UpDateWindow(WindowAdjmtLevel, WindowItem, Text007, WindowFWLevel, WindowEntry, 0);
 
@@ -340,14 +341,14 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         OnBeforeCopyILEToILE(Item, ItemLedgEntry);
         repeat
             UpDateWindow(WindowAdjmtLevel, WindowItem, WindowAdjust, WindowFWLevel, ItemLedgEntry."Entry No.", 0);
-            OnAdjustItemAppliedCostForItemLedgerEntry(ItemLedgEntry);
-
-            TempRndgResidualBuf.AddAdjustedCost(ItemLedgEntry."Entry No.", 0, 0, ItemLedgEntry."Completely Invoiced");
-
-            AppliedQty := ForwardAppliedCost(ItemLedgEntry, false);
-
-            // post value entry of "Rounding" type when the inbound entry is fully applied and its cost is not sharply equal to the cost of outbounds entries
-            EliminateRndgResidual(ItemLedgEntry, AppliedQty);
+            NeedsAdjustment := true;
+            OnAdjustItemAppliedCostForItemLedgerEntry(ItemLedgEntry, NeedsAdjustment);
+            if NeedsAdjustment then begin
+                TempRndgResidualBuf.AddAdjustedCost(ItemLedgEntry."Entry No.", 0, 0, ItemLedgEntry."Completely Invoiced");
+                AppliedQty := ForwardAppliedCost(ItemLedgEntry, false);
+                // post value entry of "Rounding" type when the inbound entry is fully applied and its cost is not sharply equal to the cost of outbounds entries
+                EliminateRndgResidual(ItemLedgEntry, AppliedQty);
+            end;
         until (ItemLedgEntry.Next() = 0) or LevelExceeded;
     end;
 
@@ -472,6 +473,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         StandardCostMirroring: Boolean;
         ExpectedCost: Boolean;
         EntryAdjusted: Boolean;
+        NeedsAdjustment: Boolean;
     begin
         OutbndItemLedgEntry.SetLoadFields("Item No.", "Entry Type", "Document Type", "Document No.", "Document Line No.", Quantity, "Invoiced Quantity",
                                           "Applies-to Entry", "Posting Date", "Completely Invoiced", "Applied Entry to Adjust", Positive, Open);
@@ -493,9 +495,9 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             OutbndValueEntry.SetRange("Expected Cost", ExpectedCost);
             if OutbndValueEntry.FindSet() then
                 repeat
-                    if not (OutbndValueEntry.Adjustment or ExpCostIsCompletelyInvoiced(OutbndItemLedgEntry, OutbndValueEntry)) and
-                       OutbndValueEntry.Inventoriable
-                    then begin
+                    NeedsAdjustment := not (OutbndValueEntry.Adjustment or ExpCostIsCompletelyInvoiced(OutbndItemLedgEntry, OutbndValueEntry)) and OutbndValueEntry.Inventoriable;
+                    OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(OutbndItemLedgEntry, NeedsAdjustment);
+                    if NeedsAdjustment then begin
                         OutbndValueEntry.SetRange("Document No.", OutbndValueEntry."Document No.");
                         OutbndValueEntry.SetRange("Document Line No.", OutbndValueEntry."Document Line No.");
                         CalcOutbndDocOldCost(
@@ -3484,7 +3486,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAdjustItemAppliedCostForItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry")
+    local procedure OnAdjustItemAppliedCostForItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var NeedsAdjustment: Boolean)
     begin
     end;
 
@@ -3500,6 +3502,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     [IntegrationEvent(false, false)]
     local procedure OnAdjustAppliedOutbndEntry(var OutbndItemLedgEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(var OutbndItemLedgEntry: Record "Item Ledger Entry"; var NeedsAdjustment: Boolean)
     begin
     end;
 

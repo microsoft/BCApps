@@ -253,9 +253,12 @@ codeunit 7324 "Whse.-Activity-Post"
         if not (Location."Require Pick" and Location."Require Receive") then
             exit;
 
-        Item.SetLoadFields("Order Tracking Policy");
+        Item.SetLoadFields("Order Tracking Policy", "Assembly BOM", "Assembly Policy");
+        Item.SetAutoCalcFields("Assembly BOM");
         Item.Get(WarehouseActivityLine."Item No.");
         if (Item."Order Tracking Policy" = Item."Order Tracking Policy"::None) then
+            exit;
+        if (Item."Assembly BOM") and (Item."Assembly Policy" = Item."Assembly Policy"::"Assemble-to-Order") then
             exit;
 
         WarehouseActivityLine2.CopyFilters(WarehouseActivityLine);

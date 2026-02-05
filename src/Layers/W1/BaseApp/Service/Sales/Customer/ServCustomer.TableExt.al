@@ -23,6 +23,7 @@ tableextension 6450 "Serv. Customer" extends Customer
         field(5902; "Contract Gain/Loss Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Contract Gain/Loss Entry".Amount where("Customer No." = field("No."),
                                                                        "Ship-to Code" = field("Ship-to Filter"),
                                                                        "Change Date" = field("Date Filter")));
@@ -39,6 +40,7 @@ tableextension 6450 "Serv. Customer" extends Customer
         field(5910; "Outstanding Serv. Orders (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Service Line"."Outstanding Amount (LCY)" where("Document Type" = const(Order),
                                                                                "Bill-to Customer No." = field("No."),
                                                                                "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -51,6 +53,7 @@ tableextension 6450 "Serv. Customer" extends Customer
         field(5911; "Serv Shipped Not Invoiced(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Service Line"."Shipped Not Invoiced (LCY)" where("Document Type" = const(Order),
                                                                                  "Bill-to Customer No." = field("No."),
                                                                                  "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -63,6 +66,7 @@ tableextension 6450 "Serv. Customer" extends Customer
         field(5912; "Outstanding Serv.Invoices(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Service Line"."Outstanding Amount (LCY)" where("Document Type" = const(Invoice),
                                                                                "Bill-to Customer No." = field("No."),
                                                                                "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),

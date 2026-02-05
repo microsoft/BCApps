@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays detailed fee setup information for a reminder level as a subpage part.
+/// </summary>
 page 836 "Reminder Level Fee Detail"
 {
     PageType = ListPart;

@@ -126,6 +126,7 @@ report 309 "Vendor - Purchase List"
                     {
                         ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Amounts (LCY) Greater Than';
                         ToolTip = 'Specifies an amount so that the report will only include those customers to which you have sold more than this amount within the specified dates.';
                     }

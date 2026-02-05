@@ -487,6 +487,8 @@ table 49 "Invoice Post. Buffer"
 #endif
         field(11203; "VAT Base Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base Amount (LCY)';
             DataClassification = SystemMetadata;
         }

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays and manages beginning and ending text lines for finance charge memos.
+/// </summary>
 page 445 "Finance Charge Text"
 {
     AutoSplitKey = true;

@@ -41,6 +41,7 @@ table 11204 "Automatic Acc. Line"
         }
         field(4; "Allocation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocation %';
         }
         field(5; "Shortcut Dimension 1 Code"; Code[20])
@@ -134,5 +135,5 @@ table 11204 "Automatic Acc. Line"
     end;
 }
 
- 
+
 #endif

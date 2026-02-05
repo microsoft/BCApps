@@ -40,6 +40,7 @@ page 5646 "Insurance Statistics"
                 {
                     ApplicationArea = FixedAssets;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Over/Under Insured';
                     ToolTip = 'Specifies if the fixed asset is insured at the right value.';

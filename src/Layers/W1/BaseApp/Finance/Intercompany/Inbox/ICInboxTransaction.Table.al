@@ -324,6 +324,7 @@ table 418 "IC Inbox Transaction"
             ICInboxPurchHeader.Get("Transaction No.", "IC Partner Code", "Transaction Source");
             if ICInboxPurchHeader."Your Reference" <> '' then begin
                 PurchHeader.SetRange("Your Reference", ICInboxPurchHeader."Your Reference");
+                OnInboxCheckAcceptOnBeforePurchHeaderIsEmpty(ICInboxPurchHeader, PurchHeader);
                 if not PurchHeader.IsEmpty() then
                     Message(DuplicatePurchaseOrderMsg, ICInboxPurchHeader."IC Transaction No.", ICInboxPurchHeader."Your Reference")
                 else begin
@@ -377,6 +378,16 @@ table 418 "IC Inbox Transaction"
     /// <param name="ICInboxTransaction">IC Inbox Transaction record being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnSourceTypeCase(var ICInboxTransaction: Record "IC Inbox Transaction")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before finding the first Purchase Header to allow custom filtering.    
+    /// </summary>
+    /// <param name="ICInboxPurchHeader">IC Inbox Purchase Header record being processed</param>
+    /// <param name="PurchHeader">Purchase Header record being filtered</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnInboxCheckAcceptOnBeforePurchHeaderIsEmpty(var ICInboxPurchHeader: Record "IC Inbox Purchase Header"; var PurchHeader: Record "Purchase Header")
     begin
     end;
 

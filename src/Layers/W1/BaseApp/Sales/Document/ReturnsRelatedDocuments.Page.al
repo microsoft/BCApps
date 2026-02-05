@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Displays a list of documents related to a return order for traceability.
+/// </summary>
 page 6670 "Returns-Related Documents"
 {
     Caption = 'Returns-Related Documents';

@@ -12,36 +12,36 @@ codeunit 137062 "SCM Sales & Receivables"
     end;
 
     var
-        LocationSilver: Record Location;
-        ItemJournalTemplate: Record "Item Journal Template";
-        ItemJournalBatch: Record "Item Journal Batch";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalTemplate: Record "Item Journal Template";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        LibraryCosting: Codeunit "Library - Costing";
+        LibraryDimension: Codeunit "Library - Dimension";
+        LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemReference: Codeunit "Library - Item Reference";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryCosting: Codeunit "Library - Costing";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryFiscalYear: Codeunit "Library - Fiscal Year";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryTimeSheet: Codeunit "Library - Time Sheet";
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LocationSilver: Record Location;
         NumberofLineErr: Label 'Number of Line must be same.';
         QuantityErr: Label 'Quantity must be same.';
         QtyToReceiveErr: Label 'Qty. to Receive must be equal.';
         QtyToInvoiceErr: Label 'Qty. to invoice must be equal.';
         QtyToShipErr: Label 'Qty. to ship must be equal.';
-        LibraryDimension: Codeunit "Library - Dimension";
         NoOfRecordsErr: Label 'No of records must be same.';
         LineDiscountErr: Label 'Line Discount Percentage must be same.';
         LineDiscountAmountErr: Label 'Line Discount Amount must be same.';
         UnitPriceErr: Label 'Unit price must be same.';
         DimensionErr: Label 'Check Dimension Code.';
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryApplicationArea: Codeunit "Library - Application Area";
         Initialized: Boolean;
         AutomaticReservationMsg: Label 'Automatic reservation is not possible.';
         UndoShipmentQst: Label 'Do you really want to undo the selected Shipment lines?';
@@ -53,6 +53,7 @@ codeunit 137062 "SCM Sales & Receivables"
         ReceiveConfirmQst: Label 'Do you want to post the receipt?';
         ReceiveInvoiceConfirmQst: Label 'Do you want to post the receipt and invoice?';
         CannotPostInvoiceErr: Label 'You cannot post the invoice';
+        SalesDocumentPostedLbl: Label 'Sales document was posted successfully';
 
     [Test]
     [Scope('OnPrem')]
@@ -1238,6 +1239,88 @@ codeunit 137062 "SCM Sales & Receivables"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('PostAndSendHandlerYes')]
+    procedure PostAndSendEnforcesSalesInvoicePostingPolicy()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        InvoiceNo: Code[20];
+    begin
+        // [SCENARIO 618067] Post and Send enforces Invoice Posting Policy for Sales Invoice.
+        Initialize();
+        CreateDefaultDocumentSendingProfile();
+
+        // [GIVEN] Create a Sales Invoice with random item and quantity.
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '',
+            LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(10, 20), '', WorkDate());
+        InvoiceNo := SalesHeader."No.";
+
+        // [GIVEN] User Setup with Sales Invoice Posting Policy set to Prohibited.
+        CreateUserSetupWithPostingPolicy("Invoice Posting Policy"::Prohibited);
+
+        // [WHEN] Post and Send Sales Invoice.
+        Commit();
+        asserterror PostAndSendSalesDocument(SalesHeader);
+
+        // [THEN] Posting is blocked with appropriate error message.
+        Assert.ExpectedError(CannotPostInvoiceErr);
+
+        // [WHEN] Change User Setup with Invoice Posting Policy set to Mandatory.
+        CreateUserSetupWithPostingPolicy("Invoice Posting Policy"::Mandatory);
+
+        // [WHEN] Post and Send Sales Invoice again.
+        Commit();
+        PostAndSendSalesDocument(SalesHeader);
+
+        // [THEN] Sales Invoice posted successfully.
+        SalesInvoiceHeader.SetRange("Pre-Assigned No.", InvoiceNo);
+        Assert.IsFalse(SalesInvoiceHeader.IsEmpty(), SalesDocumentPostedLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostAndSendHandlerYes')]
+    procedure PostAndSendEnforcesSalesCreditMemoPostingPolicy()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CreditMemoNo: Code[20];
+    begin
+        // [SCENARIO 618067] Post and Send enforces Invoice Posting Policy for Sales Credit Memo.
+        Initialize();
+        CreateDefaultDocumentSendingProfile();
+
+        // [GIVEN] Create a Sales Credit Memo with random item and quantity.
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::"Credit Memo", '',
+            LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(10, 20), '', WorkDate());
+        CreditMemoNo := SalesHeader."No.";
+
+        // [GIVEN] User Setup with Invoice Posting Policy set to Prohibited.
+        CreateUserSetupWithPostingPolicy("Invoice Posting Policy"::Prohibited);
+
+        // [WHEN] Post and Send Sales Credit Memo.
+        Commit();
+        asserterror PostAndSendSalesDocument(SalesHeader);
+
+        // [THEN] Posting is blocked with appropriate error message.
+        Assert.ExpectedError(CannotPostInvoiceErr);
+
+        // [WHEN] Change User Setup with Invoice Posting Policy set to Mandatory.
+        CreateUserSetupWithPostingPolicy("Invoice Posting Policy"::Mandatory);
+
+        // [WHEN] Post and Send Sales Credit Memo again.
+        Commit();
+        PostAndSendSalesDocument(SalesHeader);
+
+        // [THEN] Sales Credit Memo posted successfully.
+        SalesCrMemoHeader.SetRange("Pre-Assigned No.", CreditMemoNo);
+        Assert.IsFalse(SalesCrMemoHeader.IsEmpty(), SalesDocumentPostedLbl);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1886,6 +1969,20 @@ codeunit 137062 "SCM Sales & Receivables"
         SalesLine.Find();
         SalesLine.TestField("Return Qty. Received", QtyReturned);
         SalesLine.TestField("Quantity Invoiced", QtyInvoiced);
+    end;
+
+    local procedure CreateDefaultDocumentSendingProfile()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        DocumentSendingProfile.Init();
+        DocumentSendingProfile.Validate(Code, LibraryUtility.GenerateGUID());
+        DocumentSendingProfile.Validate("E-Mail", DocumentSendingProfile."E-Mail"::No);
+        DocumentSendingProfile.Validate(Printer, DocumentSendingProfile.Printer::No);
+        DocumentSendingProfile.Validate(Disk, DocumentSendingProfile.Disk::No);
+        DocumentSendingProfile.Validate("Electronic Document", DocumentSendingProfile."Electronic Document"::No);
+        DocumentSendingProfile.Validate(Default, true);
+        DocumentSendingProfile.Insert(true);
     end;
 
     [ModalPageHandler]

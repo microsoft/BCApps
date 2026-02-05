@@ -35,6 +35,7 @@ page 1873 "Item Availability Check Det."
             field(GrossReq; GrossReq)
             {
                 ApplicationArea = All;
+                AutoFormatType = 0;
                 Caption = 'Gross Requirement';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -44,6 +45,7 @@ page 1873 "Item Availability Check Det."
             field(ReservedReq; ReservedReq)
             {
                 ApplicationArea = Reservation;
+                AutoFormatType = 0;
                 Caption = 'Reserved Requirement';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -53,6 +55,7 @@ page 1873 "Item Availability Check Det."
             field(SchedRcpt; SchedRcpt)
             {
                 ApplicationArea = All;
+                AutoFormatType = 0;
                 Caption = 'Scheduled Receipt';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -62,6 +65,7 @@ page 1873 "Item Availability Check Det."
             field(ReservedRcpt; ReservedRcpt)
             {
                 ApplicationArea = Reservation;
+                AutoFormatType = 0;
                 Caption = 'Reserved Receipt';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -71,6 +75,7 @@ page 1873 "Item Availability Check Det."
             field(CurrentQuantity; CurrentQuantity)
             {
                 ApplicationArea = All;
+                AutoFormatType = 0;
                 Caption = 'Current Quantity';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -80,6 +85,7 @@ page 1873 "Item Availability Check Det."
             field(CurrentReservedQty; CurrentReservedQty)
             {
                 ApplicationArea = Reservation;
+                AutoFormatType = 0;
                 Caption = 'Current Reserved Quantity';
                 DecimalPlaces = 0 : 5;
                 Editable = false;

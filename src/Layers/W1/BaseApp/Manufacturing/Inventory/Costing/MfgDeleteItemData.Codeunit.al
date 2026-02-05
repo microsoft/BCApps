@@ -15,14 +15,14 @@ codeunit 99000811 "Mfg. Delete Item Data"
         ProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
 
-    [EventSubscriber(ObjectType::Report, Report::"Delete Item Data", 'OnAfterGetRecordOnAfterDeleteAll', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Delete Item Data", 'OnAfterGetRecordOnAfterDeleteAll', '', true, false)]
     local procedure OnAfterGetRecordOnAfterDeleteAll()
     begin
         ProductionOrder.DeleteAll();
         ProdOrderLine.DeleteAll();
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Delete Item Data", 'OnPreDataItemOnAfterAppendLine', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Delete Item Data", 'OnPreDataItemOnAfterAppendLine', '', true, false)]
     local procedure OnPreDataItemOnAfterAppendLine(var ListOfTables: TextBuilder)
     begin
         ListOfTables.AppendLine(ProductionOrder.TableCaption());

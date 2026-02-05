@@ -156,6 +156,8 @@ table 10752 "SII Doc. Upload State"
         }
         field(31; "Total Amount In Cash"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Amount In Cash';
 
             trigger OnValidate()

@@ -32,7 +32,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
         CouldNotChangeSupplyTxt: Label 'The supply type could not be changed in order %1, order line %2.', Comment = '%1 - Production Order No. or Assembly Header No. or Purchase Header No., %2 - Production Order Line or Assembly Line No. or Purchase Line No.';
         ProdBomErr: Label 'The maximum number of BOM levels %1, was exceeded. The process stopped at %2 %3.', Comment = '%1 = max number of levels; %2 = BOM Type; %3 = BOM No.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", 'OnTrySourceTypeForProduction', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", 'OnTrySourceTypeForProduction', '', true, false)]
     local procedure OnTrySourceType(var RequisitionLine: Record "Requisition Line"; TryChoice: Option; TryWkshTempl: Code[10]; TryWkshName: Code[10]; var ProductionExist: Boolean; var TempDocumentEntry: Record "Document Entry" temporary; sender: Codeunit "Carry Out Action")
     begin
         ProductionExist := CarryOutActionsFromProdOrder(RequisitionLine, Enum::"Planning Create Prod. Order".FromInteger(TryChoice), TryWkshTempl, TryWkshName, TempDocumentEntry, sender);
@@ -768,7 +768,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
             exit(true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", 'OnAfterCarryOutToReqWksh', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", 'OnAfterCarryOutToReqWksh', '', true, false)]
     local procedure OnAfterCarryOutToReqWksh(var RequisitionLine: Record "Requisition Line"; RequisitionLine2: Record "Requisition Line"; ReqWkshTempName: Code[10]; ReqJournalName: Code[10]; LineNo: Integer)
     var
         PlanningRoutingLine: Record "Planning Routing Line";

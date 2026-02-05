@@ -47,6 +47,8 @@ page 9094 "Vendor Statistics FactBox"
             }
             field(BalanceAsCustomer; BalanceAsCustomer)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Balance (LCY) As Customer';
                 Editable = false;
@@ -87,12 +89,15 @@ page 9094 "Vendor Statistics FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Total (LCY)';
                 ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases plus purchases that are still ongoing.';
             }
             field("Balance Due (LCY)"; OverDueBalance)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 CaptionClass = Format(StrSubstNo(OverdueAmountsLCYTxt, Format(WorkDate())));
                 Caption = 'Balance Due (LCY)';
 
@@ -111,6 +116,8 @@ page 9094 "Vendor Statistics FactBox"
             field(GetInvoicedPrepmtAmountLCY; InvoicedPrepmtAmountLCY)
             {
                 ApplicationArea = Prepayments;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Invoiced Prepayment Amount (LCY)';
                 ToolTip = 'Specifies your payments to the vendor, based on invoiced prepayments.';
             }

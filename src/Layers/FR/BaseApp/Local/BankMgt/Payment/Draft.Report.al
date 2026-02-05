@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,6 +14,9 @@ report 10866 Draft
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/Draft.rdlc';
     Caption = 'Draft';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -239,4 +243,4 @@ report 10866 Draft
         SUBSCRIBER_REF_CaptionLbl: Label 'SUBSCRIBER REF.';
         DRAFTCaption_Control1120002Lbl: Label 'DRAFT', Comment = 'Translate draft and uppecase the result';
 }
-
+#endif

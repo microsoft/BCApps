@@ -38,6 +38,7 @@ table 11301 "Manual VAT Correction"
         }
         field(6; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -64,6 +65,7 @@ table 11301 "Manual VAT Correction"
         }
         field(9; "Additional-Currency Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Additional-Currency Amount';
             Editable = false;
         }

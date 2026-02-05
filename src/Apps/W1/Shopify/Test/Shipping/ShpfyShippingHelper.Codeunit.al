@@ -84,6 +84,7 @@ codeunit 139559 "Shpfy Shipping Helper"
                 FulfillmentOrderLine."Remaining Quantity" := OrderLine.Quantity;
                 FulfillmentOrderLine."Shopify Location Id" := OrderLine."Location Id";
                 FulfillmentOrderLine."Delivery Method Type" := DeliveryMethodType;
+                FulfillmentOrderLine."Line Item Id" := OrderLine."Line Id";
                 FulfillmentOrderLine.Insert();
             until OrderLine.Next() = 0;
 

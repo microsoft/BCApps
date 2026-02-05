@@ -15,7 +15,7 @@ codeunit 30237 "Shpfy GQL NextOpenFFOrderLines" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{fulfillmentOrder(id: \"gid:\/\/shopify\/FulfillmentOrder\/{{FulfillmentOrderId}}\") {lineItems(first: 25, after:\"{{After}}\") {pageInfo {hasNextPage} edges {cursor node {id totalQuantity remainingQuantity lineItem {product {legacyResourceId} variant {legacyResourceId}}}}}}}"}');
+        exit('{"query":"{fulfillmentOrder(id: \"gid:\/\/shopify\/FulfillmentOrder\/{{FulfillmentOrderId}}\") {lineItems(first: 25, after:\"{{After}}\") {pageInfo {hasNextPage} edges {cursor node {id totalQuantity remainingQuantity lineItem {id product {legacyResourceId} variant {legacyResourceId}}}}}}}"}');
     end;
 
     /// <summary>

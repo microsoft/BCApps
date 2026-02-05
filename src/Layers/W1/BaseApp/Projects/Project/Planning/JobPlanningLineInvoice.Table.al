@@ -52,6 +52,7 @@ table 1022 "Job Planning Line Invoice"
         }
         field(7; "Quantity Transferred"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Transferred';
             Editable = false;
         }
@@ -69,13 +70,15 @@ table 1022 "Job Planning Line Invoice"
         {
             Caption = 'Invoiced Amount (LCY)';
             Editable = false;
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
         }
         field(11; "Invoiced Cost Amount (LCY)"; Decimal)
         {
             Caption = 'Invoiced Cost Amount (LCY)';
             Editable = false;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(12; "Job Ledger Entry No."; Integer)
         {

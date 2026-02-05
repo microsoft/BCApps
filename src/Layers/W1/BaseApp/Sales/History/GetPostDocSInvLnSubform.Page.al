@@ -9,6 +9,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays posted sales invoice lines as a subform for line selection during document retrieval.
+/// </summary>
 page 5852 "Get Post.Doc - S.InvLn Subform"
 {
     Caption = 'Lines';
@@ -141,6 +144,7 @@ page 5852 "Get Post.Doc - S.InvLn Subform"
                 field(QtyNotReturned; QtyNotReturned)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Qty. Not Returned';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity from the posted document line that has been shipped to the customer and not returned by the customer.';
@@ -148,6 +152,7 @@ page 5852 "Get Post.Doc - S.InvLn Subform"
                 field(QtyReturned; GetQtyReturned())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Qty. Returned';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity that was returned.';
@@ -168,6 +173,7 @@ page 5852 "Get Post.Doc - S.InvLn Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Reverse Unit Cost (LCY)';
                     ToolTip = 'Specifies the unit cost that will appear on the new document lines.';
                     Visible = false;
@@ -489,6 +495,13 @@ page 5852 "Get Post.Doc - S.InvLn Subform"
         exit(0);
     end;
 
+    /// <summary>
+    /// Initializes the subform with target header, filter, and visibility settings.
+    /// </summary>
+    /// <param name="NewToSalesHeader">The target sales header for copying lines.</param>
+    /// <param name="NewRevQtyFilter">Specifies whether to filter for reversible quantities.</param>
+    /// <param name="NewFillExactCostReverse">Specifies whether to fill exact cost reverse.</param>
+    /// <param name="NewVisible">Specifies whether the subform is visible.</param>
     procedure Initialize(NewToSalesHeader: Record "Sales Header"; NewRevQtyFilter: Boolean; NewFillExactCostReverse: Boolean; NewVisible: Boolean)
     begin
         ToSalesHeader := NewToSalesHeader;
@@ -502,6 +515,10 @@ page 5852 "Get Post.Doc - S.InvLn Subform"
         end;
     end;
 
+    /// <summary>
+    /// Gets the currently selected invoice line with selection filter applied.
+    /// </summary>
+    /// <param name="FromSalesInvLine">Returns the selected sales invoice line.</param>
     procedure GetSelectedLine(var FromSalesInvLine: Record "Sales Invoice Line")
     begin
         FromSalesInvLine.Copy(Rec);

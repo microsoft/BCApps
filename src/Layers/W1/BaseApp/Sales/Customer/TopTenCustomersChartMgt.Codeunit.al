@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using System.Visualization;
 
+/// <summary>
+/// Manages the stacked column chart visualization displaying the top ten customers by sales.
+/// </summary>
 codeunit 1316 "Top Ten Customers Chart Mgt."
 {
 
@@ -19,6 +22,10 @@ codeunit 1316 "Top Ten Customers Chart Mgt."
         CustomerNameNoLbl: Label '%1 - %2', Locked = true;
         CustomerNo: array[10] of Code[20];
 
+    /// <summary>
+    /// Updates the business chart buffer with the top ten customers by sales data for stacked column chart visualization.
+    /// </summary>
+    /// <param name="BusChartBuf">Specifies the business chart buffer to populate with customer sales data.</param>
     [Scope('OnPrem')]
     procedure UpdateChart(var BusChartBuf: Record "Business Chart Buffer")
     var
@@ -38,6 +45,10 @@ codeunit 1316 "Top Ten Customers Chart Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Handles drill-down actions on the top ten customers chart by opening the customer card or customer list.
+    /// </summary>
+    /// <param name="BusChartBuf">Specifies the business chart buffer containing drill-down context information.</param>
     [Scope('OnPrem')]
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer")
     var

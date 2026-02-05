@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Displays validation errors and warnings for a sales document in a factbox.
+/// </summary>
 page 9119 "Sales Doc. Check Factbox"
 {
     PageType = ListPart;
@@ -140,6 +143,10 @@ page 9119 "Sales Doc. Check Factbox"
             exit('Attention');
     end;
 
+    /// <summary>
+    /// Runs a background task to check for document errors in the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check for errors.</param>
     procedure CheckErrorsInBackground(SalesHeader: Record "Sales Header")
     var
         Args: Dictionary of [Text, Text];

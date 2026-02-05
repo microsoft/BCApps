@@ -150,6 +150,16 @@ codeunit 826 "Purch. Post Invoice Events"
     begin
     end;
 
+    procedure RunOnAfterInitGenJnlLineAmountFieldsFromTotalLines(var GenJnlLine: Record "Gen. Journal Line"; var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
+    begin
+        OnAfterInitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitGenJnlLineAmountFieldsFromTotalLines(var GenJnlLine: Record "Gen. Journal Line"; var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
+    begin
+    end;
+
     procedure RunOnBeforeSetAmountsForBalancingEntry(var VendLedgEntry: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         OnBeforeSetAmountsForBalancingEntry(VendLedgEntry, GenJnlLine, TotalPurchLine, TotalPurchLineLCY, IsHandled);

@@ -35,6 +35,8 @@ page 35517 "Payment Journal FactBox"
             field(OeRemainAmountFC; OeRemainAmountFC)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Open Amt.';
                 Editable = false;
                 ToolTip = 'Specifies the remaining amount of the open entry.';
@@ -42,6 +44,8 @@ page 35517 "Payment Journal FactBox"
             field(PaymentAmt; PaymentAmt)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Payment';
                 Editable = false;
                 ToolTip = 'Specifies the payment amount of the actual line.';
@@ -49,6 +53,8 @@ page 35517 "Payment Journal FactBox"
             field(RemainAfterPayment; RemainAfterPayment)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 BlankZero = true;
                 CaptionClass = Format(RemainAfterPaymentCaption);
                 Caption = 'Remaining after Payment';
@@ -58,6 +64,8 @@ page 35517 "Payment Journal FactBox"
             field(PmtDiscount; PmtDiscount)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Pmt. Discount';
                 Editable = false;
                 ToolTip = 'Specifies the possible payment discount.';
@@ -65,6 +73,8 @@ page 35517 "Payment Journal FactBox"
             field(PaymDiscDeductAmount; PaymDiscDeductAmount)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Deduction';
                 Editable = false;
                 ToolTip = 'Specifies the accepted payment discount deduction.';
@@ -72,6 +82,8 @@ page 35517 "Payment Journal FactBox"
             field(AcceptedPaymentTol; AcceptedPaymentTol)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Pmt. Tolerance';
                 Editable = false;
                 ToolTip = 'Specifies the accepted payment tolerance.';
@@ -125,6 +137,7 @@ page 35517 "Payment Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Payments';
                 Editable = false;
                 ToolTip = 'Specifies the total of payments in LCY.';
@@ -133,6 +146,7 @@ page 35517 "Payment Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Balance';
                 Editable = false;
                 ToolTip = 'Specifies the balance on the actual line in LCY.';
@@ -141,6 +155,7 @@ page 35517 "Payment Journal FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 Caption = 'Total Balance';
                 Editable = false;
                 ToolTip = 'Specifies the total balance in LCY.';

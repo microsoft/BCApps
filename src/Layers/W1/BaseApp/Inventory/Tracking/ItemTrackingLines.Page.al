@@ -104,6 +104,7 @@ page 6510 "Item Tracking Lines"
                         field("SourceQuantityArray[1]"; SourceQuantityArray[1])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -112,6 +113,7 @@ page 6510 "Item Tracking Lines"
                         field(Handle1; SourceQuantityArray[2])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             Caption = 'Qty. to Handle';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -121,6 +123,7 @@ page 6510 "Item Tracking Lines"
                         field(Invoice1; SourceQuantityArray[3])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             Caption = 'Qty. to Invoice';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -176,6 +179,7 @@ page 6510 "Item Tracking Lines"
                         field(Quantity3; UndefinedQtyArray[1])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Undefined Quantity';
                             DecimalPlaces = 0 : 5;
@@ -185,6 +189,7 @@ page 6510 "Item Tracking Lines"
                         field(Handle3; UndefinedQtyArray[2])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Undefined Quantity to Handle';
                             DecimalPlaces = 0 : 5;
@@ -195,6 +200,7 @@ page 6510 "Item Tracking Lines"
                         field(Invoice3; UndefinedQtyArray[3])
                         {
                             ApplicationArea = ItemTracking;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Undefined Quantity to Invoice';
                             DecimalPlaces = 0 : 5;
@@ -526,6 +532,14 @@ page 6510 "Item Tracking Lines"
                     ApplicationArea = ItemTracking;
                     ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
                     Visible = ApplFromItemEntryVisible;
+                }
+                field("Receipt/Shipment No."; Rec."Receipt/Shipment No.")
+                {
+                    ApplicationArea = ItemTracking;
+                    Caption = 'Receipt/Shipment No.';
+                    Editable = false;
+                    ToolTip = 'Specifies the receipt or shipment number associated with the entry.';
+                    Visible = ReceiptShipmentNoVisible;
                 }
             }
         }
@@ -1100,6 +1114,9 @@ page 6510 "Item Tracking Lines"
         CurrentPageIsOpen := true;
 
         NotifyWhenTrackingIsManagedByWhse();
+
+        if ItemLedgerEntryFilter <> '' then
+            Rec.SetFilter("Item Ledger Entry No.", ItemLedgerEntryFilter);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action) Result: Boolean
@@ -1262,6 +1279,8 @@ page 6510 "Item Tracking Lines"
         DeleteIsBlocked: Boolean;
         IsInvtDocumentCorrection: Boolean;
         HasSameQuantityBase: Boolean;
+        ReceiptShipmentNoVisible: Boolean;
+        ItemLedgerEntryFilter: Text;
 
     procedure CountLines(): Integer
     begin
@@ -1731,6 +1750,10 @@ page 6510 "Item Tracking Lines"
                 TrackingSpecification."Source Batch Name", TrackingSpecification."Source Prod. Order Line",
                 TrackingSpecification."Source Ref. No.");
 
+        // If run for Combined Shipment/Receipt "Receipt/Shipment No." is updated:
+        if CurrentRunMode = CurrentRunMode::"Combined Ship/Rcpt" then
+            UpdateReceiptShipmentNo(TempTrackingSpecification);
+
         OnSetSourceSpecOnAfterSetCurrentSourceRowID(CurrentRunMode, CurrentSourceRowID, TrackingSpecification);
 
         // Synchronization of outbound transfer order:
@@ -1873,10 +1896,12 @@ page 6510 "Item Tracking Lines"
 
         if TempTrackingSpecification.Find('-') then
             repeat
-                TempTrackingSpecification.SetTrackingFilterFromSpec(TempTrackingSpecification);
-                TempTrackingSpecification.CalcSums(
-                    "Quantity (Base)", "Qty. to Handle (Base)", "Qty. to Invoice (Base)",
-                    "Quantity Handled (Base)", "Quantity Invoiced (Base)");
+                if ItemLedgerEntryFilter = '' then begin
+                    TempTrackingSpecification.SetTrackingFilterFromSpec(TempTrackingSpecification);
+                    TempTrackingSpecification.CalcSums(
+                        "Quantity (Base)", "Qty. to Handle (Base)", "Qty. to Invoice (Base)",
+                        "Quantity Handled (Base)", "Quantity Invoiced (Base)");
+                end;
                 OnAddToGlobalRecordSetOnAfterTrackingSpecificationCalcSums(TempTrackingSpecification);
 
                 if TempTrackingSpecification."Quantity (Base)" <> 0 then begin
@@ -1911,8 +1936,10 @@ page 6510 "Item Tracking Lines"
                     end;
                 end;
 
-                TempTrackingSpecification.Find('+');
-                TempTrackingSpecification.ClearTrackingFilter();
+                if ItemLedgerEntryFilter = '' then begin
+                    TempTrackingSpecification.Find('+');
+                    TempTrackingSpecification.ClearTrackingFilter();
+                end;
             until TempTrackingSpecification.Next() = 0;
     end;
 
@@ -1967,6 +1994,7 @@ page 6510 "Item Tracking Lines"
                     ExpirationDateEditable := ItemTrackingCode."Use Expiration Dates" and SetAccess;
                     WarrantyDateEditable := SetAccess;
                     InsertIsBlocked := SetAccess;
+                    ReceiptShipmentNoVisible := true;
                 end;
         end;
 
@@ -2074,7 +2102,7 @@ page 6510 "Item Tracking Lines"
             exit(ReturnValue);
 
         UpdateUndefinedQtyArray();
-        if ProdOrderLineHandling then // Avoid check for prod.journal lines
+        if ProdOrderLineHandling or (ItemLedgerEntryFilter <> '') then  // Avoid check for prod.journal lines and for matched order lines
             exit(true);
         exit(Abs(SourceQuantityArray[1]) >= Abs(TotalTrackingSpecification."Quantity (Base)"));
     end;
@@ -2477,6 +2505,8 @@ page 6510 "Item Tracking Lines"
                             OldTrackingSpecification, OldTrackingSpecification, ChangeType::Insert, not IdenticalArray[2]);
                     end else begin
                         TempReservEntry.SetTrackingFilterFromSpec(OldTrackingSpecification);
+                        if ItemLedgerEntryFilter <> '' then
+                            TempReservEntry.SetRange("Item Ledger Entry No.", OldTrackingSpecification."Item Ledger Entry No.");
                         OldTrackingSpecification.ClearTracking();
                         OnAfterClearTrackingSpec(OldTrackingSpecification);
 
@@ -2503,8 +2533,12 @@ page 6510 "Item Tracking Lines"
                     ReservEntry1.TransferFields(OldTrackingSpecification);
                     ReservEntry1.SetPointerFilter();
                     ReservEntry1.SetTrackingFilterFromReservEntry(ReservEntry1);
+                    if ItemLedgerEntryFilter <> '' then
+                        ReservEntry1.SetRange("Item Ledger Entry No.", ReservEntry1."Item Ledger Entry No.");
                     if ChangeType = ChangeType::FullDelete then begin
                         TempReservEntry.SetTrackingFilterFromSpec(OldTrackingSpecification);
+                        if ItemLedgerEntryFilter <> '' then
+                            TempReservEntry.SetRange("Item Ledger Entry No.", OldTrackingSpecification."Item Ledger Entry No.");
                         OldTrackingSpecification.ClearTracking();
                         OnAfterClearTrackingSpec(OldTrackingSpecification);
                         QtyToAdd :=
@@ -3179,6 +3213,9 @@ page 6510 "Item Tracking Lines"
             Rec.SetFilter("Entry No.", '<=%1', CheckTillEntryNo); // Validate only against the existing entries.
         Rec.SetRange("Buffer Status", 0);
 
+        if ItemLedgerEntryFilter <> '' then
+            Rec.SetRange("Item Ledger Entry No.", Rec."Item Ledger Entry No.");
+
         OnTestTempSpecificationExistsOnAfterSetFilters(Rec);
         Exists := not Rec.IsEmpty();
         Rec.Copy(TrackingSpecification);
@@ -3638,6 +3675,25 @@ page 6510 "Item Tracking Lines"
     begin
         SecondSourceID := SourceID;
         IsAssembleToOrder := IsATO;
+    end;
+
+    internal procedure SetItemLedgerEntryFilter(ILEFilter: Text)
+    begin
+        ItemLedgerEntryFilter := ILEFilter;
+    end;
+
+    local procedure UpdateReceiptShipmentNo(var TempTrackingSpecification: Record "Tracking Specification" temporary);
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if TempTrackingSpecification.FindSet() then
+            repeat
+                ItemLedgerEntry.SetLoadFields("Document No.");
+                if ItemLedgerEntry.Get(TempTrackingSpecification."Item Ledger Entry No.") then begin
+                    TempTrackingSpecification."Receipt/Shipment No." := ItemLedgerEntry."Document No.";
+                    TempTrackingSpecification.Modify();
+                end;
+            until TempTrackingSpecification.Next() = 0;
     end;
 
     protected procedure SynchronizeWarehouseItemTracking()

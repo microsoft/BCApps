@@ -1177,6 +1177,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 if ExchRateAdjmtParameters."Adjust Per Entry" then
                     TempExchRateAdjmtBuffer2.SetRange("Entry No.", TempExchRateAdjmtBuffer."Entry No.");
 
+                OnSummarizeExchRateAdjmtBufferOnAfterExchRateAdjmtBuffer2SetFilters(TempExchRateAdjmtBuffer2, TempExchRateAdjmtBuffer, ExchRateAdjmtParameters);
+
                 Found := TempExchRateAdjmtBuffer2.FindFirst();
 
                 if not Found then begin
@@ -3130,4 +3132,10 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure OnSetAdditionalReportingCurrencyOnBeforeCheckTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; var IsHandled: Boolean);
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSummarizeExchRateAdjmtBufferOnAfterExchRateAdjmtBuffer2SetFilters(var TempExchRateAdjmtBuffer2: Record "Exch. Rate Adjmt. Buffer" temporary; var TempExchRateAdjmtBuffer: Record "Exch. Rate Adjmt. Buffer" temporary; var ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters")
+    begin
+    end;
+
 }

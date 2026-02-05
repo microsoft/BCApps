@@ -15,6 +15,8 @@ using System.Upgrade;
 
 codeunit 5497 "Graph Mgt - Purch Order Buffer"
 {
+    Permissions =
+        tabledata "Purchase Order Entity Buffer" = rimd;
     trigger OnRun()
     begin
     end;

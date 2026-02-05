@@ -72,6 +72,8 @@ page 599 "Payment Disc Tolerance Warning"
                 field(Amount; Amount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = CurrencyCode;
                     Caption = 'Amount';
                     Editable = false;
                     ToolTip = 'Specifies the amount that the payment tolerance warning refers to.';
@@ -79,6 +81,8 @@ page 599 "Payment Disc Tolerance Warning"
                 field(AppliedAmount; AppliedAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = CurrencyCode;
                     Caption = 'Applied Amount';
                     Editable = false;
                     ToolTip = 'Specifies the applied amount that the payment tolerance warning refers to.';
@@ -86,6 +90,8 @@ page 599 "Payment Disc Tolerance Warning"
                 field(BalanceAmount; BalanceAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = CurrencyCode;
                     Caption = 'Balance';
                     Editable = false;
                     ToolTip = 'Specifies the payment amount that the customer owes for completed sales.';

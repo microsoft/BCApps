@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Finance.ReceivablesPayables;
 
+/// <summary>
+/// Updates the pending prepayment status for sales documents based on payment activity.
+/// </summary>
 codeunit 383 "Upd. Pending Prepmt. Sales"
 {
 

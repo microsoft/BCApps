@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Pricing;
 
 using Microsoft.Pricing.Calculation;
 
+/// <summary>
+/// Provides a workspace for preparing and reviewing sales price changes before applying them.
+/// </summary>
 page 7023 "Sales Price Worksheet"
 {
     AdditionalSearchTerms = 'special price,alternate price';

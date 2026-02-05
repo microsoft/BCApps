@@ -57,6 +57,7 @@ table 12177 "Issued Customer Bill Header"
         field(60; "Total Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Issued Customer Bill Line".Amount where("Customer Bill No." = field("No.")));
             Caption = 'Total Amount';
             Editable = false;

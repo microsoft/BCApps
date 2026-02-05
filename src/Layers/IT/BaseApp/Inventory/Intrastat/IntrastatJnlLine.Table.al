@@ -87,22 +87,26 @@ table 263 "Intrastat Jnl. Line"
         }
         field(13; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 2 : 5;
         }
         field(14; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DecimalPlaces = 0 : 0;
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 0;
         }
         field(16; "Cost Regulation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Regulation %';
             DecimalPlaces = 2 : 2;
             MaxValue = 100;
@@ -111,12 +115,14 @@ table 263 "Intrastat Jnl. Line"
         field(17; "Indirect Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Indirect Cost';
             DecimalPlaces = 0 : 0;
         }
         field(18; "Statistical Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Statistical Value';
             DecimalPlaces = 0 : 0;
         }
@@ -134,6 +140,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(22; "Total Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Weight';
             DecimalPlaces = 0 : 0;
             Editable = false;
@@ -283,5 +290,5 @@ table 263 "Intrastat Jnl. Line"
     }
 }
 
- 
+
 #endif

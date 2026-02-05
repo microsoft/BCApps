@@ -40,6 +40,7 @@ table 10305 "ACH RB Footer"
         }
         field(7; "Total File Credit"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total File Credit';
         }
         field(8; "Zero Fill"; Integer)

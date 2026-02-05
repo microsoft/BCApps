@@ -41,6 +41,7 @@ page 1872 "Item Availability Check"
                 field(InventoryQty; InventoryQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     CaptionClass = AvailableInventoryCaption;
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -49,6 +50,7 @@ page 1872 "Item Availability Check"
                 field(TotalQuantity; TotalQuantity)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Inventory Shortage';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

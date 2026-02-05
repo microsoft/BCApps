@@ -94,14 +94,17 @@ codeunit 132600 "Report Layout"
         REPORT.Run(REPORT::"Compare Production Cost Shares");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHSalesStatistics')]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure TestSalesStatistics()
     begin
         Initialize();
         REPORT.Run(REPORT::"Sales Statistics");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RHFixedAssetAcquisitionList')]
@@ -406,14 +409,17 @@ codeunit 132600 "Report Layout"
         REPORT.Run(REPORT::"Dimensions - Total");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHSalesReservationAvail')]
     [Scope('OnPrem')]
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     procedure TestSalesReservationAvail()
     begin
         Initialize();
         REPORT.Run(REPORT::"Sales Reservation Avail.");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RHCostAcctgAnalysis')]
@@ -620,14 +626,17 @@ codeunit 132600 "Report Layout"
         CompareProductionCostShares.SaveAsExcel(FormatFileName(CompareProductionCostShares.Caption));
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure RHSalesStatistics(var SalesStatistics: TestRequestPage "Sales Statistics")
     begin
         SalesStatistics.StartingDate.SetValue(WorkDate());
         SalesStatistics.PeriodLength.SetValue('1M');
         SalesStatistics.SaveAsPdf(FormatFileName(SalesStatistics.Caption));
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -996,14 +1005,17 @@ codeunit 132600 "Report Layout"
         DimensionsTotal.SaveAsPdf(FormatFileName(DimensionsTotal.Caption));
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Sales Reservation Avail. report is deprecated.', '28.0')]
     procedure RHSalesReservationAvail(var SalesReservationAvail: TestRequestPage "Sales Reservation Avail.")
     begin
         SalesReservationAvail.ShowSalesLines.SetValue(true);
         SalesReservationAvail.ShowReservationEntries.SetValue(true);
         SalesReservationAvail.SaveAsPdf(FormatFileName(SalesReservationAvail.Caption));
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

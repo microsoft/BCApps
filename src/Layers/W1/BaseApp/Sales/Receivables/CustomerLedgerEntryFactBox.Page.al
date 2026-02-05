@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays key details for a customer ledger entry in a FactBox, including due date, applied entries count, and reminder information.
+/// </summary>
 page 9106 "Customer Ledger Entry FactBox"
 {
     Caption = 'Customer Ledger Entry Details';

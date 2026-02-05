@@ -107,6 +107,8 @@ page 3010834 "LSV Journal"
             }
             field(TotalAmount; TotalAmount)
             {
+                AutoFormatType = 1;
+                AutoFormatExpression = Rec."Currency Code";
                 ApplicationArea = Basic, Suite;
                 Caption = 'Total Amount';
                 Editable = false;

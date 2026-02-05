@@ -191,7 +191,7 @@ page 8069 "Serv. Comm. WO Cust. Contract"
         ShipToStyleExpr: Text;
         CustomerContractNo: Code[20];
 
-    internal procedure SetCustomerContractNo(NewCustomerContractNo: Code[20])
+    procedure SetCustomerContractNo(NewCustomerContractNo: Code[20])
     begin
         CustomerContractNo := NewCustomerContractNo;
     end;

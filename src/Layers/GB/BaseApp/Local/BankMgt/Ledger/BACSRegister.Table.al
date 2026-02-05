@@ -62,6 +62,7 @@ table 10551 "BACS Register"
         }
         field(20; "Ledger Entry Amount"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("BACS Ledger Entry".Amount where("Register No." = field("No.")));
             Caption = 'Ledger Entry Amount';
             Editable = false;

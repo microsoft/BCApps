@@ -91,30 +91,35 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(16; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(25; "Qty. Put Away"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(26; "Qty. Put Away (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Put-away Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = const("Put-away"),
                                                                                   "Whse. Document Type" = const(Receipt),
                                                                                   "Whse. Document No." = field("No."),
@@ -129,6 +134,7 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(28; "Put-away Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = const("Put-away"),
                                                                                          "Whse. Document Type" = const(Receipt),
                                                                                          "Whse. Document No." = field("No."),
@@ -148,6 +154,7 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -179,12 +186,14 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(50; "Qty. Cross-Docked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Cross-Docked';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(51; "Qty. Cross-Docked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Cross-Docked (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -200,6 +209,7 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(55; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -209,6 +219,7 @@ table 7319 "Posted Whse. Receipt Line"
         }
         field(56; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;

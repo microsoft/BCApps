@@ -152,6 +152,7 @@ page 372 "Bank Account Ledger Entries"
                     Caption = 'Running Balance (LCY)';
                     ToolTip = 'Specifies the running balance in LCY.';
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = IsForeignCurrency;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")

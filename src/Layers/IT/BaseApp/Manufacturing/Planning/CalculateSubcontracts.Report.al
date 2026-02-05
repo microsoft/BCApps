@@ -225,6 +225,7 @@ report 99001015 "Calculate Subcontracts"
 #endif
         ReqLine.Validate(ReqLine."Vendor No.", WorkCenter."Subcontractor No.");
         ReqLine.Description := ProdOrderRoutingLine.Description;
+        ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
         OnAfterTransferProdOrderRoutingLine(ReqLine, ProdOrderRoutingLine);
         // If purchase order already exist we will change this if possible

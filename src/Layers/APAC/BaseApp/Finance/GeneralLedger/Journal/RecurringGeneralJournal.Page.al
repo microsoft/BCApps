@@ -532,6 +532,7 @@ page 283 "Recurring General Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the recurring general journal on the line where the cursor is.';
@@ -545,6 +546,7 @@ page 283 "Recurring General Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the recurring general journal.';

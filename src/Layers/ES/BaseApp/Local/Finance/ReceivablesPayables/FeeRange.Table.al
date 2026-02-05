@@ -52,6 +52,7 @@ table 7000019 "Fee Range"
         }
         field(6; "Charge % per Doc."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Charge % per Doc.';
             DecimalPlaces = 2 : 6;
             MaxValue = 100;

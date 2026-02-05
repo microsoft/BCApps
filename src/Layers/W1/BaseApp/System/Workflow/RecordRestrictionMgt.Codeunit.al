@@ -229,7 +229,7 @@ codeunit 1550 "Record Restriction Mgt."
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterInsertEvent', '', false, false)]
     procedure RestrictRequisitionLineAfterInsert(var Rec: Record "Requisition Line"; RunTrigger: Boolean)
     begin
-        RestrictRequisitionWkshLine(Rec);
+        RestrictRequisitionWorksheet(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterModifyEvent', '', false, false)]
@@ -238,10 +238,10 @@ codeunit 1550 "Record Restriction Mgt."
         if Format(Rec) = Format(xRec) then
             exit;
 
-        RestrictRequisitionWkshLine(Rec);
+        RestrictRequisitionWorksheet(Rec);
     end;
 
-    local procedure RestrictRequisitionWkshLine(var RequisitionLine: Record "Requisition Line")
+    local procedure RestrictRequisitionWorksheet(var RequisitionLine: Record "Requisition Line")
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
@@ -251,7 +251,7 @@ codeunit 1550 "Record Restriction Mgt."
 
         if RequisitionWkshName.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name") then
             if ApprovalsMgmt.IsRequisitionWkshBatchApprovalsWorkflowEnabled(RequisitionWkshName) then
-                RestrictRecordUsage(RequisitionLine, RestrictBatchUsageDetailsTxt);
+                RestrictRecordUsage(RequisitionWkshName, RestrictBatchUsageDetailsTxt);
     end;
 
     [TryFunction]
@@ -619,12 +619,6 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Item Journal Batch", 'OnBeforeDeleteEvent', '', false, false)]
     procedure RemoveItemJournalBatchRestrictionsBeforeDelete(var Rec: Record "Item Journal Batch"; RunTrigger: Boolean)
-    begin
-        AllowRecordUsage(Rec);
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeDeleteEvent', '', false, false)]
-    procedure RemoveRequisitionWkshLineRestrictionsBeforeDelete(var Rec: Record "Requisition Line"; RunTrigger: Boolean)
     begin
         AllowRecordUsage(Rec);
     end;

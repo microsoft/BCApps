@@ -246,6 +246,8 @@ page 10128 "Posted Bank Rec. Adj Lines Sub"
             field(TotalAdjustments; BankRecHdr."Total Adjustments" - BankRecHdr."Total Balanced Adjustments")
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = BankRecHdr."Currency Code";
                 Caption = 'Total Adjustments';
                 Editable = false;
                 ToolTip = 'Specifies the total amount of the lines that are adjustments.';

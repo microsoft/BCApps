@@ -56,6 +56,7 @@ table 7007 "Price Calculation Buffer"
         }
         field(11; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
         field(12; "Document Date"; Date)
@@ -68,6 +69,7 @@ table 7007 "Price Calculation Buffer"
         }
         field(14; "Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
         field(15; "VAT Calculation Type"; Integer)
@@ -84,6 +86,7 @@ table 7007 "Price Calculation Buffer"
         }
         field(18; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
         field(19; "Unit of Measure Code"; Code[10])
@@ -92,10 +95,12 @@ table 7007 "Price Calculation Buffer"
         }
         field(20; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
         field(21; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
         field(22; "Allow Line Disc."; Boolean)
@@ -108,6 +113,8 @@ table 7007 "Price Calculation Buffer"
         }
         field(24; "Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Currency Code";
             DataClassification = CustomerContent;
         }
         field(25; "Price Type"; Enum "Price Type")

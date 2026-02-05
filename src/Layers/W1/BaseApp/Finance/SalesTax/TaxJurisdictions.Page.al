@@ -38,6 +38,7 @@ page 466 "Tax Jurisdictions"
                 field("Default Sales and Use Tax"; DefaultTax)
                 {
                     ApplicationArea = SalesTax;
+                    AutoFormatType = 0;
                     Caption = 'Default Sales and Use Tax';
                     Enabled = DefaultTaxIsEnabled;
                     Style = Subordinate;

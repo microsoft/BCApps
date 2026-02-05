@@ -99,6 +99,8 @@ table 10751 "SII Setup"
         }
         field(20; "Invoice Amount Threshold"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoice Amount Threshold';
             InitValue = 100000000;
             MinValue = 0;

@@ -9,6 +9,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
 
+/// <summary>
+/// Prompts the user for confirmation before posting prepayment invoices or credit memos for sales orders.
+/// </summary>
 codeunit 443 "Sales-Post Prepayment (Yes/No)"
 {
     EventSubscriberInstance = Manual;
@@ -30,6 +33,11 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
 #pragma warning restore AA0074
         UnsupportedDocTypeErr: Label 'Unsupported prepayment document type.';
 
+    /// <summary>
+    /// Posts a prepayment invoice for the sales order after prompting the user for confirmation.
+    /// </summary>
+    /// <param name="SalesHeader2">Specifies the sales header of the order for which to post the prepayment invoice.</param>
+    /// <param name="Print">Specifies whether to print the posted prepayment invoice.</param>
     procedure PostPrepmtInvoiceYN(var SalesHeader2: Record "Sales Header"; Print: Boolean)
     var
         SalesHeader: Record "Sales Header";
@@ -54,6 +62,11 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
         SalesHeader2 := SalesHeader;
     end;
 
+    /// <summary>
+    /// Posts a prepayment credit memo for the sales order after prompting the user for confirmation.
+    /// </summary>
+    /// <param name="SalesHeader2">Specifies the sales header of the order for which to post the prepayment credit memo.</param>
+    /// <param name="Print">Specifies whether to print the posted prepayment credit memo.</param>
     procedure PostPrepmtCrMemoYN(var SalesHeader2: Record "Sales Header"; Print: Boolean)
     var
         SalesHeader: Record "Sales Header";
@@ -107,6 +120,11 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
             ErrorMessageHandler.ShowErrors();
     end;
 
+    /// <summary>
+    /// Previews the posting of a prepayment document without actually posting it.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order for which to preview the prepayment posting.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type (Invoice or Credit Memo) to preview.</param>
     procedure Preview(var SalesHeader: Record "Sales Header"; DocumentType: Option)
     var
         SalesPostPrepaymentYesNo: Codeunit "Sales-Post Prepayment (Yes/No)";
@@ -117,6 +135,11 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
         GenJnlPostPreview.Preview(SalesPostPrepaymentYesNo, SalesHeader);
     end;
 
+    /// <summary>
+    /// Prints the posted prepayment invoice or credit memo.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order from which to print the prepayment document.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type (Invoice or Credit Memo) to print.</param>
     procedure GetReport(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo")
     var
         IsHandled: Boolean;
@@ -142,17 +165,29 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
         end;
     end;
 
+    /// <summary>
+    /// Sets the prepayment document type to be used for posting.
+    /// </summary>
+    /// <param name="NewPrepmtDocumentType">Specifies the prepayment document type (Invoice or Credit Memo) to set.</param>
     [Scope('OnPrem')]
     procedure SetDocumentType(NewPrepmtDocumentType: Option)
     begin
         PrepmtDocumentType := NewPrepmtDocumentType;
     end;
 
+    /// <summary>
+    /// Raised after posting the prepayment invoice for a sales order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for which the prepayment invoice was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPrepmtInvoiceYN(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the prepayment credit memo for a sales order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for which the prepayment credit memo was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPrepmtCrMemoYN(var SalesHeader: Record "Sales Header")
     begin
@@ -176,26 +211,53 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
         Result := SalesPostPrepayments.Run(SalesHeader);
     end;
 
+    /// <summary>
+    /// Raised before getting the report to print the prepayment document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for which to print the prepayment document.</param>
+    /// <param name="DocumentType">The prepayment document type (Invoice or Credit Memo).</param>
+    /// <param name="IsHandled">Set to true to skip the default print logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetReport(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying the confirmation dialog for posting the prepayment document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="Result">Returns the result of the confirmation dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmForDocument(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the prepayment document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for which to post the prepayment document.</param>
+    /// <param name="PrepmtDocumentType">The prepayment document type (Invoice or Credit Memo).</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostPrepmtDocument(var SalesHeader: Record "Sales Header"; PrepmtDocumentType: Option)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the posting of the prepayment invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPrepmtInvoiceYNOnBeforeConfirm(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the Sales-Post Prepayments codeunit.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
+    /// <param name="SuppressCommit">Set to true to suppress database commits during posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPrepmtDocumentOnBeforeRunSalesPostPrepayments(var SalesHeader: Record "Sales Header"; var SuppressCommit: Boolean);
     begin

@@ -178,7 +178,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         InitLineNoIfNeeded();
     end;
 
-    internal procedure InitLineNoIfNeeded()
+    procedure InitLineNoIfNeeded()
     var
         EnsureUniqueNoQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
     begin

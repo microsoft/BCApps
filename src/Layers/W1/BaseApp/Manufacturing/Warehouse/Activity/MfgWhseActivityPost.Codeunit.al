@@ -18,7 +18,7 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         WhseActivityPost: Codeunit "Whse.-Activity-Post";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnPostProdConsumption', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnPostProdConsumption', '', true, false)]
     local procedure OnPostProdConsumption(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var PostedSourceType: Integer; var PostedSourceSubType: Integer; var PostedSourceNo: Code[20])
     var
         ProdOrder: Record "Production Order";
@@ -28,7 +28,7 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         WhseProductionRelease.Release(ProdOrder);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnPostProdOutput', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnPostProdOutput', '', true, false)]
     local procedure OnPostProdOutput(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var PostedSourceType: Integer; var PostedSourceSubType: Integer; var PostedSourceNo: Code[20])
     var
         ProdOrder: Record "Production Order";
@@ -210,7 +210,7 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         ProdOrderRouteManagement.Check(ProdOrderLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnCreateWhseJnlLineOnSetReferenceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnCreateWhseJnlLineOnSetReferenceDocument', '', true, false)]
     local procedure OnCreateWhseJnlLineOnSetReferenceDocument(WarehouseActivityLine: Record "Warehouse Activity Line"; var WhseJnlLine: Record "Warehouse Journal Line"; SourceCodeSetup: Record "Source Code Setup")
     begin
         case WarehouseActivityLine."Source Document" of

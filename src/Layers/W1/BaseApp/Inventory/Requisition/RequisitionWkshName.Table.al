@@ -103,5 +103,20 @@ table 245 "Requisition Wksh. Name"
         ReqLine: Record "Requisition Line";
         PlanningErrorLog: Record "Planning Error Log";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+
+    internal procedure SetApprovalStateForWkshBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; RequisitionLine: Record "Requisition Line"; var OpenApprovalEntriesExistForCurrentUser: Boolean; var OpenApprovalEntriesOnWorksheetBatchExist: Boolean; var CanCancelApprovalForWorksheetBatch: Boolean; var LocalCanRequestFlowApprovalForWkshBatch: Boolean; var LocalCanCancelFlowApprovalForWkshBatch: Boolean; var LocalApprovalEntriesExistSentByCurrentUser: Boolean; var EnabledWorksheetBatchWorkflowsExist: Boolean)
+    var
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+        WorkflowManagement: Codeunit "Workflow Management";
+    begin
+        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(RequisitionWkshName.RecordId());
+        OpenApprovalEntriesOnWorksheetBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(RequisitionWkshName.RecordId());
+        CanCancelApprovalForWorksheetBatch := ApprovalsMgmt.CanCancelApprovalForRecord(RequisitionWkshName.RecordId());
+        WorkflowWebhookManagement.GetCanRequestAndCanCancel(RequisitionWkshName.RecordId(), LocalCanRequestFlowApprovalForWkshBatch, LocalCanCancelFlowApprovalForWkshBatch);
+        LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(RequisitionWkshName.RecordId());
+        EnabledWorksheetBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"Requisition Wksh. Name", WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
+    end;
 }
 

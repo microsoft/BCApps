@@ -5,6 +5,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates an aged accounts receivable report showing customer balances grouped by aging periods. This report is obsolete.
+/// </summary>
+
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
@@ -961,6 +965,16 @@ report 120 "Aged Accounts Receivable"
         end;
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the Aged Accounts Receivable report.
+    /// </summary>
+    /// <param name="NewEndingDate">The ending date for aging calculation.</param>
+    /// <param name="NewAgingBy">The aging method (due date, posting date, or document date).</param>
+    /// <param name="NewPeriodLength">The period length formula for aging buckets.</param>
+    /// <param name="NewPrintAmountInLCY">True to print amounts in local currency.</param>
+    /// <param name="NewPrintDetails">True to print detailed entries.</param>
+    /// <param name="NewHeadingType">The heading type for the report.</param>
+    /// <param name="NewPagePercust">True to start a new page per customer.</param>
     procedure InitializeRequest(NewEndingDate: Date; NewAgingBy: Option; NewPeriodLength: DateFormula; NewPrintAmountInLCY: Boolean; NewPrintDetails: Boolean; NewHeadingType: Option; NewPagePercust: Boolean)
     begin
         EndingDate := NewEndingDate;

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Receivables;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Preview;
 
+/// <summary>
+/// Displays a preview of customer ledger entries that will be created when posting a transaction, using temporary records.
+/// </summary>
 page 126 "Cust. Ledg. Entries Preview"
 {
     Caption = 'Cust. Ledg. Entries Preview';
@@ -104,6 +107,8 @@ page 126 "Cust. Ledg. Entries Preview"
                 field(OriginalAmountLCY; OriginalAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Amount LCY';
                     Editable = false;
                     ToolTip = 'Specifies the original amount linked to the customer ledger entry, in local currency.';
@@ -132,6 +137,8 @@ page 126 "Cust. Ledg. Entries Preview"
                 field(AmountLCY; AmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount LCY';
                     DrillDown = true;
                     Editable = false;
@@ -151,6 +158,8 @@ page 126 "Cust. Ledg. Entries Preview"
                 field("Debit Amount (LCY)"; Rec."Debit Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
@@ -161,6 +170,8 @@ page 126 "Cust. Ledg. Entries Preview"
                 field("Credit Amount (LCY)"; Rec."Credit Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = false;
                 }
                 field(RemainingAmountFCY; RemainingAmountFCY)
@@ -180,6 +191,8 @@ page 126 "Cust. Ledg. Entries Preview"
                 field(RemainingAmountLCY; RemainingAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Remaining Amount LCY';
                     Editable = false;
                     ToolTip = 'Specifies the remaining amount linked to the customer ledger entry on the line, in local currency.';
@@ -406,6 +419,11 @@ page 126 "Cust. Ledg. Entries Preview"
         DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
     end;
 
+    /// <summary>
+    /// Sets the preview data from temporary customer ledger entries and detailed entries.
+    /// </summary>
+    /// <param name="TempCustLedgerEntry">The temporary customer ledger entries to display.</param>
+    /// <param name="TempDetailedCustLedgEntry2">The temporary detailed customer ledger entries for amount calculations.</param>
     procedure Set(var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempDetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry" temporary)
     begin
         if TempCustLedgerEntry.FindSet() then
@@ -421,6 +439,9 @@ page 126 "Cust. Ledg. Entries Preview"
             until TempDetailedCustLedgEntry2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates the amounts for the current customer ledger entry from the detailed entries.
+    /// </summary>
     procedure CalcAmounts()
     begin
         AmountFCY := 0;

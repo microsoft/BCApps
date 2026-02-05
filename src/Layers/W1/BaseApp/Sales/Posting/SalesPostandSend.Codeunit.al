@@ -5,11 +5,15 @@
 namespace Microsoft.Sales.Posting;
 
 using Microsoft.CRM.Outlook;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Posts a sales document and sends it to the customer using the configured document sending profile.
+/// </summary>
 codeunit 79 "Sales-Post and Send"
 {
     TableNo = "Sales Header";
@@ -34,6 +38,7 @@ codeunit 79 "Sales-Post and Send"
         TempDocumentSendingProfile: Record "Document Sending Profile" temporary;
         SalesPost: Codeunit "Sales-Post";
         SalesPostYesNo: Codeunit "Sales-Post (Yes/No)";
+        PostingSelectionManagement: Codeunit "Posting Selection Management";
         HideDialog: Boolean;
         IsHandled: Boolean;
     begin
@@ -64,8 +69,11 @@ codeunit 79 "Sales-Post and Send"
                 SalesPostYesNo.PostAndSend(SalesHeader);
                 if not (SalesHeader.Ship or SalesHeader.Invoice) then
                     exit;
-            end else
+            end else begin
+                if SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::"Credit Memo"] then
+                    PostingSelectionManagement.CheckUserCanInvoiceSales();
                 CODEUNIT.Run(CODEUNIT::"Sales-Post", SalesHeader);
+            end;
 
         OnAfterPostAndBeforeSend(SalesHeader);
 
@@ -143,46 +151,98 @@ codeunit 79 "Sales-Post and Send"
         end;
     end;
 
+    /// <summary>
+    /// Raised after the document has been posted but before it is sent to the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAndBeforeSend(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document has been posted and sent to the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted and sent.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAndSend(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before displaying the send confirmation dialog.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted and sent.</param>
+    /// <param name="TempDocumentSendingProfile">The document sending profile to use.</param>
+    /// <param name="Result">Returns the result of the confirmation.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmAndSend(SalesHeader: Record "Sales Header"; var TempDocumentSendingProfile: Record "Document Sending Profile" temporary; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the post and send operation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted and sent.</param>
+    /// <param name="TempDocumentSendingProfile">The document sending profile to use.</param>
+    /// <param name="Result">Returns the result of the confirmation.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmPostAndSend(SalesHeader: Record "Sales Header"; var TempDocumentSendingProfile: Record "Document Sending Profile" temporary; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating electronic document formats.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="DocumentSendingProfile">The document sending profile containing format settings.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateElectronicFormats(SalesHeader: Record "Sales Header"; DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting and sending the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted and sent.</param>
+    /// <param name="HideDialog">Set to true to hide the confirmation dialog.</param>
+    /// <param name="TempDocumentSendingProfile">The document sending profile to use.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostAndSend(var SalesHeader: Record "Sales Header"; var HideDialog: Boolean; var TempDocumentSendingProfile: Record "Document Sending Profile" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the user confirms the post and send operation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterConfirmPostAndSend(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the sales header in the post and send process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
+    /// <param name="TempDocumentSendingProfile">The document sending profile to use.</param>
+    /// <param name="HideDialog">Indicates whether dialogs are hidden.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforePostSalesHeader(var SalesHeader: Record "Sales Header"; var TempDocumentSendingProfile: Record "Document Sending Profile" temporary; HideDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the document sending profile for the customer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="Customer">The customer for whom to get the sending profile.</param>
+    /// <param name="DocumentSendingProfile">The document sending profile to use.</param>
+    /// <param name="IsHandled">Set to true to skip the default profile retrieval logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostAndSendOnBeforeGetDocumentSendingProfile(SalesHeader: Record "Sales Header"; Customer: Record Customer; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
     begin

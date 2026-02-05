@@ -8,6 +8,9 @@ using Microsoft.Utilities;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Executes customer statement reports from the job queue with error logging support.
+/// </summary>
 codeunit 8811 "Customer Statement via Queue"
 {
     TableNo = "Job Queue Entry";

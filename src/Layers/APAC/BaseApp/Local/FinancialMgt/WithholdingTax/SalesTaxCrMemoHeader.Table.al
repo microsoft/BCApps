@@ -137,6 +137,7 @@ table 28073 "Sales Tax Cr.Memo Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
         }
@@ -180,6 +181,7 @@ table 28073 "Sales Tax Cr.Memo Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -452,6 +454,7 @@ table 28073 "Sales Tax Cr.Memo Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -512,14 +515,20 @@ table 28073 "Sales Tax Cr.Memo Header"
         }
         field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rem. WHT Prepaid Amount (LCY)';
         }
         field(28042; "Paid WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Paid WHT Prepaid Amount (LCY)';
         }
         field(28043; "Total WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total WHT Prepaid Amount (LCY)';
         }
         field(28070; "Tax Document Type"; Option)
@@ -603,16 +612,16 @@ table 28073 "Sales Tax Cr.Memo Header"
         if "No." = '' then
             if TaxInvoiceManagement.CheckTaxableNoSeries("Sell-to Customer No.", 1) then begin
                 SalesSetup.TestField("Posted Non Tax Credit Memo Nos");
-                    "No. Series" := SalesSetup."Posted Non Tax Credit Memo Nos";
-                    if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                        "No. Series" := xRec."No. Series";
-                    "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+                "No. Series" := SalesSetup."Posted Non Tax Credit Memo Nos";
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
             end else begin
                 TestNoSeries();
                 "No. Series" := GetNoSeriesCode();
-                    if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                        "No. Series" := xRec."No. Series";
-                    "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
             end;
     end;
 

@@ -54,6 +54,8 @@ page 1318 "Account Receivables KPIs"
                 field("A/R Accounts Balance"; ActivitiesMgt.CalcARAccountsBalances())
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'A/R Accounts Balance';
                     ToolTip = 'Specifies the sum of the accounts that have the account receivables account category. You can configure which account category is considered for Account Receivables in the General Ledger Setup page.';
 
@@ -65,6 +67,7 @@ page 1318 "Account Receivables KPIs"
                 field("Average Collection Days"; ActivitiesMgt.CalcAverageCollectionDays(false))
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Average Collection Days';
                     ToolTip = 'Specifies how long customers took to pay invoices in the last three months. This is the average number of days from when invoices are issued to when customers pay the invoices.';
                 }

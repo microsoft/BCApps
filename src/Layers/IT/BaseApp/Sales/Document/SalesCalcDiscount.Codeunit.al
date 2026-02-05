@@ -11,6 +11,9 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Calculates invoice discounts for sales documents based on customer discount settings.
+/// </summary>
 codeunit 60 "Sales-Calc. Discount"
 {
     Permissions = tabledata "Sales Header" = rm,
@@ -236,6 +239,11 @@ codeunit 60 "Sales-Calc. Discount"
             SalesLine.Validate("Unit Price", CustInvDisc."Service Charge");
     end;
 
+    /// <summary>
+    /// Checks whether a customer invoice discount record exists for the specified code.
+    /// </summary>
+    /// <param name="InvDiscCode">The invoice discount code to check.</param>
+    /// <returns>True if a customer invoice discount record exists; otherwise, false.</returns>
     procedure CustInvDiscRecExists(InvDiscCode: Code[20]) Result: Boolean
     var
         CustInvDisc: Record "Cust. Invoice Disc.";
@@ -250,6 +258,11 @@ codeunit 60 "Sales-Calc. Discount"
         exit(CustInvDisc.FindFirst());
     end;
 
+    /// <summary>
+    /// Calculates invoice discount using the provided sales header without updating it.
+    /// </summary>
+    /// <param name="TempSalesHeader">The sales header to use for discount calculation.</param>
+    /// <param name="TempSalesLine">The sales lines to calculate discounts for.</param>
     procedure CalculateWithSalesHeader(var TempSalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line")
     var
         FilterSalesLine: Record "Sales Line";
@@ -269,6 +282,10 @@ codeunit 60 "Sales-Calc. Discount"
         TempSalesLine.Copy(FilterSalesLine);
     end;
 
+    /// <summary>
+    /// Calculates and applies invoice discount to a single sales line.
+    /// </summary>
+    /// <param name="SalesLineToUpdate">The sales line to calculate and update with invoice discount.</param>
     procedure CalculateInvoiceDiscountOnLine(var SalesLineToUpdate: Record "Sales Line")
     begin
         SalesLine.Copy(SalesLineToUpdate);
@@ -280,6 +297,10 @@ codeunit 60 "Sales-Calc. Discount"
         if SalesLineToUpdate.Get(SalesLineToUpdate."Document Type", SalesLineToUpdate."Document No.", SalesLineToUpdate."Line No.") then;
     end;
 
+    /// <summary>
+    /// Calculates invoice discount for a sales header if automatic calculation is enabled.
+    /// </summary>
+    /// <param name="TempSalesHeader">The sales header to calculate invoice discount for.</param>
     procedure CalculateIncDiscForHeader(var TempSalesHeader: Record "Sales Header")
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -300,6 +321,10 @@ codeunit 60 "Sales-Calc. Discount"
         CalculateInvoiceDiscount(TempSalesHeader, TempSalesLine);
     end;
 
+    /// <summary>
+    /// Updates prepayment line amounts when invoice discount would exceed remaining non-prepaid amount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header containing lines to update.</param>
     procedure UpdatePrepmtLineAmount(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";

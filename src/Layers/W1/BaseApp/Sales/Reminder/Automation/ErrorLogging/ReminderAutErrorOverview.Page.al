@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a list of errors that occurred during automated reminder processing with details and dismiss options.
+/// </summary>
 page 6759 "Reminder Aut. Error Overview"
 {
     PageType = List;

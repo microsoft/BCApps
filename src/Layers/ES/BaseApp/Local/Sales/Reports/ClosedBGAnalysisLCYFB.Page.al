@@ -61,6 +61,7 @@ page 35294 "Closed BG Analysis LCY FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Honored';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is settled. ';
@@ -69,6 +70,7 @@ page 35294 "Closed BG Analysis LCY FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Rejected';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is rejected.';
@@ -77,6 +79,7 @@ page 35294 "Closed BG Analysis LCY FB"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Redrawn';
                     Editable = false;
                     ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';

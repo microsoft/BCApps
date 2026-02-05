@@ -8,6 +8,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Visualization;
 
+/// <summary>
+/// Stores user-specific configuration settings for the trailing sales orders chart.
+/// </summary>
 table 760 "Trailing Sales Orders Setup"
 {
     Caption = 'Trailing Sales Orders Setup';
@@ -15,39 +18,60 @@ table 760 "Trailing Sales Orders Setup"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier of the user who owns this chart configuration.
+        /// </summary>
         field(1; "User ID"; Text[132])
         {
             Caption = 'User ID';
             DataClassification = EndUserIdentifiableInformation;
         }
+        /// <summary>
+        /// Specifies the time interval used for grouping sales order data in the chart, such as day, week, month, quarter, or year.
+        /// </summary>
         field(2; "Period Length"; Option)
         {
             Caption = 'Period Length';
             OptionCaption = 'Day,Week,Month,Quarter,Year';
             OptionMembers = Day,Week,Month,Quarter,Year;
         }
+        /// <summary>
+        /// Specifies which sales orders to include in the chart: all orders, orders until today, or only delayed orders.
+        /// </summary>
         field(3; "Show Orders"; Option)
         {
             Caption = 'Show Orders';
             OptionCaption = 'All Orders,Orders Until Today,Delayed Orders';
             OptionMembers = "All Orders","Orders Until Today","Delayed Orders";
         }
+        /// <summary>
+        /// Indicates whether the chart uses the work date instead of the system date as the reference point for calculations.
+        /// </summary>
         field(4; "Use Work Date as Base"; Boolean)
         {
             Caption = 'Use Work Date as Base';
         }
+        /// <summary>
+        /// Specifies the metric to display in the chart: total amount excluding VAT or the number of orders.
+        /// </summary>
         field(5; "Value to Calculate"; Option)
         {
             Caption = 'Value to Calculate';
             OptionCaption = 'Amount Excl. VAT,No. of Orders';
             OptionMembers = "Amount Excl. VAT","No. of Orders";
         }
+        /// <summary>
+        /// Specifies the visual representation style of the chart, such as stacked area or stacked column with optional percentage display.
+        /// </summary>
         field(6; "Chart Type"; Option)
         {
             Caption = 'Chart Type';
             OptionCaption = 'Stacked Area,Stacked Area (%),Stacked Column,Stacked Column (%)';
             OptionMembers = "Stacked Area","Stacked Area (%)","Stacked Column","Stacked Column (%)";
         }
+        /// <summary>
+        /// Contains the most recent document date from all sales orders, used to determine the chart's starting point when showing all orders.
+        /// </summary>
         field(7; "Latest Order Document Date"; Date)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
@@ -76,6 +100,10 @@ table 760 "Trailing Sales Orders Setup"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Returns a formatted text string describing the current chart settings.
+    /// </summary>
+    /// <returns>A text string containing the current selection options and timestamp.</returns>
     procedure GetCurrentSelectionText(): Text[100]
     begin
         exit(Format("Show Orders") + '|' +
@@ -84,6 +112,10 @@ table 760 "Trailing Sales Orders Setup"
           StrSubstNo(Text001, Time) + ')');
     end;
 
+    /// <summary>
+    /// Returns the start date for chart calculations based on the current settings.
+    /// </summary>
+    /// <returns>The calculated start date based on work date or today settings.</returns>
     procedure GetStartDate(): Date
     var
         StartDate: Date;
@@ -100,6 +132,10 @@ table 760 "Trailing Sales Orders Setup"
         exit(StartDate);
     end;
 
+    /// <summary>
+    /// Returns the business chart type enum value based on the current chart type setting.
+    /// </summary>
+    /// <returns>The business chart type for chart rendering.</returns>
     procedure GetBusinessChartType(): Enum "Business Chart Type"
     begin
         case "Chart Type" of
@@ -114,24 +150,40 @@ table 760 "Trailing Sales Orders Setup"
         end;
     end;
 
+    /// <summary>
+    /// Updates the period length setting for the chart.
+    /// </summary>
+    /// <param name="PeriodLength">The period length to use (Day, Week, Month, Quarter, or Year).</param>
     procedure SetPeriodLength(PeriodLength: Option)
     begin
         "Period Length" := PeriodLength;
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the show orders filter setting for the chart.
+    /// </summary>
+    /// <param name="ShowOrders">The filter option for which orders to display.</param>
     procedure SetShowOrders(ShowOrders: Integer)
     begin
         "Show Orders" := ShowOrders;
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the value to calculate setting for the chart.
+    /// </summary>
+    /// <param name="ValueToCalc">The calculation type: amount or number of orders.</param>
     procedure SetValueToCalcuate(ValueToCalc: Integer)
     begin
         "Value to Calculate" := ValueToCalc;
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the chart type setting for visual display.
+    /// </summary>
+    /// <param name="ChartType">The chart type option for rendering.</param>
     procedure SetChartType(ChartType: Integer)
     begin
         "Chart Type" := ChartType;

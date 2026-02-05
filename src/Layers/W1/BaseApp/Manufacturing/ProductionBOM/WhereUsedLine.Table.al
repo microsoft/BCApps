@@ -32,6 +32,7 @@ table 99000790 "Where-Used Line"
         }
         field(6; "Quantity Needed"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Needed';
             DecimalPlaces = 0 : 5;
         }

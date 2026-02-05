@@ -40,10 +40,12 @@ table 9066 "Job Queue Notification Setup"
         }
         field(8; Threshold1; Decimal)
         {
+            AutoFormatType = 0;
             InitValue = 3;
         }
         field(9; Threshold2; Decimal)
         {
+            AutoFormatType = 0;
             InitValue = 5;
         }
 

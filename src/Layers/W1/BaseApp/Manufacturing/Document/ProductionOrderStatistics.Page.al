@@ -36,6 +36,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Material Cost';
                             Editable = false;
                             ToolTip = 'Specifies the material cost related to the production order.';
@@ -44,6 +45,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Non-Inventory Material Cost';
                             Editable = false;
                             ToolTip = 'Specifies the non-inventory material cost related to the production order.';
@@ -52,6 +54,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Capacity Cost';
                             Editable = false;
                             ToolTip = 'Specifies the cost amount of all production capacities (machine and work centers) that are used for lines in the production order.';
@@ -60,6 +63,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Subcontracted Cost';
                             Editable = false;
                             ToolTip = 'Specifies the subcontracted cost amount of all the lines in the production order.';
@@ -68,6 +72,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Capacity Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the capacity overhead amount of all the lines in the production order.';
@@ -76,6 +81,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Manufacturing Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the manufacturing overhead related to the production order.';
@@ -84,6 +90,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             Editable = false;
                             ToolTip = 'Specifies the sum of the lines in each column.';
@@ -111,6 +118,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -118,6 +126,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -125,6 +134,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -132,6 +142,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -139,12 +150,15 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(MfgOverhead_ExpectedCost; ExpCost[5])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -152,12 +166,14 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(ExpCapNeed; ExpCapNeed)
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -175,6 +191,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -182,6 +199,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -189,6 +207,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -196,6 +215,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -203,12 +223,15 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field("ActCost[5]"; ActCost[5])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -216,12 +239,14 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(ActTimeUsed; ActTimeUsed)
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -238,6 +263,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[1]"; VarPct[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -245,6 +271,7 @@ page 99000816 "Production Order Statistics"
                         field("NonInventoryVarPct"; NonInvVarPct)
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -252,6 +279,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[2]"; VarPct[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -259,6 +287,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[3]"; VarPct[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -266,6 +295,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[4]"; VarPct[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -273,6 +303,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[5]"; VarPct[5])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -280,6 +311,7 @@ page 99000816 "Production Order Statistics"
                         field("VarPct[6]"; VarPct[6])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -287,6 +319,7 @@ page 99000816 "Production Order Statistics"
                         field(TimeExpendedPct; TimeExpendedPct)
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -299,6 +332,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -306,6 +340,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -313,6 +348,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -320,6 +356,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -327,6 +364,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -334,6 +372,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -341,6 +380,7 @@ page 99000816 "Production Order Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }

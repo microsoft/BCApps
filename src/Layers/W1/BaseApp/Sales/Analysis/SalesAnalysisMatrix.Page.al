@@ -8,6 +8,9 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Displays sales analysis data in a matrix format for the analysis report.
+/// </summary>
 page 9207 "Sales Analysis Matrix"
 {
     Caption = 'Sales Analysis Matrix';
@@ -674,6 +677,13 @@ page 9207 "Sales Analysis Matrix"
         AnalysisColumn: Record "Analysis Column";
         AnalysisReportMgt: Codeunit "Analysis Report Management";
 
+    /// <summary>
+    /// Loads the matrix page with analysis column data and captions.
+    /// </summary>
+    /// <param name="AnalysisColumn1">The analysis column record to copy.</param>
+    /// <param name="MatrixColumnCaptions1">Array of column captions for the matrix.</param>
+    /// <param name="FirstLineNo1">The first line number to display.</param>
+    /// <param name="LastLineNo1">The last line number to display.</param>
     procedure Load(AnalysisColumn1: Record "Analysis Column"; MatrixColumnCaptions1: array[32] of Text[1024]; FirstLineNo1: Integer; LastLineNo1: Integer)
     begin
         AnalysisColumn.Copy(AnalysisColumn1);
@@ -714,6 +724,9 @@ page 9207 "Sales Analysis Matrix"
         AnalysisReportMgt.CalcCell(Rec, AnalysisColumn2, true);
     end;
 
+    /// <summary>
+    /// Sets the visibility of matrix columns based on whether captions are defined.
+    /// </summary>
     procedure SetVisible()
     begin
         Field1Visible := MatrixColumnCaptions[1] <> '';
@@ -750,6 +763,10 @@ page 9207 "Sales Analysis Matrix"
         Field32Visible := MatrixColumnCaptions[32] <> '';
     end;
 
+    /// <summary>
+    /// Gets the maximum number of columns that can be displayed in the matrix.
+    /// </summary>
+    /// <returns>The dimension of the matrix column captions array.</returns>
     procedure GetMatrixDimension(): Integer
     begin
         exit(ArrayLen(MatrixColumnCaptions));

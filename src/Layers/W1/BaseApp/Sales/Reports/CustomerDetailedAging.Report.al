@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates a detailed aging report showing individual customer ledger entries with months overdue and remaining amounts.
+/// </summary>
+
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
@@ -313,6 +317,11 @@ report 106 "Customer Detailed Aging"
         EndDate: Date;
         OnlyOpen: Boolean;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Detailed Aging report.
+    /// </summary>
+    /// <param name="SetEndDate">The ending date for the aging calculation.</param>
+    /// <param name="SetOnlyOpen">True to show only open entries.</param>
     procedure InitializeRequest(SetEndDate: Date; SetOnlyOpen: Boolean)
     begin
         EndDate := SetEndDate;

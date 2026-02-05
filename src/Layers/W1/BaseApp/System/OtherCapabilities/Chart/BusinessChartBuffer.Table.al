@@ -37,6 +37,7 @@ table 485 "Business Chart Buffer"
         }
         field(6; "Drill-Down Y Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Drill-Down Y Value';
             DataClassification = SystemMetadata;
         }

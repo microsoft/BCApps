@@ -45,6 +45,7 @@ table 9151 "My Vendor"
         field(5; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("Vendor No.")));
             Caption = 'Balance (LCY)';
             Editable = false;

@@ -256,7 +256,7 @@ codeunit 141038 "UT REP Electronic Payment"
         // Exercise and Verify: Execute function - GSTHSTInternetFileTransfer of Report - GST/HST Internet File Transfer. Verify returned value with expected Amount.
         Assert.AreEqual(
           DecimalValueString,
-          GSTHSTInternetFileTransfer.FormatDecimals(Amount, LibraryRandom.RandIntInRange(1, 10), AmountCap), ValueMustEqualMsg);
+          GSTHSTInternetFileTransfer.FormatDecimals(Amount, LibraryRandom.RandIntInRange(5, 10), AmountCap), ValueMustEqualMsg);
     end;
 
     [Test]

@@ -613,6 +613,8 @@ table 79 "Company Information"
         }
         field(12130; "Paid-In Capital"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Paid-In Capital';
         }
     }

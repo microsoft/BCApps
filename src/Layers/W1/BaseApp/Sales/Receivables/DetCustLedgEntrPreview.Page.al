@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Receivables;
 
 using System.Security.User;
 
+/// <summary>
+/// Displays a preview of detailed customer ledger entries that will be created when posting a transaction.
+/// </summary>
 page 127 "Det. Cust. Ledg. Entr. Preview"
 {
     Caption = 'Detailed Customer Ledger Entries Preview';
@@ -133,6 +136,10 @@ page 127 "Det. Cust. Ledg. Entr. Preview"
     {
     }
 
+    /// <summary>
+    /// Sets the preview data from temporary detailed customer ledger entries.
+    /// </summary>
+    /// <param name="TempDtldCustLedgEntry">The temporary detailed customer ledger entries to display.</param>
     procedure Set(var TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary)
     begin
         if TempDtldCustLedgEntry.FindSet() then

@@ -67,6 +67,7 @@ table 5136 "Job Task Archive"
         field(10; "Schedule (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -81,6 +82,7 @@ table 5136 "Job Task Archive"
         field(11; "Schedule (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                              "Job Task No." = field("Job Task No."),
@@ -95,18 +97,21 @@ table 5136 "Job Task Archive"
         field(12; "Usage (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Actual (Total Cost)';
         }
         field(13; "Usage (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Actual (Total Price)';
         }
         field(14; "Contract (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                             "Job Task No." = field("Job Task No."),
@@ -121,6 +126,7 @@ table 5136 "Job Task Archive"
         field(15; "Contract (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                              "Job Task No." = field("Job Task No."),
@@ -135,12 +141,14 @@ table 5136 "Job Task Archive"
         field(16; "Contract (Invoiced Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Invoiced (Total Price)';
         }
         field(17; "Contract (Invoiced Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Invoiced (Total Cost)';
         }
@@ -189,12 +197,16 @@ table 5136 "Job Task Archive"
         }
         field(34; "Recognized Sales Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Sales Amount';
             Editable = false;
         }
         field(37; "Recognized Costs Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Costs Amount';
             Editable = false;
@@ -207,12 +219,16 @@ table 5136 "Job Task Archive"
         }
         field(56; "Recognized Sales G/L Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Sales G/L Amount';
             Editable = false;
         }
         field(57; "Recognized Costs G/L Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             BlankZero = true;
             Caption = 'Recognized Costs G/L Amount';
             Editable = false;
@@ -233,17 +249,21 @@ table 5136 "Job Task Archive"
         }
         field(62; "Outstanding Orders"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Outstanding Orders';
         }
         field(63; "Amt. Rcd. Not Invoiced"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Invoice Currency Code";
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Amt. Rcd. Not Invoiced';
         }
         field(64; "Remaining (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Remaining Total Cost (LCY)" where("Job No." = field("Job No."),
                                                                                       "Job Task No." = field("Job Task No."),
@@ -258,6 +278,7 @@ table 5136 "Job Task Archive"
         field(65; "Remaining (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Job Planning Line Archive"."Remaining Line Amount (LCY)" where("Job No." = field("Job No."),
                                                                                        "Job Task No." = field("Job Task No."),

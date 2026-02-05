@@ -104,6 +104,7 @@ table 99000760 "Calendar Absence Entry"
         }
         field(21; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

@@ -66,11 +66,13 @@ page 10045 "Purchase Invoice Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Purchase ($)';
                     ToolTip = 'Specifies the purchase amount.';
                 }
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -78,12 +80,14 @@ page 10045 "Purchase Invoice Stats."
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the number of parcels on the document.';
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -91,12 +95,14 @@ page 10045 "Purchase Invoice Stats."
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the gross weight of items on the document.';
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the invoiced items.';
@@ -110,6 +116,8 @@ page 10045 "Purchase Invoice Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -118,6 +126,8 @@ page 10045 "Purchase Invoice Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -126,6 +136,8 @@ page 10045 "Purchase Invoice Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -134,6 +146,8 @@ page 10045 "Purchase Invoice Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;

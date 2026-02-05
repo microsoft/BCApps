@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Retrieves sales order data grouped by salesperson for analysis and reporting.
+/// </summary>
 query 104 "Sales Orders by Sales Person"
 {
     Caption = 'Sales Orders by Sales Person';

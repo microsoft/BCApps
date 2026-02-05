@@ -49,6 +49,8 @@ page 9267 "Contr. G/Loss (Contr.) Matrix"
                 field(TotalGainLoss; TotalGainLoss)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Total Movement';
                     ToolTip = 'Specifies the total change in annual amount on the service contract.';

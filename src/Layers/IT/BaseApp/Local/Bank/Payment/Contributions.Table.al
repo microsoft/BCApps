@@ -70,6 +70,7 @@ table 12117 Contributions
         field(15; "Gross Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Gross Amount';
 
             trigger OnValidate()
@@ -80,6 +81,7 @@ table 12117 Contributions
         field(16; "Non Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount';
 
             trigger OnValidate()
@@ -92,6 +94,7 @@ table 12117 Contributions
         field(17; "Contribution Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Contribution Base';
         }
         field(18; "Social Security Code"; Code[20])
@@ -106,22 +109,26 @@ table 12117 Contributions
         }
         field(25; "Social Security %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Social Security %';
             DecimalPlaces = 0 : 4;
         }
         field(26; "Total Social Security Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Social Security Amount';
         }
         field(27; "Free-Lance Amount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Free-Lance Amount %';
             DecimalPlaces = 0 : 4;
         }
         field(28; "Free-Lance Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Free-Lance Amount';
 
             trigger OnValidate()
@@ -132,6 +139,7 @@ table 12117 Contributions
         field(29; "Company Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Company Amount';
         }
         field(50; Reported; Boolean)
@@ -151,6 +159,7 @@ table 12117 Contributions
         field(55; "INAIL Gross Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Gross Amount';
 
             trigger OnValidate()
@@ -161,6 +170,7 @@ table 12117 Contributions
         field(56; "INAIL Non Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Non Taxable Amount';
 
             trigger OnValidate()
@@ -173,6 +183,7 @@ table 12117 Contributions
         field(57; "INAIL Contribution Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Contribution Base';
         }
         field(58; "INAIL Code"; Code[20])
@@ -187,22 +198,26 @@ table 12117 Contributions
         }
         field(59; "INAIL Per Mil"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Per Mil';
             DecimalPlaces = 0 : 4;
         }
         field(60; "INAIL Total Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Total Amount';
         }
         field(61; "INAIL Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Free-Lance %';
             DecimalPlaces = 0 : 4;
         }
         field(62; "INAIL Free-Lance Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Free-Lance Amount';
 
             trigger OnValidate()
@@ -213,6 +228,7 @@ table 12117 Contributions
         field(63; "INAIL Company Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL Company Amount';
         }
         field(64; "INAIL Paid"; Boolean)

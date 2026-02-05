@@ -192,7 +192,6 @@ page 5855 "Posted Purchase Document Lines"
 #pragma warning disable AA0074
         Text000: Label 'The document lines that have a G/L account that does not allow direct posting have not been copied to the new document.';
 #pragma warning restore AA0074
-        OriginalQuantity: Boolean;
 #pragma warning disable AA0074
         Text002: Label 'Document Type Filter';
 #pragma warning restore AA0074
@@ -206,6 +205,7 @@ page 5855 "Posted Purchase Document Lines"
         ToPurchHeader: Record "Purchase Header";
         ShowRevLineEnable: Boolean;
         ShowRevLinesOnly: Boolean;
+        OriginalQuantity: Boolean;
         CurrentMenuType: Integer;
 
     [Scope('OnPrem')]

@@ -56,6 +56,7 @@ table 10807 "Sales Tax Setup Wizard"
         }
         field(5; "City Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'City Rate';
             DecimalPlaces = 1 : 3;
             MinValue = 0;
@@ -82,6 +83,7 @@ table 10807 "Sales Tax Setup Wizard"
         }
         field(7; "County Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'County Rate';
             DecimalPlaces = 1 : 3;
             MinValue = 0;
@@ -107,6 +109,7 @@ table 10807 "Sales Tax Setup Wizard"
         }
         field(9; "State Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'State Rate';
             DecimalPlaces = 1 : 3;
             MinValue = 0;

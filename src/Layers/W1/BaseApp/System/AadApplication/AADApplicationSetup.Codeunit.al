@@ -15,11 +15,13 @@ codeunit 8821 "AAD Application Setup"
         Dynamics365BusinessCentralforVirtualEntitiesGuidTok: Label 'af30e371-ad4a-4097-88c1-5555e7ada96f', Locked = true;
 
         MicrosoftPowerPagesAuthenticatedUsersDesTok: Label 'Power Pages Authenticated External Users', MaxLength = 50;
-        MicrosoftPowerPagesAuthenticatedUsersAppGuidTok: Label 'bf9c07cb-3385-4de3-a63a-b630340b14be';
+        MicrosoftPowerPagesAuthenticatedUsersAppGuidTok: Label 'bf9c07cb-3385-4de3-a63a-b630340b14be', Locked = true;
 
         MicrosoftPowerPagesAnonymousUsersDesTok: Label 'Power Pages Anonymous External Users', MaxLength = 50;
-        MicrosoftPowerPagesAnonymousUsersAppGuidTok: Label 'ea76fed3-daf0-4865-a0c5-8d40c168791a';
+        MicrosoftPowerPagesAnonymousUsersAppGuidTok: Label 'ea76fed3-daf0-4865-a0c5-8d40c168791a', Locked = true;
 
+        MicrosoftExpenseAgentDesTok: Label 'Microsoft Expense Agent', MaxLength = 50;
+        MicrosoftExpenseAgentAppGuidTok: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
 
     procedure CreateDynamics365BusinessCentralforVirtualEntitiesAAdApplication()
     var
@@ -55,6 +57,20 @@ codeunit 8821 "AAD Application Setup"
         AADApplicationInterface.CreateAADApplication(ClientID, ClientDescription, ContactInformation);
     end;
 
+    procedure CreateExpenseAgentAADApplications()
+    var
+        AADApplicationInterface: Codeunit "AAD Application Interface";
+        ClientID: Text;
+        ClientDescription: Text[50];
+        ContactInformation: Text[50];
+    begin
+        // Create app registration for Expense Agent authenticated access
+        ClientDescription := MicrosoftExpenseAgentDesTok;
+        ClientID := MicrosoftExpenseAgentAppGuidTok;
+        ContactInformation := CopyStr(ProductName.Full(), 1, MaxStrLen(ContactInformation));
+        AADApplicationInterface.CreateAADApplication(ClientID, ClientDescription, ContactInformation);
+    end;
+
     procedure ModifyDescriptionOfDynamics365BusinessCentralforVirtualEntitiesAAdApplication()
     var
         AADApplicationInterface: Codeunit "AAD Application Interface";
@@ -81,6 +97,10 @@ codeunit 8821 "AAD Application Setup"
             CreatePowerPagesAAdApplications();
             UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCreateDefaultPowerPagesAADApplicationsTag());
         end;
+        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCreateExpenseAgentAADApplicationsTag()) then begin
+            CreateExpenseAgentAADApplications();
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCreateExpenseAgentAADApplicationsTag());
+        end;
     end;
 
     [Scope('OnPrem')]
@@ -99,5 +119,11 @@ codeunit 8821 "AAD Application Setup"
     internal procedure GetPowerPagesAuthenticatedAppId(): Guid
     begin
         exit(MicrosoftPowerPagesAuthenticatedUsersAppGuidTok);
+    end;
+
+    [Scope('OnPrem')]
+    internal procedure GetExpenseAgentAuthenticatedAppId(): Guid
+    begin
+        exit(MicrosoftExpenseAgentAppGuidTok);
     end;
 }

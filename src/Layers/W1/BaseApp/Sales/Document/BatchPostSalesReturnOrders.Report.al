@@ -11,6 +11,9 @@ using Microsoft.Sales.Setup;
 using System.Environment;
 using System.Security.User;
 
+/// <summary>
+/// Processes multiple sales return orders for receiving and crediting in a single batch operation.
+/// </summary>
 report 6655 "Batch Post Sales Return Orders"
 {
     Caption = 'Batch Post Sales Return Orders';

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Provides a dialog for selecting which reminder terms to include in an automation group.
+/// </summary>
 page 6754 "Select Rem. Terms Automation"
 {
     PageType = StandardDialog;

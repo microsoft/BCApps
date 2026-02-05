@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates a detailed trial balance showing customer ledger entries with opening and closing balances for a specified period.
+/// </summary>
+
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
@@ -377,6 +381,12 @@ report 104 "Customer - Detail Trial Bal."
     protected var
         CustFilter: Text;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Detail Trial Balance report.
+    /// </summary>
+    /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
+    /// <param name="SetPrintOnlyOnePerPage">True to start a new page per customer.</param>
+    /// <param name="SetExcludeBalanceOnly">True to exclude customers with only balance entries.</param>
     procedure InitializeRequest(ShowAmountInLCY: Boolean; SetPrintOnlyOnePerPage: Boolean; SetExcludeBalanceOnly: Boolean)
     begin
         PrintOnlyOnePerPage := SetPrintOnlyOnePerPage;

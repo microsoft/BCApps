@@ -361,6 +361,8 @@ table 11000002 "Payment History Line"
         }
         field(11401; "Foreign Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Foreign Currency";
+            AutoFormatType = 1;
             Caption = 'Foreign Amount';
         }
         field(11402; "Global Dimension 1 Code"; Code[20])

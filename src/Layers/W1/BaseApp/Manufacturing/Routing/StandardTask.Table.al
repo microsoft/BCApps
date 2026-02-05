@@ -22,6 +22,12 @@ table 99000778 "Standard Task"
         {
             Caption = 'Description';
         }
+        field(3; "Description 2"; Text[50])
+        {
+            Caption = 'Description 2';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies additional description text.';
+        }
     }
 
     keys

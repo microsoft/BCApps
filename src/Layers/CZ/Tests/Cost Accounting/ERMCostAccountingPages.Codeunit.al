@@ -1693,6 +1693,7 @@
         CostType: Record "Cost Type";
         CostTypeBalance: TestPage "Cost Type Balance";
         SelectedRoundingFactor: Enum "Analysis Rounding Factor";
+        BalanceAtDate: Decimal;
     begin
         Initialize();
 
@@ -1702,7 +1703,11 @@
 
         // Pre-Setup
         CostType.SetFilter("Date Filter", '%1', WorkDate());
+        CostType.SetFilter("Balance at Date", '<>%1', 0);
+        CostType.FindFirst();
         CostType.CalcFields("Balance at Date");
+        BalanceAtDate := CostType."Balance at Date";
+
         SelectedRoundingFactor := "Analysis Rounding Factor".FromInteger(LibraryRandom.RandInt(4) - 1);
 
         // Exercise
@@ -1716,7 +1721,7 @@
         CostType.FindFirst();
         CostTypeBalance.MatrixForm.GotoRecord(CostType);
         CostTypeBalance.MatrixForm.Column1.AssertEquals(
-          CostTypeBalanceWithRoundingFactor(CostType."Balance at Date", SelectedRoundingFactor));
+           CostTypeBalanceWithRoundingFactor(BalanceAtDate, SelectedRoundingFactor));
 
         // Cleanup
         CostTypeBalance.Close();

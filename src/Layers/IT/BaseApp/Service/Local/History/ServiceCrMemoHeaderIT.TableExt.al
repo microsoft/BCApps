@@ -100,6 +100,8 @@ tableextension 12454 "Service Cr.Memo Header IT" extends "Service Cr.Memo Header
         }
         field(12186; "Fattura Stamp Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Fattura Stamp Amount';
             DataClassification = CustomerContent;
         }

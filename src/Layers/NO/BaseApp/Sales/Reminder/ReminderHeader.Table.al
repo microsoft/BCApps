@@ -26,6 +26,9 @@ using System.IO;
 using System.Security.User;
 using System.Text;
 
+/// <summary>
+/// Stores the header information for a reminder document including customer, posting, and reminder level details.
+/// </summary>
 table 295 "Reminder Header"
 {
     Caption = 'Reminder Header';
@@ -36,6 +39,9 @@ table 295 "Reminder Header"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier for the reminder document.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
@@ -49,6 +55,9 @@ table 295 "Reminder Header"
                 "Posting Description" := StrSubstNo(ReminderNoLbl, "No.");
             end;
         }
+        /// <summary>
+        /// Specifies the customer to whom this reminder will be sent.
+        /// </summary>
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
@@ -108,22 +117,37 @@ table 295 "Reminder Header"
                 CreateDimFromDefaultDim();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the customer receiving the reminder.
+        /// </summary>
         field(3; Name; Text[100])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Specifies additional name information for the customer.
+        /// </summary>
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
         }
+        /// <summary>
+        /// Specifies the street address of the customer.
+        /// </summary>
         field(5; Address; Text[100])
         {
             Caption = 'Address';
         }
+        /// <summary>
+        /// Specifies additional address information for the customer.
+        /// </summary>
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
         }
+        /// <summary>
+        /// Specifies the postal code of the customer's address.
+        /// </summary>
         field(7; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
@@ -147,6 +171,9 @@ table 295 "Reminder Header"
                     PostCode.ValidatePostCode(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the city of the customer's address.
+        /// </summary>
         field(8; City; Text[30])
         {
             Caption = 'City';
@@ -170,11 +197,17 @@ table 295 "Reminder Header"
                     PostCode.ValidateCity(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
             end;
         }
+        /// <summary>
+        /// Specifies the county or state of the customer's address.
+        /// </summary>
         field(9; County; Text[30])
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
         }
+        /// <summary>
+        /// Specifies the country or region code of the customer's address.
+        /// </summary>
         field(10; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -185,11 +218,17 @@ table 295 "Reminder Header"
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
             end;
         }
+        /// <summary>
+        /// Specifies the language code used for translating reminder texts.
+        /// </summary>
         field(11; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
             TableRelation = Language;
         }
+        /// <summary>
+        /// Specifies the currency in which amounts on the reminder are calculated and displayed.
+        /// </summary>
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -205,14 +244,23 @@ table 295 "Reminder Header"
                 SetCompanyBankAccount();
             end;
         }
+        /// <summary>
+        /// Specifies the name of the contact person at the customer.
+        /// </summary>
         field(13; Contact; Text[100])
         {
             Caption = 'Contact';
         }
+        /// <summary>
+        /// Specifies the customer's reference number or code for this document.
+        /// </summary>
         field(14; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
         }
+        /// <summary>
+        /// Specifies the first shortcut dimension code used for analysis and reporting.
+        /// </summary>
         field(15; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -225,6 +273,9 @@ table 295 "Reminder Header"
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the second shortcut dimension code used for analysis and reporting.
+        /// </summary>
         field(16; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -237,12 +288,18 @@ table 295 "Reminder Header"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the customer posting group that determines G/L accounts for posting.
+        /// </summary>
         field(17; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
+        /// <summary>
+        /// Specifies the general business posting group for VAT and cost allocation.
+        /// </summary>
         field(18; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -256,15 +313,24 @@ table 295 "Reminder Header"
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the customer's VAT registration number for tax reporting.
+        /// </summary>
         field(19; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
         }
+        /// <summary>
+        /// Specifies the reason code that explains the purpose of the reminder entry.
+        /// </summary>
         field(20; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Specifies the date when the reminder will be posted to the general ledger.
+        /// </summary>
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
@@ -276,6 +342,9 @@ table 295 "Reminder Header"
                 Validate("VAT Reporting Date");
             end;
         }
+        /// <summary>
+        /// Specifies the date when the reminder document was created.
+        /// </summary>
         field(22; "Document Date"; Date)
         {
             Caption = 'Document Date';
@@ -294,10 +363,16 @@ table 295 "Reminder Header"
                 Validate("Reminder Level");
             end;
         }
+        /// <summary>
+        /// Specifies the date by which the customer must pay the outstanding amount.
+        /// </summary>
         field(23; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Specifies the reminder terms code that controls fees, interest, and escalation levels.
+        /// </summary>
         field(24; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
@@ -320,6 +395,9 @@ table 295 "Reminder Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the finance charge terms used for calculating interest on overdue amounts.
+        /// </summary>
         field(25; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
@@ -334,14 +412,23 @@ table 295 "Reminder Header"
                     end;
             end;
         }
+        /// <summary>
+        /// Indicates whether interest charges will be posted when the reminder is issued.
+        /// </summary>
         field(26; "Post Interest"; Boolean)
         {
             Caption = 'Post Interest';
         }
+        /// <summary>
+        /// Indicates whether additional fees will be posted when the reminder is issued.
+        /// </summary>
         field(27; "Post Additional Fee"; Boolean)
         {
             Caption = 'Post Additional Fee';
         }
+        /// <summary>
+        /// Specifies the escalation level of this reminder based on the number of overdue notices sent.
+        /// </summary>
         field(28; "Reminder Level"; Integer)
         {
             Caption = 'Reminder Level';
@@ -360,10 +447,16 @@ table 295 "Reminder Header"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies a description that will appear on ledger entries when the reminder is posted.
+        /// </summary>
         field(29; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
         }
+        /// <summary>
+        /// Indicates whether comments are attached to this reminder document.
+        /// </summary>
         field(30; Comment; Boolean)
         {
             CalcFormula = exist("Reminder Comment Line" where(Type = const(Reminder),
@@ -372,6 +465,9 @@ table 295 "Reminder Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total remaining amount that the customer owes on the entries included in this reminder.
+        /// </summary>
         field(31; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -384,6 +480,9 @@ table 295 "Reminder Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total calculated interest amount on overdue entries in this reminder.
+        /// </summary>
         field(32; "Interest Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -396,6 +495,9 @@ table 295 "Reminder Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total additional fee amount charged on this reminder.
+        /// </summary>
         field(33; "Additional Fee"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -407,6 +509,9 @@ table 295 "Reminder Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Contains the total VAT amount calculated on fees and interest for this reminder.
+        /// </summary>
         field(34; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -418,12 +523,18 @@ table 295 "Reminder Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the number series used to assign document numbers to reminders.
+        /// </summary>
         field(37; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the number series used to assign document numbers when reminders are issued.
+        /// </summary>
         field(38; "Issuing No. Series"; Code[20])
         {
             Caption = 'Issuing No. Series';
@@ -447,30 +558,49 @@ table 295 "Reminder Header"
                 TestField("Issuing No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the document number that will be assigned when this reminder is issued.
+        /// </summary>
         field(39; "Issuing No."; Code[20])
         {
             Caption = 'Issuing No.';
         }
+        /// <summary>
+        /// Specifies the tax area code for sales tax calculation in North America.
+        /// </summary>
         field(41; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the customer is liable for sales tax.
+        /// </summary>
         field(42; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the VAT business posting group for determining VAT rates and accounts.
+        /// </summary>
         field(43; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Indicates whether the reminder level from the header should apply to all lines.
+        /// </summary>
         field(44; "Use Header Level"; Boolean)
         {
             Caption = 'Use Header Level';
         }
+        /// <summary>
+        /// Contains the total line fee amount charged per document on this reminder.
+        /// </summary>
         field(45; "Add. Fee per Line"; Decimal)
         {
+            AutoFormatType = 2;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Reminder Line".Amount where("Reminder No." = field("No."),
                                                             Type = const("Line Fee"),
@@ -478,10 +608,16 @@ table 295 "Reminder Header"
             Caption = 'Add. Fee per Line';
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether line fees will be posted when the reminder is issued.
+        /// </summary>
         field(46; "Post Add. Fee per Line"; Boolean)
         {
             Caption = 'Post Add. Fee per Line';
         }
+        /// <summary>
+        /// Specifies the date used for VAT reporting purposes.
+        /// </summary>
         field(47; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -493,20 +629,32 @@ table 295 "Reminder Header"
                     InitVATDate();
             end;
         }
+        /// <summary>
+        /// Specifies the regional format for dates, numbers, and currency display.
+        /// </summary>
         field(54; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
             TableRelation = "Language Selection"."Language Tag";
         }
+        /// <summary>
+        /// Contains the email body text content for reminder communications.
+        /// </summary>
         field(55; "Email Text"; Blob)
         {
             Caption = 'Email Text';
         }
+        /// <summary>
+        /// Specifies the company bank account for receiving payments referenced on this reminder.
+        /// </summary>
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        /// <summary>
+        /// Specifies the combination of dimension values applied to this reminder for analysis.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -523,11 +671,17 @@ table 295 "Reminder Header"
                 DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the reminder automation group code used to create this reminder automatically.
+        /// </summary>
         field(500; "Reminder Automation Code"; Code[50])
         {
             DataClassification = CustomerContent;
             TableRelation = "Reminder Action Group"."Code";
         }
+        /// <summary>
+        /// Specifies the user who is assigned responsibility for this reminder.
+        /// </summary>
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
@@ -658,6 +812,11 @@ table 295 "Reminder Header"
         CreateEmptyReminderTxt: Label 'An empty reminder %1 will be created to fill this gap in the number series.\\', Comment = '%1 = Reminder No.';
         UnexpectedLineTypeErr: Label 'Unexpected line type %1 in reminder %2', Comment = '%1 = Line Type, %2 = Reminder No.';
 
+    /// <summary>
+    /// Opens a dialog to assist with selecting a number from related number series.
+    /// </summary>
+    /// <param name="OldReminderHeader">The previous reminder header record for reference.</param>
+    /// <returns>True if a new number was selected; otherwise, false.</returns>
     procedure AssistEdit(OldReminderHeader: Record "Reminder Header"): Boolean
     begin
         ReminderHeader := Rec;
@@ -669,6 +828,9 @@ table 295 "Reminder Header"
         end;
     end;
 
+    /// <summary>
+    /// Tests that the required number series are set up in Sales and Receivables Setup.
+    /// </summary>
     procedure TestNoSeries()
     var
         IsHandled: Boolean;
@@ -684,6 +846,10 @@ table 295 "Reminder Header"
         OnAfterTestNoSeries(Rec);
     end;
 
+    /// <summary>
+    /// Gets the number series code for reminder documents.
+    /// </summary>
+    /// <returns>The number series code to use for reminders.</returns>
     procedure GetNoSeriesCode(): Code[20]
     var
         NoSeriesCode: Code[20];
@@ -739,6 +905,10 @@ table 295 "Reminder Header"
         OnAfterSetCompanyBankAccount(Rec, xRec);
     end;
 
+    /// <summary>
+    /// Prompts the user to confirm deletion of existing reminder lines and deletes them if confirmed.
+    /// </summary>
+    /// <returns>True if the user cancels the operation; otherwise, false.</returns>
     procedure Undo(): Boolean
     begin
         ReminderLine.SetRange("Reminder No.", "No.");
@@ -756,6 +926,9 @@ table 295 "Reminder Header"
         end;
     end;
 
+    /// <summary>
+    /// Inserts reminder lines including additional fees, beginning and ending texts based on the reminder level.
+    /// </summary>
     procedure InsertLines()
     var
         ReminderLine2: Record "Reminder Line";
@@ -832,6 +1005,11 @@ table 295 "Reminder Header"
         OnAfterInsertLines(Rec);
     end;
 
+    /// <summary>
+    /// Updates reminder lines by refreshing text lines and optionally recalculating additional fees.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="UpdateAdditionalFee">Indicates whether to recalculate the additional fee.</param>
     procedure UpdateLines(ReminderHeader: Record "Reminder Header"; UpdateAdditionalFee: Boolean)
     begin
         ReminderLine.Reset();
@@ -952,6 +1130,13 @@ table 295 "Reminder Header"
         InsertTextLines(ReminderHeader, ReminderText, NextLineNo, LineSpacing);
     end;
 
+    /// <summary>
+    /// Inserts text lines from reminder text records into the reminder document.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderText">The reminder text records to insert.</param>
+    /// <param name="NextLineNo">The next line number to use, updated after insertion.</param>
+    /// <param name="LineSpacing">The spacing between lines.</param>
     procedure InsertTextLines(var ReminderHeader: Record "Reminder Header"; var ReminderText: Record "Reminder Text"; var NextLineNo: Integer; LineSpacing: Integer)
     var
         CompanyInfo: Record "Company Information";
@@ -1009,6 +1194,14 @@ table 295 "Reminder Header"
         end;
     end;
 
+    /// <summary>
+    /// Inserts text lines from reminder attachment text records into the reminder document.
+    /// </summary>
+    /// <param name="LocalReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderAttachmentText">The reminder attachment text records to insert.</param>
+    /// <param name="LineType">The type of line (Beginning Text or Ending Text).</param>
+    /// <param name="NextLineNumber">The next line number to use, updated after insertion.</param>
+    /// <param name="LineSpace">The spacing between lines.</param>
     procedure InsertTextLines(var LocalReminderHeader: Record "Reminder Header"; var ReminderAttachmentText: Record "Reminder Attachment Text"; LineType: Enum "Reminder Line Type"; var NextLineNumber: Integer; LineSpace: Integer)
     var
         ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
@@ -1088,6 +1281,9 @@ table 295 "Reminder Header"
         ReminderLine.Insert();
     end;
 
+    /// <summary>
+    /// Prints the reminder test report for the current record.
+    /// </summary>
     procedure PrintRecords()
     var
         ReminderHeader: Record "Reminder Header";
@@ -1105,6 +1301,10 @@ table 295 "Reminder Header"
         ReportSelection.PrintForCust(ReportSelection.Usage::"Rem.Test", ReminderHeader, ReminderHeader.FieldNo("Customer No."));
     end;
 
+    /// <summary>
+    /// Prompts the user to confirm deletion of the reminder and warns about number series gaps.
+    /// </summary>
+    /// <returns>True if deletion is confirmed; otherwise, false.</returns>
     procedure ConfirmDeletion() Confirmed: Boolean
     var
         IsHandled: Boolean;
@@ -1126,6 +1326,10 @@ table 295 "Reminder Header"
         exit(true);
     end;
 
+    /// <summary>
+    /// Creates dimensions for the reminder header based on the provided dimension sources.
+    /// </summary>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -1145,6 +1349,11 @@ table 295 "Reminder Header"
         OnAfterCreateDimProcedure(Rec, CurrFieldNo, DefaultDimSource);
     end;
 
+    /// <summary>
+    /// Validates and updates a shortcut dimension code on the reminder header.
+    /// </summary>
+    /// <param name="FieldNumber">The field number of the shortcut dimension.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code value.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         IsHandled: Boolean;
@@ -1157,6 +1366,10 @@ table 295 "Reminder Header"
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Calculates the invoice rounding amount for the reminder based on currency settings.
+    /// </summary>
+    /// <returns>The invoice rounding amount.</returns>
     procedure GetInvoiceRoundingAmount(): Decimal
     var
         TotalAmountInclVAT: Decimal;
@@ -1221,6 +1434,10 @@ table 295 "Reminder Header"
         end;
     end;
 
+    /// <summary>
+    /// Updates the invoice rounding line for the reminder by recalculating the rounding amount.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     procedure UpdateReminderRounding(ReminderHeader: Record "Reminder Header")
     var
         OldLineNo: Integer;
@@ -1246,6 +1463,9 @@ table 295 "Reminder Header"
         ReminderRounding(ReminderHeader);
     end;
 
+    /// <summary>
+    /// Opens a dialog to view and edit the document dimensions for the reminder.
+    /// </summary>
     procedure ShowDocDim()
     begin
         "Dimension Set ID" :=
@@ -1256,6 +1476,10 @@ table 295 "Reminder Header"
         OnAfterShowDocDim(Rec);
     end;
 
+    /// <summary>
+    /// Calculates the total VAT amount for line fee type reminder lines.
+    /// </summary>
+    /// <returns>The sum of VAT amounts for line fee lines.</returns>
     procedure CalculateLineFeeVATAmount(): Decimal
     var
         ReminderLine: Record "Reminder Line";
@@ -1313,17 +1537,26 @@ table 295 "Reminder Header"
                 exit(GetRangeMax("Customer No."));
     end;
 
+    /// <summary>
+    /// Enables the option to select from related number series when creating a reminder.
+    /// </summary>
     procedure SetAllowSelectNoSeries()
     begin
         SelectNoSeriesAllowed := true;
     end;
 
+    /// <summary>
+    /// Sets the customer number from the current filter if a single customer is filtered.
+    /// </summary>
     procedure SetCustomerFromFilter()
     begin
         if GetFilterCustNo() <> '' then
             Validate("Customer No.", GetFilterCustNo());
     end;
 
+    /// <summary>
+    /// Assigns the next reminder number from the number series if no number is set.
+    /// </summary>
     [Scope('OnPrem')]
     procedure SetReminderNo()
     begin
@@ -1367,6 +1600,9 @@ table 295 "Reminder Header"
         end;
     end;
 
+    /// <summary>
+    /// Creates dimensions for the reminder header using the default dimension sources.
+    /// </summary>
     procedure CreateDimFromDefaultDim()
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1382,211 +1618,447 @@ table 295 "Reminder Header"
         OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource);
     end;
 
+    /// <summary>
+    /// Raised after initializing default dimension sources for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var ReminderHeader: Record "Reminder Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating dimensions for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="CurrFieldNo">The current field number triggering the dimension creation.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
+    /// <param name="IsHandled">Set to true to skip default dimension creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimProcedure(var ReminderHeader: Record "Reminder Header"; CurrFieldNo: Integer; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming deletion of the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to delete.</param>
+    /// <param name="IssuedReminderHeader">The related issued reminder header.</param>
+    /// <param name="Confirmed">Returns the confirmation result.</param>
+    /// <param name="IsHandled">Set to true to skip default confirmation dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmDeletion(ReminderHeader: Record "Reminder Header"; IssuedReminderHeader: Record "Issued Reminder Header"; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating dimensions for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="CurrFieldNo">The current field number that triggered dimension creation.</param>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimProcedure(var ReminderHeader: Record "Reminder Header"; CurrFieldNo: Integer; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving the number series code for reminders.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">The number series code retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetNoSeriesCode(var ReminderHeader: Record "Reminder Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving the issuing number series code for reminders.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IssuingNos">The issuing number series code retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetIssuingNoSeriesCode(var ReminderHeader: Record "Reminder Header"; var IssuingNos: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting reminder lines for the header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertLines(var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing the number series for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestNoSeries(var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the company bank account on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="xReminderHeader">The previous reminder header values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCompanyBankAccount(var ReminderHeader: Record "Reminder Header"; xReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating a shortcut dimension code on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="xReminderHeader">The previous reminder header values.</param>
+    /// <param name="FieldNumber">The field number of the shortcut dimension.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var ReminderHeader: Record "Reminder Header"; var xReminderHeader: Record "Reminder Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating reminder lines for the header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="UpdateAdditionalFee">Indicates whether to update the additional fee.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateLines(var ReminderHeader: Record "Reminder Header"; UpdateAdditionalFee: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing the document dimensions for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDocDim(var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the number series code for reminders.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
+    /// <param name="NoSeriesCode">The number series code to retrieve.</param>
+    /// <param name="IsHandled">Set to true to skip default number series retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNoSeriesCode(var ReminderHeader: Record "Reminder Header"; SalesSetup: Record "Sales & Receivables Setup"; var NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the issuing number series code for reminders.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="SalesSetup">The sales and receivables setup record.</param>
+    /// <param name="IssuingNos">The issuing number series code to retrieve.</param>
+    /// <param name="IsHandled">Set to true to skip default number series retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetIssuingNoSeriesCode(var ReminderHeader: Record "Reminder Header"; SalesSetup: Record "Sales & Receivables Setup"; var IssuingNos: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line during InsertLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="IsHandled">Set to true to skip default line insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertLinesOnBeforeReminderLineInsert(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a blank reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The blank reminder line to insert.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertBlankLineOnBeforeReminderLineInsert(var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a text line during InsertTextLines processing.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="ReminderText">The source reminder text record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertTextLinesOnBeforeReminderLineInsert(var ReminderLine: Record "Reminder Line"; var ReminderText: Record "Reminder Text"; var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder lines during InsertEndTexts processing.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record with filters.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderLineSetFilters(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder level during InsertEndTexts processing.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level record with filters.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertEndTextsOnAfterReminderLevelSetFilters(var ReminderLevel: Record "Reminder Level"; ReminderHeader: Record "Reminder Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder level during InsertBeginTexts processing.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level record with filters.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertBeginTextsOnAfterReminderLevelSetFilters(var ReminderLevel: Record "Reminder Level"; var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder level during InsertLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLevel">The reminder level record with filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertLinesOnAfterReminderLevelSetFilters(var ReminderHeader: Record "Reminder Header"; var ReminderLevel: Record "Reminder Level")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing the number series during record insertion.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record being inserted.</param>
+    /// <param name="xReminderHeader">The previous reminder header values.</param>
+    /// <param name="IsHandled">Set to true to skip default number series initialization.</param>
     [IntegrationEvent(true, false)]
     local procedure OnInsertOnBeforeInitNoSeries(var ReminderHeader: Record "Reminder Header"; var xReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before applying invoice rounding to the reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="Handled">Set to true to skip default rounding logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderRounding(var ReminderHeader: Record "Reminder Header"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting beginning text lines for the reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default begin text insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertBeginTexts(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a blank line in the reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="LineType">The type of reminder line.</param>
+    /// <param name="NextLineNo">The next line number to use.</param>
+    /// <param name="LineSpacing">The spacing between lines.</param>
+    /// <param name="IsHandled">Set to true to skip default blank line insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertBlankLine(var ReminderHeader: Record "Reminder Header"; LineType: Enum "Reminder Line Type"; NextLineNo: Integer; LineSpacing: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting ending text lines for the reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default end text insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertEndTexts(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the number series for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default number series testing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestNoSeries(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the reminder level on the header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLevel">The validated reminder level record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateReminderLevel(var ReminderHeader: Record "Reminder Header"; ReminderLevel: Record "Reminder Level")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating a shortcut dimension code on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="xReminderHeader">The previous reminder header values.</param>
+    /// <param name="FieldNumber">The field number of the shortcut dimension.</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension code value.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var ReminderHeader: Record "Reminder Header"; var xReminderHeader: Record "Reminder Header"; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the customer is blocked for all transactions.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="Cust">The customer record to check.</param>
+    /// <param name="IsHandled">Set to true to skip default blocking check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustomerBlockedAll(var ReminderHeader: Record "Reminder Header"; Cust: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing issued reminders.
+    /// </summary>
+    /// <param name="Rec">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default printing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintIssuedReminders(var Rec: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder text during InsertBeginTexts processing.
+    /// </summary>
+    /// <param name="ReminderText">The reminder text record with filters.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnInsertBeginTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder text during InsertEndTexts processing.
+    /// </summary>
+    /// <param name="ReminderText">The reminder text record with filters.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the additional fee during InsertLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLevel">The reminder level record.</param>
+    /// <param name="AdditionalFee">The calculated additional fee amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertLinesOnAfterCalcAdditionalFee(var ReminderHeader: Record "Reminder Header"; ReminderLevel: Record "Reminder Level"; var AdditionalFee: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after assigning customer values during Customer No. validation.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="Customer">The customer record with assigned values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateCustomerNoOnAfterAssignCustomerValues(var ReminderHeader: Record "Reminder Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the city field on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="PostCode">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default city validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCity(var ReminderHeader: Record "Reminder Header"; var PostCode: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the post code field on the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="PostCode">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default post code validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostCode(var ReminderHeader: Record "Reminder Header"; var PostCode: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving finance charge terms during InsertTextLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="FinanceChargeTerms">The finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertTextLinesOnAfterGetFinChrgTerms(var ReminderHeader: Record "Reminder Header"; var FinanceChargeTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the amount on a reminder line during InsertLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="IsHandled">Set to true to skip default amount validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertLinesOnBeforeValidateAmount(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before printing reminder records.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default printing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintRecords(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting lines for the reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default line insertion.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertLines(var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line from attachment text during InsertTextLines processing.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="ReminderAttachmentText">The reminder attachment text record.</param>
+    /// <param name="ReminderAttachmentTextLine">The reminder attachment text line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertTextLinesOnBeforeRemLineInsert(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var ReminderAttachmentText: Record "Reminder Attachment Text"; var ReminderAttachmentTextLine: Record "Reminder Attachment Text Line")
     begin

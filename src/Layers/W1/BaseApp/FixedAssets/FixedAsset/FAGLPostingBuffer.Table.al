@@ -30,7 +30,7 @@ table 5637 "FA G/L Posting Buffer"
         }
         field(3; Amount; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

@@ -578,6 +578,188 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not false');
     end;
 
+    [Test]
+    procedure TestFindMissingObjectWarningsForConfiguration()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] Warning is created for the tool with non-existing object
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(MCPConfigWarning, 1);
+    end;
+
+    [Test]
+    procedure TestApplyMissingObjectRecommendedAction()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [WHEN] Apply recommended action is called
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        MCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+
+        // [THEN] Warning is resolved after applying the recommended action
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(MCPConfigWarning);
+
+        // [THEN] Configuration tool is deleted
+        MCPConfigurationTool.SetRange(SystemId, ToolId);
+        Assert.RecordIsEmpty(MCPConfigurationTool);
+    end;
+
+    [Test]
+    procedure TestFindMissingReadToolWarningsForConfiguration()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with Allow Modify enabled but Allow Read disabled
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool."Allow Read" := false;
+        MCPConfigurationTool."Allow Modify" := true;
+        MCPConfigurationTool.Modify();
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] Warning is created for the tool with missing read permission
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(MCPConfigWarning, 1);
+    end;
+
+    [Test]
+    procedure TestApplyMissingReadToolRecommendedAction()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with Allow Modify enabled but Allow Read disabled
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool."Allow Read" := false;
+        MCPConfigurationTool."Allow Modify" := true;
+        MCPConfigurationTool.Modify();
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [WHEN] Apply recommended action is called
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        MCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+
+        // [THEN] Warning is resolved after applying the recommended action
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(MCPConfigWarning);
+
+        // [THEN] Configuration tool has Allow Read enabled
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read should be true after applying recommended action');
+    end;
+
+    [Test]
+    procedure TestNoMissingReadToolWarningWhenReadEnabled()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with both Allow Modify and Allow Read enabled
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."Allow Modify" := true;
+        MCPConfigurationTool.Modify();
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] No Missing Read Tool warning is created
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(MCPConfigWarning);
+    end;
+
+    [Test]
+    procedure TestNoMissingReadToolWarningWhenModifyDisabled()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with Allow Modify disabled
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool."Allow Read" := false;
+        MCPConfigurationTool."Allow Modify" := false;
+        MCPConfigurationTool.Modify();
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] No Missing Read Tool warning is created
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(MCPConfigWarning);
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";

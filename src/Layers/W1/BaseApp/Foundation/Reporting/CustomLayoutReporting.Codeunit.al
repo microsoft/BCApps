@@ -954,7 +954,7 @@ codeunit 8800 "Custom Layout Reporting"
         Index: Integer;
     begin
         // Insert or Modify - based on if it exists already or not
-        TempBlob.CreateOutStream(OutStr);
+        TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
         OutStr.WriteText(Parameters);
         if TempBlobIndicesNameValueBuffer.Get(ReportID) then begin
             Evaluate(Index, TempBlobIndicesNameValueBuffer.Value);
@@ -977,7 +977,7 @@ codeunit 8800 "Custom Layout Reporting"
         TempBlobIndicesNameValueBuffer.Get(ReportID);
         Evaluate(Index, TempBlobIndicesNameValueBuffer.Value);
         TempBlobList.Get(Index, TempBlob);
-        TempBlob.CreateInStream(InStr);
+        TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
         InStr.ReadText(ReqPageXML);
         exit(ReqPageXML);
     end;

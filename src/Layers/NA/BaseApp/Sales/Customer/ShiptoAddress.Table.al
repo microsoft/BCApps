@@ -15,6 +15,9 @@ using Microsoft.Inventory.Location;
 using Microsoft.Utilities;
 using System.Email;
 
+/// <summary>
+/// Stores alternate shipping addresses for customers with location and shipping method settings.
+/// </summary>
 table 222 "Ship-to Address"
 {
     Caption = 'Ship-to Address';
@@ -24,6 +27,9 @@ table 222 "Ship-to Address"
 
     fields
     {
+        /// <summary>
+        /// Specifies the customer that this ship-to address belongs to.
+        /// </summary>
         field(1; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
@@ -31,32 +37,50 @@ table 222 "Ship-to Address"
             TableRelation = Customer;
             ToolTip = 'Specifies the customer number.';
         }
+        /// <summary>
+        /// Specifies a unique code to identify this ship-to address for the customer.
+        /// </summary>
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
             ToolTip = 'Specifies a ship-to address code.';
         }
+        /// <summary>
+        /// Specifies the name of the recipient or location for this ship-to address.
+        /// </summary>
         field(3; Name; Text[100])
         {
             Caption = 'Name';
             ToolTip = 'Specifies the name associated with the ship-to address.';
         }
+        /// <summary>
+        /// Specifies additional name information for the ship-to address.
+        /// </summary>
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
             ToolTip = 'Specifies an additional part of the name.';
         }
+        /// <summary>
+        /// Specifies the street address for shipping.
+        /// </summary>
         field(5; Address; Text[100])
         {
             Caption = 'Address';
             ToolTip = 'Specifies the ship-to address.';
         }
+        /// <summary>
+        /// Specifies additional address details for the shipping location.
+        /// </summary>
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
             ToolTip = 'Specifies additional address information.';
         }
+        /// <summary>
+        /// Specifies the city for the shipping destination.
+        /// </summary>
         field(7; City; Text[30])
         {
             Caption = 'City';
@@ -86,21 +110,33 @@ table 222 "Ship-to Address"
                 OnAfterValidateCity(Rec, PostCode);
             end;
         }
+        /// <summary>
+        /// Specifies the contact person at the ship-to address.
+        /// </summary>
         field(8; Contact; Text[100])
         {
             Caption = 'Contact';
             ToolTip = 'Specifies the name of the person you contact about orders shipped to this address.';
         }
+        /// <summary>
+        /// Specifies the telephone number for the ship-to address.
+        /// </summary>
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
             ExtendedDatatype = PhoneNo;
             ToolTip = 'Specifies the recipient''s telephone number.';
         }
+        /// <summary>
+        /// Specifies the telex number for the ship-to address.
+        /// </summary>
         field(10; "Telex No."; Text[30])
         {
             Caption = 'Telex No.';
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for orders to this ship-to address.
+        /// </summary>
         field(29; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
@@ -112,12 +148,18 @@ table 222 "Ship-to Address"
                 ValidateSalesPersonCode();
             end;
         }
+        /// <summary>
+        /// Specifies the default shipment method for orders to this address.
+        /// </summary>
         field(30; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
             TableRelation = "Shipment Method";
             ToolTip = 'Specifies a code for the shipment method to be used for the recipient.';
         }
+        /// <summary>
+        /// Specifies the shipping agent responsible for deliveries to this address.
+        /// </summary>
         field(31; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
@@ -131,10 +173,16 @@ table 222 "Ship-to Address"
                     Validate("Shipping Agent Service Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the place of export for customs purposes.
+        /// </summary>
         field(32; "Place of Export"; Code[20])
         {
             Caption = 'Place of Export';
         }
+        /// <summary>
+        /// Specifies the country or region for the ship-to address.
+        /// </summary>
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -147,27 +195,42 @@ table 222 "Ship-to Address"
                 AltCustVATRegFacade.HandleCountryChangeInShipToAddress(Rec);
             end;
         }
+        /// <summary>
+        /// Indicates when this ship-to address record was last modified.
+        /// </summary>
         field(54; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
             Editable = false;
             ToolTip = 'Specifies when the ship-to address was last modified.';
         }
+        /// <summary>
+        /// Specifies the default inventory location for shipments to this address.
+        /// </summary>
         field(83; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
             ToolTip = 'Specifies the location code to be used for the recipient.';
         }
+        /// <summary>
+        /// Specifies the fax number for the ship-to address.
+        /// </summary>
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
             ToolTip = 'Specifies the recipient''s fax number.';
         }
+        /// <summary>
+        /// Specifies the telex answer back code for the ship-to address.
+        /// </summary>
         field(85; "Telex Answer Back"; Text[20])
         {
             Caption = 'Telex Answer Back';
         }
+        /// <summary>
+        /// Specifies the Global Location Number for this ship-to address.
+        /// </summary>
         field(90; GLN; Code[13])
         {
             Caption = 'GLN';
@@ -181,6 +244,9 @@ table 222 "Ship-to Address"
                     GLNCalculator.AssertValidCheckDigit13(GLN);
             end;
         }
+        /// <summary>
+        /// Specifies the postal code for the ship-to address.
+        /// </summary>
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
@@ -210,12 +276,18 @@ table 222 "Ship-to Address"
                 OnAfterValidatePostCode(Rec, PostCode);
             end;
         }
+        /// <summary>
+        /// Specifies the state, province, or county for the ship-to address.
+        /// </summary>
         field(92; County; Text[30])
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
             ToolTip = 'Specifies the state, province, or county as a part of the address.';
         }
+        /// <summary>
+        /// Specifies the email address for the ship-to address.
+        /// </summary>
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
@@ -227,6 +299,9 @@ table 222 "Ship-to Address"
                 ValidateEmail()
             end;
         }
+        /// <summary>
+        /// Specifies the website URL for the ship-to address.
+        /// </summary>
 #if not CLEAN27
 #pragma warning disable AS0086
 #endif
@@ -239,15 +314,24 @@ table 222 "Ship-to Address"
             ExtendedDatatype = URL;
             ToolTip = 'Specifies the recipient''s web site.';
         }
+        /// <summary>
+        /// Specifies the tax area code for calculating sales tax at this ship-to address.
+        /// </summary>
         field(108; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether sales to this ship-to address are subject to sales tax.
+        /// </summary>
         field(109; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Specifies the shipping agent service level for deliveries to this address.
+        /// </summary>
         field(5792; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
@@ -313,6 +397,10 @@ table 222 "Ship-to Address"
         Text000: Label 'untitled';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Generates a caption text for the ship-to address including customer and address information.
+    /// </summary>
+    /// <returns>The formatted caption string.</returns>
     procedure Caption(): Text
     begin
         if "Customer No." = '' then
@@ -321,6 +409,9 @@ table 222 "Ship-to Address"
         exit(StrSubstNo('%1 %2 %3 %4', Cust."No.", Cust.Name, Code, Name));
     end;
 
+    /// <summary>
+    /// Displays the ship-to address on an online map service.
+    /// </summary>
     procedure DisplayMap()
     var
         OnlineMapManagement: Codeunit "Online Map Management";
@@ -328,6 +419,10 @@ table 222 "Ship-to Address"
         OnlineMapManagement.MakeSelectionIfMapEnabled(Database::"Ship-to Address", GetPosition());
     end;
 
+    /// <summary>
+    /// Gets the customer number from the current filter if a single value is specified.
+    /// </summary>
+    /// <returns>The filtered customer number or empty if not applicable.</returns>
     procedure GetFilterCustNo(): Code[20]
     begin
         if GetFilter("Customer No.") <> '' then
@@ -372,46 +467,98 @@ table 222 "Ship-to Address"
             Error(SalespersonPurchaser.GetPrivacyBlockedGenericText(SalespersonPurchaser, true))
     end;
 
+    /// <summary>
+    /// Raised after looking up the post code.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record used in the lookup.</param>
+    /// <param name="xShipToAddress">The previous ship-to address record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupPostCode(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code"; xShipToAddress: Record "Ship-to Address");
     begin
     end;
 
+    /// <summary>
+    /// Raised after looking up the city.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record used in the lookup.</param>
+    /// <param name="xShipToAddress">The previous ship-to address record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupCity(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code"; xShipToAddress: Record "Ship-to Address");
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the city field.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record after validation.</param>
+    /// <param name="PostCode">The post code record used in validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCity(var ShipToAddress: Record "Ship-to Address"; var PostCode: Record "Post Code");
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the post code field.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record after validation.</param>
+    /// <param name="PostCode">The post code record used in validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidatePostCode(var ShipToAddress: Record "Ship-to Address"; var PostCode: Record "Post Code");
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the city.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record for the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupCity(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code");
     begin
     end;
 
+    /// <summary>
+    /// Raised before looking up the post code.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record for the lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupPostCode(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code");
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the city field.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCity(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the email field.
+    /// </summary>
+    /// <param name="ShiptoAddress">The ship-to address record.</param>
+    /// <param name="xShiptoAddress">The previous ship-to address record.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateEmail(var ShiptoAddress: Record "Ship-to Address"; xShiptoAddress: Record "Ship-to Address"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the post code field.
+    /// </summary>
+    /// <param name="ShipToAddress">The ship-to address record.</param>
+    /// <param name="PostCodeRec">The post code record for validation.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostCode(var ShipToAddress: Record "Ship-to Address"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean);
     begin

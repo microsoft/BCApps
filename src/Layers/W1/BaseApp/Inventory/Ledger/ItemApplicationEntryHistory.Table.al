@@ -44,6 +44,7 @@ table 343 "Item Application Entry History"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

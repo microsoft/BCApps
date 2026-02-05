@@ -151,6 +151,7 @@ page 5783 "Cross-Dock Opportunities"
 #pragma warning restore AA0100
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Rem. Qty. to Cross-Dock (Base)';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -169,6 +170,7 @@ page 5783 "Cross-Dock Opportunities"
                         field(QtyToHandleBase; QtyToHandleBase)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -204,6 +206,7 @@ page 5783 "Cross-Dock Opportunities"
                         field(QtyOnCrossDockBase; QtyOnCrossDockBase)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 0;
                             Caption = 'Qty. To Handle (Base)';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -212,6 +215,7 @@ page 5783 "Cross-Dock Opportunities"
                         field(QtyToBeCrossDockedBase; QtyToBeCrossDockedBase)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 0;
                             Caption = 'Qty. To Handle (Base)';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -226,6 +230,7 @@ page 5783 "Cross-Dock Opportunities"
 #pragma warning restore AA0100
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 0;
                             Caption = 'Total Rem. Qty. to Cross-Dock (Base)';
                             DecimalPlaces = 0 : 5;
                             Editable = false;

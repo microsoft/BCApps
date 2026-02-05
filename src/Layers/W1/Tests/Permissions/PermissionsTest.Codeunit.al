@@ -14,6 +14,9 @@ codeunit 139400 "Permissions Test"
         AzureADPlanTestLibrary: Codeunit "Azure AD Plan Test Library";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         LibraryPlainTextFile: Codeunit "Library - Plain Text File";
+        AzureADGraphTestLibrary: Codeunit "Azure AD Graph Test Library";
+        SecurityGroupsTestLibrary: Codeunit "Security Groups Test Library";
+        MockGraphQueryTestLibrary: Codeunit "MockGraphQuery Test Library";
         Assert: Codeunit Assert;
         BaseAppID: Codeunit "BaseApp ID";
         PermissionSetNonExistentTxt: Label 'Non-existent';
@@ -534,6 +537,252 @@ codeunit 139400 "Permissions Test"
         // [Then] Validate that the record no longer exists
         Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, CompanyName(), AccessControl.Scope::Tenant, AppID);
         Assert.IsFalse(Found, 'Access control still exists.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewObjTypeFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+        i: Integer;
+    begin
+        // [SCENARIO] Object type filter correctly filters permissions by object type
+        // [GIVEN] Any permission in the system
+        PermissionsOverview.OpenEdit();
+        for i := ExpandedPermission."Object Type"::"Table Data" to ExpandedPermission."Object Type"::System do begin
+            ExpandedPermission."Object Type" := i;
+            if Format(ExpandedPermission."Object Type") = Format(i) then
+                continue;
+
+            // [WHEN] Object type filter is applied
+            PermissionsOverview.ObjTypeFilter.SetValue(i + 1);
+            ExpandedPermission.SetRange("Object Type", i);
+            if ExpandedPermission.IsEmpty() then
+                // [THEN] For object types with no permissions, the permissions overview is empty
+                Assert.IsFalse(PermissionsOverview.First(), 'Permissions overview should be empty for object types with no permissions.')
+            else begin
+                // [THEN] For object types with permissions, only permissions of the selected object type are shown
+                PermissionsOverview.First();
+                Assert.AreEqual(Format(ExpandedPermission."Object Type"), PermissionsOverview.ObjectType.Value, 'Object type filter not applied correctly.');
+                PermissionsOverview.Next();
+                Assert.AreEqual(Format(ExpandedPermission."Object Type"), PermissionsOverview.ObjectType.Value, 'Object type filter not applied correctly.');
+                PermissionsOverview.Last();
+                Assert.AreEqual(Format(ExpandedPermission."Object Type"), PermissionsOverview.ObjectType.Value, 'Object type filter not applied correctly.');
+            end;
+        end;
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewExtensionFilter()
+    var
+        TenantPermissionSet: array[2] of Record "Tenant Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+        AppInfo: ModuleInfo;
+    begin
+        // [SCENARIO] Extension filter correctly filters permissions by extension
+        // [GIVEN] An user defined and an extension defined permission set
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        CreatePermSetData(TenantPermissionSet[1], AppInfo.Id);
+        CreatePermSetData(TenantPermissionSet[2], NullGuid);
+
+        // [WHEN] Filtered by the extension name
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.AppNameFilter.SetValue(AppInfo.Name);
+        // [THEN] Only permissions from the extension are shown
+        PermissionsOverview.First();
+        Assert.AreEqual(PermissionsOverview.ExtensionName.Value, AppInfo.Name, 'Extension filter not applied correctly.');
+        PermissionsOverview.Next();
+        Assert.AreEqual(PermissionsOverview.ExtensionName.Value, AppInfo.Name, 'Extension filter not applied correctly.');
+        PermissionsOverview.Last();
+        Assert.AreEqual(PermissionsOverview.ExtensionName.Value, AppInfo.Name, 'Extension filter not applied correctly.');
+
+        // [WHEN] Extension filter is cleared
+        PermissionsOverview.AppNameFilter.SetValue('');
+        ExpandedPermission.SetRange("App ID", TenantPermissionSet[2]."App ID");
+        ExpandedPermission.SetRange("Role ID", TenantPermissionSet[2]."Role ID");
+        // [THEN] Permissions from all extensions are shown (such as the user defined one)
+        ExpandedPermission.FindFirst();
+        Assert.IsTrue(PermissionsOverview.GoToRecord(ExpandedPermission), 'Extension filter not cleared correctly.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewScopeFilter()
+    var
+        TenantPermissionSet: array[2] of Record "Tenant Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+        AppInfo: ModuleInfo;
+        ScopeFilter: Enum "Permission Set Scope";
+    begin
+        // [SCENARIO] Scope filter correctly filters permissions by scope
+        // [GIVEN] An user defined and an extension defined permission set
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        CreatePermSetData(TenantPermissionSet[1], AppInfo.Id);
+        CreatePermSetData(TenantPermissionSet[2], NullGuid);
+        PermissionsOverview.OpenEdit();
+
+        // [WHEN] Filtered by System scope
+        PermissionsOverview.ScopeFilter.SetValue(ScopeFilter::Extension);
+        ExpandedPermission.SetRange("App ID", TenantPermissionSet[1]."App ID");
+        ExpandedPermission.SetRange("Role ID", TenantPermissionSet[1]."Role ID");
+        // [THEN] Only extension defined permissions are shown
+        ExpandedPermission.FindFirst();
+        Assert.IsTrue(PermissionsOverview.GoToRecord(ExpandedPermission), 'Extension scope filter not set correctly.');
+
+        // [WHEN] Filtered by User Defined scope
+        PermissionsOverview.ScopeFilter.SetValue(ScopeFilter::UserDefined);
+        ExpandedPermission.SetRange("App ID", TenantPermissionSet[2]."App ID");
+        ExpandedPermission.SetRange("Role ID", TenantPermissionSet[2]."Role ID");
+        // [THEN] Only user defined permissions are shown
+        ExpandedPermission.FindFirst();
+        Assert.IsTrue(PermissionsOverview.GoToRecord(ExpandedPermission), 'User defined scope filter not set correctly.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewLocalUser()
+    var
+        GraphUser: Record User;
+        LocalUser: Record User;
+        SecurityGroupBuffer: Record "Security Group Buffer";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+        PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] A local user with permission set is shown in the permissions overview factbox
+        CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
+        CreatePermSetData(TenantPermissionSet, NullGuid);
+
+        // [GIVEN] A permission set is assigned to the local user
+        AddUserPermission(LocalUser."User Security ID", TenantPermissionSet."App ID", TenantPermissionSet."Role ID");
+
+        // [WHEN] The permission is selected on the Permissions Overview page
+        PermissionsOverview.OpenEdit();
+
+        ExpandedPermission.SetRange("App ID", TenantPermissionSet."App ID");
+        ExpandedPermission.SetRange("Role ID", TenantPermissionSet."Role ID");
+        ExpandedPermission.FindSet();
+        repeat
+            PermissionsOverview.GoToRecord(ExpandedPermission);
+
+            // [THEN] The local user with the permission set is shown in the user factbox
+            PermSetAssignmentBuffer.SecurityId := LocalUser."User Security ID";
+            PermissionsOverview.PermissionSetUsers.GoToRecord(PermSetAssignmentBuffer);
+            Assert.AreEqual(LocalUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
+                'Local user assigned permission set was not found in factbox');
+        until (ExpandedPermission.Next() = 0);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewSecurityGroupAndUser()
+    var
+        GraphUser: Record User;
+        LocalUser: Record User;
+        SecurityGroupBuffer: Record "Security Group Buffer";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+        PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
+        SecurityGroup: Codeunit "Security Group";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] A security group with with user and permission set is shown in the permissions overview factbox
+        CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
+        CreatePermSetData(TenantPermissionSet, NullGuid);
+
+        // [GIVEN] A permission set is assigned to the security group
+        AddUserPermission(SecurityGroup.GetGroupUserSecurityId(SecurityGroupBuffer.Code), TenantPermissionSet."App ID", TenantPermissionSet."Role ID");
+
+        // [WHEN] The permission is selected on the Permissions Overview page
+        PermissionsOverview.OpenEdit();
+
+        ExpandedPermission.SetRange("App ID", TenantPermissionSet."App ID");
+        ExpandedPermission.SetRange("Role ID", TenantPermissionSet."Role ID");
+        ExpandedPermission.FindSet();
+        repeat
+            PermissionsOverview.GoToRecord(ExpandedPermission);
+
+            // [THEN] The security group with the permission set is shown in the security group factbox
+            PermSetAssignmentBuffer.SecurityId := SecurityGroup.GetGroupUserSecurityId(SecurityGroupBuffer.Code);
+            PermissionsOverview.PermissionSetSecurityGroups.GoToRecord(PermSetAssignmentBuffer);
+            Assert.AreEqual(SecurityGroupBuffer.Code, PermissionsOverview.PermissionSetSecurityGroups.Code.Value,
+                'Security group assigned permission set was not found in factbox');
+
+            // [THEN] The user within the security group is also shown in the user factbox
+            PermSetAssignmentBuffer.SecurityId := GraphUser."User Security ID";
+            PermissionsOverview.PermissionSetUsers.GoToRecord(PermSetAssignmentBuffer);
+            Assert.AreEqual(GraphUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
+                'Graph user inheriting permission set from security group was not found in factbox');
+        until (ExpandedPermission.Next() = 0);
+    end;
+
+    local procedure CreatePermSetData(var TenantPermissionSet: Record "Tenant Permission Set"; AppId: Guid)
+    var
+        TenantPermission: Record "Tenant Permission";
+    begin
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), AppId);
+        LibraryPermissions.AddTenantPermission(TenantPermissionSet."App ID", TenantPermissionSet."Role ID", TenantPermission."Object Type"::"Table Data", Database::Customer);
+        LibraryPermissions.AddTenantPermission(TenantPermissionSet."App ID", TenantPermissionSet."Role ID", TenantPermission."Object Type"::"Table Data", Database::Vendor);
+    end;
+
+    local procedure CreateUserData(
+        var GraphUser: Record User;
+        var LocalUser: Record User;
+        var SecurityGroupBuffer: Record "Security Group Buffer")
+    var
+        SecurityGroup: Codeunit "Security Group";
+        UserInfo: DotNet UserInfo;
+    begin
+        Clear(AzureADGraphTestLibrary);
+        Clear(SecurityGroupsTestLibrary);
+        Clear(MockGraphQueryTestLibrary);
+
+        BindSubscription(AzureADGraphTestLibrary);
+        BindSubscription(SecurityGroupsTestLibrary);
+        MockGraphQueryTestLibrary.SetupMockGraphQuery();
+        AzureADGraphTestLibrary.SetMockGraphQuery(MockGraphQueryTestLibrary);
+
+
+        SecurityGroupBuffer.Code := LibraryUtility.GenerateRandomCode(SecurityGroupBuffer.FieldNo(Code), Database::"Security Group Buffer");
+        SecurityGroupBuffer."Group Name" := SecurityGroupBuffer.Code;
+        SecurityGroupBuffer."Group ID" := CreateGuid();
+        MockGraphQueryTestLibrary.AddGroup(SecurityGroupBuffer."Group Name", SecurityGroupBuffer."Group ID");
+        SecurityGroup.Create(SecurityGroupBuffer.Code, SecurityGroupBuffer."Group ID");
+
+        CreateUser(UserInfo, GraphUser."User Security ID");
+        GraphUser.Find();
+        MockGraphQueryTestLibrary.AddGraphUserToGroup(UserInfo, SecurityGroupBuffer."Group Name", SecurityGroupBuffer."Group ID");
+
+        LibraryPermissions.CreateUser(LocalUser, CreateGuid(), false);
+    end;
+
+    local procedure CreateUser(var GraphUser: DotNet UserInfo; var UserSecId: Guid)
+    var
+        User: Record User;
+        NavUserAccountHelper: DotNet NavUserAccountHelper;
+    begin
+        UserSecId := CreateGuid();
+        MockGraphQueryTestLibrary.AddAndReturnGraphUser(GraphUser, CreateGuid(), '', '', '');
+        User."User Security ID" := UserSecId;
+        User."User Name" := Format(UserSecId);
+        User.Insert();
+        NavUserAccountHelper.SetAuthenticationObjectId(UserSecId, GraphUser.ObjectId);
+    end;
+
+    local procedure AddUserPermission(UserSecId: Guid; AppId: Guid; RoleId: Code[20])
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.Init();
+        AccessControl."App ID" := AppId;
+        AccessControl."Role ID" := RoleId;
+        AccessControl."User Security ID" := UserSecId;
+        AccessControl.Insert();
     end;
 
     [SendNotificationHandler]

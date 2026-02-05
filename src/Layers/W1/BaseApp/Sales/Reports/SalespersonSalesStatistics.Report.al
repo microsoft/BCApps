@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates sales statistics by salesperson showing sales amounts, profits, discounts, and adjusted profit calculations.
+/// </summary>
+
 using Microsoft.CRM.Team;
 using Microsoft.Inventory.Costing;
 using Microsoft.Sales.Receivables;
@@ -326,6 +330,12 @@ report 114 "Salesperson - Sales Statistics"
         TotalsPmtTolerance: Decimal;
         ReportHasData: Boolean;
 
+    /// <summary>
+    /// Calculates the profit percentage based on amount and profit.
+    /// </summary>
+    /// <param name="Amount">The total amount.</param>
+    /// <param name="ProfitAmt">The profit amount.</param>
+    /// <returns>The profit percentage rounded to one decimal.</returns>
     procedure CalculateProfitPercent(Amount: Decimal; ProfitAmt: Decimal) ProfitPct: Decimal
     begin
         if Amount <> 0 then

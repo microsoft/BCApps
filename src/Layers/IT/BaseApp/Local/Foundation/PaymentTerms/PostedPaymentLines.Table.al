@@ -28,6 +28,7 @@ table 12171 "Posted Payment Lines"
         }
         field(4; "Payment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -43,6 +44,7 @@ table 12171 "Posted Payment Lines"
         }
         field(7; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -64,6 +66,7 @@ table 12171 "Posted Payment Lines"
         }
         field(11; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
     }

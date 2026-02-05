@@ -39,6 +39,7 @@ table 99000852 "Production Forecast Entry"
         }
         field(5; "Forecast Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Forecast Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -67,12 +68,14 @@ table 99000852 "Production Forecast Entry"
         }
         field(7; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(8; "Forecast Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Forecast Quantity (Base)';
             DecimalPlaces = 0 : 5;
 

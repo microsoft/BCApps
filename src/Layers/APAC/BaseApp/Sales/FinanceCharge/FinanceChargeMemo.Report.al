@@ -21,6 +21,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Prints issued finance charge memos including customer details, line items, VAT amounts, and payment information.
+/// </summary>
 report 118 "Finance Charge Memo"
 {
     DefaultLayout = RDLC;
@@ -749,11 +752,19 @@ report 118 "Finance Charge Memo"
         exit(CurrReport.Preview or MailManagement.IsHandlingGetEmailBody());
     end;
 
+    /// <summary>
+    /// Initializes the log interaction setting based on interaction template configuration.
+    /// </summary>
     procedure InitLogInteraction()
     begin
         LogInteraction := SegManagement.FindInteractionTemplateCode(Enum::"Interaction Log Entry Document Type"::"Sales Finance Charge Memo") <> '';
     end;
 
+    /// <summary>
+    /// Initializes the request parameters for the finance charge memo report.
+    /// </summary>
+    /// <param name="NewShowInternalInfo">Specifies whether to show internal information.</param>
+    /// <param name="NewLogInteraction">Specifies whether to log interaction.</param>
     procedure InitializeRequest(NewShowInternalInfo: Boolean; NewLogInteraction: Boolean)
     begin
         ShowInternalInfo := NewShowInternalInfo;

@@ -40,6 +40,110 @@ codeunit 137047 "SCM Warehouse I"
         SelectDimForCVErr: Label 'Select a Dimension Value Code for the Dimension Code AREA for %1 %2.';
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,GenericMessageHandler,WhseJournalBatchesListHandler,WhseCalculateInventoryRequestPageHandler')]
+    procedure CalculateInventoryWithZoneFilterAfterBinZoneChange()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        OldZone: Record Zone;
+        NewZone: Record Zone;
+        Bin: Record Bin;
+        AnotherBin: Record Bin;
+        BinContent: Record "Bin Content";
+        Item: Record Item;
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        ItemJournalLine: Record "Item Journal Line";
+        WhsePhysInvtJournal: TestPage "Whse. Phys. Invt. Journal";
+        Qty: Decimal;
+    begin
+        Initialize();
+        ResetDefaultWhseLocation();
+        Qty := LibraryRandom.RandIntInRange(10, 20);
+
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Location set up for directed put-away and pick
+        LibraryWarehouse.CreateFullWMSLocation(Location, 2);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        // [GIVEN] Find two bins in different zones (not adjustment bins)
+        FindBin(Bin, Location.Code, true);
+        if Bin.Code = Location."Adjustment Bin Code" then begin
+            Bin.SetFilter(Code, '<>%1', Location."Adjustment Bin Code");
+            Bin.FindFirst();
+        end;
+        OldZone.Get(Location.Code, Bin."Zone Code");
+
+        NewZone.SetRange("Location Code", Location.Code);
+        NewZone.SetRange("Bin Type Code", OldZone."Bin Type Code");
+        NewZone.SetFilter(Code, '<>%1', OldZone.Code);
+        NewZone.FindFirst();
+
+        FindBin(AnotherBin, Location.Code, true);
+        if (AnotherBin."Zone Code" = Bin."Zone Code") or (AnotherBin.Code = Location."Adjustment Bin Code") then begin
+            AnotherBin.SetFilter("Zone Code", '<>%1', Bin."Zone Code");
+            AnotherBin.SetFilter(Code, '<>%1', Location."Adjustment Bin Code");
+            AnotherBin.FindFirst();
+        end;
+
+        // [GIVEN] Post positive warehouse adjustment for item in first bin
+        LibraryWarehouse.WarehouseJournalSetup(Location.Code, WarehouseJournalTemplate, WarehouseJournalBatch);
+
+        LibraryWarehouse.CreateWhseJournalLine(
+            WarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Bin."Location Code",
+            Bin."Zone Code", Bin.Code, WarehouseJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Qty);
+
+        LibraryWarehouse.RegisterWhseJournalLine(
+          WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code, false);
+
+        // [GIVEN] Calculate warehouse adjustment and post
+        Item.SetRange("Location Filter", Location.Code);
+        ItemJournalLine.DeleteAll();
+        LibraryWarehouse.CalculateWhseAdjustmentItemJournal(Item, WorkDate(), '');
+        ItemJournalLine.SetRange("Item No.", Item."No.");
+        ItemJournalLine.FindFirst();
+        ItemJournalLine."Bin Code" := Bin.Code;
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Move items to another bin
+        CreateMovementAndRegister(Location.Code, Bin, AnotherBin, Item."No.", Qty);
+
+        // [GIVEN] Change the zone code of the original bin
+        Bin.Find();
+        Bin.Validate("Zone Code", NewZone.Code);
+        Bin.Modify(true);
+        Bin.Get(Location.Code, Bin.Code);
+        Bin.CalcFields("Adjustment Bin");
+        if Bin."Adjustment Bin" then
+            Error('Bin %1 became adjustment bin after zone change', Bin.Code);
+        LibraryWarehouse.CreateBinContent(BinContent, Bin."Location Code", '', Bin.Code, Item."No.", '', Item."Base Unit of Measure");
+
+        // [GIVEN] Move items back to the original bin (now with new zone)
+        CreateMovementAndRegister(Location.Code, AnotherBin, Bin, Item."No.", Qty);
+
+        // [WHEN] Calculate inventory in Warehouse Physical Inventory Journal with Zone filter for the new zone
+        CalculateInventoryOnWhsePhysInvtJournalPage(WhsePhysInvtJournal, false, Item."No.", NewZone.Code, '');
+
+        // [THEN] Warehouse journal lines are created successfully without error
+        WarehouseJournalLine.Reset();
+        WarehouseJournalLine.SetRange("Item No.", Item."No.");
+        WarehouseJournalLine.SetRange("Zone Code", NewZone.Code);
+        WarehouseJournalLine.SetRange("Bin Code", Bin.Code);
+        Assert.RecordIsNotEmpty(WarehouseJournalLine);
+
+        // [THEN] The calculated quantity matches the actual quantity
+        WarehouseJournalLine.FindFirst();
+        WarehouseJournalLine.TestField("Qty. (Calculated)", Qty);
+
+        // Clean up
+        WarehouseJournalLine.Reset();
+        WarehouseJournalLine.DeleteAll();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ShowPostingErrorSalesOrder()
     var
@@ -2617,6 +2721,87 @@ codeunit 137047 "SCM Warehouse I"
         SalesLine2.TestField("Reserved Quantity", 0);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler')]
+    procedure GetBinContentWithLotAndSerialTrackingAfterReclassification()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        Quantity: Decimal;
+        LotNo: Code[20];
+    begin
+        // [SCENARIO 616739] Get Bin Content in Item Reclass Journal with Lot Specific and  Serial Number (Outbound) Tracking
+        // after item was reclassed from Shipment bin back to Storage bin
+        Initialize();
+
+        // [GIVEN] Create location with Inventory Posting Setup
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
+
+        // [GIVEN] Assign Bins to "Receipt Bin Code", "Shipment Bin Code" fields on Location.
+        Location.Validate("Receipt Bin Code", AddBin(Location.Code));
+        Location.Validate("Shipment Bin Code", AddBin(Location.Code));
+        Location.Modify(true);
+
+        // [GIVEN] Create Warehouse Employee for Location.
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        // [GIVEN] Create an Item with Lot Specific Tracking and Serial tracking for Outbound only.
+        CreateItemWithLotAndOutboundSerialTracking(Item, ItemTrackingCode);
+
+        // [GIVEN] Set Lot No and Quantity.
+        LotNo := LibraryUtility.GenerateGUID();
+        Quantity := LibraryRandom.RandIntInRange(3, 3);
+
+        // [GIVEN] Create and Post Item Journal Line With Lot No.
+        CreateItemJournalLine(ItemJournalLine, Item."No.", Location.Code, Quantity);
+        ItemJournalLine.Validate("Bin Code", AddBin(Location.Code));
+        ItemJournalLine.Modify(true);
+
+        AssignLotNoToItemJournalLine(ItemJournalLine, LotNo, Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [GIVEN] Create Sales Document and release it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Location Code", Location.Code);
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", Quantity);
+
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        //[GIVEN] Create Warehouse Shipment from Sales Order.
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+
+        // [GIVEN] Create Warehouse Pick.
+        WarehouseShipmentHeader.SetRange("Location Code", Location.Code);
+        WarehouseShipmentHeader.FindLast();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        FindWarehouseActivityLine(
+                WarehouseActivityLine, DATABASE::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.");
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+
+        //  [GIVEN] Split Pick lines into quantity of 1 and assign serial numbers and lot number. 
+        SplitPickLinesAndAssignSerialNumbers(WarehouseActivityHeader, LotNo);
+
+        // [GIVEN] Register the pick.
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Reclassify Items from Shipment bin back to Storage bin.
+        ReclassifyItemsFromShipmentToStorage(Item, Location);
+
+        // [THEN] Get Bin Content in Item Reclass Journal should work without any error.
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3446,6 +3631,76 @@ codeunit 137047 "SCM Warehouse I"
         PostedWhseReceiptLine.FindFirst();
     end;
 
+    local procedure ResetDefaultWhseLocation()
+    var
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        WarehouseEmployee.SetRange("User ID", USERID);
+        WarehouseEmployee.SetRange(Default, true);
+        WarehouseEmployee.ModifyAll(Default, false);
+    end;
+
+    local procedure FindBin(var Bin: Record Bin; LocationCode: Code[10]; Pick: Boolean)
+    var
+        Zone: Record Zone;
+    begin
+        FindZone(Zone, LocationCode, LibraryWarehouse.SelectBinType(false, false, true, Pick));
+        LibraryWarehouse.FindBin(Bin, LocationCode, Zone.Code, 1);  // Use 1 for Bin Index.
+    end;
+
+    local procedure FindZone(var Zone: Record Zone; LocationCode: Code[10]; BinTypeCode: Code[10])
+    begin
+        Zone.SetRange("Location Code", LocationCode);
+        Zone.SetRange("Bin Type Code", BinTypeCode);
+        Zone.SetRange("Cross-Dock Bin Zone", false);
+        Zone.FindFirst();
+    end;
+
+    local procedure CreateMovementAndRegister(LocationCode: Code[10]; FromBin: Record Bin; ToBin: Record Bin; ItemNo: Code[20]; Qty: Decimal)
+    var
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Movement);
+        LibraryWarehouse.SelectWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, LocationCode);
+
+        LibraryWarehouse.CreateWhseWorksheetLine(
+          WhseWorksheetLine, WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, LocationCode,
+          WhseWorksheetLine."Whse. Document Type"::" ");
+        WhseWorksheetLine.Validate("Item No.", ItemNo);
+        WhseWorksheetLine.Validate("From Zone Code", FromBin."Zone Code");
+        WhseWorksheetLine.Validate("From Bin Code", FromBin.Code);
+        WhseWorksheetLine.Validate("To Zone Code", ToBin."Zone Code");
+        WhseWorksheetLine.Validate("To Bin Code", ToBin.Code);
+        WhseWorksheetLine.Validate(Quantity, Qty);
+        WhseWorksheetLine.Modify(true);
+
+        // [GIVEN] Created Movement from Worksheet
+        LibraryWarehouse.CreateWhseMovement(WhseWorksheetLine.Name, WhseWorksheetLine."Location Code", "Whse. Activity Sorting Method"::None, false, false);
+
+        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::Movement);
+        WhseActivityHeader.SetRange("Location Code", LocationCode);
+        WhseActivityHeader.FindLast();
+        LibraryWarehouse.RegisterWhseActivity(WhseActivityHeader);
+    end;
+
+    local procedure CalculateInventoryOnWhsePhysInvtJournalPage(var WhsePhysInvtJournal: TestPage "Whse. Phys. Invt. Journal"; ItemsNotOnInventory: Boolean; ItemNo: Code[20]; ZoneCode: Code[10]; BinCode: Code[20])
+    begin
+        WhsePhysInvtJournal.OpenEdit();
+        WhsePhysInvtJournal.CurrentJnlBatchName.Lookup();
+
+        // Enqueue values for WhseCalculateInventoryRequestPageHandler.
+        LibraryVariableStorage.Enqueue(ItemsNotOnInventory);
+        LibraryVariableStorage.Enqueue(ItemNo);
+        LibraryVariableStorage.Enqueue(ZoneCode);
+        LibraryVariableStorage.Enqueue(BinCode);
+
+        WhsePhysInvtJournal."Calculate &Inventory".Invoke(); // Invoke Action17: Calculate Inventory.
+        WhsePhysInvtJournal.OK().Invoke();
+    end;
+
     local procedure VerifyPostedReceiptLinesSales(WhseReceiptNo: Code[20]; ItemNo: Code[20]; DocumentNo: Code[20])
     var
         PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
@@ -3619,6 +3874,104 @@ codeunit 137047 "SCM Warehouse I"
         WarehouseShipmentLine.TestField("Qty. Picked", WarehouseShipmentLine.Quantity);
     end;
 
+    local procedure SplitPickLinesAndAssignSerialNumbers(var WarehouseActivityHeader: Record "Warehouse Activity Header"; LotNo: Code[20])
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        SerialNo: Code[20];
+        SerialNoList: List of [Code[20]];
+        CountOfTakeLines: Integer;
+        i: Integer;
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        if WarehouseActivityLine.FindSet() then
+            repeat
+                while WarehouseActivityLine."Qty. to Handle" > 1 do begin
+                    WarehouseActivityLine.Validate("Qty. to Handle", 1);
+                    WarehouseActivityLine.Modify(true);
+                    WarehouseActivityLine.SplitLine(WarehouseActivityLine);
+                    WarehouseActivityLine.Next();
+                end;
+            until WarehouseActivityLine.Next() = 0;
+
+        WarehouseActivityLine.Reset();
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        CountOfTakeLines := WarehouseActivityLine.Count;
+
+        for i := 1 to CountOfTakeLines do
+            SerialNoList.Add(LibraryUtility.GenerateGUID());
+
+        foreach SerialNo in SerialNoList do begin
+            AssignTrackingToActivityLine(WarehouseActivityHeader, WarehouseActivityLine."Action Type"::Take, SerialNo, LotNo);
+            AssignTrackingToActivityLine(WarehouseActivityHeader, WarehouseActivityLine."Action Type"::Place, SerialNo, LotNo);
+        end;
+    end;
+
+    local procedure AssignTrackingToActivityLine(WarehouseActivityHeader: Record "Warehouse Activity Header"; ActionType: Enum "Warehouse Action Type"; SerialNo: Code[20]; LotNo: Code[20])
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("Action Type", ActionType);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetFilter("Qty. to Handle", '>0');
+        WarehouseActivityLine.SetFilter("Serial No.", '%1', '');
+        if WarehouseActivityLine.FindFirst() then begin
+            WarehouseActivityLine.Validate("Serial No.", SerialNo);
+            WarehouseActivityLine.Validate("Lot No.", LotNo);
+            WarehouseActivityLine.Modify(true);
+        end;
+    end;
+
+    local procedure CreateItemWithLotAndOutboundSerialTracking(var Item: Record Item; var ItemTrackingCode: Record "Item Tracking Code")
+    begin
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false);
+        ItemTrackingCode.Validate("Lot Specific Tracking", true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Validate("SN Sales Outbound Tracking", true);
+        ItemTrackingCode.Modify(true);
+
+        LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCode.Code);
+    end;
+
+    local procedure ReclassifyItemsFromShipmentToStorage(Item: Record Item; Location: Record Location)
+    var
+        ItemJnlBatch: Record "Item Journal Batch";
+        ItemJnlTemplate: Record "Item Journal Template";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJnlTemplate, ItemJnlTemplate.Type::Transfer);
+        LibraryInventory.SelectItemJournalBatchName(ItemJnlBatch, ItemJnlBatch."Template Type"::Item, ItemJnlTemplate.Name);
+        LibraryInventory.ClearItemJournal(ItemJnlTemplate, ItemJnlBatch);
+
+        ReclassifyBinContent(ItemJnlBatch, Location.Code, Location."Shipment Bin Code", Location."Receipt Bin Code", Item."No.");
+        ReclassifyBinContent(ItemJnlBatch, Location.Code, Location."Receipt Bin Code", Location."Shipment Bin Code", Item."No.");
+    end;
+
+    local procedure ReclassifyBinContent(ItemJnlBatch: Record "Item Journal Batch"; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; ItemNo: Code[20])
+    var
+        ItemJnlTemplate: Record "Item Journal Template";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        GetBinContentFromItemJournalLine(ItemJnlBatch, LocationCode, FromBinCode, ItemNo);
+        FindItemJournalLine(ItemJournalLine, ItemJnlBatch, ItemNo);
+        ItemJournalLine.Validate("New Bin Code", ToBinCode);
+        if ItemJournalLine."Document No." = '' then
+            ItemJournalLine.Validate("Document No.", LibraryUtility.GenerateRandomCode(ItemJournalLine.FieldNo("Document No."), DATABASE::"Item Journal Line"));
+        ItemJournalLine.Modify(true);
+        LibraryInventory.SelectItemJournalTemplateName(ItemJnlTemplate, ItemJnlTemplate.Type::Transfer);
+        LibraryInventory.PostItemJournalLine(ItemJnlTemplate.Name, ItemJnlBatch.Name);
+    end;
+
+    local procedure FindItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; ItemJournalBatch: Record "Item Journal Batch"; ItemNo: Code[20])
+    begin
+        ItemJournalLine.SetRange("Journal Template Name", ItemJournalBatch."Journal Template Name");
+        ItemJournalLine.SetRange("Journal Batch Name", ItemJournalBatch.Name);
+        ItemJournalLine.SetRange("Item No.", ItemNo);
+        ItemJournalLine.FindFirst();
+    end;
+
     [StrMenuHandler]
     [Scope('OnPrem')]
     procedure StringMenuHandler(Options: Text[1024]; var Choice: Integer; Instructions: Text[1024])
@@ -3737,6 +4090,41 @@ codeunit 137047 "SCM Warehouse I"
             WhseItemTrackingLines.Quantity.SetValue(LibraryVariableStorage.DequeueDecimal());
         end;
         WhseItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure WhseJournalBatchesListHandler(var WhseJournalBatchesList: TestPage "Whse. Journal Batches List")
+    begin
+        WhseJournalBatchesList.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure WhseCalculateInventoryRequestPageHandler(var WhseCalculateInventory: TestRequestPage "Whse. Calculate Inventory")
+    var
+        ZoneCode: Variant;
+        BinCode: Variant;
+        ItemsNotOnInventory: Variant;
+        ItemNo: Variant;
+        Zone: Text;
+        Bin: Text;
+    begin
+        LibraryVariableStorage.Dequeue(ItemsNotOnInventory);
+        LibraryVariableStorage.Dequeue(ItemNo);
+        LibraryVariableStorage.Dequeue(ZoneCode);
+        LibraryVariableStorage.Dequeue(BinCode);
+        Zone := ZoneCode;
+        Bin := BinCode;
+
+        WhseCalculateInventory.WhseDocumentNo.SetValue(LibraryUtility.GetGlobalNoSeriesCode());
+        WhseCalculateInventory.ZeroQty.SetValue(ItemsNotOnInventory); // Control11: Items Not on Inventory.
+        WhseCalculateInventory."Bin Content".SetFilter("Item No.", ItemNo);
+        if Zone <> '' then
+            WhseCalculateInventory."Bin Content".SetFilter("Zone Code", ZoneCode);
+        if Bin <> '' then
+            WhseCalculateInventory."Bin Content".SetFilter("Bin Code", BinCode);
+        WhseCalculateInventory.OK().Invoke();
     end;
 }
 

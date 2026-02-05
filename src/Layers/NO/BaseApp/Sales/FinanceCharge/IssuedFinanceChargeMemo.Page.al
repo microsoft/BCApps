@@ -12,6 +12,9 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Reports;
 
+/// <summary>
+/// Displays a posted finance charge memo document with print, email, navigation, and cancellation actions.
+/// </summary>
 page 450 "Issued Finance Charge Memo"
 {
     Caption = 'Issued Finance Charge Memo';

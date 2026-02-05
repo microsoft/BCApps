@@ -427,35 +427,55 @@ page 370 "Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment authorization number.';
                 }
+#if not CLEAN28
             }
             group(" R.I.B")
             {
                 Caption = ' R.I.B';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                ObsoleteTag = '28.0';
                 field("Bank Branch No.3"; Rec."Bank Branch No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the branch number of your bank.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("Agency Code"; Rec."Agency Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the five-number code of the agency of the bank, for example, 00300.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("Bank Account No.3"; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the bank account number.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("RIB Key"; Rec."RIB Key")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the two-digit RIB key associated with the Bank Account No. RIB key value in range from 01 to 09 is represented in the single-digit form, without leading zero digit.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("RIB Checked"; Rec."RIB Checked")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Bank Account No. has been verified against the RIB Key.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 field("Bank Statement Import Format"; Rec."Bank Statement Import Format")
                 {
                     ApplicationArea = Basic, Suite;

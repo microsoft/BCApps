@@ -26,6 +26,7 @@ table 2000003 "IBLC/BLWI Transaction Code"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             Description = 'Internal Usage';
             Editable = false;

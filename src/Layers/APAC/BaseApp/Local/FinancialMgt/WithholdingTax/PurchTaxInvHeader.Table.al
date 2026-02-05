@@ -140,6 +140,7 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
         }
@@ -183,6 +184,7 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -464,6 +466,7 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -502,6 +505,8 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry"."Remaining Unrealized Amount" where("Document Type" = const(Invoice),
                                                                                "Document No." = field("No.")));
             Caption = 'Rem. WHT Prepaid Amount (LCY)';
@@ -509,6 +514,8 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(28042; "Paid WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry".Amount where("Document Type" = const(Payment),
                                                         "Document No." = field("No.")));
             Caption = 'Paid WHT Prepaid Amount (LCY)';
@@ -516,6 +523,8 @@ table 28075 "Purch. Tax Inv. Header"
         }
         field(28043; "Total WHT Prepaid Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("WHT Entry"."Unrealized Amount" where("Document Type" = const(Invoice),
                                                                      "Document No." = field("No.")));
             Caption = 'Total WHT Prepaid Amount (LCY)';
@@ -593,16 +602,16 @@ table 28075 "Purch. Tax Inv. Header"
         if "No." = '' then
             if TaxInvoiceManagement.CheckTaxableNoSeries("Buy-from Vendor No.", 0) then begin
                 PurchSetup.TestField("Posted Non Tax Invoice Nos.");
-                    "No. Series" := PurchSetup."Posted Non Tax Invoice Nos.";
-                    if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                        "No. Series" := xRec."No. Series";
-                    "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+                "No. Series" := PurchSetup."Posted Non Tax Invoice Nos.";
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
             end else begin
                 TestNoSeries();
                 "No. Series" := GetNoSeriesCode();
-                    if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                        "No. Series" := xRec."No. Series";
-                    "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
             end;
     end;
 

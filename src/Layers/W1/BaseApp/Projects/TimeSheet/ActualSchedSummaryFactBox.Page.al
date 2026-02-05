@@ -66,6 +66,7 @@ page 956 "Actual/Sched. Summary FactBox"
             }
             field(PresenceQty; PresenceQty)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Total Presence';
                 DecimalPlaces = 2 : 2;
@@ -73,6 +74,7 @@ page 956 "Actual/Sched. Summary FactBox"
             }
             field(AbsenceQty; AbsenceQty)
             {
+                AutoFormatType = 0;
                 ApplicationArea = Jobs;
                 Caption = 'Total Absence';
                 DecimalPlaces = 2 : 2;

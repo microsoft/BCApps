@@ -41,6 +41,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(GrossRequirement; GrossRequirement)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Gross Requirement';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the sum of the all demand for the item.';
@@ -53,6 +54,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(ScheduledRcpt; ScheduledRcpt)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Scheduled Receipt';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the sum of items from replenishment orders.';
@@ -65,6 +67,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(PlannedOrderRcpt; PlannedOrderRcpt)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Planned Receipt';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity on planned production orders plus planning worksheet lines plus requisition worksheet lines.';
@@ -77,6 +80,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(ProjAvailableBalance; ProjAvailableBalance)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Projected Available Balance';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the item''s availability. This quantity includes all known supply and demand but does not include anticipated demand from demand forecasts or blanket sales orders or suggested supplies from planning or requisition worksheets.';
@@ -242,6 +246,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(ExpectedInventory; ExpectedInventory)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Expected Inventory';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -251,6 +256,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(QtyAvailable; QtyAvailable)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Available Qty. on Hand';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -260,6 +266,7 @@ page 5415 "Item Avail. by Variant Lines"
                 field(PlannedOrderReleases; PlannedOrderReleases)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Planned Order Releases';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the sum of items from replenishment order proposals, which include planned production orders and planning or requisition worksheets lines, that are calculated according to the starting date in the planning worksheet and production order or the order date in the requisition worksheet. This sum is not included in the projected available inventory. However, it indicates which quantities should be converted from planned to scheduled receipts.';

@@ -165,6 +165,8 @@ page 981 "Payment Registration"
                 field(PostedBalance; PostedBalance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Posted Balance';
                     Editable = false;
                     ToolTip = 'Specifies the balance of payments posted to the balancing account that is being used in the Payment Registration window.';
@@ -172,6 +174,8 @@ page 981 "Payment Registration"
                 field(UnpostedBalance; UnpostedBalance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Unposted Balance';
                     Editable = false;
                     ToolTip = 'Specifies the amount that exists on unposted journal lines with the same balancing account as the one used in the Payment Registration window.';
@@ -179,6 +183,8 @@ page 981 "Payment Registration"
                 field(TotalBalance; TotalBalance)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total Balance';
                     Editable = false;
                     Importance = Promoted;

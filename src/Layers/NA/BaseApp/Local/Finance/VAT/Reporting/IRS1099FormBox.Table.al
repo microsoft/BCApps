@@ -25,6 +25,7 @@ table 10010 "IRS 1099 Form-Box"
         }
         field(3; "Minimum Reportable"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Reportable';
             DecimalPlaces = 2 : 2;
         }
@@ -165,5 +166,5 @@ table 10010 "IRS 1099 Form-Box"
         IRS1099FormBox."Minimum Reportable" := NewMinimum;
         IRS1099FormBox.Insert();
     end;
-} 
+}
 #endif

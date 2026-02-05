@@ -78,6 +78,7 @@ table 5615 "FA Allocation"
         }
         field(7; "Allocation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocation %';
             DecimalPlaces = 1 : 1;
             MaxValue = 100;

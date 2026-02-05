@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides a dialog for creating new automation actions within a reminder action group.
+/// </summary>
 page 6750 "New Reminder Action"
 {
     Caption = 'New Reminder Action';
@@ -51,6 +54,11 @@ page 6750 "New Reminder Action"
         }
     }
 
+    /// <summary>
+    /// Adds a new action type item to the list of available reminder actions.
+    /// </summary>
+    /// <param name="ItemName">The display name of the action type.</param>
+    /// <param name="ItemValue">The value identifier of the action type.</param>
     procedure AddItem(ItemName: Text; ItemValue: Text)
     var
         NextID: Integer;
@@ -82,11 +90,19 @@ page 6750 "New Reminder Action"
         exit(true);
     end;
 
+    /// <summary>
+    /// Gets the action code entered by the user.
+    /// </summary>
+    /// <returns>The action code value.</returns>
     procedure GetActionId(): Code[50]
     begin
         exit(GlobalActionId);
     end;
 
+    /// <summary>
+    /// Gets the name of the selected action type.
+    /// </summary>
+    /// <returns>The name of the selected action type.</returns>
     procedure GetSelectedAction(): Text
     begin
         exit(SelectedAction);

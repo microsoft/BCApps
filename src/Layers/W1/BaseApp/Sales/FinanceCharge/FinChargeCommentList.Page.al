@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays a read-only list of comments attached to finance charge memos.
+/// </summary>
 page 455 "Fin. Charge Comment List"
 {
     AutoSplitKey = true;
@@ -56,6 +59,11 @@ page 455 "Fin. Charge Comment List"
         Text001: Label 'Fin. Charge Memo';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Generates a caption for the finance charge comment list page.
+    /// </summary>
+    /// <param name="FinChrgCommentLine">The finance charge comment line to generate caption for.</param>
+    /// <returns>The page caption text.</returns>
     procedure Caption(FinChrgCommentLine: Record "Fin. Charge Comment Line"): Text
     begin
         if FinChrgCommentLine."No." = '' then

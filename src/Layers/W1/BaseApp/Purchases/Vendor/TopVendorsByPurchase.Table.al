@@ -24,6 +24,8 @@ table 9088 "Top Vendors By Purchase"
         }
         field(3; PurchasesLCY; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'PurchasesLCY';
             DataClassification = OrganizationIdentifiableInformation;
         }

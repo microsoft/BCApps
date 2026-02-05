@@ -8,6 +8,9 @@ using Microsoft.Finance.Currency;
 using System.Integration;
 using System.Visualization;
 
+/// <summary>
+/// Displays a visual chart representation of additional fee structures for reminder levels.
+/// </summary>
 page 1051 "Additional Fee Chart"
 {
     Caption = 'Additional Fee Visualization';
@@ -48,6 +51,8 @@ page 1051 "Additional Fee Chart"
                 }
                 field("Max. Remaining Amount"; MaxRemAmount)
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = Currency;
                     ApplicationArea = Suite;
                     Caption = 'Max. Remaining Amount';
                     MinValue = 0;
@@ -100,6 +105,12 @@ page 1051 "Additional Fee Chart"
         ShowOptions: Boolean;
         AddInIsReady: Boolean;
 
+    /// <summary>
+    /// Sets the view mode for the additional fee chart.
+    /// </summary>
+    /// <param name="SetReminderLevel">The reminder level to display fees for.</param>
+    /// <param name="SetChargePerLine">True if showing charge per line fees, false for fixed fees.</param>
+    /// <param name="SetShowOptions">True to show chart options, otherwise false.</param>
     procedure SetViewMode(SetReminderLevel: Record "Reminder Level"; SetChargePerLine: Boolean; SetShowOptions: Boolean)
     begin
         ReminderLevel := SetReminderLevel;
@@ -107,6 +118,9 @@ page 1051 "Additional Fee Chart"
         ShowOptions := SetShowOptions;
     end;
 
+    /// <summary>
+    /// Updates the chart data based on the current view mode settings.
+    /// </summary>
     [Scope('OnPrem')]
     procedure UpdateData()
     begin

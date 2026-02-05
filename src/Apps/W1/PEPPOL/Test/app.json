@@ -1,6 +1,6 @@
 {
   "id": "9c2d64fd-cc04-422b-9ce4-7fffc131ae91",
-  "name": "Tests-PEPPOL",
+  "name": "PEPPOL Tests",
   "publisher": "Microsoft",
   "description": "PEPPOL 3.0 Application Tests",
   "brief": "PEPPOL 3.0 Application Tests",
@@ -61,7 +61,7 @@
   "idRanges": [
     {
       "from": 139235,
-      "to": 139235
+      "to": 139236
     }
   ],
   "application": "28.0.0.0",
@@ -74,5 +74,5 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "target": "Cloud"
+  "target": "OnPrem"
 }

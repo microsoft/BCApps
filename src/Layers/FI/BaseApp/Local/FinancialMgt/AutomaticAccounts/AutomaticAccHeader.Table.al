@@ -28,6 +28,7 @@ table 11203 "Automatic Acc. Header"
         }
         field(3; Balance; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Automatic Acc. Line"."Allocation %" where("Automatic Acc. No." = field("No.")));
             Caption = 'Balance';
             FieldClass = FlowField;
@@ -56,5 +57,5 @@ table 11203 "Automatic Acc. Header"
         AutoAccountLine: Record "Automatic Acc. Line";
 }
 
- 
+
 #endif

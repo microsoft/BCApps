@@ -93,39 +93,45 @@ table 7154 "Item Analysis View Entry"
         }
         field(21; "Invoiced Quantity"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
         }
         field(22; "Sales Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount (Actual)';
         }
         field(23; "Cost Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Actual)';
         }
         field(24; "Cost Amount (Non-Invtbl.)"; Decimal)
         {
             AccessByPermission = TableData "Item Charge" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Non-Invtbl.)';
         }
         field(31; Quantity; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Quantity';
         }
         field(32; "Sales Amount (Expected)"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount (Expected)';
         }
         field(33; "Cost Amount (Expected)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Expected)';
         }
     }

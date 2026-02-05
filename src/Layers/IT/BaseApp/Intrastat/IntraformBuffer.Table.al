@@ -66,16 +66,19 @@ table 12118 "Intra - form Buffer"
         }
         field(14; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
         }
         field(18; "Statistical Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Statistical Value';
             DataClassification = SystemMetadata;
         }
@@ -86,6 +89,7 @@ table 12118 "Intra - form Buffer"
         }
         field(22; "Total Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Weight';
             DataClassification = SystemMetadata;
         }
@@ -118,6 +122,8 @@ table 12118 "Intra - form Buffer"
         }
         field(12101; "Source Currency Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Source Currency Amount';
             DataClassification = SystemMetadata;
         }
@@ -207,5 +213,5 @@ table 12118 "Intra - form Buffer"
     }
 }
 
- 
+
 #endif

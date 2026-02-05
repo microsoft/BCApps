@@ -65,6 +65,7 @@ page 150 "Setup Business Unit Currency"
             field(AverageCurrencyFactor; IncomeCurrencyFactor)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Average Currency Factor';
                 ToolTip = 'Specifies the exchange rate to use for income statement accounts. Income statement G/L Entries from the business unit will be divided by this factor.';
                 Editable = NeedsCurrencyTranslation;
@@ -86,6 +87,7 @@ page 150 "Setup Business Unit Currency"
             field(ClosingCurrencyFactor; BalanceCurrencyFactor)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Closing Currency Factor';
                 ToolTip = 'Specifies the exchange rate to use for balance accounts. Balance sheet G/L Entries from the business unit will be divided by this factor.';
                 Editable = NeedsCurrencyTranslation;
@@ -109,6 +111,7 @@ page 150 "Setup Business Unit Currency"
                 field(LastClosingCurrencyFactor; LastBalanceCurrencyFactor)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Last Closing Currency Factor';
                     ToolTip = 'Specifies the last closing currency factor used for the business unit. This is used to adjust the balance accounts with the new currency exchange rate. It is automatically filled after consolidating the business unit. ';
                     Editable = NeedsCurrencyTranslation;

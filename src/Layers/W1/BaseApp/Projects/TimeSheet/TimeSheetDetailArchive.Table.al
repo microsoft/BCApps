@@ -55,11 +55,13 @@ table 956 "Time Sheet Detail Archive"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Editable = false;
         }
         field(16; "Posted Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Posted Quantity';
         }
         field(18; "Assembly Order No."; Code[20])

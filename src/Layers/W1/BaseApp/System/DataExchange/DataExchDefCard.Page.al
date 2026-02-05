@@ -114,6 +114,12 @@ page 1210 "Data Exch Def Card"
                         ApplicationArea = Basic, Suite;
                         ToolTip = 'Specifies how columns in the file are separated if the file is of a custom type.';
                     }
+                    field("Line Separator"; Rec."Line Separator")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Enabled = Rec."File Type" = Rec."File Type"::"Variable Text";
+                        ToolTip = 'Specifies how lines in the file are separated if the file is of type Variable Text.';
+                    }
                 }
                 group("Type: Import")
                 {

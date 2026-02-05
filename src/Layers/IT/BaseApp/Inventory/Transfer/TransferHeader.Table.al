@@ -700,16 +700,19 @@ table 5740 "Transfer Header"
         }
         field(12101; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(12102; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(12103; "Parcel Units"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Parcel Units';
             DecimalPlaces = 0 : 5;
         }
@@ -787,6 +790,7 @@ table 5740 "Transfer Header"
         }
         field(12184; Volume; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Volume';
         }
         field(12185; "Shipping Notes"; Text[100])
@@ -1140,6 +1144,7 @@ table 5740 "Transfer Header"
                             TransferLine.Validate("Item No.", TempTransferLine."Item No.");
                             TransferLine.Validate("Variant Code", TempTransferLine."Variant Code");
                             TransferLine.Validate("Dimension Set ID", TempTransferLine."Dimension Set ID");
+                            OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(TransferLine, TempTransferLine);
                         end;
                     else
                         OnUpdateTransLines(TransferLine, TransferHeader, FieldID);
@@ -2012,6 +2017,11 @@ table 5740 "Transfer Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnBeforeUpdateLines(var TransferHeader: Record "Transfer Header"; xTransferHeader: Record "Transfer Header"; CurrentFieldNo: Integer; OldDimSetID: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
     end;
 }

@@ -31,6 +31,7 @@ table 5649 "FA Posting Group Buffer"
         }
         field(4; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

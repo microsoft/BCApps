@@ -60,6 +60,7 @@ page 925 "Available - Assembly Headers"
                 }
                 field(QtyToReserveBase; QtyToReserveBase)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Available Quantity';
                     DecimalPlaces = 0 : 5;
@@ -68,6 +69,7 @@ page 925 "Available - Assembly Headers"
                 }
                 field(ReservedQuantity; GetReservedQtyInLine())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     Caption = 'Current Reserved Quantity';
                     DecimalPlaces = 0 : 5;

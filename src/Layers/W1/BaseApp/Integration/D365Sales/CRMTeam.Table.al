@@ -242,6 +242,7 @@ table 5359 "CRM Team"
         }
         field(28; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Exchange rate for the currency associated with the team with respect to the base currency.';
             ExternalAccess = Read;

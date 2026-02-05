@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.EServices.EDocument;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Provides functionality to edit specific fields on posted sales credit memo headers.
+/// </summary>
 codeunit 1408 "Sales Credit Memo Hdr. - Edit"
 {
     Permissions = TableData "Sales Cr.Memo Header" = rm;
@@ -97,6 +100,11 @@ codeunit 1408 "Sales Credit Memo Hdr. - Edit"
         exit(CustLedgerEntry.Get(SalesCrMemoHeader."Cust. Ledger Entry No."));
     end;
 
+    /// <summary>
+    /// Raises an event before the sales credit memo header is modified.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">Specifies the sales credit memo header being modified.</param>
+    /// <param name="FromSalesCrMemoHeader">Specifies the source sales credit memo header with the new values.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeSalesCrMemoHeaderModify(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; FromSalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin

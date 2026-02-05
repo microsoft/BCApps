@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Handles events during automated reminder creation to track progress and log results.
+/// </summary>
 codeunit 6761 "Create Aut. Event Handler"
 {
     EventSubscriberInstance = Manual;
@@ -17,6 +20,10 @@ codeunit 6761 "Create Aut. Event Handler"
         NoRemindersCreatedTxt: Label 'No reminders were created.';
         NumberOfRemindersCreated: Integer;
 
+    /// <summary>
+    /// Sets the reminder action record used for tracking reminder creation progress.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action to set as the global context.</param>
     procedure SetReminderAction(var ReminderAction: Record "Reminder Action")
     begin
         GlobalReminderAction := ReminderAction;
@@ -54,6 +61,9 @@ codeunit 6761 "Create Aut. Event Handler"
         ReminderHeader.Modify();
     end;
 
+    /// <summary>
+    /// Updates the action log status and summary after the reminder creation process completes.
+    /// </summary>
     procedure UpdateStatusAfterRun()
     var
         ReminderActionLog: Record "Reminder Action Log";

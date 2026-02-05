@@ -191,6 +191,7 @@ table 99000765 "Manufacturing Setup"
         }
         field(41; "Default Dampener %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Dampener %';
             DecimalPlaces = 1 : 1;
             MinValue = 0;

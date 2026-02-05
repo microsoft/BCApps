@@ -8,6 +8,9 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides customer name descriptions for inventory ledger entries originating from sales transactions.
+/// </summary>
 codeunit 5860 "Invt. Ledger Sales Source"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceDescription, '', false, false)]

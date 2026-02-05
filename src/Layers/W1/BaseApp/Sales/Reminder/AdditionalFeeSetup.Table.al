@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Stores dynamic additional fee configurations for reminder levels based on threshold amounts and currencies.
+/// </summary>
 table 1050 "Additional Fee Setup"
 {
     Caption = 'Additional Fee Setup';
@@ -15,34 +18,56 @@ table 1050 "Additional Fee Setup"
 
     fields
     {
+        /// <summary>
+        /// Indicates whether this fee setup applies to line fees (true) or header fees (false).
+        /// </summary>
         field(1; "Charge Per Line"; Boolean)
         {
             Caption = 'Charge Per Line';
         }
+        /// <summary>
+        /// Specifies the reminder terms to which this fee setup belongs.
+        /// </summary>
         field(2; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
             NotBlank = true;
             TableRelation = "Reminder Terms".Code;
         }
+        /// <summary>
+        /// Specifies the reminder level number within the terms.
+        /// </summary>
         field(3; "Reminder Level No."; Integer)
         {
             Caption = 'Reminder Level No.';
             NotBlank = true;
             TableRelation = "Reminder Level"."No.";
         }
+        /// <summary>
+        /// Specifies the currency for which this fee setup applies.
+        /// </summary>
         field(4; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency.Code;
         }
+        /// <summary>
+        /// Specifies the minimum remaining amount required to trigger this fee tier.
+        /// </summary>
         field(5; "Threshold Remaining Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Threshold Remaining Amount';
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the fixed additional fee amount charged when the threshold is met.
+        /// </summary>
         field(6; "Additional Fee Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Additional Fee Amount';
             MinValue = 0;
 
@@ -60,14 +85,23 @@ table 1050 "Additional Fee Setup"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the percentage of the remaining amount to charge as a fee.
+        /// </summary>
         field(7; "Additional Fee %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Additional Fee %';
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the minimum fee amount that must be charged when using percentage-based calculation.
+        /// </summary>
         field(8; "Min. Additional Fee Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Min. Additional Fee Amount';
             MinValue = 0;
 
@@ -77,8 +111,13 @@ table 1050 "Additional Fee Setup"
                     Error(InvalidMaxAddFeeErr, FieldCaption("Min. Additional Fee Amount"), FieldCaption("Max. Additional Fee Amount"));
             end;
         }
+        /// <summary>
+        /// Specifies the maximum fee amount that can be charged when using percentage-based calculation.
+        /// </summary>
         field(9; "Max. Additional Fee Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Max. Additional Fee Amount';
             MinValue = 0;
 
@@ -162,6 +201,16 @@ table 1050 "Additional Fee Setup"
         exit(AdditionalFee);
     end;
 
+    /// <summary>
+    /// Gets the additional fee amount from setup based on the reminder level and remaining amount.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level to get the fee for.</param>
+    /// <param name="RemAmount">The remaining amount to calculate the fee on.</param>
+    /// <param name="CurrencyCode">The currency code for the fee calculation.</param>
+    /// <param name="ChargePerLine">True if calculating charge per line, false for fixed fee.</param>
+    /// <param name="AddFeeCalcType">The additional fee calculation type.</param>
+    /// <param name="PostingDate">The posting date for currency conversion.</param>
+    /// <returns>The calculated additional fee amount.</returns>
     procedure GetAdditionalFeeFromSetup(ReminderLevel: Record "Reminder Level"; RemAmount: Decimal; CurrencyCode: Code[10]; ChargePerLine: Boolean; AddFeeCalcType: Option; PostingDate: Date): Decimal
     var
         AdditionalFeeSetup: Record "Additional Fee Setup";

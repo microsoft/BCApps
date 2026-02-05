@@ -106,6 +106,7 @@ table 5715 "Item Substitution"
         }
         field(6; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory';
             DecimalPlaces = 0 : 5;
         }
@@ -204,6 +205,7 @@ table 5715 "Item Substitution"
         }
         field(104; "Quantity Avail. on Shpt. Date"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Avail. on Shpt. Date';
             DecimalPlaces = 0 : 5;
         }

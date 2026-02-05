@@ -55,6 +55,12 @@ page 5407 "Prod. Order Comp. Line List"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description of the item on the line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
@@ -134,16 +140,19 @@ page 5407 "Prod. Order Comp. Line List"
                 }
                 field("Quantity per"; Rec."Quantity per")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies how many units of the component are required to produce the parent item.';
                 }
                 field("Expected Quantity"; Rec."Expected Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the quantity of the component expected to be consumed during the production of the quantity on this line.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
                 }
@@ -180,12 +189,16 @@ page 5407 "Prod. Order Comp. Line List"
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
                     Visible = false;

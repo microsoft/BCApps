@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays reminder levels for a term as an editable subpage part with grace period and fee settings.
+/// </summary>
 page 1896 "Reminder Level Setup"
 {
     Caption = 'Reminder Level';

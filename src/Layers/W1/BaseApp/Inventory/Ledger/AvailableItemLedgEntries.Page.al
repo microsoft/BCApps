@@ -81,6 +81,7 @@ page 504 "Available - Item Ledg. Entries"
                 field(QtyToReserve; QtyToReserve)
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Available Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -89,6 +90,7 @@ page 504 "Available - Item Ledg. Entries"
                 field(ReservedQuantity; GetReservedQtyInLine())
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Current Reserved Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that is reserved from the item ledger entry, for the current line or entry.';

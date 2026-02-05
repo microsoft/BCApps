@@ -47,6 +47,7 @@ table 5510 "Employee Time Reg Buffer"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             NotBlank = true;

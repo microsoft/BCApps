@@ -2,7 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.Sales.Reports;
+
+/// <summary>
+/// Displays inventory reservation availability for sales order lines showing reserved quantities and shortages.
+/// </summary>
 
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Ledger;
@@ -12,6 +17,9 @@ using Microsoft.Sales.Document;
 
 report 209 "Sales Reservation Avail."
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+    ObsoleteTag = '28.0';
     DefaultLayout = RDLC;
     RDLCLayout = './Sales/Reports/SalesReservationAvail.rdlc';
     ApplicationArea = Reservation;
@@ -376,6 +384,12 @@ report 209 "Sales Reservation Avail."
         LineStatusCaptionLbl: Label 'Shipment Status';
         LineQuantityOnHandCaptionLbl: Label 'Quantity on Hand (Base)';
 
+    /// <summary>
+    /// Initializes the report request options for the Sales Reservation Availability report.
+    /// </summary>
+    /// <param name="NewShowSalesLines">True to show sales lines.</param>
+    /// <param name="NewShowReservationEntries">True to show reservation entries.</param>
+    /// <param name="NewModifyQtyToShip">True to allow modification of quantity to ship.</param>
     procedure InitializeRequest(NewShowSalesLines: Boolean; NewShowReservationEntries: Boolean; NewModifyQtyToShip: Boolean)
     begin
         ShowSalesLines := NewShowSalesLines;
@@ -388,4 +402,5 @@ report 209 "Sales Reservation Avail."
     begin
     end;
 }
+#endif
 

@@ -111,6 +111,7 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -124,16 +125,19 @@ table 125 "Purch. Cr. Memo Line"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -160,6 +164,7 @@ table 125 "Purch. Cr. Memo Line"
         field(31; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
         }
         field(32; "Allow Invoice Disc."; Boolean)
@@ -169,21 +174,25 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -211,6 +220,7 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(54; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -414,11 +424,15 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(1003; "Job Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Job Currency Code";
             BlankZero = true;
             Caption = 'Project Unit Price';
         }
         field(1004; "Job Total Price"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Job Currency Code";
             BlankZero = true;
             Caption = 'Project Total Price';
         }
@@ -438,6 +452,7 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(1007; "Job Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Project Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -449,27 +464,32 @@ table 125 "Purch. Cr. Memo Line"
             BlankZero = true;
             Caption = 'Project Unit Price (LCY)';
             AutoFormatType = 2;
+            AutoFormatExpression = '';
         }
         field(1009; "Job Total Price (LCY)"; Decimal)
         {
             BlankZero = true;
             Caption = 'Project Total Price (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1010; "Job Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Project Line Amount (LCY)';
         }
         field(1011; "Job Line Disc. Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Project Line Disc. Amount (LCY)';
         }
         field(1012; "Job Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Project Currency Factor';
         }
@@ -502,6 +522,7 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -515,6 +536,7 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -534,6 +556,7 @@ table 125 "Purch. Cr. Memo Line"
         field(5603; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Salvage Value';
         }
         field(5605; "Depr. until FA Posting Date"; Boolean)
@@ -607,19 +630,26 @@ table 125 "Purch. Cr. Memo Line"
         }
         field(6200; "Non-Deductible VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non-Deductible VAT %';
             DecimalPlaces = 0 : 5;
         }
         field(6201; "Non-Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Non-Deductible VAT Base';
         }
         field(6202; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Non-Deductible VAT Amount';
         }
         field(6203; "Non-Deductible VAT Diff."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Non-Deductible VAT Difference';
             Editable = false;
         }
@@ -963,6 +993,7 @@ table 125 "Purch. Cr. Memo Line"
     internal procedure GetPurchaseInvoiceLine(var PurchInvLine: Record "Purch. Inv. Line")
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         ValueEntry: Record "Value Entry";
     begin
         CheckApplFromItemLedgEntry(ItemLedgerEntry);
@@ -974,8 +1005,22 @@ table 125 "Purch. Cr. Memo Line"
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
         ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntry."Entry Type");
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
-        if ValueEntry.FindFirst() then
+        if ValueEntry.FindFirst() then begin
             PurchInvLine.Get(ValueEntry."Document No.", ValueEntry."Document Line No.");
+            exit;
+        end;
+
+        if ItemLedgerEntry."Entry No." = 0 then begin
+            PurchCrMemoHdr.Get("Document No.");
+            if PurchCrMemoHdr."Applies-to Doc. Type" <> PurchCrMemoHdr."Applies-to Doc. Type"::Invoice then
+                exit;
+
+            PurchInvLine.Reset();
+            PurchInvLine.SetRange("Document No.", PurchCrMemoHdr."Applies-to Doc. No.");
+            PurchInvLine.SetRange(Type, Type);
+            PurchInvLine.SetRange("No.", "No.");
+            if PurchInvLine.FindFirst() then;
+        end;
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")

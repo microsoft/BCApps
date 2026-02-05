@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Lists alternative customer posting groups for a selected customer posting group.
+/// </summary>
 page 935 "Alt. Customer Posting Groups"
 {
     Caption = 'Alternative Customer Posting Groups';

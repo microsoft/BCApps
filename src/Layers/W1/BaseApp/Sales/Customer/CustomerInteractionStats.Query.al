@@ -8,6 +8,9 @@ using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Interaction;
 
+/// <summary>
+/// Retrieves customer interaction statistics grouped by interaction group.
+/// </summary>
 query 2 "Customer Interaction Stats."
 {
     QueryType = Normal;

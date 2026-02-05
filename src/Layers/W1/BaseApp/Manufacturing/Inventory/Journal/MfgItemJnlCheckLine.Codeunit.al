@@ -20,14 +20,14 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
         CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
         WarehouseHandlingRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1 %3 %5 - field captions, %2 %4 %6 - field values';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckDimensionsOnAfterSetTableValues', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckDimensionsOnAfterSetTableValues', '', true, false)]
     local procedure OnCheckDimensionsOnAfterSetTableValues(ItemJournalLine: Record "Item Journal Line"; var TableID: array[10] of Integer; var No: array[10] of Code[20])
     begin
         TableID[3] := Database::"Work Center";
         No[3] := ItemJournalLine."Work Center No.";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnRunOnCheckWarehouse', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnRunOnCheckWarehouse', '', true, false)]
     local procedure OnRunOnCheckWarehouse(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -221,7 +221,7 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
         exit(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckOutputFields', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckOutputFields', '', true, false)]
     local procedure OnCheckOutputFields(var ItemJournalLine: Record "Item Journal Line")
     begin
         if not ItemJournalLine.IsEntryTypeOutput() then begin
@@ -233,7 +233,7 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckEmptyQuantity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckEmptyQuantity', '', true, false)]
     local procedure OnCheckEmptyQuantity(ItemJournalLine: Record "Item Journal Line");
     begin
         if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output then begin
@@ -246,7 +246,7 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
                 Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckBinsOnCheckForEntryTypeOutput', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckBinsOnCheckForEntryTypeOutput', '', true, false)]
     local procedure OnCheckBinsOnCheckForEntryTypeOutput(var ItemJournalLine: Record "Item Journal Line"; var ShouldExit: Boolean)
     begin
         ShouldExit := ItemJournalLine.IsEntryTypeOutput() and not ItemJournalLine.LastOutputOperation(ItemJournalLine);

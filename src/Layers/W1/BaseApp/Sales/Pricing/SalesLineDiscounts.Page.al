@@ -13,6 +13,9 @@ using System.Environment;
 using System.Globalization;
 using System.Text;
 
+/// <summary>
+/// Displays and manages sales line discounts with filtering by sales type, item type, and date range.
+/// </summary>
 page 7004 "Sales Line Discounts"
 {
     Caption = 'Sales Line Discounts';
@@ -390,6 +393,9 @@ page 7004 "Sales Line Discounts"
             UpdateBasicRecFilters();
     end;
 
+    /// <summary>
+    /// Applies filter settings to the sales line discount records based on current filter values.
+    /// </summary>
     procedure SetRecFilters()
     begin
         SalesCodeFilterCtrlEnable := true;
@@ -623,11 +629,22 @@ page 7004 "Sales Line Discounts"
         SalesCodeEditable := Rec."Sales Type" <> Rec."Sales Type"::"All Customers";
     end;
 
+    /// <summary>
+    /// Raises an event to handle custom lookup for code filter when the type is not Item or Item Disc. Group.
+    /// </summary>
+    /// <param name="SalesLineDiscount">The sales line discount record.</param>
+    /// <param name="Text">The lookup text value.</param>
+    /// <param name="Result">The result of the lookup operation.</param>
     [IntegrationEvent(true, false)]
     local procedure OnLookupCodeFilterCaseElse(SalesLineDiscount: Record "Sales Line Discount"; var Text: Text; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event to handle custom type filter conversion when the type is not Item or Item Disc. Group.
+    /// </summary>
+    /// <param name="SalesLineDiscount">The sales line discount record.</param>
+    /// <param name="TypeFilter">The type filter integer value to set.</param>
     [IntegrationEvent(true, false)]
     local procedure OnGetTypeFilterCaseElse(var SalesLineDiscount: Record "Sales Line Discount"; var TypeFilter: Integer)
     begin

@@ -634,7 +634,7 @@ codeunit 7321 "Create Inventory Put-away"
 #endif
 
     // Helper methods
-    internal procedure CreateWarehouseActivityLine(
+    procedure CreateWarehouseActivityLine(
         SourceType: Integer; DocumentType: Integer; DocumentNo: Code[20]; LineNo: Integer; SublineNo: Integer;
         LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; QtyPerUnitMeasure: Decimal;
         QtyRndingPrecision: Decimal; QtyRndingPrecisionBase: Decimal; Description: Text[100]; Description2: Text[50]; DueDate: Date;
@@ -777,7 +777,7 @@ codeunit 7321 "Create Inventory Put-away"
         end
     end;
 
-    internal procedure CreatePutawayWithPutawayTemplateBinPolicy(
+    procedure CreatePutawayWithPutawayTemplateBinPolicy(
         SourceType: Integer; DocumentType: Integer; DocumentNo: Code[20]; LineNo: Integer; SublineNo: Integer; LocationCode: Code[10]; BinCode: Code[20];
         ItemNo: Code[20]; VariantCode: Code[10]; QuantityBase: Decimal; UnitOfMeasureCode: Code[10]; QtyPerUnitMeasure: Decimal; QtyRndingPrecision: Decimal;
         QtyRndingPrecisionBase: Decimal; Description: Text[100]; Description2: Text[50]; DueDate: Date)
@@ -1012,7 +1012,7 @@ codeunit 7321 "Create Inventory Put-away"
                 if CurrPutAwayTemplateHeader.Get(CurrLocation."Put-away Template Code") then;
     end;
 
-    internal procedure FindNextLineNo()
+    procedure FindNextLineNo()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
     begin
@@ -1023,6 +1023,11 @@ codeunit 7321 "Create Inventory Put-away"
             NextLineNo := WarehouseActivityLine."Line No." + 10000
         else
             NextLineNo := 10000;
+    end;
+
+    procedure SetRemQtyToPutAway(NewRemQtyToPutAway: Decimal)
+    begin
+        RemQtyToPutAway := NewRemQtyToPutAway;
     end;
 
     internal procedure FindReservationEntry(SourceType: Integer; DocType: Integer; DocNo: Code[20]; DocLineNo: Integer): Boolean

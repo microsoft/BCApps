@@ -194,7 +194,6 @@ codeunit 5813 "Undo Purchase Receipt Line"
                 Error(Text004);
         end;
         if PurchRcptLine.Type = PurchRcptLine.Type::Item then begin
-            CheckPurchRcptLineFields(PurchRcptLine);
             UndoPostingMgt.TestPurchRcptLine(PurchRcptLine);
             IsHandled := false;
             OnCheckPurchRcptLineOnBeforeCollectItemLedgEntries(PurchRcptLine, TempItemLedgEntry, IsHandled);
@@ -569,19 +568,6 @@ codeunit 5813 "Undo Purchase Receipt Line"
         InvtAdjmtHandler.MakeAutomaticInventoryAdjustment(ItemsToAdjust);
     end;
 
-    local procedure CheckPurchRcptLineFields(var PurchRcptLine: Record "Purch. Rcpt. Line")
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckPurchRcptLineFields(PurchRcptLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        PurchRcptLine.TestField("Sales Order No.", '');
-        PurchRcptLine.TestField("Sales Order Line No.", 0);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetItemAdjmtPropertiesOnBeforeCheckModifyItem', '', false, false)]
     local procedure OnSetItemAdjmtPropertiesOnBeforeCheckModifyItem(var Item2: Record Item)
     var
@@ -729,10 +715,13 @@ codeunit 5813 "Undo Purchase Receipt Line"
     begin
     end;
 
+#if not CLEAN28
+    [Obsolete('This event is no longer used.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPurchRcptLineFields(var PurchRcptLine: Record "Purch. Rcpt. Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeMakeInventoryAdjustment(var PurchaseLine: Record "Purchase Line"; var PurchaseReceiptLine: Record "Purch. Rcpt. Line")

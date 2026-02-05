@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Updates the print counter on posted sales return receipt headers when documents are printed.
+/// </summary>
 codeunit 6661 "Return Receipt - Printed"
 {
     Permissions = TableData "Return Receipt Header" = rimd;

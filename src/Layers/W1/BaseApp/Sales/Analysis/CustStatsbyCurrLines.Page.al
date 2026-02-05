@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Displays customer statistics broken down by currency including balances and outstanding orders.
+/// </summary>
 page 486 "Cust. Stats. by Curr. Lines"
 {
     Caption = 'Lines';

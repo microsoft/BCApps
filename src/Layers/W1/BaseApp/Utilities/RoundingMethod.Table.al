@@ -19,12 +19,14 @@ table 42 "Rounding Method"
         }
         field(2; "Minimum Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Amount';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(3; "Amount Added Before"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Added Before';
             DecimalPlaces = 0 : 5;
         }
@@ -36,12 +38,14 @@ table 42 "Rounding Method"
         }
         field(5; Precision; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Precision';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(6; "Amount Added After"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Added After';
             DecimalPlaces = 0 : 5;
         }

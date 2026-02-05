@@ -13,6 +13,7 @@ table 5871 "Memoized Result"
     {
         field(1; Input; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Input';
         }
         field(2; Output; Boolean)

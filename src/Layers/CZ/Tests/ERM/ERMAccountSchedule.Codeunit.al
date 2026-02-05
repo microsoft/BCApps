@@ -54,7 +54,7 @@ codeunit 134902 "ERM Account Schedule"
         AvoidBlankTok: Label '+ %1 ';
         CircularRefErr: Label 'This can be caused by recursive function calls';
         IsInitialized: Boolean;
-        RowVisibleErr: Label 'Row no %1 with property Show = No is visible in Account Schedule Overview.';
+        RowVisibleErr: Label 'Row description %1 with property Show = No is visible in Account Schedule Overview.';
         DivisionFormulaTok: Label '%1/%2', Locked = true;
         ResponseRef: Option "None",OK,Cancel,LookupOK,LookupCancel,Yes,No,RunObject,RunSystem;
         LookupCostCenterFilterErr: Label 'Function LookupCostCenterFilter returned wrong value.';
@@ -156,7 +156,7 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateGLAccount(GLAccount);
         CreateAccountScheduleAndLineWithoutFormula(AccScheduleLine, GLAccount."No.");
         LibraryVariableStorage.Enqueue(AccScheduleLine."Schedule Name");
-        LibraryVariableStorage.Enqueue(AccScheduleLine."Row No.");
+        LibraryVariableStorage.Enqueue(AccScheduleLine.Description);
         LibraryVariableStorage.Enqueue(ViewByPeriod);
         LibrarySales.CreateCustomer(Customer);
 
@@ -2905,7 +2905,7 @@ codeunit 134902 "ERM Account Schedule"
     procedure AccScheduleOverviewExcludeLinesWithShowNo()
     var
         AccScheduleName: Record "Acc. Schedule Name";
-        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleLine: array[2] of Record "Acc. Schedule Line";
         RowNo: array[2] of Code[10];
         i: Integer;
     begin
@@ -2914,16 +2914,17 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         for i := 1 to ArrayLen(RowNo) do begin
             RowNo[i] := Format(i);
-            LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
-            AccScheduleLine.Validate("Row No.", RowNo[i]);
-            AccScheduleLine.Modify(true);
+            LibraryERM.CreateAccScheduleLine(AccScheduleLine[i], AccScheduleName.Name);
+            AccScheduleLine[i].Validate("Row No.", RowNo[i]);
+            AccScheduleLine[i].Description := AccScheduleLine[i]."Row No.";
+            AccScheduleLine[i].Modify(true);
         end;
-        LibraryVariableStorage.Enqueue(RowNo[2]);
-        AccScheduleLine.Validate(Show, AccScheduleLine.Show::No);
-        AccScheduleLine.Modify(true);
+        LibraryVariableStorage.Enqueue(AccScheduleLine[2].Description);
+        AccScheduleLine[2].Validate(Show, AccScheduleLine[2].Show::No);
+        AccScheduleLine[2].Modify(true);
 
         // Veirification done in AccScheduleOverviewWithDisabledLinePageHandler
-        OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
+        OpenAccountScheduleOverviewPage(AccScheduleLine[2]."Schedule Name");
     end;
 
     [Test]
@@ -5477,11 +5478,12 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] Account Schedule Line was created  with Show = No
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         AccScheduleLine.Validate("Row No.", Format(LibraryRandom.RandInt(100)));
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate(Show, AccScheduleLine.Show::No);
         AccScheduleLine.Modify(true);
 
         // [WHEN] Account Schedule Overviw page is open for this Account Schedule
-        LibraryVariableStorage.Enqueue(AccScheduleLine."Row No.");
+        LibraryVariableStorage.Enqueue(AccScheduleLine.Description);
         OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
 
         // [THEN] Account Schedule Line with Row No. = XXX is visible
@@ -6120,14 +6122,14 @@ codeunit 134902 "ERM Account Schedule"
     procedure ViewByDefaultValuesOnOverviewPageHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
         GLSetup: Record "General Ledger Setup";
-        RowNo: Variant;
+        Description: Variant;
     begin
         AccScheduleOverview.CurrentColumnName.SetValue(LibraryVariableStorage.DequeueText());
         AccScheduleOverview.CurrentSchedName.SetValue(LibraryVariableStorage.DequeueText());
         AccScheduleOverview.FinancialReportName.SetValue(AccScheduleOverview.CurrentSchedName);
         AccScheduleOverview.UseAmtsInAddCurr.SetValue(false);
-        LibraryVariableStorage.Dequeue(RowNo);
-        AccScheduleOverview."Row No.".AssertEquals(RowNo);
+        LibraryVariableStorage.Dequeue(Description);
+        AccScheduleOverview.Description.AssertEquals(Description);
 
         GLSetup.Get();
         GLSetup."Fin. Rep. Period Type" := Enum::"Analysis Period Type".FromInteger(LibraryVariableStorage.DequeueInteger());
@@ -6184,6 +6186,7 @@ codeunit 134902 "ERM Account Schedule"
             GLAccount1."No." + '|' + GLAccount2."No.");
         AccScheduleLine."Line No." += 10000;
         AccScheduleLine."Row No." := '20';
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Totaling := GLAccount3."No.";
         AccScheduleLine.Insert(true);
 
@@ -6432,6 +6435,7 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         AccScheduleLine.Validate("Row No.", RowNo);
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate("Totaling Type", AccScheduleLine."Totaling Type"::Formula);
         AccScheduleLine.Modify(true);
     end;
@@ -6443,6 +6447,7 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         AccScheduleLine.Validate("Row No.", Format(LibraryRandom.RandInt(100)));
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate(Totaling, Totaling);
         AccScheduleLine.Modify(true);
     end;
@@ -6459,6 +6464,7 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         AccScheduleLine.Validate("Row No.", RowNo);
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
         AccScheduleLine.Validate("Totaling Type", AccScheduleLine."Totaling Type"::"Cost Type");
         AccScheduleLine.Validate(Totaling, AccScheduleName.Name);
         AccScheduleLine.Modify(true);
@@ -7233,7 +7239,7 @@ codeunit 134902 "ERM Account Schedule"
           Amount,
           RoundingOption,
           Totaling);
-        LibraryVariableStorage.Enqueue(AccScheduleLine."Row No.");
+        LibraryVariableStorage.Enqueue(AccScheduleLine.Description);
         LibraryVariableStorage.Enqueue(ExpectedValue);
 
         OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
@@ -7594,14 +7600,14 @@ codeunit 134902 "ERM Account Schedule"
     procedure BlankCellOverviewPageHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
         StoredColumnLayoutName: Variant;
-        StoredRowNo: Variant;
+        StoredDescription: Variant;
         StoredExpectedValue: Variant;
     begin
         LibraryVariableStorage.Dequeue(StoredColumnLayoutName);
         AccScheduleOverview.CurrentColumnName.SetValue(StoredColumnLayoutName);
 
-        LibraryVariableStorage.Dequeue(StoredRowNo);
-        AccScheduleOverview."Row No.".AssertEquals(StoredRowNo);
+        LibraryVariableStorage.Dequeue(StoredDescription);
+        AccScheduleOverview.Description.AssertEquals(StoredDescription);
 
         LibraryVariableStorage.Dequeue(StoredExpectedValue);
         Assert.AreEqual(StoredExpectedValue, AccScheduleOverview.ColumnValues1.Value, IncorrectValueInAccScheduleErr);
@@ -7656,12 +7662,12 @@ codeunit 134902 "ERM Account Schedule"
     [Scope('OnPrem')]
     procedure AccScheduleOverviewWithDisabledLinePageHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
-        UnxpectedRowNo: Variant;
+        UnxpectedDesc: Variant;
     begin
-        LibraryVariableStorage.Dequeue(UnxpectedRowNo);
+        LibraryVariableStorage.Dequeue(UnxpectedDesc);
         AccScheduleOverview.First();
         repeat
-            Assert.AreNotEqual(UnxpectedRowNo, AccScheduleOverview."Row No.".Value, StrSubstNo(RowVisibleErr, AccScheduleOverview."Row No."));
+            Assert.AreNotEqual(UnxpectedDesc, AccScheduleOverview.Description.Value, StrSubstNo(RowVisibleErr, AccScheduleOverview.Description));
         until not AccScheduleOverview.Next();
     end;
 
@@ -7671,7 +7677,7 @@ codeunit 134902 "ERM Account Schedule"
     begin
         AccScheduleOverview.ShowLinesWithShowNo.SetValue(true);
         AccScheduleOverview.First();
-        AccScheduleOverview."Row No.".AssertEquals(LibraryVariableStorage.DequeueText());
+        AccScheduleOverview.Description.AssertEquals(LibraryVariableStorage.DequeueText());
     end;
 
     [PageHandler]
@@ -7695,14 +7701,16 @@ codeunit 134902 "ERM Account Schedule"
     [Scope('OnPrem')]
     procedure ValuesOnOverviewPageHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
-        RowNo: Variant;
+        ScheduleName: Variant;
+        Description: Variant;
     begin
         AccScheduleOverview.CurrentColumnName.SetValue(LibraryVariableStorage.DequeueText());
-        AccScheduleOverview.CurrentSchedName.SetValue(LibraryVariableStorage.DequeueText());
+        ScheduleName := LibraryVariableStorage.DequeueText();
+        AccScheduleOverview.CurrentSchedName.SetValue(ScheduleName);
         AccScheduleOverview.FinancialReportName.SetValue(AccScheduleOverview.CurrentSchedName);
         AccScheduleOverview.UseAmtsInAddCurr.SetValue(false);
-        LibraryVariableStorage.Dequeue(RowNo);
-        AccScheduleOverview."Row No.".AssertEquals(RowNo);
+        LibraryVariableStorage.Dequeue(Description);
+        AccScheduleOverview.Description.AssertEquals(Description);
         AccScheduleOverview.PeriodTypeDefault.SetValue(LibraryVariableStorage.DequeueInteger());
         AccScheduleOverview.ColumnValues1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
         AccScheduleOverview.PeriodTypeDefault.SetValue(ViewByRef::Day);

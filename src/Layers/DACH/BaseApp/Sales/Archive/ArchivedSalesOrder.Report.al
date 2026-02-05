@@ -22,6 +22,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable document for an archived sales order.
+/// </summary>
 report 216 "Archived Sales Order"
 {
     DefaultLayout = RDLC;

@@ -46,6 +46,12 @@ page 30149 "Shpfy Return Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the reason for returning the item.';
+                    Visible = false;
+                }
+                field("Return Reason Name"; Rec."Return Reason Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the reason for returning the item.';
                 }
                 field("Refundable Quantity"; Rec."Refundable Quantity")
                 {

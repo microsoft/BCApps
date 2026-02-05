@@ -82,6 +82,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("ProfitLCY[1]"; ProfitLCY[1])
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     ToolTip = 'Specifies the profit, expressed as an amount.  ';
@@ -101,6 +102,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("ProfitPct[1]"; ProfitPct[1])
                 {
                     Caption = 'Original Profit %';
+                    AutoFormatType = 0;
                     DecimalPlaces = 1 : 1;
                     Editable = false;
                     ToolTip = 'Specifies the profit, expressed as a percentage, which was associated with the service order when it was originally posted.';
@@ -108,6 +110,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("AdjProfitPct[1]"; AdjProfitPct[1])
                 {
                     Caption = 'Adjusted Profit %';
+                    AutoFormatType = 0;
                     DecimalPlaces = 1 : 1;
                     Editable = false;
                     ToolTip = 'Specifies the adjusted profit of the contents of the entire service order, in local currency.';
@@ -150,6 +153,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("TotalAdjCostLCY[1] - TotalServLineLCY[1].""Unit Cost (LCY)"""; TotalAdjCostLCY[1] - TotalServLineLCY[1]."Unit Cost (LCY)")
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount ($)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of the cost adjustment on the service order, in dollars.';
@@ -161,6 +165,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field("BreakdownAmt[1,1]"; BreakdownAmt[1, 1])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = BreakdownLabel[1, 1];
                     Caption = 'BreakdownAmt';
@@ -168,6 +174,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt2; BreakdownAmt[1, 2])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = GetCaptionClass(BreakdownLabel[1, 2], false);
                     Caption = 'BreakdownAmt';
@@ -175,6 +183,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt3; BreakdownAmt[1, 3])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 3]);
                     Caption = 'BreakdownAmt';
@@ -182,6 +192,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt4; BreakdownAmt[1, 4])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 4]);
                     Caption = 'BreakdownAmt';
@@ -260,6 +272,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("ProfitLCY[2]"; ProfitLCY[2])
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit, expressed as an amount in local currency, which was associated with the service order, when it was originally posted.';
@@ -267,6 +280,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("AdjProfitLCY[2]"; AdjProfitLCY[2])
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit ($)';
                     Editable = false;
                     ToolTip = 'Specifies the adjusted profit of the service order.';
@@ -278,6 +292,7 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field("ProfitPct[2]"; ProfitPct[2])
                 {
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -285,6 +300,7 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field("AdjProfitPct[2]"; AdjProfitPct[2])
                 {
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -335,6 +351,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("TotalAdjCostLCY[2]"; TotalAdjCostLCY[2])
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost ($)';
                     Editable = false;
                     ToolTip = 'Specifies the adjusted cost of the service order.';
@@ -342,6 +359,7 @@ page 10452 "Service Order Stats. Dyn"
                 field("TotalAdjCostLCY[2] - TotalServLineLCY[2].""Unit Cost (LCY)"""; TotalAdjCostLCY[2] - TotalServLineLCY[2]."Unit Cost (LCY)")
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount ($)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of the cost adjustment on the service order, in dollars.';
@@ -353,6 +371,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt5; BreakdownAmt[2, 1])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 1]);
                     Caption = 'BreakdownAmt';
@@ -360,6 +380,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt6; BreakdownAmt[2, 2])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 2]);
                     Caption = 'BreakdownAmt';
@@ -367,6 +389,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt7; BreakdownAmt[2, 3])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 3]);
                     Caption = 'BreakdownAmt';
@@ -374,6 +398,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt8; BreakdownAmt[2, 4])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 4]);
                     Caption = 'BreakdownAmt';
@@ -449,12 +475,14 @@ page 10452 "Service Order Stats. Dyn"
                 field("ProfitLCY[3]"; ProfitLCY[3])
                 {
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     ToolTip = 'Specifies the profit expressed as an amount.';
                 }
                 field("ProfitPct[3]"; ProfitPct[3])
                 {
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -502,6 +530,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt9; BreakdownAmt[3, 1])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 1]);
                     Caption = 'BreakdownAmt';
@@ -509,6 +539,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt10; BreakdownAmt[3, 2])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 2]);
                     Caption = 'BreakdownAmt';
@@ -516,6 +548,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt11; BreakdownAmt[3, 3])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 3]);
                     Caption = 'BreakdownAmt';
@@ -523,6 +557,8 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(BreakdownAmt12; BreakdownAmt[3, 4])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 4]);
                     Caption = 'BreakdownAmt';
@@ -560,6 +596,7 @@ page 10452 "Service Order Stats. Dyn"
                 }
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Expended Percentage of Credit Limit ($).';

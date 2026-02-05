@@ -164,6 +164,7 @@ table 2000022 "Domiciliation Journal Line"
         }
         field(13; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -178,6 +179,7 @@ table 2000022 "Domiciliation Journal Line"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
             Editable = false;
 
@@ -195,6 +197,7 @@ table 2000022 "Domiciliation Journal Line"
         field(17; "Pmt. Discount possible (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Discount possible (LCY)';
             Editable = false;
 

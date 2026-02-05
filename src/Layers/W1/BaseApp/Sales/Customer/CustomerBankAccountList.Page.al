@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Bank.DirectDebit;
 
+/// <summary>
+/// Lists bank accounts associated with a customer for payment processing.
+/// </summary>
 page 424 "Customer Bank Account List"
 {
     Caption = 'Customer Bank Account List';

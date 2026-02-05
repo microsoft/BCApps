@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Analysis;
 using Microsoft.Finance.FinancialReports;
 using System.Visualization;
 
+/// <summary>
+/// Stores user-specific configuration settings for the sales by customer group chart.
+/// </summary>
 table 1319 "Sales by Cust. Grp.Chart Setup"
 {
     Caption = 'Sales by Cust. Grp.Chart Setup';
@@ -15,12 +18,18 @@ table 1319 "Sales by Cust. Grp.Chart Setup"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier of the user who owns this chart configuration.
+        /// </summary>
         field(1; "User ID"; Text[132])
         {
             Caption = 'User ID';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the starting date for the data displayed in the sales by customer group chart.
+        /// </summary>
         field(31; "Start Date"; Date)
         {
             Caption = 'Start Date';
@@ -30,6 +39,9 @@ table 1319 "Sales by Cust. Grp.Chart Setup"
                 TestField("Start Date");
             end;
         }
+        /// <summary>
+        /// Specifies the time interval used for grouping data in the chart, such as day, week, month, quarter, or year.
+        /// </summary>
         field(41; "Period Length"; Option)
         {
             Caption = 'Period Length';
@@ -50,6 +62,10 @@ table 1319 "Sales by Cust. Grp.Chart Setup"
     {
     }
 
+    /// <summary>
+    /// Navigates the chart period forward or backward based on the specified direction.
+    /// </summary>
+    /// <param name="Which">The navigation direction: Next or Previous.</param>
     procedure SetPeriod(Which: Option " ",Next,Previous)
     var
         BusinessChartBuffer: Record "Business Chart Buffer";
@@ -68,6 +84,10 @@ table 1319 "Sales by Cust. Grp.Chart Setup"
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the period length setting for the chart display.
+    /// </summary>
+    /// <param name="PeriodLength">The period length to use (Day, Week, Month, Quarter, or Year).</param>
     procedure SetPeriodLength(PeriodLength: Option)
     begin
         Get(UserId);

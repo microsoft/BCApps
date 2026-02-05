@@ -8,6 +8,9 @@ using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores customer discount groups that allow grouping customers for shared line discount rules.
+/// </summary>
 table 340 "Customer Discount Group"
 {
     Caption = 'Customer Discount Group';
@@ -16,11 +19,17 @@ table 340 "Customer Discount Group"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique code that identifies the customer discount group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Specifies a description of the customer discount group.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
@@ -42,6 +51,10 @@ table 340 "Customer Discount Group"
         }
     }
 
+    /// <summary>
+    /// Converts this customer discount group to a price source record.
+    /// </summary>
+    /// <param name="PriceSource">The price source record to populate.</param>
     procedure ToPriceSource(var PriceSource: Record "Price Source")
     begin
         PriceSource.Init();

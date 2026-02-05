@@ -35,16 +35,21 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(4; "Statement Balance"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Statement Balance';
         }
         field(5; "G/L Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'G/L Balance ($)';
             Editable = false;
         }
         field(6; "Positive Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment),
@@ -56,6 +61,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(7; "Negative Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment),
@@ -67,6 +74,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(8; "Outstanding Deposits"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Deposit),
@@ -76,6 +85,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(9; "Outstanding Checks"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Check),
@@ -103,18 +114,25 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(14; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(16; "Cleared With./Chks. Per Stmnt."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Cleared With./Chks. Per Stmnt.';
         }
         field(17; "Cleared Inc./Dpsts. Per Stmnt."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Cleared Inc./Dpsts. Per Stmnt.';
         }
         field(19; "Total Cleared Checks"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line"."Cleared Amount" where("Bank Account No." = field("Bank Account No."),
                                                                               "Statement No." = field("Statement No."),
                                                                               "Record Type" = const(Check),
@@ -124,6 +142,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(20; "Total Cleared Deposits"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line"."Cleared Amount" where("Bank Account No." = field("Bank Account No."),
                                                                               "Statement No." = field("Statement No."),
                                                                               "Record Type" = const(Deposit),
@@ -133,6 +153,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(21; "Total Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment)));
@@ -171,11 +193,14 @@ table 10123 "Posted Bank Rec. Header"
         field(27; "G/L Balance"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'G/L Balance';
             Editable = false;
         }
         field(28; "Total Balanced Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment),
@@ -185,6 +210,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(29; "Positive Bal. Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment),
@@ -196,6 +223,8 @@ table 10123 "Posted Bank Rec. Header"
         }
         field(30; "Negative Bal. Adjustments"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Posted Bank Rec. Line".Amount where("Bank Account No." = field("Bank Account No."),
                                                                     "Statement No." = field("Statement No."),
                                                                     "Record Type" = const(Adjustment),

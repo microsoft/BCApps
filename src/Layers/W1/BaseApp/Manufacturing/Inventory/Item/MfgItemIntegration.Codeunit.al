@@ -31,7 +31,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnValidateReplenishmentSystemCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnValidateReplenishmentSystemCaseElse', '', true, false)]
     local procedure OnValidateReplenishmentSystemCaseElse(var Item: Record Item)
     begin
         case Item."Replenishment System" of
@@ -43,7 +43,7 @@ codeunit 99000795 "Mfg. Item Integration"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterValidateEvent', 'No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterValidateEvent', 'No.', true, false)]
     local procedure ItemOnAfterValidateEventNo(var Rec: Record Item; var xRec: Record Item)
     begin
         if (Rec."No." = xRec."No.") or (xRec."No." <> '') then
@@ -52,13 +52,13 @@ codeunit 99000795 "Mfg. Item Integration"
         SetDefaultFlushingMethod(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnInsertOnAfterAssignNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnInsertOnAfterAssignNo', '', true, false)]
     local procedure OnInsertOnAfterAssignNo(var Item: Record Item)
     begin
         SetDefaultFlushingMethod(Item);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAssistEditOnAfterAssignNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAssistEditOnAfterAssignNo', '', true, false)]
     local procedure OnAssistEditOnAfterAssignNo(var Item: Record Item; xItem: Record Item)
     begin
         if xItem."No." <> '' then
@@ -67,27 +67,27 @@ codeunit 99000795 "Mfg. Item Integration"
         SetDefaultFlushingMethod(Item);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterHasBOM', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterHasBOM', '', true, false)]
     local procedure OnAfterHasBOM(var Item: Record Item; var Result: Boolean);
     begin
         if Item."Production BOM No." <> '' then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnIsProductionBOM', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnIsProductionBOM', '', true, false)]
     local procedure OnIsProductionBOM(Item: Record Item; var Result: Boolean)
     begin
         Result := Item."Production BOM No." <> '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterHasRoutingNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterHasRoutingNo', '', true, false)]
     local procedure OnAfterHasRoutingNo(var Item: Record Item; var Result: Boolean);
     begin
         if Item."Routing No." <> '' then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckUpdateFieldsForNonInventoriableItem', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckUpdateFieldsForNonInventoriableItem', '', true, false)]
     local procedure OnAfterCheckUpdateFieldsForNonInventoriableItem(var Item: Record Item)
     begin
         Item.Validate("Production BOM No.", '');
@@ -95,7 +95,7 @@ codeunit 99000795 "Mfg. Item Integration"
         Item.Validate("Overhead Rate", 0);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnValidateGenProdPostingGroupOnConfirmChange', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnValidateGenProdPostingGroupOnConfirmChange', '', true, false)]
     local procedure OnBeforeValidateGenProdPostingGroup(var Item: Record Item; xItemGenProdPostingGroupCode: Code[20]; var ShouldExit: Boolean)
     var
         ConfirmMgt: Codeunit System.Utilities."Confirm Management";
@@ -123,7 +123,7 @@ codeunit 99000795 "Mfg. Item Integration"
         exit(false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnShouldTryCostFromSKUOnCheckSKUCostOnMfg', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnShouldTryCostFromSKUOnCheckSKUCostOnMfg', '', true, false)]
     local procedure OnShouldTryCostFromSKUOnCheckSKUCostOnMfg(var ShouldExit: Boolean)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -138,7 +138,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item Card
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Card", 'OnCreateItemFromTemplateOnBeforeIsFoundationEnabled', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Card", 'OnCreateItemFromTemplateOnBeforeIsFoundationEnabled', '', true, false)]
     local procedure OnCreateItemFromTemplateOnBeforeIsFoundationEnabled(var Item: Record Item)
     begin
         if Item."No." <> '' then
@@ -149,7 +149,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Inventory Posting Setup
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Posting Setup", 'OnAfterSuggestSetupAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Posting Setup", 'OnAfterSuggestSetupAccount', '', true, false)]
     local procedure OnAfterSuggestSetupAccount(var InventoryPostingSetup: Record "Inventory Posting Setup"; RecRef: RecordRef)
     begin
         if InventoryPostingSetup."WIP Account" = '' then
@@ -168,7 +168,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item Variant
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnDeleteOnAfterCheck', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnDeleteOnAfterCheck', '', true, false)]
     local procedure ItemVariantOnDeleteOnAfterCheck(var ItemVariant: Record "Item Variant")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -195,7 +195,7 @@ codeunit 99000795 "Mfg. Item Integration"
             Error(CannotDeleteProdOrderErr, ItemVariant."Item No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnBeforeRenameEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnBeforeRenameEvent', '', true, false)]
     local procedure OnBeforeRenameItemVariant(var Rec: Record "Item Variant"; var xRec: Record "Item Variant"; RunTrigger: Boolean)
     var
         BOMComponent: Record "BOM Component";
@@ -282,7 +282,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item Unit of Measure
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Unit of Measure", 'OnAfterCheckNoOutstandingQty', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Unit of Measure", 'OnAfterCheckNoOutstandingQty', '', true, false)]
     local procedure ItemUnitOfMeasureOnAfterCheckNoOutstandingQty(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure")
     begin
         CheckNoRemQtyProdOrderLine(ItemUnitOfMeasure, xItemUnitOfMeasure);
@@ -341,7 +341,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Location
 
-    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterValidateEvent', 'Use As In-Transit', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterValidateEvent', 'Use As In-Transit', true, false)]
     local procedure LocationOnAfterValidateEventUseAsInTransit(var Rec: Record Location)
     begin
         if Rec."Use As In-Transit" then begin
@@ -350,7 +350,7 @@ codeunit 99000795 "Mfg. Item Integration"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterValidateEvent', 'Directed Put-away and Pick', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterValidateEvent', 'Directed Put-away and Pick', true, false)]
     local procedure LocationOnAfterValidateEventDirectedPutawayandPick(var Rec: Record Location)
     begin
         if Rec."Directed Put-away and Pick" then begin
@@ -359,7 +359,7 @@ codeunit 99000795 "Mfg. Item Integration"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterDeleteEvent', '', true, false)]
     local procedure OnAfterOnDelete(var Rec: Record Location; RunTrigger: Boolean)
     var
         WorkCenter: Record "Work Center";
@@ -375,7 +375,7 @@ codeunit 99000795 "Mfg. Item Integration"
             until WorkCenter.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Location, 'OnGetLocationSetupOnAfterInitLocation', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnGetLocationSetupOnAfterInitLocation', '', true, false)]
     local procedure OnGetLocationSetupOnAfterInitLocation(var Location: Record Location; var Location2: Record Location)
     begin
         case true of
@@ -400,19 +400,19 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Stockkeeping Unit
 
-    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', 'Variant Code', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', 'Variant Code', true, false)]
     local procedure LocationOnAfterValidateEventVariantCode(var Rec: Record "Stockkeeping Unit")
     begin
         Rec.CalcFields("Qty. on Prod. Order", "Qty. on Component Lines");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', 'Location Code', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', 'Location Code', true, false)]
     local procedure LocationOnAfterValidateEventLocationCode(var Rec: Record "Stockkeeping Unit")
     begin
         Rec.CalcFields("Qty. on Prod. Order", "Qty. on Component Lines");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', "Item No.", false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', "Item No.", true, false)]
     local procedure OnAfterValidateEventItemNo(var Rec: Record "Stockkeeping Unit"; var xRec: Record "Stockkeeping Unit")
     var
         Item: Record Item;
@@ -424,7 +424,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Catalog Item Management
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", 'OnCreateNewItemOnBeforeItemInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", 'OnCreateNewItemOnBeforeItemInsert', '', true, false)]
     local procedure OnCreateNewItemOnBeforeItemInsert(var Item: Record Item; NonstockItem: Record "Nonstock Item")
     begin
         SetDefaultFlushingMethod(Item);
@@ -432,7 +432,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item Templ. Mgt.
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Templ. Mgt.", 'OnCreateItemFromTemplateOnBeforeItemInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Templ. Mgt.", 'OnCreateItemFromTemplateOnBeforeItemInsert', '', true, false)]
     local procedure OnCreateItemFromTemplateOnBeforeItemInsert(var Item: Record Item)
     begin
         SetDefaultFlushingMethod(Item);
@@ -440,7 +440,7 @@ codeunit 99000795 "Mfg. Item Integration"
 
     // Item Templ. Card
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Templ. Card", 'OnAfterOnNewRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Templ. Card", 'OnAfterOnNewRecord', '', true, false)]
     local procedure OnAfterOnNewRecord(var ItemTempl: Record "Item Templ.")
     begin
         SetDefaultFlushingMethod(ItemTempl);

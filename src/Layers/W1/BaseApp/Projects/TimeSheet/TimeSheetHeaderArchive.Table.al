@@ -57,6 +57,7 @@ table 954 "Time Sheet Header Archive"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail Archive".Quantity where("Time Sheet No." = field("No."),
                                                                           Status = field("Status Filter"),
                                                                           "Job No." = field("Job No. Filter"),

@@ -34,6 +34,7 @@ table 12170 "Payment Lines"
         }
         field(4; "Payment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -49,6 +50,7 @@ table 12170 "Payment Lines"
         }
         field(7; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -94,6 +96,7 @@ table 12170 "Payment Lines"
         }
         field(13; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(14; "Prepmt. Due Date Calculation"; DateFormula)
@@ -102,6 +105,7 @@ table 12170 "Payment Lines"
         }
         field(15; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

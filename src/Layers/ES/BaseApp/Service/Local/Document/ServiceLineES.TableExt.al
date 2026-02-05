@@ -12,6 +12,7 @@ tableextension 10791 "Service Line ES" extends "Service Line"
     {
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DataClassification = CustomerContent;
         }

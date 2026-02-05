@@ -13,6 +13,7 @@ tableextension 6455 "Serv. Responsibility Center" extends "Responsibility Center
         field(5901; "Contract Gain/Loss Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Contract Gain/Loss Entry".Amount where("Responsibility Center" = field(Code),
                                                                        "Change Date" = field("Date Filter")));
             Caption = 'Contract Gain/Loss Amount';

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays and manages date-effective interest rates for finance charge terms.
+/// </summary>
 page 572 "Finance Charge Interest Rates"
 {
     Caption = 'Finance Charge Interest Rates';

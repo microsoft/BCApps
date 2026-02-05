@@ -28,6 +28,7 @@ table 24 "Vendor Invoice Disc."
         }
         field(3; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

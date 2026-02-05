@@ -89,18 +89,21 @@ table 5005271 "Delivery Reminder Line"
         }
         field(10; "Reorder Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reorder Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(11; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 

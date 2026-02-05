@@ -1021,6 +1021,7 @@ table 15 "G/L Account"
         }
         field(11300; "% Non deductible VAT"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = '% Non deductible VAT';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

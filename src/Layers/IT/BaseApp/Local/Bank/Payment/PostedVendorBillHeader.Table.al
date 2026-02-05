@@ -61,6 +61,7 @@ table 12183 "Posted Vendor Bill Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
         }

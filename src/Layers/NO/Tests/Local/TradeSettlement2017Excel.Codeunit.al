@@ -1089,6 +1089,8 @@ codeunit 144003 "Trade Settlement 2017 - Excel"
         VATEntry."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
         VATEntry."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
         VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Base Amount Type" := VATEntry."Base Amount Type"::"With VAT";
+        VATEntry."VAT Reporting Date" := WorkDate();
         VATEntry."Posting Date" := WorkDate();
         VATEntry.Amount := LibraryRandom.RandDecInRange(100, 200, 2);
         VATEntry.Insert();

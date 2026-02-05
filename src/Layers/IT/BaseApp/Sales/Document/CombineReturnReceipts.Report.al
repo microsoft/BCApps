@@ -14,6 +14,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Globalization;
 
+/// <summary>
+/// Consolidates multiple return receipts into a single sales credit memo for efficient processing.
+/// </summary>
 report 6653 "Combine Return Receipts"
 {
     ApplicationArea = SalesReturnOrder, PurchReturnOrder;
@@ -391,6 +394,10 @@ report 6653 "Combine Return Receipts"
         VATDateReq := NewVATDate;
     end;
 
+    /// <summary>
+    /// Sets whether to hide dialog messages during processing.
+    /// </summary>
+    /// <param name="NewHideDialog">Whether to hide dialog messages.</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;

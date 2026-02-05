@@ -231,7 +231,6 @@ codeunit 300 "Reservation Worksheet Mgt."
                     if CurrWhseQty < 0 then
                         CurrWhseQty := 0;
                 end;
-                NonReservedQtyLotSN -= CurrWhseQty;
                 WarehouseQtyBase += CurrWhseQty;
 
                 if NonReservedQtyLotSN > 0 then

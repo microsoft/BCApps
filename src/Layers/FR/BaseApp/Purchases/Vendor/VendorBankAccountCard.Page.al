@@ -90,27 +90,40 @@ page 425 "Vendor Bank Account Card"
                     ToolTip = 'Specifies the number of the bank branch.';
                     MaskType = Concealed;
                 }
+#if not CLEAN28
                 field("Agency Code"; Rec."Agency Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the five-number code of the agency of the bank, for example, 00300.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number used by the bank for the bank account.';
                     MaskType = Concealed;
                 }
+#if not CLEAN28
                 field("RIB Key"; Rec."RIB Key")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the two-digit RIB key associated with the Bank Account No. RIB key value in range from 01 to 09 is represented in the single-digit form, without leading zero digit.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("RIB Checked"; Rec."RIB Checked")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Bank Account No. has been verified against the RIB Key.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Communication)
             {

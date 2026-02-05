@@ -37,6 +37,8 @@ table 2000040 "CODA Statement"
         }
         field(3; "Statement Ending Balance"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Statement Ending Balance';
         }
         field(4; "Statement Date"; Date)
@@ -45,6 +47,8 @@ table 2000040 "CODA Statement"
         }
         field(5; "Balance Last Statement"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Balance Last Statement';
         }
         field(6; "CODA Statement No."; Integer)
@@ -99,5 +103,11 @@ table 2000040 "CODA Statement"
         Text000: Label 'You cannot rename a %1.';
         BankAcc: Record "Bank Account";
         CODAStatementLine: Record "CODA Statement Line";
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        BankAcc.Get("Bank Account No.");
+        exit(BankAcc."Currency Code");
+    end;
 }
 

@@ -67,30 +67,40 @@ page 1027 "Job WIP Cockpit"
                 }
                 field("Recog. Costs Amount Difference"; Rec."Recog. Costs Amount" - Rec."Recog. Costs G/L Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Recog. Costs Amount Difference';
                     ToolTip = 'Specifies the difference in recognized costs for the project.';
                 }
                 field("Recog. Sales Amount Difference"; Rec."Recog. Sales Amount" - Rec."Recog. Sales G/L Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Recog. Sales Amount Difference';
                     ToolTip = 'Specifies the difference in recognized sales for the project.';
                 }
                 field("Recog. Profit Amount"; Rec.CalcRecognizedProfitAmount())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Recog. Profit Amount';
                     ToolTip = 'Specifies the recognized profit amount for the project.';
                 }
                 field("Recog. Profit G/L Amount"; Rec.CalcRecognizedProfitGLAmount())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Recog. Profit G/L Amount';
                     ToolTip = 'Specifies the total recognized profit G/L amount for this project.';
                 }
                 field("Recog. Profit Amount Difference"; Rec.CalcRecognizedProfitAmount() - Rec.CalcRecognizedProfitGLAmount())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Recog. Profit Amount Difference';
                     ToolTip = 'Specifies the difference in recognized profit for the project.';
@@ -117,6 +127,8 @@ page 1027 "Job WIP Cockpit"
                 }
                 field("Total WIP Cost Difference"; Rec."Total WIP Cost Amount" - Rec."Total WIP Cost G/L Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Total WIP Cost Difference';
                     ToolTip = 'Specifies the difference in total WIP costs.';
@@ -133,6 +145,8 @@ page 1027 "Job WIP Cockpit"
                 }
                 field("Total WIP Sales Difference"; Rec."Total WIP Sales Amount" - Rec."Total WIP Sales G/L Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Jobs;
                     Caption = 'Total WIP Sales Difference';
                     ToolTip = 'Specifies the difference in total WIP sales.';

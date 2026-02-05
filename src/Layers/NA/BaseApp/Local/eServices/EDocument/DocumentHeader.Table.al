@@ -75,14 +75,17 @@ table 10002 "Document Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(60; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(61; "Amount Including VAT"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Including VAT';
         }
         field(79; "Sell-to/Buy-From Name"; Text[100])
@@ -175,6 +178,7 @@ table 10002 "Document Header"
         }
         field(10047; "Transit Distance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Transit Distance';
         }
         field(10048; "Insurer Name"; Text[50])
@@ -233,6 +237,7 @@ table 10002 "Document Header"
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DecimalPlaces = 0 : 6;
         }

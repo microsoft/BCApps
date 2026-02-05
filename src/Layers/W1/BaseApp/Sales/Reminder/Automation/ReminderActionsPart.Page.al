@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays the list of automation actions configured for a reminder action group as a subpage part.
+/// </summary>
 page 6755 "Reminder Actions Part"
 {
     PageType = ListPart;
@@ -192,6 +195,9 @@ page 6755 "Reminder Actions Part"
         exit(SelectedReminderActionInterface);
     end;
 
+    /// <summary>
+    /// Creates a new reminder action by prompting the user to select an action type and configure it.
+    /// </summary>
     procedure CreateNewReminderAction()
     var
         NewReminderAction: Record "Reminder Action";

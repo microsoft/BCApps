@@ -5056,6 +5056,7 @@ codeunit 137156 "SCM Orders IV"
         GLEntry: Record "G/L Entry";
         PostedDocumentNo: Code[20];
         PostedDocumentNo2: Code[20];
+        CheckAmount: Decimal;
     begin
         // Create and post Sales Order with Item Charge Assignment. Update blank Quantity to Invoice on Sales Line.
         CreateAndShipSalesOrderWithItemCharge(SalesHeader, SalesLine2, SalesLine, Customer, Item);
@@ -5078,19 +5079,19 @@ codeunit 137156 "SCM Orders IV"
             UpdateQuantityToInvoiceOnSalesLine(SalesHeader."No.", SalesLine.Quantity / 2);  // Value required for Partial quantity.
             PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, false, true);  // Post as Invoice.
             PostedDocumentNo2 := LibrarySales.PostSalesDocument(SalesHeader, false, true);  // Post as Invoice.
-
+            CheckAmount := SalesLine2."Line Amount" * SalesLine2."VAT %" / 100 + SalesLine2."Line Amount";
             // Verify.
             GeneralPostingSetup2.Get(Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
             VerifyGLEntry(
               GLEntry."Document Type"::Invoice, PostedDocumentNo, GeneralPostingSetup2."Sales Account", -SalesLine2."Line Amount" / 2);  // Value required for Partial quantity.
             VerifyGLEntry(
               GLEntry."Document Type"::Invoice, PostedDocumentNo, CustomerPostingGroup."Receivables Account",
-              SalesLine2."Amount Including VAT" / 2);  // Value required for Partial quantity.
+              Round(CheckAmount / 2, LibraryERM.GetAmountRoundingPrecision()));  // Value required for Partial quantity.
             VerifyGLEntry(
               GLEntry."Document Type"::Invoice, PostedDocumentNo2, GeneralPostingSetup2."Sales Account", -SalesLine2."Line Amount" / 2);  // Value required for Partial quantity.
             VerifyGLEntry(
               GLEntry."Document Type"::Invoice, PostedDocumentNo2, CustomerPostingGroup."Receivables Account",
-              SalesLine2."Amount Including VAT" / 2);  // Value required for Partial quantity.
+              Round((CheckAmount / 2), LibraryERM.GetAmountRoundingPrecision()));  // Value required for Partial quantity.
         end;
     end;
 

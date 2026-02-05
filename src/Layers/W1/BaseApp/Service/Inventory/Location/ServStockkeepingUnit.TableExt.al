@@ -12,6 +12,7 @@ tableextension 6454 "Serv. Stockkeeping Unit" extends "Stockkeeping Unit"
     {
         field(5901; "Qty. on Service Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Service Line"."Outstanding Qty. (Base)" where("Document Type" = const(Order),
                                                                               Type = const(Item),
                                                                               "No." = field("Item No."),

@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Analysis;
 using Microsoft.Sales.Customer;
 using System.Visualization;
 
+/// <summary>
+/// Manages the sales by customer group chart including data calculation and drill-down operations.
+/// </summary>
 codeunit 1319 "Sales by Cust. Grp. Chart Mgt."
 {
     trigger OnRun()
@@ -17,11 +20,18 @@ codeunit 1319 "Sales by Cust. Grp. Chart Mgt."
         SalesByCustGrpChartSetup: Record "Sales by Cust. Grp.Chart Setup";
         TotalSalesLCYTxt: Label 'Total Sales (LCY)';
 
+    /// <summary>
+    /// Initializes the chart setup for the current user when the page opens.
+    /// </summary>
     procedure OnInitPage()
     begin
         GetChartSetupForCurrentUser();
     end;
 
+    /// <summary>
+    /// Updates the chart data with sales amounts grouped by customer posting group.
+    /// </summary>
+    /// <param name="BusChartBuf">The business chart buffer to populate with sales data.</param>
     procedure UpdateChart(var BusChartBuf: Record "Business Chart Buffer")
     var
         NoOfPeriods: Integer;
@@ -49,6 +59,10 @@ codeunit 1319 "Sales by Cust. Grp. Chart Mgt."
         CalcCustSales(BusChartBuf, NoOfPeriods);
     end;
 
+    /// <summary>
+    /// Opens the customer list filtered by the selected chart data point.
+    /// </summary>
+    /// <param name="BusChartBuf">The business chart buffer containing drill-down context.</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer")
     var
         Cust: Record Customer;
@@ -116,6 +130,10 @@ codeunit 1319 "Sales by Cust. Grp. Chart Mgt."
         SalesByCustGrpChartSetup.Insert();
     end;
 
+    /// <summary>
+    /// Returns the label text for the total sales measure.
+    /// </summary>
+    /// <returns>The total sales label text.</returns>
     procedure TotalSalesLCY(): Text
     begin
         exit(TotalSalesLCYTxt);

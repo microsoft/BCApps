@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Displays and edits customer bank account details including transfer information and direct debit mandates.
+/// </summary>
 page 423 "Customer Bank Account Card"
 {
     Caption = 'Customer Bank Account Card';

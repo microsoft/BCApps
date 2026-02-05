@@ -36,6 +36,7 @@ table 51 "User Time Register"
         }
         field(3; Minutes; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minutes';
             DecimalPlaces = 0 : 0;
             MinValue = 0;

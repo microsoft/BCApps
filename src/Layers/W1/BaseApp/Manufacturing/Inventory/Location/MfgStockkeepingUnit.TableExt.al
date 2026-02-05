@@ -16,6 +16,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
     {
         field(5420; "Scheduled Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Location Code" = field("Location Code"),
@@ -82,6 +83,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000765; "Planned Order Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = const(Planned),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Variant Code" = field("Variant Code"),
@@ -96,6 +98,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000766; "FP Order Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = const("Firm Planned"),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Variant Code" = field("Variant Code"),
@@ -110,6 +113,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000767; "Rel. Order Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = const(Released),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Variant Code" = field("Variant Code"),
@@ -124,6 +128,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000769; "Planned Order Release (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = const(Planned),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Variant Code" = field("Variant Code"),
@@ -138,6 +143,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000777; "Qty. on Prod. Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
                                                                                 "Item No." = field("Item No."),
                                                                                 "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -152,6 +158,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         }
         field(99000778; "Qty. on Component Lines"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Component"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
                                                                                      "Item No." = field("Item No."),
                                                                                      "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -163,6 +170,16 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
+        }
+    }
+
+    keys
+    {
+        key(Key8; "Production BOM No.")
+        {
+        }
+        key(Key9; "Routing No.")
+        {
         }
     }
 

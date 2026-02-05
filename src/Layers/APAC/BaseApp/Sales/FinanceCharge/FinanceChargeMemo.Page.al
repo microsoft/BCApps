@@ -12,6 +12,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Reports;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides a document page for creating and managing individual finance charge memos before issuing.
+/// </summary>
 page 446 "Finance Charge Memo"
 {
     Caption = 'Finance Charge Memo';
@@ -514,6 +517,9 @@ page 446 "Finance Charge Memo"
         DocNoVisible := DocumentNoVisibility.SalesDocumentNoIsVisible(DocType::FinChMemo, Rec."No.");
     end;
 
+    /// <summary>
+    /// Sets the posting group field editability based on customer settings.
+    /// </summary>
     procedure SetPostingGroupEditable()
     var
         Customer2: Record Customer;

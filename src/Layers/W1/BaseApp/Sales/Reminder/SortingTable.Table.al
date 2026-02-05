@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Finance.Currency;
 using System.Visualization;
 
+/// <summary>
+/// Provides a temporary sorting buffer for charting and visualization of additional fee calculations.
+/// </summary>
 table 1051 "Sorting Table"
 {
     Caption = 'Sorting Table';
@@ -14,14 +17,24 @@ table 1051 "Sorting Table"
 
     fields
     {
+        /// <summary>
+        /// Stores an integer value used as a sequence number for ordering entries.
+        /// </summary>
         field(1; "Integer"; Integer)
         {
             Caption = 'Integer';
         }
+        /// <summary>
+        /// Stores a decimal value used for sorting and calculations in fee charts.
+        /// </summary>
         field(2; Decimal; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Decimal';
         }
+        /// <summary>
+        /// Stores a code value for categorization purposes.
+        /// </summary>
         field(3; "Code"; Code[20])
         {
             Caption = 'Code';
@@ -51,6 +64,15 @@ table 1051 "Sorting Table"
         CurrMaxRemAmount: Decimal;
         NextEntryNo: Integer;
 
+    /// <summary>
+    /// Updates the business chart buffer with additional fee visualization data for a reminder level.
+    /// </summary>
+    /// <param name="BusChartBuf">The business chart buffer to populate with chart data.</param>
+    /// <param name="ReminderLevel">The reminder level to calculate fees for.</param>
+    /// <param name="ChargePerLine">True if showing charge per line fees, false for fixed fees.</param>
+    /// <param name="Currency">The currency code for fee calculations.</param>
+    /// <param name="RemAmountTxt">The label text for the remaining amount axis.</param>
+    /// <param name="MaxRemAmount">The maximum remaining amount to display on the chart.</param>
     [Scope('OnPrem')]
     procedure UpdateData(var BusChartBuf: Record "Business Chart Buffer"; ReminderLevel: Record "Reminder Level"; ChargePerLine: Boolean; Currency: Code[10]; RemAmountTxt: Text; MaxRemAmount: Decimal)
     var

@@ -23,7 +23,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSupplyToInvProfile', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSupplyToInvProfile', '', true, false)]
     local procedure OnAfterSupplyToInvProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var ToDate: Date; var ReservEntry: Record "Reservation Entry" temporary; var NextLineNo: Integer)
     begin
         TransProdOrderToProfile(InventoryProfile, Item, ToDate, NextLineNo, ReservEntry);
@@ -84,7 +84,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
                 until ProdOrderLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDisableRelations', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDisableRelations', '', true, false)]
     local procedure OnAfterDisableRelations(var RequisitionLine: Record "Requisition Line")
     begin
         DisableProdRelations(RequisitionLine);
@@ -113,7 +113,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         ProdOrderCapNeed.ModifyAll(Active, false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnAfterSetSourceForNotNewReqLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnAfterSetSourceForNotNewReqLine', '', true, false)]
     local procedure OnMaintainPlanningLineOnAfterSetSourceForNotNewReqLine(var RequisitionLine: Record "Requisition Line"; var InventoryProfile: Record "Inventory Profile")
     begin
         case InventoryProfile."Source Type" of
@@ -139,7 +139,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
 #endif
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnBeforeValidateNo', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnBeforeValidateNo', '', true, false)]
     local procedure OnMaintainPlanningLineOnBeforeValidateNo(var RequisitionLine: Record "Requisition Line"; InventoryProfile: Record "Inventory Profile"; StockkeepingUnit: Record "Stockkeeping Unit")
     begin
         case StockkeepingUnit."Replenishment System" of
@@ -157,7 +157,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnIsProdOrderPlanned', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnIsProdOrderPlanned', '', true, false)]
     local procedure OnIsProdOrderPlanned(var ReservEntry: Record "Reservation Entry"; var Planned: Boolean)
     begin
         Planned := IsProdOrderPlanned(ReservEntry);
@@ -183,7 +183,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         exit(not RequisitionLine.IsEmpty());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnAfterValidateFieldsForNewReqLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnAfterValidateFieldsForNewReqLine', '', true, false)]
     local procedure OnMaintainPlanningLineOnAfterValidateFieldsForNewReqLine(var RequisitionLine: Record "Requisition Line"; InventoryProfile: Record "Inventory Profile"; StockkeepingUnit: Record "Stockkeeping Unit")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -193,7 +193,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         RequisitionLine."Ending Time" := ManufacturingSetup."Normal Ending Time";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsAtLocationCode', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsAtLocationCode', '', true, false)]
     local procedure OnGetComponentsAtLocationCode(var LocationCode: Code[10])
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -202,7 +202,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         LocationCode := ManufacturingSetup."Components at Location";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsOnNewActionMessage', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsOnNewActionMessage', '', true, false)]
     local procedure OnGetComponentsOnNewActionMessage(var RequisitionLine: Record "Requisition Line")
     var
         VersionManagement: Codeunit VersionManagement;
@@ -212,7 +212,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
                 VersionManagement.GetBOMVersion(RequisitionLine."Production BOM No.", RequisitionLine."Due Date", true));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsOnUpdateForActionMessage', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetComponentsOnUpdateForActionMessage', '', true, false)]
     local procedure OnGetComponentsOnUpdateForActionMessage(var RequisitionLine: Record "Requisition Line"; sender: Codeunit "Inventory Profile Offsetting")
     var
         PlanningComponent: Record "Planning Component";
@@ -234,7 +234,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetRouting', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnGetRouting', '', true, false)]
     local procedure OnGetRouting(var RequisitionLine: Record "Requisition Line"; var sender: Codeunit "Inventory Profile Offsetting")
     begin
         GetRouting(RequisitionLine, sender);
@@ -281,7 +281,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         OnAfterGetRouting(ReqLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnFillTempSKUForLocation', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnFillTempSKUForLocation', '', true, false)]
     local procedure OnFillTempSKUForLocation(var Item: Record Item; var SupplyInvtProfile: Record "Inventory Profile"; sender: Codeunit "Inventory Profile Offsetting")
     var
         InventorySetup: Record "Inventory Setup";
@@ -306,7 +306,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnBeforeMatchAttributes', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnBeforeMatchAttributes', '', true, false)]
     local procedure CheckDemandAndSupplyQuantityAreEqual(var SupplyInvtProfile: Record "Inventory Profile"; var DemandInvtProfile: Record "Inventory Profile"; var SkipMatchingAttributes: Boolean)
     var
         TotalDemandQty: Decimal;

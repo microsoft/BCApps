@@ -109,8 +109,10 @@ codeunit 101270 "Create Bank Account"
         BankAcc.Validate("Statistics Group", 0);
         BankAcc.Validate("Last Date Modified", CA.AdjustDate(19030118D));
         // Modif Demo Finance (CM) : ajout du code guichet et de la cl¦ rib
+#if not CLEAN28
         BankAcc.Validate("Agency Code", "Agency Code");
         BankAcc.Validate("RIB Key", "RIB Key");
+#endif
         case BankAcc."No." of
             XWWBOPERATING,
             XCHECKING:

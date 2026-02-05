@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,7 +11,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+#if not CLEAN28
 using Microsoft.Finance.ReceivablesPayables;
+#endif
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
@@ -23,9 +26,19 @@ using Microsoft.Sales.Receivables;
 table 10866 "Payment Line"
 {
     Caption = 'Payment Line';
+#if not CLEAN28    
     DrillDownPageID = "Payment Lines List";
     LookupPageID = "Payment Lines List";
+#endif    
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -40,6 +53,8 @@ table 10866 "Payment Line"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -62,8 +77,10 @@ table 10866 "Payment Line"
                         CurrExchRate.ExchangeAmtFCYToLCY(
                           "Posting Date", "Currency Code",
                           Amount, "Currency Factor"));
+#if not CLEAN28                          
                 if Amount <> xRec.Amount then
                     PaymentToleranceMgt.PmtTolPaymentLine(Rec);
+#endif                    
             end;
         }
         field(4; "Account Type"; enum "Gen. Journal Account Type")
@@ -243,7 +260,9 @@ table 10866 "Payment Line"
                         "Agency Code" := CustomerBank."Agency Code";
                         "Bank Account Name" := CustomerBank.Name;
                         "RIB Key" := CustomerBank."RIB Key";
+#if not CLEAN28
                         "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif
                         "Bank City" := CustomerBank.City;
                     end else
                         if "Account Type" = "Account Type"::Vendor then begin
@@ -255,7 +274,9 @@ table 10866 "Payment Line"
                             "Agency Code" := VendorBank."Agency Code";
                             "Bank Account Name" := VendorBank.Name;
                             "RIB Key" := VendorBank."RIB Key";
+#if not CLEAN28
                             "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif
                             "Bank City" := VendorBank.City;
                         end;
                 end else
@@ -266,37 +287,45 @@ table 10866 "Payment Line"
         {
             Caption = 'Bank Branch No.';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif            
         }
         field(27; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(28; "Agency Code"; Text[5])
         {
             Caption = 'Agency Code';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(29; "RIB Key"; Integer)
         {
             Caption = 'RIB Key';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(30; "RIB Checked"; Boolean)
         {
@@ -350,6 +379,7 @@ table 10866 "Payment Line"
         }
         field(36; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
         }
@@ -392,6 +422,8 @@ table 10866 "Payment Line"
         }
         field(44; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
             Editable = false;
         }
@@ -497,6 +529,7 @@ table 10866 "Payment Line"
     {
     }
 
+#if not CLEAN28
     trigger OnDelete()
     var
         PaymentApply: Codeunit "Payment-Apply";
@@ -506,6 +539,7 @@ table 10866 "Payment Line"
         PaymentApply.DeleteApply(Rec);
         DeletePaymentFileErrors();
     end;
+#endif
 
     trigger OnInsert()
     var
@@ -537,7 +571,9 @@ table 10866 "Payment Line"
 
     var
         Text000: Label 'You cannot use different currencies on the same payment header.';
+#if not CLEAN28        
         Text001: Label 'You cannot delete this payment line.';
+#endif        
         Currency: Record Currency;
         CustomerBank: Record "Customer Bank Account";
         VendorBank: Record "Vendor Bank Account";
@@ -545,9 +581,13 @@ table 10866 "Payment Line"
         Customer: Record Customer;
         Vendor: Record Vendor;
         DefaultDimension: Record "Default Dimension";
+#if not CLEAN28        
         RibKey: Codeunit "RIB Key";
+#endif        
         NoSeries: Codeunit "No. Series";
+#if not CLEAN28         
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+#endif        
         Text002: Label 'You cannot modify this payment line.';
         DimMgt: Codeunit DimensionManagement;
         BankAccErr: Label 'You must use customer bank account, %1, which you specified in the selected direct debit mandate.';
@@ -892,4 +932,4 @@ table 10866 "Payment Line"
     begin
     end;
 }
-
+#endif

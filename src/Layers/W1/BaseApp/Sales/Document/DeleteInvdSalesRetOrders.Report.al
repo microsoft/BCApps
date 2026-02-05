@@ -10,6 +10,9 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Request;
 using System.Automation;
 
+/// <summary>
+/// Removes sales return orders that have been fully invoiced from the system.
+/// </summary>
 report 6651 "Delete Invd Sales Ret. Orders"
 {
     AccessByPermission = TableData "Sales Header" = RD;

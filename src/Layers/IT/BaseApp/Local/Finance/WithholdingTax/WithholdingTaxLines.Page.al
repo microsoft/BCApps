@@ -22,6 +22,8 @@ page 12210 "Withholding Tax Lines"
             {
                 field("Total Base - Excluded Amount"; TotalAmount)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Base - Excluded Amount';
                     Editable = false;

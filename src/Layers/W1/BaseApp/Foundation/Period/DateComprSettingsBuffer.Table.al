@@ -116,6 +116,7 @@ table 9040 "Date Compr. Settings Buffer"
         }
         field(1001; "Saved Space (MB)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Saved Space (MB)';
             DataClassification = SystemMetadata;
         }

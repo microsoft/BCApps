@@ -12,6 +12,9 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Provides temporary storage for sales shipment data during invoice printing and document processing.
+/// </summary>
 table 7190 "Sales Shipment Buffer"
 {
     Caption = 'Sales Shipment Buffer';
@@ -20,27 +23,42 @@ table 7190 "Sales Shipment Buffer"
 
     fields
     {
+        /// <summary>
+        /// Specifies the document number of the related shipment or receipt.
+        /// </summary>
         field(1; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             DataClassification = SystemMetadata;
             TableRelation = "Sales Invoice Header";
         }
+        /// <summary>
+        /// Specifies the line number from the source document.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies a unique sequential entry number for the buffer record.
+        /// </summary>
         field(3; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the type of the line such as Item, G/L Account, or Resource.
+        /// </summary>
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the number of the item, G/L account, or resource on the line.
+        /// </summary>
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
@@ -55,11 +73,18 @@ table 7190 "Sales Shipment Buffer"
             else
             if (Type = const("Charge (Item)")) "Item Charge";
         }
+        /// <summary>
+        /// Specifies the quantity shipped or received for the line.
+        /// </summary>
         field(7; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the posting date of the shipment or receipt.
+        /// </summary>
         field(8; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
@@ -86,6 +111,11 @@ table 7190 "Sales Shipment Buffer"
         UOMMgt: Codeunit "Unit of Measure Management";
         NextEntryNo: Integer;
 
+    /// <summary>
+    /// Populates the buffer with shipment information for a sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line to get shipment data for.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
     procedure GetLinesForSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         ValueEntry: Record "Value Entry";
@@ -107,6 +137,11 @@ table 7190 "Sales Shipment Buffer"
         end;
     end;
 
+    /// <summary>
+    /// Populates the buffer with shipment information for a sales credit memo line.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line to get shipment data for.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
     procedure GetLinesForSalesCreditMemoLine(SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         ValueEntry: Record "Value Entry";

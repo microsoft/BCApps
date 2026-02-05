@@ -13,6 +13,9 @@ using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Worksheet;
 
+/// <summary>
+/// Integrates sales documents with warehouse operations for picking, shipping, and receiving.
+/// </summary>
 codeunit 5991 "Sales Warehouse Mgt."
 {
     var
@@ -112,6 +115,11 @@ codeunit 5991 "Sales Warehouse Mgt."
     begin
     end;
 
+    /// <summary>
+    /// Verifies that changes to a sales line do not conflict with existing warehouse lines.
+    /// </summary>
+    /// <param name="NewSalesLine">The modified sales line record.</param>
+    /// <param name="OldSalesLine">The original sales line record before modification.</param>
     procedure SalesLineVerifyChange(var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line")
     var
         NewRecordRef: RecordRef;
@@ -148,6 +156,10 @@ codeunit 5991 "Sales Warehouse Mgt."
         OnAfterSalesLineVerifyChange(NewRecordRef, OldRecordRef);
     end;
 
+    /// <summary>
+    /// Validates that a sales line can be deleted when warehouse lines exist.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to be deleted.</param>
     procedure SalesLineDelete(var SalesLine: Record "Sales Line")
     begin
         if WhseValidateSourceLine.WhseLinesExist(
@@ -209,6 +221,11 @@ codeunit 5991 "Sales Warehouse Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Verifies that changes to a sales header's shipping advice are propagated to warehouse lines.
+    /// </summary>
+    /// <param name="NewSalesHeader">The modified sales header record.</param>
+    /// <param name="OldSalesHeader">The original sales header record before modification.</param>
     procedure SalesHeaderVerifyChange(var NewSalesHeader: Record "Sales Header"; var OldSalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -260,6 +277,12 @@ codeunit 5991 "Sales Warehouse Mgt."
         GetSourceDocuments.SetTableView(SalesLine);
     end;
 
+    /// <summary>
+    /// Creates warehouse shipment lines from a sales line, including assembly-to-order lines if applicable.
+    /// </summary>
+    /// <param name="WarehouseShipmentHeader">The warehouse shipment header to create lines for.</param>
+    /// <param name="SalesLine">The sales line to create shipment lines from.</param>
+    /// <returns>Returns true if the shipment lines were created successfully.</returns>
     procedure FromSalesLine2ShptLine(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; SalesLine: Record "Sales Line") Result: Boolean
     var
         AssemblyHeader: Record "Assembly Header";
@@ -346,6 +369,12 @@ codeunit 5991 "Sales Warehouse Mgt."
         exit(not WarehouseShipmentLine.HasErrorOccured());
     end;
 
+    /// <summary>
+    /// Creates a warehouse receipt line from a sales line for returns.
+    /// </summary>
+    /// <param name="WarehouseReceiptHeader">The warehouse receipt header to create the line for.</param>
+    /// <param name="SalesLine">The sales line to create the receipt line from.</param>
+    /// <returns>Returns true if the receipt line was created successfully.</returns>
     procedure SalesLine2ReceiptLine(WarehouseReceiptHeader: Record "Warehouse Receipt Header"; SalesLine: Record "Sales Line"): Boolean
     var
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
@@ -391,11 +420,22 @@ codeunit 5991 "Sales Warehouse Mgt."
         exit(not WarehouseReceiptLine.HasErrorOccured());
     end;
 
+    /// <summary>
+    /// Checks if a warehouse shipment line can be created from a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>Returns true if a shipment line can be created.</returns>
     procedure CheckIfFromSalesLine2ShptLine(SalesLine: Record "Sales Line"): Boolean
     begin
         exit(CheckIfFromSalesLine2ShptLine(SalesLine, "Reservation From Stock"::" "));
     end;
 
+    /// <summary>
+    /// Checks if a warehouse shipment line can be created from a sales line with a specific reservation filter.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="ReservedFromStock">The reservation from stock filter to apply.</param>
+    /// <returns>Returns true if a shipment line can be created.</returns>
     procedure CheckIfFromSalesLine2ShptLine(SalesLine: Record "Sales Line"; ReservedFromStock: Enum "Reservation From Stock"): Boolean
     var
         IsHandled: Boolean;
@@ -417,6 +457,11 @@ codeunit 5991 "Sales Warehouse Mgt."
         exit(Abs(SalesLine."Outstanding Qty. (Base)") > Abs(SalesLine."Whse. Outstanding Qty. (Base)"));
     end;
 
+    /// <summary>
+    /// Checks if a warehouse receipt line can be created from a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <returns>Returns true if a receipt line can be created.</returns>
     procedure CheckIfSalesLine2ReceiptLine(SalesLine: Record "Sales Line"): Boolean
     var
         WarehouseReceiptLine: Record "Warehouse Receipt Line";

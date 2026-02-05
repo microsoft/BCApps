@@ -33,21 +33,25 @@ table 933 "Load Buffer"
         }
         field(10; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DataClassification = SystemMetadata;
         }
         field(11; "Allocated Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocated Qty.';
             DataClassification = SystemMetadata;
         }
         field(12; "Availability After Orders"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Availability After Orders';
             DataClassification = SystemMetadata;
         }
         field(13; Load; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Load';
             DataClassification = SystemMetadata;
         }

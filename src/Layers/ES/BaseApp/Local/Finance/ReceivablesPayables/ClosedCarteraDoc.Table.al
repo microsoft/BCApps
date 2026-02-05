@@ -64,6 +64,7 @@ table 7000004 "Closed Cartera Doc."
         field(10; "Amt. for Collection (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amt. for Collection (LCY)';
         }
         field(11; "Due Date"; Date)
@@ -155,6 +156,7 @@ table 7000004 "Closed Cartera Doc."
         field(27; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Amt. (LCY)';
         }
         field(28; Redrawn; Boolean)
@@ -170,6 +172,7 @@ table 7000004 "Closed Cartera Doc."
         field(30; "Original Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Original Amount (LCY)';
         }
         field(40; "Document Type"; Enum "Cartera Document Doc. Type")

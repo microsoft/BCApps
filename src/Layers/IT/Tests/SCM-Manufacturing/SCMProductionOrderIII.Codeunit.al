@@ -5295,7 +5295,7 @@ codeunit 137079 "SCM Production Order III"
         // [THEN] Open Purchase Order Page
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseOrder.OpenEdit();
-        PurchaseOrder.GotoRecord(PurchaseHeader);
+        PurchaseOrder.Filter.SetFilter("no.", PurchaseHeader."No.");
 
         // [VERIFY] Verify: Lookup to purchase prices from the Purchase Line Factbox open without any error
         PurchaseOrder.Control3.PurchasePrices.Lookup();

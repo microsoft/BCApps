@@ -9,6 +9,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Posts finance charge memos with options for printing, emailing, and replacing posting dates.
+/// </summary>
 report 193 "Issue Finance Charge Memos"
 {
     Caption = 'Issue Finance Charge Memos';

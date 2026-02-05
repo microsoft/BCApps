@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Archive;
 
+/// <summary>
+/// Displays comment lines associated with archived sales documents.
+/// </summary>
 page 5180 "Sales Archive Comment Sheet"
 {
     Caption = 'Comment Sheet';

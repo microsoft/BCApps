@@ -12,6 +12,9 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Request;
 using System.Automation;
 
+/// <summary>
+/// Removes sales orders that have been fully shipped and invoiced from the system.
+/// </summary>
 report 299 "Delete Invoiced Sales Orders"
 {
     AccessByPermission = TableData "Sales Header" = RD;

@@ -81,6 +81,7 @@ page 7000062 "Closed Pmt. Ord. Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Honored';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is settled. ';
@@ -89,6 +90,7 @@ page 7000062 "Closed Pmt. Ord. Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';

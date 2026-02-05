@@ -253,6 +253,7 @@ table 7022 "Price Worksheet Line"
         }
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -340,6 +341,7 @@ table 7022 "Price Worksheet Line"
         }
         field(18; "Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = tabledata "Sales Price Access" = R;
             DataClassification = CustomerContent;
             Caption = 'Cost Factor';
@@ -373,7 +375,7 @@ table 7022 "Price Worksheet Line"
         field(20; "Line Discount %"; Decimal)
         {
             DataClassification = CustomerContent;
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             MaxValue = 100;
             MinValue = 0;
@@ -642,6 +644,8 @@ table 7022 "Price Worksheet Line"
         }
         field(28060; "Published Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             CalcFormula = lookup(Item."Unit Price" where("No." = field("Asset No.")));
             Caption = 'Published Price';
             Editable = false;
@@ -649,6 +653,8 @@ table 7022 "Price Worksheet Line"
         }
         field(28061; Cost; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             CalcFormula = lookup(Item."Unit Cost" where("No." = field("Asset No.")));
             Caption = 'Cost';
             Editable = false;
@@ -656,6 +662,7 @@ table 7022 "Price Worksheet Line"
         }
         field(28062; "Cost-plus %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost-plus %';
             DecimalPlaces = 0 : 1;
             MinValue = 0;

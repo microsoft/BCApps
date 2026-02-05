@@ -262,6 +262,7 @@ page 253 "Sales Journal"
                 field(DocumentAmount; DocumentAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
                     AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Document Amount';
                     ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of.';
@@ -725,6 +726,7 @@ page 253 "Sales Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the sales journal on the line where the cursor is.';
@@ -738,6 +740,7 @@ page 253 "Sales Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the sales journal.';

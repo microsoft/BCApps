@@ -73,35 +73,41 @@ table 5137 "Job Planning Line Archive"
         }
         field(9; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Direct Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost (LCY)';
         }
         field(12; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
             Editable = false;
         }
         field(13; "Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost (LCY)';
             Editable = false;
         }
         field(14; "Unit Price (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price (LCY)';
             Editable = false;
         }
         field(15; "Total Price (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price (LCY)';
             Editable = false;
         }
@@ -122,6 +128,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(18; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -131,6 +138,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(19; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -193,11 +201,13 @@ table 5137 "Job Planning Line Archive"
         }
         field(900; "Qty. to Assemble"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Assemble';
             DataClassification = CustomerContent;
         }
         field(901; "Qty. to Assemble (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Assemble (Base)';
             DataClassification = CustomerContent;
         }
@@ -226,6 +236,7 @@ table 5137 "Job Planning Line Archive"
         field(1001; "Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount (LCY)';
             Editable = false;
         }
@@ -270,11 +281,13 @@ table 5137 "Job Planning Line Archive"
         field(1008; "Line Discount Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Discount Amount (LCY)';
             Editable = false;
         }
         field(1015; "Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Factor';
             Editable = false;
         }
@@ -290,6 +303,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(1021; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -311,6 +325,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(1025; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -334,13 +349,15 @@ table 5137 "Job Planning Line Archive"
         }
         field(1035; "Invoiced Amount (LCY)"; Decimal)
         {
-            Caption = 'Invoiced Amount (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Invoiced Amount (LCY)';
         }
         field(1036; "Invoiced Cost Amount (LCY)"; Decimal)
         {
             Caption = 'Invoiced Cost Amount (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(1037; "VAT Unit Price"; Decimal)
         {
@@ -362,6 +379,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(1041; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(1042; "Description 2"; Text[50])
@@ -405,12 +423,14 @@ table 5137 "Job Planning Line Archive"
         }
         field(1060; "Remaining Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(1061; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -425,6 +445,7 @@ table 5137 "Job Planning Line Archive"
         field(1063; "Remaining Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Total Cost (LCY)';
             Editable = false;
         }
@@ -438,17 +459,20 @@ table 5137 "Job Planning Line Archive"
         field(1065; "Remaining Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Line Amount (LCY)';
             Editable = false;
         }
         field(1070; "Qty. Posted"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Posted';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(1071; "Qty. to Transfer to Journal"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Transfer to Journal';
             DecimalPlaces = 0 : 5;
         }
@@ -462,6 +486,7 @@ table 5137 "Job Planning Line Archive"
         field(1073; "Posted Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Posted Total Cost (LCY)';
             Editable = false;
         }
@@ -475,38 +500,45 @@ table 5137 "Job Planning Line Archive"
         field(1075; "Posted Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Posted Line Amount (LCY)';
             Editable = false;
         }
         field(1080; "Qty. Transferred to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Transferred to Invoice';
             DecimalPlaces = 0 : 5;
         }
         field(1081; "Qty. to Transfer to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Transfer to Invoice';
             DecimalPlaces = 0 : 5;
         }
         field(1090; "Qty. Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced';
             DecimalPlaces = 0 : 5;
         }
         field(1091; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(1100; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Item = R;
             Caption = 'Reserved Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(1101; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Item = R;
             Caption = 'Reserved Qty. (Base)';
             DecimalPlaces = 0 : 5;
@@ -537,6 +569,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -544,6 +577,7 @@ table 5137 "Job Planning Line Archive"
         }
         field(5410; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -575,17 +609,20 @@ table 5137 "Job Planning Line Archive"
         }
         field(7300; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty.';
             DecimalPlaces = 0 : 5;
         }
         field(7301; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(7302; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -597,11 +634,13 @@ table 5137 "Job Planning Line Archive"
         }
         field(7304; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty. (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(7305; "Qty. on Journal"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Journal';
             DecimalPlaces = 0 : 5;
         }

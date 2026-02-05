@@ -29,6 +29,7 @@ page 9221 "Res. Gr. Avail. (Serv.) Matrix"
                 field(Qtytoallocate; QtytoAllocate)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Qty. To Allocate';
                     Enabled = QtytoallocateEnable;
                     MinValue = 0;

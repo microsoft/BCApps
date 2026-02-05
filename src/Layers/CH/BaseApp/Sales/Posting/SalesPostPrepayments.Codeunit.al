@@ -30,6 +30,9 @@ using Microsoft.Utilities;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Posts prepayment invoices and credit memos for sales orders, creating the corresponding ledger entries and posted documents.
+/// </summary>
 codeunit 442 "Sales-Post Prepayments"
 {
     Permissions = TableData "Sales Line" = rimd,
@@ -93,6 +96,10 @@ codeunit 442 "Sales-Post Prepayments"
         PrepaymentSalesTok: Label 'Prepayment Sales', Locked = true;
         UpdateTok: Label '%1 %2', Locked = true;
 
+    /// <summary>
+    /// Sets the prepayment document type to be posted.
+    /// </summary>
+    /// <param name="DocumentType">Specifies the prepayment document type (Invoice or Credit Memo).</param>
     procedure SetDocumentType(DocumentType: Option ,,Invoice,"Credit Memo")
     begin
         PrepmtDocumentType := DocumentType;
@@ -108,6 +115,10 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    /// <summary>
+    /// Posts a prepayment invoice for the sales order.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order for which to post the prepayment invoice.</param>
     procedure Invoice(var SalesHeader: Record "Sales Header")
     var
         Handled: Boolean;
@@ -117,6 +128,10 @@ codeunit 442 "Sales-Post Prepayments"
             Code(SalesHeader, 0);
     end;
 
+    /// <summary>
+    /// Posts a prepayment credit memo for the sales order.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order for which to post the prepayment credit memo.</param>
     procedure CreditMemo(var SalesHeader: Record "Sales Header")
     var
         Handled: Boolean;
@@ -303,7 +318,11 @@ codeunit 442 "Sales-Post Prepayments"
             TempPrepmtInvLineBuffer.Modify();
         until TempPrepmtInvLineBuffer.Next() = 0;
 
-        TempPrepmtInvLineBuffer.Reset();
+
+        if (TotalPrepmtInvLineBuffer."VAT Amount" <> 0) and (SalesLine."VAT %" = 0) then
+            SalesAssertPrepmtAmountNotMoreThanDocAmountBeforePost(TotalPrepmtInvLineBuffer, SalesHeader);
+
+       TempPrepmtInvLineBuffer.Reset();
         TempPrepmtInvLineBuffer.SetCurrentKey(Adjustment);
         TempPrepmtInvLineBuffer.Find('+');
         repeat
@@ -410,6 +429,35 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    local procedure SalesAssertPrepmtAmountNotMoreThanDocAmountBeforePost(TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; SalesHeader: Record "Sales Header")
+    var
+        FromSalesLine: Record "Sales Line";
+        PrepaymentMgt: Codeunit "Prepayment Mgt.";
+        PrepmtAmountInclVAT: Decimal;
+        SalesPrepmtAmount: Decimal;
+    begin
+        if not (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) then
+            exit;
+        FromSalesLine.SetLoadFields("Document Type", "Document No.", "Type", "Prepayment %", "Amount Including VAT");
+        FromSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        FromSalesLine.SetRange("Document No.", SalesHeader."No.");
+        FromSalesLine.SetFilter(Type, '<>%1', FromSalesLine.Type::" ");
+        FromSalesLine.SetFilter("Line Amount", '<>0');
+        FromSalesLine.SetFilter("Prepayment %", '<>0');
+        if FromSalesLine.FindSet() then
+            repeat
+                SalesPrepmtAmount += FromSalesLine."Amount Including VAT" * FromSalesLine."Prepayment %" / 100;
+            until FromSalesLine.Next() = 0;
+        PrepmtAmountInclVAT := -TotalPrepmtInvLineBuffer."Amount Incl. VAT";
+        PrepaymentMgt.AssertPrepmtAmountNotMoreThanDocAmount(
+             SalesPrepmtAmount, PrepmtAmountInclVAT, SalesHeader."Currency Code", SalesSetup."Invoice Rounding");
+    end;
+
+    /// <summary>
+    /// Validates the sales order and prepayment settings before posting a prepayment document.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order to validate.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type (Invoice or Credit Memo) to validate for.</param>
     procedure CheckPrepmtDoc(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo")
     var
         Cust: Record Customer;
@@ -559,6 +607,12 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    /// <summary>
+    /// Checks if there are open prepayment lines available for posting.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order to check.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type to check for.</param>
+    /// <returns>Returns true if open prepayment lines are found.</returns>
     procedure CheckOpenPrepaymentLines(SalesHeader: Record "Sales Header"; DocumentType: Option) Found: Boolean
     var
         SalesLine: Record "Sales Line";
@@ -628,6 +682,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtInvLineBuf2: Record "Prepayment Inv. Line Buffer";
         TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer";
         TotalPrepmtInvLineBufferDummy: Record "Prepayment Inv. Line Buffer";
+        HasInvoiceDiscount: Boolean;
     begin
         TempGlobalPrepmtInvLineBuf.Reset();
         TempGlobalPrepmtInvLineBuf.DeleteAll();
@@ -641,6 +696,9 @@ codeunit 442 "Sales-Post Prepayments"
                     if not CheckSystemCreatedInvoiceRoundEntry(SalesLine, SalesHeader."Customer Posting Group") then
                         CheckSalesLineIsNegative(SalesHeader, SalesLine);
 
+                    if SalesLine."Inv. Discount Amount" <> 0 then
+                        HasInvoiceDiscount := true;
+
                     OnBuildInvLineBufferOnBeforeFillInvLineBuffer(SalesHeader, SalesLine);
                     FillInvLineBuffer(SalesHeader, SalesLine, PrepmtInvLineBuf2);
                     if UpdateLines then
@@ -652,6 +710,8 @@ codeunit 442 "Sales-Post Prepayments"
                     TempSalesLine.Insert();
                 end;
             until SalesLine.Next() = 0;
+        UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
+
         if SalesSetup."Invoice Rounding" then
             if InsertInvoiceRounding(
                  SalesHeader, PrepmtInvLineBuf2, TotalPrepmtInvLineBuffer, SalesLine."Line No.")
@@ -662,6 +722,13 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterBuildInvLineBuffer(TempPrepmtInvLineBuf);
     end;
 
+    /// <summary>
+    /// Builds the prepayment invoice line buffer from the sales lines for posting.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLine">Specifies the sales lines to process.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
+    /// <param name="PrepmtInvLineBuf">Returns the prepayment invoice line buffer records.</param>
     procedure BuildInvLineBuffer(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer")
     begin
         BuildInvLineBuffer(SalesHeader, SalesLine, DocumentType, PrepmtInvLineBuf, false);
@@ -784,6 +851,12 @@ codeunit 442 "Sales-Post Prepayments"
         exit(PrepmtAccNo);
     end;
 
+    /// <summary>
+    /// Gets the correction balancing account number for prepayment adjustments.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="PositiveAmount">Specifies whether the adjustment amount is positive.</param>
+    /// <returns>Returns the G/L account number for balancing the correction.</returns>
     procedure GetCorrBalAccNo(SalesHeader: Record "Sales Header"; PositiveAmount: Boolean): Code[20]
     var
         BalAccNo: Code[20];
@@ -797,6 +870,11 @@ codeunit 442 "Sales-Post Prepayments"
         exit(BalAccNo);
     end;
 
+    /// <summary>
+    /// Gets the invoice rounding account number from the customer posting group.
+    /// </summary>
+    /// <param name="CustomerPostingGroup">Specifies the customer posting group code.</param>
+    /// <returns>Returns the invoice rounding G/L account number.</returns>
     procedure GetInvRoundingAccNo(CustomerPostingGroup: Code[20]): Code[20]
     var
         CustPostingGr: Record "Customer Posting Group";
@@ -826,6 +904,12 @@ codeunit 442 "Sales-Post Prepayments"
         exit(Currency."Amount Rounding Precision");
     end;
 
+    /// <summary>
+    /// Fills the prepayment invoice line buffer with data from a sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLine">Specifies the sales line to copy data from.</param>
+    /// <param name="PrepmtInvLineBuf">Returns the filled prepayment invoice line buffer record.</param>
     procedure FillInvLineBuffer(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer")
     begin
         PrepmtInvLineBuf.Init();
@@ -879,6 +963,13 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    /// <summary>
+    /// Initializes an invoice rounding line for the prepayment if rounding is required.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="TotalAmount">Specifies the total prepayment amount to check for rounding.</param>
+    /// <param name="SalesLine">Returns the initialized invoice rounding sales line if rounding is needed.</param>
+    /// <returns>Returns true if an invoice rounding line was created.</returns>
     procedure InitInvoiceRoundingLine(SalesHeader: Record "Sales Header"; TotalAmount: Decimal; var SalesLine: Record "Sales Line"): Boolean
     var
         Currency: Record Currency;
@@ -1015,6 +1106,13 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    /// <summary>
+    /// Updates the VAT amounts on sales lines based on the VAT amount lines for prepayment documents.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLine">Specifies the sales lines to update.</param>
+    /// <param name="VATAmountLine">Specifies the VAT amount lines with calculated VAT amounts.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
     procedure UpdateVATOnLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; DocumentType: Option Invoice,"Credit Memo",Statistic)
     var
         TempVATAmountLineRemainder: Record "VAT Amount Line" temporary;
@@ -1091,6 +1189,8 @@ codeunit 442 "Sales-Post Prepayments"
                             end;
                             NewAmountIncludingVAT := NewAmount + Round(VATAmount, Currency."Amount Rounding Precision");
                         end;
+                        if DocumentType = DocumentType::"Credit Memo" then
+                            NewAmountIncludingVAT := CalcDifferAmt(SalesLine, NewAmountIncludingVAT);
 
                         SalesLine."Prepayment Amount" := NewAmount;
                         SalesLine."Prepmt. Amt. Incl. VAT" :=
@@ -1132,6 +1232,13 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterUpdateVATOnLines(SalesHeader, SalesLine, VATAmountLine, DocumentType);
     end;
 
+    /// <summary>
+    /// Calculates the VAT amount lines for prepayment documents.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLine">Specifies the sales lines to calculate VAT for.</param>
+    /// <param name="VATAmountLine">Returns the calculated VAT amount lines.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
     procedure CalcVATAmountLines(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; DocumentType: Option Invoice,"Credit Memo",Statistic)
     var
         Currency: Record Currency;
@@ -1228,6 +1335,15 @@ codeunit 442 "Sales-Post Prepayments"
         VATAmountLine.Insert();
     end;
 
+    /// <summary>
+    /// Calculates the total prepayment amount and VAT amount for statistics.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLine">Specifies the sales lines to summarize.</param>
+    /// <param name="VATAmountLine">Returns the calculated VAT amount lines.</param>
+    /// <param name="TotalAmount">Returns the total prepayment amount.</param>
+    /// <param name="TotalVATAmount">Returns the total VAT amount.</param>
+    /// <param name="VATAmountText">Returns the VAT percentage text for display.</param>
     procedure SumPrepmt(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; var TotalAmount: Decimal; var TotalVATAmount: Decimal; var VATAmountText: Text[30])
     var
         TempPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer" temporary;
@@ -1256,6 +1372,12 @@ codeunit 442 "Sales-Post Prepayments"
             VATAmountText := StrSubstNo(Text015, PrevVATPct);
     end;
 
+    /// <summary>
+    /// Gets the sales lines with prepayment amounts for the specified document type.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
+    /// <param name="ToSalesLine">Returns the sales lines with prepayment amounts.</param>
     procedure GetSalesLines(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo",Statistic; var ToSalesLine: Record "Sales Line")
     var
         FromSalesLine: Record "Sales Line";
@@ -1306,6 +1428,12 @@ codeunit 442 "Sales-Post Prepayments"
         end;
     end;
 
+    /// <summary>
+    /// Applies filters to the sales lines for prepayment processing based on document type.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
+    /// <param name="SalesLine">Returns the filtered sales lines.</param>
     procedure ApplyFilter(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo",Statistic; var SalesLine: Record "Sales Line")
     begin
         SalesLine.Reset();
@@ -1320,6 +1448,12 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterApplyFilter(SalesLine, SalesHeader, DocumentType);
     end;
 
+    /// <summary>
+    /// Calculates the prepayment amount for the sales line based on the document type.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to calculate the prepayment amount for.</param>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
+    /// <returns>Returns the prepayment amount.</returns>
     procedure PrepmtAmount(SalesLine: Record "Sales Line"; DocumentType: Option Invoice,"Credit Memo",Statistic) Result: Decimal
     var
         IsHandled: Boolean;
@@ -1452,6 +1586,11 @@ codeunit 442 "Sales-Post Prepayments"
         GenJnlPostLine.RunWithCheck(GenJnlLine);
     end;
 
+    /// <summary>
+    /// Distributes the new total prepayment amount across the sales lines proportionally.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="NewTotalPrepmtAmount">Specifies the new total prepayment amount to distribute.</param>
     procedure UpdatePrepmtAmountOnSaleslines(SalesHeader: Record "Sales Header"; NewTotalPrepmtAmount: Decimal)
     var
         Currency: Record Currency;
@@ -1524,6 +1663,11 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterCreateDimensions(SalesLine, DefaultDimSource);
     end;
 
+    /// <summary>
+    /// Converts the prepayment document type to the corresponding sales document type integer value.
+    /// </summary>
+    /// <param name="DocumentType">Specifies the prepayment document type.</param>
+    /// <returns>Returns the corresponding sales document type as an integer.</returns>
     procedure PrepmtDocTypeToDocType(DocumentType: Option Invoice,"Credit Memo"): Integer
     begin
         case DocumentType of
@@ -1535,6 +1679,11 @@ codeunit 442 "Sales-Post Prepayments"
         exit(2);
     end;
 
+    /// <summary>
+    /// Gets the sales lines that have prepayment amounts to deduct during final invoicing.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the order.</param>
+    /// <param name="SalesLines">Returns the sales lines with prepayment amounts to deduct.</param>
     procedure GetSalesLinesToDeduct(SalesHeader: Record "Sales Header"; var SalesLines: Record "Sales Line")
     var
         SalesLine: Record "Sales Line";
@@ -1809,24 +1958,56 @@ codeunit 442 "Sales-Post Prepayments"
         exit(PaymentTerms."Calc. Pmt. Disc. on Cr. Memos");
     end;
 
+    /// <summary>
+    /// Gets whether the prepayment posting is running in preview mode.
+    /// </summary>
+    /// <returns>Returns true if preview mode is enabled.</returns>
     procedure GetPreviewMode(): Boolean
     begin
         exit(PreviewMode);
     end;
 
+    /// <summary>
+    /// Gets whether database commits are being suppressed during prepayment posting.
+    /// </summary>
+    /// <returns>Returns true if commits are suppressed.</returns>
     procedure GetSuppressCommit(): Boolean
     begin
         exit(SuppressCommit);
     end;
 
+    /// <summary>
+    /// Sets whether database commits should be suppressed during prepayment posting.
+    /// </summary>
+    /// <param name="NewSuppressCommit">Specifies whether to suppress commits.</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;
     end;
 
+    /// <summary>
+    /// Sets whether the prepayment posting is running in preview mode.
+    /// </summary>
+    /// <param name="NewPreviewMode">Specifies whether preview mode is enabled.</param>
     procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
+    end;
+
+    local procedure CalcDifferAmt(SalesLine: Record "Sales Line"; NewAmountIncludingVAT: Decimal): Decimal
+    var
+        AmountInclVAT: Decimal;
+        AmountInclVATDiff: Decimal;
+    begin
+        if SalesLine."Prepayment %" = 100 then begin
+            AmountInclVATDiff := NewAmountIncludingVAT - SalesLine."Prepmt. Amt. Incl. VAT";
+            if AmountInclVATDiff <> 0 then
+                AmountInclVAT := NewAmountIncludingVAT - AmountInclVATDiff
+            else
+                AmountInclVAT := NewAmountIncludingVAT;
+        end else
+            AmountInclVAT := NewAmountIncludingVAT;
+        exit(AmountInclVAT);
     end;
 
     local procedure CheckSalesLineIsNegative(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
@@ -1865,361 +2046,867 @@ codeunit 442 "Sales-Post Prepayments"
             exit(true);
     end;
 
+    local procedure UpdateDifferenceAmount(SalesHeader: Record "Sales Header"; var TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; var TempPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; HasInvoiceDiscount: Boolean)
+    var
+        Currency: Record Currency;
+        PrepmtAmt: Decimal;
+        DifferenceAmt: Decimal;
+    begin
+        if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
+            Currency.Initialize(SalesHeader."Currency Code");
+            SalesHeader.CalcFields(Amount);
+            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+            if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
+                DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
+
+                TempPrepmtInvLineBuf.Reset();
+                TempPrepmtInvLineBuf.SetCurrentKey(Adjustment);
+                if TempPrepmtInvLineBuf.FindLast() then begin
+                    TempPrepmtInvLineBuf.Amount := Round(TempPrepmtInvLineBuf.Amount - DifferenceAmt, Currency."Amount Rounding Precision");
+                    TempPrepmtInvLineBuf."Amount Incl. VAT" := Round(TempPrepmtInvLineBuf."Amount Incl. VAT" - DifferenceAmt, Currency."Amount Rounding Precision");
+                    TempPrepmtInvLineBuf.Modify();
+                end;
+            end;
+        end;
+    end;
+
+    /// <summary>
+    /// Raised after applying filters on sales lines for prepayment processing.
+    /// </summary>
+    /// <param name="SalesLine">The filtered sales lines.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterApplyFilter(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; DocumentType: Option)
     begin
     end;
 
+    /// <summary>
+    /// Raised after building the prepayment invoice line buffer.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer that was built.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterBuildInvLineBuffer(var PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating VAT amount lines for prepayments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales lines being processed.</param>
+    /// <param name="VATAmountLine">The calculated VAT amount lines.</param>
+    /// <param name="DocumentType">The document type (Invoice, Credit Memo, or Statistic).</param>
+    /// <param name="Currency">The currency used for the calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcVATAmountLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the prepayment document for posting readiness.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was checked.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="ErrorMessageMgt">The error message management codeunit for handling errors.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckPrepmtDoc(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; CommitIsSuppressed: Boolean; var ErrorMessageMgt: Codeunit "Error Message Management")
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating dimensions for prepayment lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line with dimensions.</param>
+    /// <param name="DefaultDimSource">The default dimension sources used.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimensions(var SalesLine: Record "Sales Line"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Raised after creating prepayment lines and before posting to the general ledger.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesInvHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="TempPrepmtInvLineBuffer">The temporary prepayment invoice line buffer.</param>
+    /// <param name="DocumentType">The document type being posted.</param>
+    /// <param name="LastLineNo">The last line number used.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateLinesOnBeforeGLPosting(var SalesHeader: Record "Sales Header"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; DocumentType: Option; var LastLineNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filling the prepayment invoice line buffer from a sales line.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf">The prepayment invoice line buffer that was filled.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillInvLineBuffer(var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the invoice rounding line for prepayments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer with rounding.</param>
+    /// <param name="TotalPrepmtInvLineBuf">The total prepayment invoice line buffer.</param>
+    /// <param name="PrevLineNo">The previous line number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertInvoiceRounding(SalesHeader: Record "Sales Header"; var PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var PrevLineNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting prepayments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesInvoiceHeader">The posted prepayment invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted prepayment credit memo header.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPrepayments(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; CommitIsSuppressed: Boolean; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting prepayments before throwing a preview mode error.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesInvHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPrepaymentsOnBeforeThrowPreviewModeError(var SalesHeader: Record "Sales Header"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the balancing entry for prepayments.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was posted.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry.</param>
+    /// <param name="TotalPrepmtInvLineBuffer">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufferLCY">The total prepayment invoice line buffer in LCY.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostBalancingEntry(var GenJnlLine: Record "Gen. Journal Line"; CustLedgEntry: Record "Cust. Ledger Entry"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the customer entry for prepayments.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was posted.</param>
+    /// <param name="TotalPrepmtInvLineBuffer">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufferLCY">The total prepayment invoice line buffer in LCY.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostCustomerEntry(var GenJnlLine: Record "Gen. Journal Line"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting a prepayment invoice line buffer entry.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was posted.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer that was posted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPrepmtInvLineBuffer(var GenJnlLine: Record "Gen. Journal Line"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after rounding prepayment amounts.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer with rounded amounts.</param>
+    /// <param name="TotalPrepmtInvLineBuf">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufLCY">The total prepayment invoice line buffer in LCY.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRoundAmounts(SalesHeader: Record "Sales Header"; var PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBufLCY: Record "Prepayment Inv. Line Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a prepayment sales invoice header.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesInvHeaderInsert(var SalesInvoiceHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a prepayment sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line that was inserted.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesInvLineInsert(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a prepayment sales credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a prepayment sales credit memo line.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line that was inserted.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesCrMemoLineInsert(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the posted sales document with prepayment information.
+    /// </summary>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="DocumentNo">The document number.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePostedSalesDocument(DocumentType: Option Invoice,"Credit Memo"; DocumentNo: Code[20]; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating VAT on lines for prepayments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales lines being updated.</param>
+    /// <param name="VATAmountLine">The VAT amount lines.</param>
+    /// <param name="DocumentType">The document type (Invoice, Credit Memo, or Statistic).</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVATOnLines(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line"; DocumentType: Option Invoice,"Credit Memo",Statistic)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the prepayment document for posting readiness.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="DocumentType">The document type to check.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtDoc(SalesHeader: Record "Sales Header"; DocumentType: Option; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking for open prepayment lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="DocumentType">The document type to check.</param>
+    /// <param name="Found">Returns whether open prepayment lines were found.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckOpenPrepaymentLines(SalesHeader: Record "Sales Header"; DocumentType: Option; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating lines from the prepayment buffer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="TempGlobalPrepmtInvLineBuf">The temporary prepayment invoice line buffer.</param>
+    /// <param name="LineCount">The line count.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="PostedDocTabNo">The posted document table number.</param>
+    /// <param name="DocumentType">The document type.</param>
+    /// <param name="LastLineNo">The last line number.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateLinesFromBuffer(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempGlobalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer" temporary; var LineCount: Integer; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var PostedDocTabNo: Integer; DocumentType: Option; var LastLineNo: Integer; GenJnlLineDocNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting a prepayment invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for the prepayment invoice.</param>
+    /// <param name="Handled">Set to true to skip the default invoice posting.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeInvoice(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting a prepayment credit memo.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for the prepayment credit memo.</param>
+    /// <param name="Handled">Set to true to skip the default credit memo posting.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCreditMemo(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before filling the prepayment invoice line buffer.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">The prepayment invoice line buffer to fill.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The source sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFillInvLineBuffer(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting extended text for prepayment lines.
+    /// </summary>
+    /// <param name="TabNo">The table number.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="GLAccNo">The G/L account number.</param>
+    /// <param name="DocDate">The document date.</param>
+    /// <param name="LanguageCode">The language code.</param>
+    /// <param name="PrevLineNo">The previous line number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertExtendedText(TabNo: Integer; DocNo: Code[20]; GLAccNo: Code[20]; DocDate: Date; LanguageCode: Code[10]; var PrevLineNo: Integer);
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting prepayments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostPrepayments(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the prepayment sales invoice header.
+    /// </summary>
+    /// <param name="SalesInvHeader">The sales invoice header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="GenJnlDocNo">The general journal document number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesInvHeaderInsert(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; GenJnlDocNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before asserting that the prepayment amount is not more than the document amount.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry being checked.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default assertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesAssertPrepmtAmountNotMoreThanDocAmount(var CustLedgEntry: Record "Cust. Ledger Entry"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a prepayment sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line to be inserted.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesInvLineInsert(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the prepayment sales credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a prepayment sales credit memo line.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line to be inserted.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesCrMemoLineInsert(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the customer entry for the prepayment.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be posted.</param>
+    /// <param name="TotalPrepmtInvLineBuffer">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufferLCY">The total prepayment invoice line buffer in LCY.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostCustomerEntry(var GenJnlLine: Record "Gen. Journal Line"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean; SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the general journal post line codeunit.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales document after prepayment posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be updated.</param>
+    /// <param name="SalesLine">The sales line to be updated.</param>
+    /// <param name="DocumentType">The document type.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesDocument(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Option; GenJnlLineDocNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating document numbers for prepayment posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="DocNo">The document number to be assigned.</param>
+    /// <param name="NoSeriesCode">The number series code to use.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="IsPreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="IsHandled">Set to true to skip the default document number update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDocNos(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; var DocNo: Code[20]; var NoSeriesCode: Code[20]; var ModifyHeader: Boolean; IsPreviewMode: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the posted sales document with the customer ledger entry number.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was created.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="DocumentNo">The document number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePostedSalesDocument(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; DocumentType: Option Invoice,"Credit Memo"; var IsHandled: Boolean; DocumentNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the prepayment invoice line buffer to the general journal.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be posted.</param>
+    /// <param name="PrepmtInvLineBuffer">The prepayment invoice line buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostPrepmtInvLineBuffer(var GenJnlLine: Record "Gen. Journal Line"; PrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised during VAT amount lines calculation before updating lines.
+    /// </summary>
+    /// <param name="NewAmount">The new amount calculated.</param>
+    /// <param name="Currency">The currency used for the calculation.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeUpdateLines(var NewAmount: Decimal; Currency: Record Currency; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after building the prepayment invoice line buffer in the Code procedure.
+    /// </summary>
+    /// <param name="TempVATAmountLine">The temporary VAT amount lines.</param>
+    /// <param name="TempPrepmtInvLineBuffer">The temporary prepayment invoice line buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterBuildInvLineBuffer(var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating and updating VAT amount lines in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempPrepmtInvLineBuffer">The temporary prepayment invoice line buffer.</param>
+    /// <param name="DocumentType">The document type.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeCalcAndUpdateVATAmountLines(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; DocumentType: Option; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the customer entry in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempPrepaymentInvLineBuffer">The temporary prepayment invoice line buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforePostCustomerEntry(var SalesHeader: Record "Sales Header"; var TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the balancing entry in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempPrepaymentInvLineBuffer">The temporary prepayment invoice line buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforePostBalancingEntry(var SalesHeader: Record "Sales Header"; var TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the progress window in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeWindowOpen(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to set pending prepayment status in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesInvoiceHeader">The posted prepayment invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted prepayment credit memo header.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ShouldSetPendingPrepaymentStatus">Indicates whether pending prepayment status should be set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterCalcShouldSetPendingPrepaymentStatus(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean; var ShouldSetPendingPrepaymentStatus: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales invoice line during extended text insertion.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line to be inserted.</param>
+    /// <param name="TabNo">The table number.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="NextLineNo">The next line number.</param>
+    /// <param name="TempExtendedTextLine">The temporary extended text line.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertExtendedTextOnBeforeSalesInvLineInsert(var SalesInvoiceLine: Record "Sales Invoice Line"; TabNo: Integer; DocNo: Code[20]; NextLineNo: Integer; var TempExtendedTextLine: Record "Extended Text Line" temporary; SalesHeader: Record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales credit memo line during extended text insertion.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line to be inserted.</param>
+    /// <param name="TabNo">The table number.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="NextLineNo">The next line number.</param>
+    /// <param name="TempExtendedTextLine">The temporary extended text line.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertExtendedTextOnBeforeSalesCrMemoLineInsert(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; TabNo: Integer; DocNo: Code[20]; NextLineNo: Integer; var TempExtendedTextLine: Record "Extended Text Line" temporary; SalesHeader: Record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the general journal post line with check during balancing entry posting.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to be posted.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry.</param>
+    /// <param name="TotalPrepmtInvLineBuffer">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufferLCY">The total prepayment invoice line buffer in LCY.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocType">The general journal document type.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostBalancingEntryOnBeforeGenJnlPostLineRunWithCheck(var GenJnlLine: Record "Gen. Journal Line"; CustLedgEntry: Record "Cust. Ledger Entry"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; CommitIsSuppressed: Boolean; SalesHeader: Record "Sales Header"; DocType: enum "Gen. Journal Document Type")
     begin
     end;
 
+    /// <summary>
+    /// Raised before incrementing amounts during the rounding process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="PrepmtInvLineBuf">The prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBuf">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufLCY">The total prepayment invoice line buffer in LCY.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountsOnBeforeIncrAmounts(SalesHeader: Record "Sales Header"; var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBufLCY: Record "Prepayment Inv. Line Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales line during credit memo prepayment document update.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesDocumentOnBeforeModifyCreditMemoSalesLine(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales line during invoice prepayment document update.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesDocumentOnBeforeModifyInvoiceSalesLine(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the remainder during VAT update on lines.
+    /// </summary>
+    /// <param name="VATAmountLineRemainder">The VAT amount line remainder.</param>
+    /// <param name="RemainderExists">Indicates whether a remainder exists.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterGetRemainder(var VATAmountLineRemainder: Record "VAT Amount Line"; var RemainderExists: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the VAT amount line during VAT update on lines.
+    /// </summary>
+    /// <param name="VATAmountLine">The VAT amount line that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnAfterVATAmountLineGet(var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the sales line during VAT update on lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line to be modified.</param>
+    /// <param name="TempVATAmountLineRemainder">The temporary VAT amount line remainder.</param>
+    /// <param name="NewAmount">The new amount.</param>
+    /// <param name="NewAmountIncludingVAT">The new amount including VAT.</param>
+    /// <param name="NewVATBaseAmount">The new VAT base amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVATOnLinesOnBeforeSalesLineModify(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempVATAmountLineRemainder: Record "VAT Amount Line"; NewAmount: Decimal; NewAmountIncludingVAT: Decimal; NewVATBaseAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before throwing a preview error.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeThrowPreviewError(SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the sales line is negative.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default negative check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesLineIsNegative(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting sales lines for prepayment processing.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice, Credit Memo, or Statistic).</param>
+    /// <param name="ToSalesLine">The sales line record to populate.</param>
+    /// <param name="IsHandled">Set to true to skip the default get sales lines logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLines(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo",Statistic; var ToSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating prepayment amounts on sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewTotalPrepmtAmount">The new total prepayment amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtAmountOnSaleslines(SalesHeader: Record "Sales Header"; NewTotalPrepmtAmount: Decimal; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting to the sales line in the GetSalesLines procedure.
+    /// </summary>
+    /// <param name="ToSalesLine">The sales line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetSalesLinesOnBeforeInsertToSalesLine(var ToSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting posted headers in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeInsertPostedHeaders(var SalesHeader: Record "Sales Header");
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating document numbers for prepayment posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDocNos(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before filling the invoice line buffer in the BuildInvLineBuffer procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The source sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBuildInvLineBufferOnBeforeFillInvLineBuffer(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the posting description in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="PostingDescription">The posting description that was set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterPostingDescriptionSet(var SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; var PostingDescription: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Raised before the PostCustomerEntry procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TotalPrepmtInvLineBuffer">The total prepayment invoice line buffer.</param>
+    /// <param name="TotalPrepmtInvLineBufferLCY">The total prepayment invoice line buffer in LCY.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
+    /// <param name="PostingDescription">The posting description.</param>
+    /// <param name="DocType">The general journal document type.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="ExtDocNo">The external document number.</param>
+    /// <param name="SrcCode">The source code.</param>
+    /// <param name="PostingNoSeriesCode">The posting number series code.</param>
+    /// <param name="CalcPmtDisc">Indicates whether to calculate payment discount.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip the default customer entry posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostCustomerEntryProcedure(var SalesHeader: Record "Sales Header"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; DocumentType: Option Invoice,"Credit Memo"; PostingDescription: Text[100]; DocType: Enum "Gen. Journal Document Type"; DocNo: Code[20]; ExtDocNo: Text[35]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20]; CalcPmtDisc: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the prepayment amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice, Credit Memo, or Statistic).</param>
+    /// <param name="Result">The calculated prepayment amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrepmtAmount(var SalesLine: Record "Sales Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; var Result: Decimal; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a VAT amount line in the InsertVATAmount procedure.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATAmountOnBeforeInsert(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters in the FindVATAmountLine procedure.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="VATAmountLine">The VAT amount line with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindVATAmountLineOnAfterSetFilters(var SalesLine: Record "Sales Line"; var VATAmountLine: Record "VAT Amount Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the prepayment document in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="DocumentType">The document type (Invoice or Credit Memo).</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeCheckPrepmtDoc(var SalesHeader: Record "Sales Header"; var DocumentType: Option Invoice,"Credit Memo")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the prepayment account number from the general posting setup.
+    /// </summary>
+    /// <param name="GenPostingSetup">The general posting setup used to retrieve the account.</param>
+    /// <param name="PrepmtAccNo">The prepayment account number that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPrepmtAccNo(GenPostingSetup: Record "General Posting Setup"; var PrepmtAccNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the correction balancing account number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="PositiveAmount">Indicates whether the amount is positive.</param>
+    /// <param name="BalAccNo">The balancing account number that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCorrBalAccNo(SalesHeader: Record "Sales Header"; PositiveAmount: Boolean; var BalAccNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the source code in the Code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SourceCodeSetup">The source code setup record.</param>
+    /// <param name="SrcCode">The source code that was set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterSetSourceCode(var SalesHeader: Record "Sales Header"; SourceCodeSetup: Record "Source Code Setup"; var SrcCode: Code[10])
     begin

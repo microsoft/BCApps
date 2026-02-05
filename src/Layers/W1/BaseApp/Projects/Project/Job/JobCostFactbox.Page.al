@@ -41,6 +41,8 @@ page 1030 "Job Cost Factbox"
                 field(ScheduleCostLCY; CL[1])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Resource';
                     Editable = false;
                     ToolTip = 'Specifies the total budgeted cost of resources associated with this project.';
@@ -53,6 +55,8 @@ page 1030 "Job Cost Factbox"
                 field(ScheduleCostLCYItem; CL[2])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Item';
                     Editable = false;
                     ToolTip = 'Specifies the total budgeted cost of items associated with this project.';
@@ -65,6 +69,8 @@ page 1030 "Job Cost Factbox"
                 field(ScheduleCostLCYGLAcc; CL[3])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'G/L Account';
                     Editable = false;
                     ToolTip = 'Specifies the total budgeted cost of general journal entries associated with this project.';
@@ -77,6 +83,8 @@ page 1030 "Job Cost Factbox"
                 field(ScheduleCostLCYTotal; CL[4])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total';
                     Editable = false;
                     Style = Strong;
@@ -103,6 +111,8 @@ page 1030 "Job Cost Factbox"
                 field(UsageCostLCY; CL[5])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Resource';
                     Editable = false;
                     ToolTip = 'Specifies the total usage cost of resources associated with this project.';
@@ -115,6 +125,8 @@ page 1030 "Job Cost Factbox"
                 field(UsageCostLCYItem; CL[6])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Item';
                     Editable = false;
                     ToolTip = 'Specifies the total usage cost of items associated with this project.';
@@ -127,6 +139,8 @@ page 1030 "Job Cost Factbox"
                 field(UsageCostLCYGLAcc; CL[7])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'G/L Account';
                     Editable = false;
                     ToolTip = 'Specifies the total usage cost of general journal entries associated with this project.';
@@ -139,6 +153,8 @@ page 1030 "Job Cost Factbox"
                 field(UsageCostLCYTotal; CL[8])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total';
                     Editable = false;
                     Style = Strong;
@@ -165,6 +181,8 @@ page 1030 "Job Cost Factbox"
                 field(BillablePriceLCY; PL[9])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Resource';
                     Editable = false;
                     ToolTip = 'Specifies the total billable price of resources associated with this project.';
@@ -182,6 +200,8 @@ page 1030 "Job Cost Factbox"
                 field(BillablePriceLCYItem; PL[10])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Item';
                     Editable = false;
                     ToolTip = 'Specifies the total billable price of items associated with this project.';
@@ -199,6 +219,8 @@ page 1030 "Job Cost Factbox"
                 field(BillablePriceLCYGLAcc; PL[11])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'G/L Account';
                     Editable = false;
                     ToolTip = 'Specifies the total billable price for project planning lines of type G/L account.';
@@ -216,6 +238,8 @@ page 1030 "Job Cost Factbox"
                 field(BillablePriceLCYTotal; PL[12])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total';
                     Editable = false;
                     Style = Strong;
@@ -247,6 +271,8 @@ page 1030 "Job Cost Factbox"
                 field(InvoicedPriceLCY; PL[13])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Resource';
                     Editable = false;
                     ToolTip = 'Specifies the total invoiced price of resources associated with this project.';
@@ -264,6 +290,8 @@ page 1030 "Job Cost Factbox"
                 field(InvoicedPriceLCYItem; PL[14])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Item';
                     Editable = false;
                     ToolTip = 'Specifies the total invoiced price of items associated with this project.';
@@ -281,6 +309,8 @@ page 1030 "Job Cost Factbox"
                 field(InvoicedPriceLCYGLAcc; PL[15])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'G/L Account';
                     Editable = false;
                     ToolTip = 'Specifies the total invoiced price of general journal entries associated with this project.';
@@ -298,6 +328,8 @@ page 1030 "Job Cost Factbox"
                 field(InvoicedPriceLCYTotal; PL[16])
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total';
                     Editable = false;
                     Style = Strong;

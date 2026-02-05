@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Visualization;
 
+/// <summary>
+/// Manages the doughnut chart visualization displaying the top five customers by sales.
+/// </summary>
 codeunit 1326 "Top Five Customers Chart Mgt."
 {
     SingleInstance = true;
@@ -22,6 +25,10 @@ codeunit 1326 "Top Five Customers Chart Mgt."
         CustomerNameNoLbl: Label '%1 - %2', Locked = true;
         CustomerNo: array[5] of Code[20];
 
+    /// <summary>
+    /// Updates the business chart buffer with the top five customers by sales data for doughnut chart visualization.
+    /// </summary>
+    /// <param name="BusChartBuf">Specifies the business chart buffer to populate with customer sales data.</param>
     procedure UpdateChart(var BusChartBuf: Record "Business Chart Buffer")
     var
         GLSetup: Record "General Ledger Setup";
@@ -42,6 +49,10 @@ codeunit 1326 "Top Five Customers Chart Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Handles drill-down actions on the top five customers chart by opening the customer card or customer list.
+    /// </summary>
+    /// <param name="BusChartBuf">Specifies the business chart buffer containing drill-down context information.</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer")
     var
         CustomerName: Variant;

@@ -30,6 +30,7 @@ codeunit 144001 "Report Layout - Local"
         REPORT.Run(REPORT::"FR Account Schedule");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHGLCustLedgerReconciliation')]
     [Scope('OnPrem')]
@@ -38,6 +39,7 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"GL/Cust. Ledger Reconciliation");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RHGLJournal')]
@@ -144,6 +146,7 @@ codeunit 144001 "Report Layout - Local"
         FRAccountSchedule.SaveAsPdf(FomatFileName(FRAccountSchedule.Caption));
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHGLCustLedgerReconciliation(var GLCustLedgerReconciliation: TestRequestPage "GL/Cust. Ledger Reconciliation")
@@ -152,6 +155,7 @@ codeunit 144001 "Report Layout - Local"
           StrSubstNo('%1..%2', CalcDate('<-1Y>', WorkDate()), CalcDate('<+1Y>', WorkDate())));
         GLCustLedgerReconciliation.SaveAsPdf(FomatFileName(GLCustLedgerReconciliation.Caption));
     end;
+#endif    
 
     [RequestPageHandler]
     [Scope('OnPrem')]

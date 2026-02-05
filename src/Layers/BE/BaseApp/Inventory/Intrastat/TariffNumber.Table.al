@@ -35,6 +35,7 @@ table 260 "Tariff Number"
         }
         field(11315; "Conversion Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Conversion Factor';
 
             trigger OnValidate()

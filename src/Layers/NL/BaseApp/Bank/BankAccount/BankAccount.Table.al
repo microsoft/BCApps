@@ -1015,6 +1015,8 @@ table 270 "Bank Account"
         }
         field(11000005; Proposal; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             CalcFormula = sum("Proposal Line".Amount where("Our Bank No." = field("No."),
                                                             Process = const(true)));
             Caption = 'Proposal';
@@ -1023,6 +1025,8 @@ table 270 "Bank Account"
         }
         field(11000006; "Payment History"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             CalcFormula = sum("Payment History Line".Amount where("Our Bank" = field("No."),
                                                                    Status = filter(New | Transmitted | "Request for Cancellation")));
             Caption = 'Payment History';

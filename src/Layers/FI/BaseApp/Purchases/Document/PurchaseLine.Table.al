@@ -116,6 +116,7 @@ table 39 "Purchase Line"
                 TestField("Qty. Rcd. Not Invoiced", 0);
                 TestField("Quantity Received", 0);
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
 
                 TestField("Return Qty. Shipped Not Invd.", 0);
                 TestField("Return Qty. Shipped", 0);
@@ -215,9 +216,10 @@ table 39 "Purchase Line"
 
                 IsHandled := false;
                 OnValidateNoOnBeforeCheckReceiptNo(Rec, xRec, IsHandled);
-                if not IsHandled then
+                if not IsHandled then begin
                     TestField("Receipt No.", '');
-
+                    MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+                end;
                 TestField("Prepmt. Amt. Inv.", 0);
 
                 TestReturnFieldsZero();
@@ -413,6 +415,7 @@ table 39 "Purchase Line"
 
                 GetDefaultBin();
                 CheckWMS();
+                MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForLocation("Location Code", GetPurchHeader());
 
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
@@ -1027,6 +1030,7 @@ table 39 "Purchase Line"
                         "Inv. Discount Amount" := 0;
                         "Inv. Disc. Amount to Invoice" := 0;
                     end;
+                    "Recalculate Invoice Disc." := true;
                     UpdateAmounts();
                     UpdateUnitCost();
                 end;
@@ -1118,6 +1122,8 @@ table 39 "Purchase Line"
                 TestField("Drop Shipment", false);
                 TestField("Special Order", false);
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -1390,8 +1396,12 @@ table 39 "Purchase Line"
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
+            var
+                ValidateVATBusPostingGroup: Boolean;
             begin
-                if xRec."Gen. Bus. Posting Group" <> "Gen. Bus. Posting Group" then
+                ValidateVATBusPostingGroup := xRec."Gen. Bus. Posting Group" <> "Gen. Bus. Posting Group";
+                OnValidateGenBusPostingGroupOnBeforeValidateVATBusPostingGroup(Rec, ValidateVATBusPostingGroup);
+                if ValidateVATBusPostingGroup then
                     if GenBusPostingGrp.ValidateVatBusPostingGroup(GenBusPostingGrp, "Gen. Bus. Posting Group") then
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
@@ -2121,6 +2131,7 @@ table 39 "Purchase Line"
 
                 TestStatusOpen();
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
 
                 if "Job Task No." <> xRec."Job Task No." then begin
                     Validate("Job Planning Line No.", 0);
@@ -2171,6 +2182,8 @@ table 39 "Purchase Line"
 
                 TestStatusOpen();
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2180,6 +2193,8 @@ table 39 "Purchase Line"
         }
         field(1003; "Job Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = "Job Currency Code";
             AccessByPermission = TableData Job = R;
             BlankZero = true;
             Caption = 'Project Unit Price';
@@ -2194,6 +2209,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2207,6 +2224,8 @@ table 39 "Purchase Line"
         field(1004; "Job Total Price"; Decimal)
         {
             AccessByPermission = TableData Job = R;
+            AutoFormatExpression = "Job Currency Code";
+            AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Project Total Price';
             Editable = false;
@@ -2228,6 +2247,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2256,6 +2277,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2286,6 +2309,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2315,6 +2340,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2353,6 +2380,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2382,6 +2411,8 @@ table 39 "Purchase Line"
                     exit;
 
                 TestField("Receipt No.", '');
+                MatchedOrderLineMgmt.IsLineMatched(Rec, true);
+
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
 
@@ -2574,6 +2605,28 @@ table 39 "Purchase Line"
             Caption = 'Allocation Purchase Line SystemId';
             DataClassification = SystemMetadata;
         }
+        field(2700; "Invoicing From Line SystemId"; Guid)
+        {
+            Caption = 'Invoicing From Line SystemId';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(2701; "Matched Order Lines"; Integer)
+        {
+            BlankZero = true;
+            CalcFormula = count("Matched Order Line" where("Document Line SystemId" = field(SystemId), "Matched Rcpt./Shpt. Line SysId" = const('00000000-0000-0000-0000-000000000000')));
+            Caption = 'Matched Order Lines';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(2702; "Matched Inv./Cr. Memo Lines"; Integer)
+        {
+            BlankZero = true;
+            CalcFormula = count("Matched Order Line" where("Matched Order Line SystemId" = field(SystemId), "Matched Rcpt./Shpt. Line SysId" = const('00000000-0000-0000-0000-000000000000')));
+            Caption = 'Matched Invoice/Cr. Memo Lines';
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
@@ -2606,6 +2659,7 @@ table 39 "Purchase Line"
                     TestField("Receipt No.", '');
                     TestField("Return Qty. Shipped Not Invd.", 0);
                     TestField("Return Shipment No.", '');
+                    MatchedOrderLineMgmt.IsLineMatched(Rec, true);
                 end;
 
                 IsHandled := false;
@@ -2761,6 +2815,7 @@ table 39 "Purchase Line"
                 if "Unit of Measure Code" <> xRec."Unit of Measure Code" then begin
                     TestField("Receipt No.", '');
                     TestField("Return Shipment No.", '');
+                    MatchedOrderLineMgmt.IsLineMatched(Rec, true);
                 end;
 
                 IsHandled := false;
@@ -3558,6 +3613,11 @@ table 39 "Purchase Line"
             Caption = 'Prepmt. on-Deductible VAT Amount';
             Editable = false;
         }
+        field(6206; "Item Charge Has Non.Ded. VAT"; Boolean)
+        {
+            Caption = 'Item Charge Has Non-Deductible VAT';
+            Editable = false;
+        }
         field(6600; "Return Shipment No."; Code[20])
         {
             Caption = 'Return Shipment No.';
@@ -3846,7 +3906,7 @@ table 39 "Purchase Line"
             IsHandled := false;
             OnDeleteOnBeforeCheckQtyNotInvoiced(Rec, IsHandled);
             if not IsHandled then begin
-                if "Receipt No." = '' then
+                if not IsMatchedToReceiptOrOrder() then
                     TestField("Qty. Rcd. Not Invoiced", 0);
                 if "Return Shipment No." = '' then
                     TestField("Return Qty. Shipped Not Invd.", 0);
@@ -3932,6 +3992,8 @@ table 39 "Purchase Line"
             DeferralUtilities.DeferralCodeOnDelete(
                 Enum::"Deferral Document Type"::Purchase.AsInteger(), '', '',
                 "Document Type".AsInteger(), "Document No.", "Line No.");
+
+        MatchedOrderLineMgmt.DeleteMatchedOrderLines(Rec);
     end;
 
     trigger OnInsert()
@@ -4025,6 +4087,7 @@ table 39 "Purchase Line"
         PostingSetupMgt: Codeunit PostingSetupManagement;
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
         FieldCausedPriceCalculation: Integer;
         GLSetupRead: Boolean;
         UnitCostCurrency: Decimal;
@@ -4613,6 +4676,7 @@ table 39 "Purchase Line"
                 Item.TestField("Inventory Posting Group");
                 "Posting Group" := Item."Inventory Posting Group";
             end;
+            MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForItem(Item, GetPurchHeader());
         end;
 
         OnCopyFromItemOnAfterCheck(Rec, Item, CurrFieldNo);
@@ -5348,7 +5412,7 @@ table 39 "Purchase Line"
 
         VATBaseAmount := "VAT Base Amount";
         NonDeductAmount := NonDeductibleVAT.GetNonDeductibleVATAmount(Rec);
-        "Recalculate Invoice Disc." := "Allow Invoice Disc.";
+        "Recalculate Invoice Disc." := "Recalculate Invoice Disc." or "Allow Invoice Disc.";
 
         UpdateLineAmount(LineAmountChanged);
 
@@ -5680,7 +5744,7 @@ table 39 "Purchase Line"
         OnAfterUpdateSalesCost(Rec, SalesOrderLine);
     end;
 
-    local procedure GetFAPostingGroup()
+    procedure GetFAPostingGroup()
     var
         LocalGLAcc: Record "G/L Account";
         FAPostingGr: Record "FA Posting Group";
@@ -6350,8 +6414,8 @@ table 39 "Purchase Line"
         ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)";
         AssignItemChargePurch: Codeunit "Item Charge Assgnt. (Purch.)";
         ItemChargeAssgnts: Page "Item Charge Assignment (Purch)";
-        ItemChargeAssgntLineAmt: Decimal;
-        IsHandled: Boolean;
+        ItemChargeAssgntLineAmt, NonDedVATAmount : Decimal;
+        IsHandled, IncludeNonDedVATAmount : Boolean;
     begin
         Get("Document Type", "Document No.", "Line No.");
         CheckNoAndQuantityForItemChargeAssgnt();
@@ -6369,9 +6433,14 @@ table 39 "Purchase Line"
         if ("Inv. Discount Amount" = 0) and
            ("Line Discount Amount" = 0) and
            (not PurchHeader."Prices Including VAT")
-        then
-            ItemChargeAssgntLineAmt := "Line Amount" + NonDeductibleVAT.GetNonDeductibleVATAmountForItemCost(Rec)
-        else
+        then begin
+            ItemChargeAssgntLineAmt := "Line Amount";
+            NonDedVATAmount := NonDeductibleVAT.GetNonDeductibleVATAmountForItemCost(Rec);
+            if NonDedVATAmount <> 0 then begin
+                ItemChargeAssgntLineAmt += NonDedVATAmount;
+                IncludeNonDedVATAmount := true;
+            end;
+        end else
             if PurchHeader."Prices Including VAT" then
                 ItemChargeAssgntLineAmt :=
                   Round(CalcLineAmount() / (1 + GetVATPct() / 100), Currency."Amount Rounding Precision") + NonDeductibleVAT.GetNonDeductibleVATAmountForItemCost(Rec)
@@ -6404,6 +6473,12 @@ table 39 "Purchase Line"
         else
             AssignItemChargePurch.CreateDocChargeAssgnt(ItemChargeAssgntPurch, "Receipt No.");
         Clear(AssignItemChargePurch);
+
+        if IncludeNonDedVATAmount then begin
+            Rec."Item Charge Has Non.Ded. VAT" := IncludeNonDedVATAmount;
+            Rec.Modify();
+        end;
+
         Commit();
 
         ItemChargeAssgnts.Initialize(Rec, ItemChargeAssgntLineAmt);
@@ -6607,6 +6682,7 @@ table 39 "Purchase Line"
 
         TestField("Qty. Rcd. Not Invoiced", 0);
         TestField("Receipt No.", '');
+        MatchedOrderLineMgmt.IsLineMatched(Rec, true);
 
         TestField("Return Qty. Shipped Not Invd.", 0);
         TestField("Return Shipment No.", '');
@@ -7075,7 +7151,7 @@ table 39 "Purchase Line"
                                     case true of
                                         (PurchLine."Document Type" in [PurchLine."Document Type"::Order, PurchLine."Document Type"::Invoice]) and
                                     (not PurchHeader.Receive) and PurchHeader.Invoice and (not PurchLine."Prepayment Line"):
-                                            if PurchLine."Receipt No." = '' then begin
+                                            if not PurchLine.IsMatchedToReceiptOrOrder() then begin
                                                 QtyToHandle := PurchLine.GetAbsMin(PurchLine."Qty. to Invoice", PurchLine."Qty. Rcd. Not Invoiced");
                                                 VATAmountLine.Quantity += PurchLine.GetAbsMin(PurchLine."Qty. to Invoice (Base)", PurchLine."Qty. Rcd. Not Invoiced (Base)");
                                             end else begin
@@ -7652,7 +7728,7 @@ table 39 "Purchase Line"
         if "Appl.-to Item Entry" = 0 then
             exit;
 
-        if "Receipt No." <> '' then
+        if IsMatchedToReceiptOrOrder() then
             exit;
 
         TestField(Type, Type::Item);
@@ -8392,13 +8468,16 @@ table 39 "Purchase Line"
     procedure IsServiceCharge(): Boolean
     var
         VendorPostingGroup: Record "Vendor Posting Group";
+        ServiceCharged: Boolean;
     begin
         if Type <> Type::"G/L Account" then
             exit(false);
 
         GetPurchHeader();
-        VendorPostingGroup.Get(PurchHeader."Vendor Posting Group");
-        exit(VendorPostingGroup."Service Charge Acc." = "No.");
+        ServiceCharged := VendorPostingGroup.Get(PurchHeader."Vendor Posting Group");
+        ServiceCharged := VendorPostingGroup."Service Charge Acc." = "No.";
+        OnAfterIsServiceCharge(Rec, ServiceCharged);
+        exit(ServiceCharged);
     end;
 
     /// <summary>
@@ -8499,7 +8578,7 @@ table 39 "Purchase Line"
             if "Quantity (Base)" <> 0 then
                 case "Document Type" of
                     "Document Type"::Invoice:
-                        if "Receipt No." = '' then
+                        if not IsMatchedToReceiptOrOrder() then
                             if Location.Get("Location Code") and Location."Directed Put-away and Pick" then begin
                                 DialogText += Location.GetRequirementText(Location.FieldNo("Require Receive"));
                                 Error(Text016, DialogText, FieldCaption("Line No."), "Line No.");
@@ -9955,6 +10034,23 @@ table 39 "Purchase Line"
         if IsHandled then
             exit;
         TestField("FA Posting Type", "FA Posting Type"::"Acquisition Cost");
+    end;
+
+    internal procedure IsMatchedToReceiptOrOrder(): Boolean
+    begin
+        exit(("Receipt No." <> '') or IsMatchedToOrder());
+    end;
+
+    internal procedure IsMatchedToOrder(): Boolean
+    begin
+        CalcFields("Matched Order Lines");
+        exit("Matched Order Lines" > 0);
+    end;
+
+    internal procedure IsMatchedToInvoiceCreditMemo(): Boolean
+    begin
+        CalcFields("Matched Inv./Cr. Memo Lines");
+        exit("Matched Inv./Cr. Memo Lines" > 0);
     end;
 
     [IntegrationEvent(false, false)]
@@ -12039,6 +12135,16 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnQtyTypeShippingOnBeforeCalcAmtToHandle(var PurchLine: Record "Purchase Line"; var PurchHeader: Record "Purchase Header"; var QtyToHandle: Decimal; var VATAmountLine: record "VAT Amount Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsServiceCharge(var PurchaseLine: Record "Purchase Line"; var ServiceCharged: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateGenBusPostingGroupOnBeforeValidateVATBusPostingGroup(var PurchaseLine: Record "Purchase Line"; var ValidateVATBusPostingGroup: Boolean)
     begin
     end;
 }

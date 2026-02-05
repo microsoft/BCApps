@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Provides functionality to edit specific fields on posted sales return receipt headers.
+/// </summary>
 codeunit 1407 "Return Receipt Header - Edit"
 {
     Permissions = TableData "Return Receipt Header" = rm;

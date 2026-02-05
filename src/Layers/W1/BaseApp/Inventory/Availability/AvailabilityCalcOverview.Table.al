@@ -87,31 +87,37 @@ table 5830 "Availability Calc. Overview"
         }
         field(41; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(42; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reserved Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(45; "Inventory Running Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory Running Total';
             DecimalPlaces = 0 : 5;
         }
         field(46; "Supply Running Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Supply Running Total';
             DecimalPlaces = 0 : 5;
         }
         field(47; "Demand Running Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Demand Running Total';
             DecimalPlaces = 0 : 5;
         }
         field(48; "Running Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Running Total';
             DecimalPlaces = 0 : 5;
         }

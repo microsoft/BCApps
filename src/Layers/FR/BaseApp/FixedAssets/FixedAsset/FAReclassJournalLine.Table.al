@@ -76,6 +76,7 @@ table 5624 "FA Reclass. Journal Line"
         field(9; "Reclassify Acq. Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Reclassify Acq. Cost Amount';
             MinValue = 0;
 
@@ -86,6 +87,7 @@ table 5624 "FA Reclass. Journal Line"
         }
         field(10; "Reclassify Acq. Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reclassify Acq. Cost %';
             DecimalPlaces = 0 : 8;
             MaxValue = 100;

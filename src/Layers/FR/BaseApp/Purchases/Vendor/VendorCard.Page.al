@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Bank.Reconciliation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Duplicates;
@@ -120,6 +122,8 @@ page 26 "Vendor Card"
                 }
                 field(BalanceAsCustomer; BalanceAsCustomer)
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance (LCY) As Customer';
                     Editable = false;
@@ -526,18 +530,28 @@ page 26 "Vendor Card"
                         VendLedgEntry.DrillDownOnEntries(DtldVendLedgEntry);
                     end;
                 }
+#if not CLEAN28
                 field("Payment in progress (LCY)"; Rec."Payment in progress (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor''s payments in progress.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
                 field("""Balance (LCY)"" - ""Payment in progress (LCY)"""; Rec."Balance (LCY)" - Rec."Payment in progress (LCY)")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the net amount in local currency.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 field("Preferred Bank Account Code"; Rec."Preferred Bank Account Code")
                 {
                     ApplicationArea = Basic, Suite;
@@ -816,6 +830,7 @@ page 26 "Vendor Card"
                         DocumentAttachmentDetails.RunModal();
                     end;
                 }
+#if not CLEAN28                
                 action("&Payment Addresses")
                 {
                     ApplicationArea = Basic, Suite;
@@ -825,7 +840,11 @@ page 26 "Vendor Card"
                     RunPageLink = "Account Type" = const(Vendor),
                                   "Account No." = field("No.");
                     ToolTip = 'View payment addresses for the vendor.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '28.0';
                 }
+#endif                
             }
             group("&Purchases")
             {

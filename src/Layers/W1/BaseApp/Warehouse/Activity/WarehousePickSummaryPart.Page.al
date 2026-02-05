@@ -211,6 +211,7 @@ page 5773 "Warehouse Pick Summary Part"
                 field(Impact; ReservationImpactValue)
                 {
                     Caption = 'Impact';
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the impact of reservations on the quantity available to pick. Pickable quantity is reduced by the quantity reserved in warehouse by other documents.';
                     DecimalPlaces = 0 : 5;
                     StyleExpr = ReservationImpactStyle;

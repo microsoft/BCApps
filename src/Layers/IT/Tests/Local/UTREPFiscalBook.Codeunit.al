@@ -273,7 +273,7 @@ codeunit 144074 "UT REP Fiscal Book"
 
         // [THEN] StartOnHand value is equal to "X"
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(BankSheetPrintStartOnHandTok, Abs(Amount));
+        LibraryReportDataset.AssertElementWithValueExists(BankSheetPrintStartOnHandTok, Amount);
     end;
 
     local procedure BankSheetPrintWithDebitAndCreditAmount(CreditAmountLCY: Decimal; DebitAmountLCY: Decimal; DebitCreditAmountCaption: Text)

@@ -36,6 +36,7 @@ table 5206 "Cause of Absence"
         }
         field(4; "Total Absence (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Employee Absence"."Quantity (Base)" where("Cause of Absence Code" = field(Code),
                                                                           "Employee No." = field("Employee No. Filter"),
                                                                           "From Date" = field("Date Filter")));

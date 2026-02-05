@@ -77,6 +77,7 @@ codeunit 134001 "ERM Apply Purchase/Payables"
         FCY2: Code[10];
     begin
         VendorLedgerEntries.DeleteAll(false);
+        Clear(PmtTerms);
         Initialize();
 
         FCY1 := RandomCurrency();

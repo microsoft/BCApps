@@ -64,6 +64,7 @@ table 1225 "Data Exch. Field Mapping"
         }
         field(9; Multiplier; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Multiplier';
             InitValue = 1;
 

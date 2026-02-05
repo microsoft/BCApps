@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Calculates and caches the running balance in local currency for customer ledger entries to optimize balance display on list pages.
+/// </summary>
 codeunit 120 "Calc. Running Cust. Balance"
 {
     InherentPermissions = X;

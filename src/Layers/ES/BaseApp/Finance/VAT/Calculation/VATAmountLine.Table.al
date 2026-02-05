@@ -45,6 +45,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(2; "VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base';
             Editable = false;
         }
@@ -53,6 +55,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(3; "VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount';
 
             trigger OnValidate()
@@ -70,6 +74,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(4; "Amount Including VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount Including VAT';
             Editable = false;
         }
@@ -86,6 +92,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6; "Line Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount';
             Editable = false;
         }
@@ -94,6 +102,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(7; "Inv. Disc. Base Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Disc. Base Amount';
             Editable = false;
         }
@@ -102,6 +112,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(8; "Invoice Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoice Discount Amount';
 
             trigger OnValidate()
@@ -160,6 +172,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(14; "Calculated VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Calculated VAT Amount';
             Editable = false;
         }
@@ -168,6 +182,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(15; "VAT Difference"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Difference';
             Editable = false;
         }
@@ -205,6 +221,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(20; "Pmt. Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Discount Amount';
             Editable = false;
         }
@@ -223,6 +241,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6201; "Non-Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Base';
             Editable = false;
         }
@@ -231,6 +251,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6202; "Non-Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Amount';
 
             trigger OnValidate()
@@ -243,6 +265,7 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6203; "Calc. Non-Ded. VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Calculated Non-Deductible VAT Amount';
             Editable = false;
@@ -252,6 +275,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6204; "Deductible VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Deductible VAT Base';
             Editable = false;
         }
@@ -260,6 +285,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6205; "Deductible VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Deductible VAT Amount';
             Editable = false;
         }
@@ -268,6 +295,8 @@ table 290 "VAT Amount Line"
         /// </summary>
         field(6206; "Non-Deductible VAT Diff."; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Difference';
             Editable = false;
         }

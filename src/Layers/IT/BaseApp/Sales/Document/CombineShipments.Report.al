@@ -15,6 +15,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Globalization;
 
+/// <summary>
+/// Consolidates multiple sales shipments into a single sales invoice for efficient billing.
+/// </summary>
 report 295 "Combine Shipments"
 {
     ApplicationArea = Basic, Suite;
@@ -503,6 +506,15 @@ report 295 "Combine Shipments"
         SalesShptLine.InsertInvLineFromShptLine(SalesLine);
     end;
 
+    /// <summary>
+    /// Initializes the request with posting parameters for combining shipments.
+    /// </summary>
+    /// <param name="NewPostingDate">The posting date for combined invoices.</param>
+    /// <param name="NewDocDate">The document date for combined invoices.</param>
+    /// <param name="NewCalcInvDisc">Whether to calculate invoice discount.</param>
+    /// <param name="NewPostInv">Whether to post the invoice after combining.</param>
+    /// <param name="NewOnlyStdPmtTerms">Whether to include only orders with standard payment terms.</param>
+    /// <param name="NewCopyTextLines">Whether to copy text lines to the invoice.</param>
     procedure InitializeRequest(NewPostingDate: Date; NewDocDate: Date; NewCalcInvDisc: Boolean; NewPostInv: Boolean; NewOnlyStdPmtTerms: Boolean; NewCopyTextLines: Boolean)
     begin
         PostingDateReq := NewPostingDate;
@@ -514,6 +526,16 @@ report 295 "Combine Shipments"
         CopyTextLines := NewCopyTextLines;
     end;
 
+    /// <summary>
+    /// Initializes the request with posting parameters including VAT date for combining shipments.
+    /// </summary>
+    /// <param name="NewPostingDate">The posting date for combined invoices.</param>
+    /// <param name="NewDocDate">The document date for combined invoices.</param>
+    /// <param name="NewVATDate">The VAT date for combined invoices.</param>
+    /// <param name="NewCalcInvDisc">Whether to calculate invoice discount.</param>
+    /// <param name="NewPostInv">Whether to post the invoice after combining.</param>
+    /// <param name="NewOnlyStdPmtTerms">Whether to include only orders with standard payment terms.</param>
+    /// <param name="NewCopyTextLines">Whether to copy text lines to the invoice.</param>
     procedure InitializeRequest(NewPostingDate: Date; NewDocDate: Date; NewVATDate: Date; NewCalcInvDisc: Boolean; NewPostInv: Boolean; NewOnlyStdPmtTerms: Boolean; NewCopyTextLines: Boolean)
     begin
         InitializeRequest(NewPostingDate, NewDocDate, NewCalcInvDisc, NewPostInv, NewOnlyStdPmtTerms, NewCopyTextLines);
@@ -533,6 +555,10 @@ report 295 "Combine Shipments"
         ToSalesHeader.Validate("Bill-to Customer No.", FromSalesOrderHeader."Bill-to Customer No.");
     end;
 
+    /// <summary>
+    /// Sets whether to hide dialog messages during processing.
+    /// </summary>
+    /// <param name="NewHideDialog">Whether to hide dialog messages.</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;

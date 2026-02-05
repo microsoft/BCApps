@@ -10,6 +10,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 
+/// <summary>
+/// Retrieves sales order lines for planning worksheets to create purchase or production orders.
+/// </summary>
 report 698 "Get Sales Orders"
 {
     Caption = 'Get Sales Orders';
@@ -143,12 +146,22 @@ report 698 "Get Sales Orders"
         LineNo: Integer;
         SpecOrder: Integer;
 
+    /// <summary>
+    /// Sets the requisition worksheet line and special order indicator.
+    /// </summary>
+    /// <param name="NewReqLine">The requisition line to use as template.</param>
+    /// <param name="SpecialOrder">The special order type indicator.</param>
     procedure SetReqWkshLine(NewReqLine: Record "Requisition Line"; SpecialOrder: Integer)
     begin
         ReqLine := NewReqLine;
         SpecOrder := SpecialOrder;
     end;
 
+    /// <summary>
+    /// Inserts a requisition worksheet line for the specified sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to create a requisition from.</param>
+    /// <param name="ReqLine">Returns the created requisition line.</param>
     procedure InsertReqWkshLine(SalesLine: Record "Sales Line"; var ReqLine: Record "Requisition Line")
     var
         IsHandled: Boolean;
@@ -252,11 +265,19 @@ report 698 "Get Sales Orders"
             UOMMgt.QtyRndPrecision()));
     end;
 
+    /// <summary>
+    /// Initializes the request specifying where to retrieve dimensions from.
+    /// </summary>
+    /// <param name="NewRetrieveDimensionsFrom">The option specifying dimension source (Item or Sales Line).</param>
     procedure InitializeRequest(NewRetrieveDimensionsFrom: Option)
     begin
         GetDim := NewRetrieveDimensionsFrom;
     end;
 
+    /// <summary>
+    /// Sets whether to hide dialog messages during processing.
+    /// </summary>
+    /// <param name="NewHideDialog">Whether to hide dialog messages.</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;

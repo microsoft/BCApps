@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Foundation.Comment;
 
+/// <summary>
+/// Displays key customer information including contact details and credit status in a FactBox.
+/// </summary>
 page 9084 "Customer Details FactBox"
 {
     Caption = 'Customer Details';
@@ -50,6 +53,8 @@ page 9084 "Customer Details FactBox"
             field(AvailableCreditLCY; Rec.CalcAvailableCreditUI())
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Available Credit (LCY)';
                 ToolTip = 'Specifies a customer''s available credit. If the available credit is 0 and the customer''s credit limit is also 0, then the customer has unlimited credit because no credit limit has been defined.';
 
@@ -117,6 +122,11 @@ page 9084 "Customer Details FactBox"
             PAGE.Run(PAGE::"Customer Card", Rec);
     end;
 
+    /// <summary>
+    /// Raised before showing the customer card details.
+    /// </summary>
+    /// <param name="Customer">The customer record to display.</param>
+    /// <param name="IsHandled">Set to true to skip the default show details behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDetails(var Customer: Record Customer; var IsHandled: Boolean)
     begin

@@ -502,6 +502,7 @@ report 7391 "Whse. Get Bin Content"
     protected procedure GetQtyToEmptyBase(ItemTrackingSetup: Record "Item Tracking Setup"): Decimal
     var
         BinContent: Record "Bin Content";
+        AvailableQty: Decimal;
     begin
         BinContent.Init();
         BinContent.Copy("Bin Content");
@@ -509,6 +510,15 @@ report 7391 "Whse. Get Bin Content"
         BinContent.SetTrackingFilterFromItemTrackingSetupIfNotBlank(ItemTrackingSetup);
         if DestinationType2 = DestinationType2::TransferHeader then
             exit(BinContent.CalcQtyAvailToPick(0));
+
+        if DestinationType2 = DestinationType2::ItemJournalLine then begin
+            BinContent.CalcFields("Quantity (Base)", "Pick Quantity (Base)", "ATO Components Pick Qty (Base)");
+            AvailableQty := BinContent."Quantity (Base)" - (BinContent."Pick Quantity (Base)" + BinContent."ATO Components Pick Qty (Base)");
+            if AvailableQty > 0 then
+                exit(AvailableQty);
+            exit(0);
+        end;
+
         exit(BinContent.CalcQtyAvailToTake(0));
     end;
 

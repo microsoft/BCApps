@@ -29,6 +29,8 @@ page 1611 "Office Customer Details"
             field("Past Due"; PastDue)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Past Due';
                 Style = Unfavorable;
                 StyleExpr = PastDue > 0;
@@ -37,12 +39,16 @@ page 1611 "Office Customer Details"
             field("LTD Sales"; GetTotalSales())
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'LTD Sales';
                 ToolTip = 'Specifies the total life-to-date sales for the customer.';
             }
             field("YTD Sales"; GetYTDSales())
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'YTD Sales';
                 Editable = false;
                 ToolTip = 'Specifies the total year-to-date sales for the customer.';

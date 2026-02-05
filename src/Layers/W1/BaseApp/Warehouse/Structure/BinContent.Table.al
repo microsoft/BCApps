@@ -123,12 +123,14 @@ table 7302 "Bin Content"
         }
         field(15; "Min. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Min. Qty.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(16; "Max. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Max. Qty.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -146,6 +148,7 @@ table 7302 "Bin Content"
         }
         field(26; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Entry".Quantity where("Location Code" = field("Location Code"),
                                                                 "Bin Code" = field("Bin Code"),
                                                                 "Item No." = field("Item No."),
@@ -161,6 +164,7 @@ table 7302 "Bin Content"
         }
         field(29; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Location Code" = field("Location Code"),
                                                                                   "Bin Code" = field("Bin Code"),
                                                                                   "Item No." = field("Item No."),
@@ -178,6 +182,7 @@ table 7302 "Bin Content"
         }
         field(30; "Neg. Adjmt. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Journal Line"."Qty. (Absolute)" where("Location Code" = field("Location Code"),
                                                                                 "From Bin Code" = field("Bin Code"),
                                                                                 "Item No." = field("Item No."),
@@ -193,6 +198,7 @@ table 7302 "Bin Content"
         }
         field(31; "Put-away Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Location Code" = field("Location Code"),
                                                                                   "Bin Code" = field("Bin Code"),
                                                                                   "Item No." = field("Item No."),
@@ -209,6 +215,7 @@ table 7302 "Bin Content"
         }
         field(32; "Pos. Adjmt. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Journal Line"."Qty. (Absolute)" where("Location Code" = field("Location Code"),
                                                                                 "To Bin Code" = field("Bin Code"),
                                                                                 "Item No." = field("Item No."),
@@ -245,6 +252,7 @@ table 7302 "Bin Content"
         }
         field(50; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Entry"."Qty. (Base)" where("Location Code" = field("Location Code"),
                                                                      "Bin Code" = field("Bin Code"),
                                                                      "Item No." = field("Item No."),
@@ -260,6 +268,7 @@ table 7302 "Bin Content"
         }
         field(51; "Pick Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Location Code" = field("Location Code"),
                                                                                          "Bin Code" = field("Bin Code"),
                                                                                          "Item No." = field("Item No."),
@@ -277,6 +286,7 @@ table 7302 "Bin Content"
         }
         field(52; "Negative Adjmt. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Journal Line"."Qty. (Absolute, Base)" where("Location Code" = field("Location Code"),
                                                                                       "From Bin Code" = field("Bin Code"),
                                                                                       "Item No." = field("Item No."),
@@ -292,6 +302,7 @@ table 7302 "Bin Content"
         }
         field(53; "Put-away Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Location Code" = field("Location Code"),
                                                                                          "Bin Code" = field("Bin Code"),
                                                                                          "Item No." = field("Item No."),
@@ -308,6 +319,7 @@ table 7302 "Bin Content"
         }
         field(54; "Positive Adjmt. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Journal Line"."Qty. (Absolute, Base)" where("Location Code" = field("Location Code"),
                                                                                       "To Bin Code" = field("Bin Code"),
                                                                                       "Item No." = field("Item No."),
@@ -323,6 +335,7 @@ table 7302 "Bin Content"
         }
         field(55; "ATO Components Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Location Code" = field("Location Code"),
                                                                                   "Bin Code" = field("Bin Code"),
                                                                                   "Item No." = field("Item No."),
@@ -341,6 +354,7 @@ table 7302 "Bin Content"
         }
         field(56; "ATO Components Pick Qty (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Location Code" = field("Location Code"),
                                                                                          "Bin Code" = field("Bin Code"),
                                                                                          "Item No." = field("Item No."),
@@ -370,6 +384,7 @@ table 7302 "Bin Content"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;

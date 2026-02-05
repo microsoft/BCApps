@@ -1315,4 +1315,9 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         exit('MS-600753-NewSalesPricingFeatureKeyStateUpgradeTag-20251015');
     end;
+
+    internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]
+    begin
+        exit('MS-580734-CreateExpenseAgentAADApplication-20260115');
+    end;
 }

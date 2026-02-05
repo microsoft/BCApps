@@ -8,6 +8,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays combined sales prices and line discounts for an item or customer in a unified view.
+/// </summary>
 page 1345 "Sales Price and Line Discounts"
 {
     Caption = 'Sales Prices';
@@ -261,6 +264,10 @@ page 1345 "Sales Price and Line Discounts"
         CodeIsVisible: Boolean;
         SalesCodeIsVisible: Boolean;
 
+    /// <summary>
+    /// Initializes the page layout based on whether it is displayed for an item or a customer.
+    /// </summary>
+    /// <param name="ForItem">True if the page is being displayed for an item, false for a customer.</param>
     procedure InitPage(ForItem: Boolean)
     begin
         if ForItem then begin
@@ -272,6 +279,10 @@ page 1345 "Sales Price and Line Discounts"
         end;
     end;
 
+    /// <summary>
+    /// Loads price and line discount data for the specified item.
+    /// </summary>
+    /// <param name="Item">The item record to load prices and discounts for.</param>
     procedure LoadItem(Item: Record Item)
     begin
         Clear(Rec);
@@ -282,6 +293,10 @@ page 1345 "Sales Price and Line Discounts"
         Rec.LoadDataForItem(Item);
     end;
 
+    /// <summary>
+    /// Loads price and line discount data for the specified customer.
+    /// </summary>
+    /// <param name="Customer">The customer record to load prices and discounts for.</param>
     procedure LoadCustomer(Customer: Record Customer)
     begin
         Clear(Rec);
@@ -292,11 +307,19 @@ page 1345 "Sales Price and Line Discounts"
         Rec.LoadDataForCustomer(Customer);
     end;
 
+    /// <summary>
+    /// Gets the item number that was loaded for this page.
+    /// </summary>
+    /// <returns>The loaded item number.</returns>
     procedure GetLoadedItemNo(): Code[20]
     begin
         exit(loadedItemNo)
     end;
 
+    /// <summary>
+    /// Gets the customer number that was loaded for this page.
+    /// </summary>
+    /// <returns>The loaded customer number.</returns>
     procedure GetLoadedCustNo(): Code[20]
     begin
         exit(loadedCustNo)
@@ -349,6 +372,10 @@ page 1345 "Sales Price and Line Discounts"
         end;
     end;
 
+    /// <summary>
+    /// Updates the price includes VAT flag and recalculates prices for the loaded item.
+    /// </summary>
+    /// <param name="IncludesVat">True if prices should include VAT, otherwise false.</param>
     procedure RunUpdatePriceIncludesVatAndPrices(IncludesVat: Boolean)
     var
         Item: Record Item;

@@ -102,17 +102,20 @@ table 5601 "FA Ledger Entry"
         field(14; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount';
             ToolTip = 'Specifies the entry amount in currency.';
         }
         field(15; "Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Debit Amount';
         }
         field(16; "Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Credit Amount';
         }
         field(17; "Reclassification Entry"; Boolean)
@@ -145,6 +148,7 @@ table 5601 "FA Ledger Entry"
         }
         field(23; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -206,21 +210,25 @@ table 5601 "FA Ledger Entry"
         }
         field(35; "Straight-Line %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Straight-Line %';
             DecimalPlaces = 1 : 1;
         }
         field(36; "No. of Depreciation Years"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'No. of Depreciation Years';
             DecimalPlaces = 0 : 3;
         }
         field(37; "Fixed Depr. Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Fixed Depr. Amount';
         }
         field(38; "Declining-Balance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Declining-Balance %';
             DecimalPlaces = 1 : 1;
         }
@@ -267,6 +275,7 @@ table 5601 "FA Ledger Entry"
         field(46; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'VAT Amount';
         }
         field(47; "Gen. Posting Type"; Enum "General Posting Type")
@@ -290,12 +299,13 @@ table 5601 "FA Ledger Entry"
         }
         field(51; "FA Exchange Rate"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'FA Exchange Rate';
         }
         field(52; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(53; "Result on Disposal"; Option)
@@ -340,11 +350,13 @@ table 5601 "FA Ledger Entry"
         }
         field(62; "Accum. Depr. % (Custom 1)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Accum. Depr. % (Custom 1)';
             DecimalPlaces = 1 : 1;
         }
         field(63; "Depr. % this year (Custom 1)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Depr. % this year (Custom 1)';
             DecimalPlaces = 1 : 1;
         }
@@ -670,6 +682,11 @@ table 5601 "FA Ledger Entry"
         AcquisitionCost := "FA Posting Type" = "FA Posting Type"::"Acquisition Cost";
         OnAfterIsAcquisitionCost(Rec, AcquisitionCost);
         exit(AcquisitionCost);
+    end;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        exit('');
     end;
 
     [IntegrationEvent(false, false)]

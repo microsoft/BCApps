@@ -167,6 +167,7 @@ page 5189 "Create Rating"
                 field(NoOfAnswers; Rec.NoOfProfileAnswers())
                 {
                     ApplicationArea = RelationshipMgmt;
+                    AutoFormatType = 0;
                     Caption = 'Number of possible answers:';
                     Enabled = NoOfAnswersEnable;
 

@@ -79,6 +79,7 @@ page 1632 "Office Invoice Selection"
                 field(Amount; Amount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Amount';
                     ToolTip = 'Specifies the amount on the document.';
                 }

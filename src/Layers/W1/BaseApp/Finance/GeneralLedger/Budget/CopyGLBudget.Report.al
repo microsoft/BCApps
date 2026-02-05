@@ -146,6 +146,7 @@ report 96 "Copy G/L Budget"
                         field(AmountAdjustFactor; AmountAdjustFactor)
                         {
                             ApplicationArea = Suite;
+                            AutoFormatType = 0;
                             Caption = 'Adjustment Factor';
                             DecimalPlaces = 0 : 5;
                             MinValue = 0;

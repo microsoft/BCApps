@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Stores currency-specific additional fee and line fee amounts for reminder levels.
+/// </summary>
 table 329 "Currency for Reminder Level"
 {
     Caption = 'Currency for Reminder Level';
@@ -16,6 +19,9 @@ table 329 "Currency for Reminder Level"
 
     fields
     {
+        /// <summary>
+        /// Specifies the reminder terms to which this currency fee configuration belongs.
+        /// </summary>
         field(1; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
@@ -23,17 +29,26 @@ table 329 "Currency for Reminder Level"
             NotBlank = true;
             TableRelation = "Reminder Terms";
         }
+        /// <summary>
+        /// Specifies the reminder level number within the terms.
+        /// </summary>
         field(2; "No."; Integer)
         {
             Caption = 'No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the currency for which this fee configuration applies.
+        /// </summary>
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             NotBlank = true;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the additional fee amount in the specified currency for this reminder level.
+        /// </summary>
         field(4; "Additional Fee"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -41,8 +56,13 @@ table 329 "Currency for Reminder Level"
             Caption = 'Additional Fee';
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the line fee amount in the specified currency for this reminder level.
+        /// </summary>
         field(5; "Add. Fee per Line"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Add. Fee per Line';
             MinValue = 0;
         }

@@ -478,6 +478,7 @@ table 55 "Invoice Posting Buffer"
         field(28081; "VAT Base (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'VAT Base (ACY)';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -485,12 +486,14 @@ table 55 "Invoice Posting Buffer"
         field(28082; "VAT Amount(ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'VAT Amount(ACY)';
             DataClassification = SystemMetadata;
         }
         field(28083; "Amount Including VAT (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'Amount Including VAT (ACY)';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -498,6 +501,7 @@ table 55 "Invoice Posting Buffer"
         field(28084; "Amount(ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'Amount(ACY)';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -505,6 +509,7 @@ table 55 "Invoice Posting Buffer"
         field(28085; "VAT Difference (ACY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'VAT Difference (ACY)';
             DataClassification = SystemMetadata;
             Editable = false;

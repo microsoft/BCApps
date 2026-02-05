@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Threading;
 
+/// <summary>
+/// Manages a group of reminder automation actions with scheduling and job queue integration.
+/// </summary>
 table 6751 "Reminder Action Group"
 {
     DataClassification = CustomerContent;
@@ -15,24 +18,45 @@ table 6751 "Reminder Action Group"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique code identifying this reminder automation group.
+        /// </summary>
         field(1; Code; Code[50])
         {
         }
+        /// <summary>
+        /// Specifies a description of the automation group.
+        /// </summary>
         field(2; Description; Text[100])
         {
         }
+        /// <summary>
+        /// Specifies the execution schedule type: manual, weekly, monthly, or custom.
+        /// </summary>
         field(3; Schedule; Enum "Reminder Action Schedule")
         {
         }
+        /// <summary>
+        /// Specifies the date and time when the automation should first run.
+        /// </summary>
         field(4; "Start DateTime"; DateTime)
         {
         }
+        /// <summary>
+        /// Specifies the date formula for calculating the next run date when using custom schedule.
+        /// </summary>
         field(6; "Next Run Date Formula"; DateFormula)
         {
         }
+        /// <summary>
+        /// Indicates whether this automation group is blocked from execution.
+        /// </summary>
         field(7; Blocked; Boolean)
         {
         }
+        /// <summary>
+        /// Stores the filter string of selected reminder terms codes for this automation group.
+        /// </summary>
         field(12; "Reminder Terms"; Blob)
         {
         }
@@ -46,6 +70,10 @@ table 6751 "Reminder Action Group"
         }
     }
 
+    /// <summary>
+    /// Gets the stored reminder terms selection filter text.
+    /// </summary>
+    /// <returns>The reminder terms selection filter text.</returns>
     procedure GetReminderTermsSelectionFilter(): Text
     var
         SelectionFilterInStream: InStream;
@@ -61,6 +89,10 @@ table 6751 "Reminder Action Group"
         exit(SelectionFilterText);
     end;
 
+    /// <summary>
+    /// Sets the reminder terms selection filter text.
+    /// </summary>
+    /// <param name="SelectionFilterText">The filter text to store for selecting reminder terms.</param>
     procedure SetReminderTermsSelectionFilter(SelectionFilterText: Text)
     var
         SelectionFilterOutStream: OutStream;
@@ -144,6 +176,10 @@ table 6751 "Reminder Action Group"
         Page.Run(Page::"Reminder Action History", ReminderActionGroupLog);
     end;
 
+    /// <summary>
+    /// Schedules the automation job for this action group in the job queue.
+    /// </summary>
+    /// <param name="ReminderActionGroup">The reminder action group to schedule.</param>
     procedure ScheduleAutomationJob(var ReminderActionGroup: Record "Reminder Action Group")
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -152,6 +188,11 @@ table 6751 "Reminder Action Group"
         JobQueueEntry.SetStatus(JobQueueEntry.Status::Ready);
     end;
 
+    /// <summary>
+    /// Creates or updates a unique job queue entry for the automation group.
+    /// </summary>
+    /// <param name="ReminderActionGroup">The reminder action group for the job queue entry.</param>
+    /// <param name="JobQueueEntry">Returns the created or updated job queue entry.</param>
     procedure CreateUniqueJobQueue(var ReminderActionGroup: Record "Reminder Action Group"; var JobQueueEntry: Record "Job Queue Entry")
     var
         JobQueueExist: Boolean;

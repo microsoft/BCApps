@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10843 "Recapitulation Form"
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/RecapitulationForm.rdlc';
     Caption = 'Recapitulation Form';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -312,4 +316,4 @@ report 10843 "Recapitulation Form"
         LineNumCaptionLbl: Label 'Total number of checks:';
         GenJnlLine_AmountCaptionLbl: Label 'Total Amount';
 }
-
+#endif

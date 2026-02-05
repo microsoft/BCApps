@@ -15,7 +15,7 @@ codeunit 9132 "Check Prod. Order Document"
         CannotDeleteItemIfProdBOMVersionExistsErr: Label 'You cannot delete %1 %2 because there are one or more certified production BOM version that include this item.', Comment = '%1 - Tablecaption, %2 - No.';
         CannotDeleteItemIfCertifiedProdBOMLineExistsErr: Label 'You cannot delete %1 %2 because there are one or more certified Production BOM that include this item.', Comment = '%1 - Tablecaption, %2 - No.';
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckDocuments', '', true, false)]
     local procedure ItemOnBeforeCheckDocuments(Item: Record Item; CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text);
     begin
         CheckProdOrderLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);

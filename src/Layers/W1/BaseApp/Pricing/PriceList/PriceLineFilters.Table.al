@@ -54,6 +54,7 @@ table 7021 "Price Line Filters"
         }
         field(5; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -61,6 +62,7 @@ table 7021 "Price Line Filters"
         }
         field(6; "Adjustment Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Adjustment Factor';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -126,6 +128,7 @@ table 7021 "Price Line Filters"
         }
         field(15; "Amount Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Rounding Precision';
             DataClassification = SystemMetadata;
         }

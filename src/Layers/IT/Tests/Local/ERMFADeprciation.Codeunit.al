@@ -1117,6 +1117,7 @@ codeunit 144143 "ERM FA Deprciation"
 
         // [GIVEN] "FA1" partially reclassified to "FA2".
         CreateFAWithDepreciationBookSetup(FADepreciationBook[2], FAPostingGroupCode, DepreciationBookCode, DepreciationTableCode);
+        SetDepreciationBook(DepreciationBookCode);
         ReclassifyAndPostFAReclassJournal(
             CreateFAReclassJournalLineWithAcqCostPercentage(
                 FADepreciationBook,
@@ -1857,6 +1858,15 @@ codeunit 144143 "ERM FA Deprciation"
             1,
             LibraryUtility.GetFieldLength(Database::"Company Information", CompanyInfo.FieldNo("Register Company No.")));
         CompanyInfo.Modify();
+    end;
+
+    local procedure SetDepreciationBook(DeprBookCode: Code[10])
+    var
+        DepreciationBook: Record "Depreciation Book";
+    begin
+        DepreciationBook.Get(DeprBookCode);
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", false);
+        DepreciationBook.Modify();
     end;
 
     [RequestPageHandler]

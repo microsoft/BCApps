@@ -57,6 +57,7 @@ page 6560 "Document Line Tracking"
                 field(DocLineQuantity; DocLineQuantity)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

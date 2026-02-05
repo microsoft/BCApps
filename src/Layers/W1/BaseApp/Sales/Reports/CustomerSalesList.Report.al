@@ -2,7 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.Sales.Reports;
+
+/// <summary>
+/// Lists customers with their sales amounts and VAT registration numbers for tax reporting purposes.
+/// </summary>
 
 using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
@@ -11,6 +16,9 @@ using Microsoft.Utilities;
 
 report 119 "Customer - Sales List"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+    ObsoleteTag = '28.0';
     DefaultLayout = RDLC;
     RDLCLayout = './Sales/Reports/CustomerSalesList.rdlc';
     ApplicationArea = Basic, Suite;
@@ -127,6 +135,7 @@ report 119 "Customer - Sales List"
                     {
                         ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Amounts (LCY) Greater Than';
                         ToolTip = 'Specifies an amount so that the report will only include those customers to which you have sold more than this amount within the specified dates.';
                     }
@@ -191,6 +200,11 @@ report 119 "Customer - Sales List"
         exit(Amt);
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Sales List report.
+    /// </summary>
+    /// <param name="MinimumAmtLCY">The minimum sales amount in LCY to include customers.</param>
+    /// <param name="HideAddressDetails">True to hide customer address details.</param>
     procedure InitializeRequest(MinimumAmtLCY: Decimal; HideAddressDetails: Boolean)
     begin
         MinAmtLCY := MinimumAmtLCY;
@@ -202,4 +216,5 @@ report 119 "Customer - Sales List"
     begin
     end;
 }
+#endif
 

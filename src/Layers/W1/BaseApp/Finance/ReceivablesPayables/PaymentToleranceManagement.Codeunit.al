@@ -489,7 +489,7 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
-    local procedure CalcCustApplnAmount(CustledgEntry: Record "Cust. Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; CustEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal)
+    internal procedure CalcCustApplnAmount(CustledgEntry: Record "Cust. Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; CustEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal)
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
         TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
@@ -668,7 +668,7 @@ codeunit 426 "Payment Tolerance Management"
             end;
     end;
 
-    local procedure CalcVendApplnAmount(VendledgEntry: Record "Vendor Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; VendEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal)
+    internal procedure CalcVendApplnAmount(VendledgEntry: Record "Vendor Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; VendEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal)
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
         TempAppliedVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
@@ -1034,7 +1034,7 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
-    local procedure PutCustPmtTolAmount(CustledgEntry: Record "Cust. Ledger Entry"; Amount: Decimal; AppliedAmount: Decimal; CustEntryApplID: Code[50])
+    internal procedure PutCustPmtTolAmount(CustledgEntry: Record "Cust. Ledger Entry"; Amount: Decimal; AppliedAmount: Decimal; CustEntryApplID: Code[50])
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
         AppliedCustLedgerEntry2: Record "Cust. Ledger Entry";
@@ -1143,7 +1143,7 @@ codeunit 426 "Payment Tolerance Management"
             Commit();
     end;
 
-    local procedure PutVendPmtTolAmount(VendLedgEntry: Record "Vendor Ledger Entry"; Amount: Decimal; AppliedAmount: Decimal; VendEntryApplID: Code[50])
+    internal procedure PutVendPmtTolAmount(VendLedgEntry: Record "Vendor Ledger Entry"; Amount: Decimal; AppliedAmount: Decimal; VendEntryApplID: Code[50])
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
         AppliedVendorLedgerEntry2: Record "Vendor Ledger Entry";
@@ -1258,7 +1258,7 @@ codeunit 426 "Payment Tolerance Management"
             Commit();
     end;
 
-    local procedure DelCustPmtTolAcc(CustledgEntry: Record "Cust. Ledger Entry"; CustEntryApplID: Code[50])
+    internal procedure DelCustPmtTolAcc(CustledgEntry: Record "Cust. Ledger Entry"; CustEntryApplID: Code[50])
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -1288,7 +1288,7 @@ codeunit 426 "Payment Tolerance Management"
         end;
     end;
 
-    local procedure DelVendPmtTolAcc(VendLedgEntry: Record "Vendor Ledger Entry"; VendEntryApplID: Code[50])
+    internal procedure DelVendPmtTolAcc(VendLedgEntry: Record "Vendor Ledger Entry"; VendEntryApplID: Code[50])
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -2296,7 +2296,7 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, false, CheckAmount));
     end;
 
-    local procedure ManagePaymentDiscToleranceWarningCustomer(var NewCustLedgEntry: Record "Cust. Ledger Entry"; GenJnlLineApplID: Code[50]; var AppliedAmount: Decimal; var AmountToApply: Decimal; AppliesToDocNo: Code[20]): Boolean
+    internal procedure ManagePaymentDiscToleranceWarningCustomer(var NewCustLedgEntry: Record "Cust. Ledger Entry"; GenJnlLineApplID: Code[50]; var AppliedAmount: Decimal; var AmountToApply: Decimal; AppliesToDocNo: Code[20]): Boolean
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
         RemainingAmountTest: Boolean;
@@ -2351,7 +2351,7 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
-    local procedure ManagePaymentDiscToleranceWarningVendor(var NewVendLedgEntry: Record "Vendor Ledger Entry"; GenJnlLineApplID: Code[50]; var AppliedAmount: Decimal; var AmountToApply: Decimal; AppliesToDocNo: Code[20]): Boolean
+    internal procedure ManagePaymentDiscToleranceWarningVendor(var NewVendLedgEntry: Record "Vendor Ledger Entry"; GenJnlLineApplID: Code[50]; var AppliedAmount: Decimal; var AmountToApply: Decimal; AppliesToDocNo: Code[20]): Boolean
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
         RemainingAmountTest: Boolean;

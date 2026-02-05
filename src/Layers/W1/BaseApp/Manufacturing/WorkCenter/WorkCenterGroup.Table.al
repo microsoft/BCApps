@@ -41,6 +41,7 @@ table 99000756 "Work Center Group"
         }
         field(22; "Capacity (Total)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Total)" where("Capacity Type" = const("Work Center"),
                                                                          "Work Center Group Code" = field(Code),
                                                                          "Work Shift Code" = field("Work Shift Filter"),
@@ -52,6 +53,7 @@ table 99000756 "Work Center Group"
         }
         field(23; "Capacity (Effective)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Effective)" where("Capacity Type" = const("Work Center"),
                                                                              "Work Center Group Code" = field(Code),
                                                                              "Work Shift Code" = field("Work Shift Filter"),
@@ -63,6 +65,7 @@ table 99000756 "Work Center Group"
         }
         field(24; "Prod. Order Need (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where(Status = field("Prod. Order Status Filter"),
                                                                                   "Work Center Group Code" = field(Code),
                                                                                   Date = field("Date Filter"),

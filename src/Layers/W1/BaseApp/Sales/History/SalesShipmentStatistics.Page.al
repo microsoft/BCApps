@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Displays statistical information for a posted sales shipment including line counts, quantities, and weights.
+/// </summary>
 page 396 "Sales Shipment Statistics"
 {
     Caption = 'Sales Shipment Statistics';
@@ -21,6 +24,7 @@ page 396 "Sales Shipment Statistics"
                 Caption = 'General';
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -28,6 +32,7 @@ page 396 "Sales Shipment Statistics"
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
@@ -35,6 +40,7 @@ page 396 "Sales Shipment Statistics"
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -42,6 +48,7 @@ page 396 "Sales Shipment Statistics"
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
@@ -49,6 +56,7 @@ page 396 "Sales Shipment Statistics"
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;

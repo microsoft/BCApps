@@ -281,6 +281,7 @@ report 10812 "Fixed Asset-Professional Tax"
                     }
                     field(FixedAssetMoreThan30years1; PercentageTax[2])
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = FixedAssets;
                         BlankZero = true;
                         Caption = 'Fixed Asset >30 years 1';
@@ -290,6 +291,7 @@ report 10812 "Fixed Asset-Professional Tax"
                     }
                     field(FixedAssetMoreThan30years2; PercentageTax[3])
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = FixedAssets;
                         BlankZero = true;
                         Caption = 'Fixed Asset >30 years 2';
@@ -299,6 +301,7 @@ report 10812 "Fixed Asset-Professional Tax"
                     }
                     field(FixedAssetLessThan30years; PercentageTax[4])
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = FixedAssets;
                         BlankZero = true;
                         Caption = 'Fixed Asset <30 years';

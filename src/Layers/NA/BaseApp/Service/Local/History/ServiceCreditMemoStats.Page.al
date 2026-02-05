@@ -67,6 +67,7 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales ($)';
                     ToolTip = 'Specifies the sales amount, in dollars.';
                 }
@@ -74,6 +75,7 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     ToolTip = 'Specifies the profit, expressed as an amount in local currency, which was associated with the service credit memo, when it was originally posted.';
                 }
@@ -81,12 +83,14 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     ToolTip = 'Specifies the adjusted profit of the service credit, in local currency.';
                 }
                 field(ProfitPct; ProfitPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     ToolTip = 'Specifies the profit, expressed as a percentage, which was associated with the service credit memo when it was originally posted.';
@@ -94,6 +98,7 @@ page 10057 "Service Credit Memo Stats."
                 field(AdjProfitPct; AdjProfitPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     ToolTip = 'Specifies the adjusted profit of the service credit expressed as a percentage.';
@@ -101,6 +106,7 @@ page 10057 "Service Credit Memo Stats."
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item/resource on the service credit memo.';
@@ -108,6 +114,7 @@ page 10057 "Service Credit Memo Stats."
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the number of parcels on the document.';
@@ -115,6 +122,7 @@ page 10057 "Service Credit Memo Stats."
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the net weight of items on the document.';
@@ -122,6 +130,7 @@ page 10057 "Service Credit Memo Stats."
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the gross weight of items listed on the document.';
@@ -129,6 +138,7 @@ page 10057 "Service Credit Memo Stats."
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the items in the posted service credit memo.';
@@ -137,6 +147,7 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Cost (LCY)';
                     ToolTip = 'Specifies the original cost of the items on the service credit memo.';
                 }
@@ -144,6 +155,7 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     ToolTip = 'Specifies the adjusted profit of the service credit, expressed as a percentage.';
                 }
@@ -151,6 +163,7 @@ page 10057 "Service Credit Memo Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     ToolTip = 'Specifies the cost adjustment amount, in local currency.';
 
@@ -167,6 +180,8 @@ page 10057 "Service Credit Memo Stats."
                 field("BreakdownAmt[1]"; BreakdownAmt[1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1]);
                     Editable = false;
@@ -175,6 +190,8 @@ page 10057 "Service Credit Memo Stats."
                 field("BreakdownAmt[2]"; BreakdownAmt[2])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2]);
                     Editable = false;
@@ -183,6 +200,8 @@ page 10057 "Service Credit Memo Stats."
                 field("BreakdownAmt[3]"; BreakdownAmt[3])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3]);
                     Editable = false;
@@ -191,6 +210,8 @@ page 10057 "Service Credit Memo Stats."
                 field("BreakdownAmt[4]"; BreakdownAmt[4])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[4]);
                     Editable = false;
@@ -221,6 +242,7 @@ page 10057 "Service Credit Memo Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Expended Percentage of Credit Limit ($).';

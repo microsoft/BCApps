@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Displays posted sales invoices with due dates in the upcoming week for payment tracking.
+/// </summary>
 page 1163 "Sales Invoices Due Next Week"
 {
     Caption = 'Sales Invoices Due Next Week';

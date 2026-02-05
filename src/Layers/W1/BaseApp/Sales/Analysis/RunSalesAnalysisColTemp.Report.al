@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Opens the sales analysis column templates list for configuration.
+/// </summary>
 report 7117 "Run Sales Analysis Col. Temp."
 {
     ApplicationArea = SalesAnalysis;

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Stores user comments attached to reminder and issued reminder documents.
+/// </summary>
 table 299 "Reminder Comment Line"
 {
     Caption = 'Reminder Comment Line';
@@ -13,10 +16,16 @@ table 299 "Reminder Comment Line"
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of document this comment is attached to: reminder or issued reminder.
+        /// </summary>
         field(1; Type; Enum "Reminder Comment Line Type")
         {
             Caption = 'Type';
         }
+        /// <summary>
+        /// Specifies the document number of the reminder or issued reminder.
+        /// </summary>
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
@@ -25,18 +34,30 @@ table 299 "Reminder Comment Line"
             else
             if (Type = const("Issued Reminder")) "Issued Reminder Header";
         }
+        /// <summary>
+        /// Specifies the sequential line number for ordering comments within a document.
+        /// </summary>
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Specifies the date when the comment was created or last modified.
+        /// </summary>
         field(4; Date; Date)
         {
             Caption = 'Date';
         }
+        /// <summary>
+        /// Specifies an optional code to categorize or identify the comment.
+        /// </summary>
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
         }
+        /// <summary>
+        /// Contains the comment text entered by the user.
+        /// </summary>
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
@@ -55,6 +76,9 @@ table 299 "Reminder Comment Line"
     {
     }
 
+    /// <summary>
+    /// Initializes default values for a new comment line, setting the date to work date if not already set.
+    /// </summary>
     procedure SetUpNewLine()
     var
         ReminderCommentLine: Record "Reminder Comment Line";
@@ -68,6 +92,13 @@ table 299 "Reminder Comment Line"
         OnAfterSetUpNewLine(Rec, ReminderCommentLine);
     end;
 
+    /// <summary>
+    /// Copies all comment lines from one document to another.
+    /// </summary>
+    /// <param name="FromType">The source document type as integer.</param>
+    /// <param name="ToType">The target document type as integer.</param>
+    /// <param name="FromNumber">The source document number.</param>
+    /// <param name="ToNumber">The target document number.</param>
     procedure CopyComments(FromType: Integer; ToType: Integer; FromNumber: Code[20]; ToNumber: Code[20])
     var
         ReminderCommentLine: Record "Reminder Comment Line";
@@ -89,6 +120,11 @@ table 299 "Reminder Comment Line"
             until ReminderCommentLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Deletes all comment lines for the specified document.
+    /// </summary>
+    /// <param name="DocType">The document type to delete comments for.</param>
+    /// <param name="DocNo">The document number to delete comments for.</param>
     procedure DeleteComments(DocType: Option; DocNo: Code[20])
     begin
         SetRange(Type, DocType);
@@ -97,6 +133,12 @@ table 299 "Reminder Comment Line"
             DeleteAll();
     end;
 
+    /// <summary>
+    /// Opens the Reminder Comment Sheet page for viewing and editing comments.
+    /// </summary>
+    /// <param name="DocType">Specifies the document type to filter comments.</param>
+    /// <param name="DocNo">Specifies the document number to filter comments.</param>
+    /// <param name="DocLineNo">Specifies the line number to filter comments.</param>
     procedure ShowComments(DocType: Option; DocNo: Code[20]; DocLineNo: Integer)
     var
         ReminderCommentSheet: Page "Reminder Comment Sheet";

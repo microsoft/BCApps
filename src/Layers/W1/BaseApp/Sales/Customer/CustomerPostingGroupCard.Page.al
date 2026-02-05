@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays and edits a customer posting group with its associated general ledger accounts.
+/// </summary>
 page 148 "Customer Posting Group Card"
 {
     Caption = 'Customer Posting Group Card';

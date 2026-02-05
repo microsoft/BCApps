@@ -209,7 +209,7 @@ codeunit 7307 "Whse.-Activity-Register"
         end;
         Clear(WhseJnlRegisterLine);
 
-        OnAfterRegisterWhseActivity(GlobalWhseActivHeader);
+        OnAfterRegisterWhseActivity(GlobalWhseActivHeader, SuppressCommit);
     end;
 
     local procedure RegisterWhseActivityLines(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var TempWhseActivityLineGrouped: Record "Warehouse Activity Line" temporary)
@@ -2271,7 +2271,7 @@ codeunit 7307 "Whse.-Activity-Register"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterRegisterWhseActivity(var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    local procedure OnAfterRegisterWhseActivity(var WarehouseActivityHeader: Record "Warehouse Activity Header"; SuppressCommit: Boolean)
     begin
     end;
 

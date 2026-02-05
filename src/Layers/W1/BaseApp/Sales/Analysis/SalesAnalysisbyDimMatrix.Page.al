@@ -9,6 +9,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Displays a matrix view of sales analysis data by dimensions.
+/// </summary>
 page 9227 "Sales Analysis by Dim Matrix"
 {
     Caption = 'Sales Analysis by Dim Matrix';
@@ -801,6 +804,23 @@ page 9227 "Sales Analysis by Dim Matrix"
         Field32Visible: Boolean;
         Emphasize: Boolean;
 
+    /// <summary>
+    /// Loads the matrix configuration with the specified analysis view and display settings.
+    /// </summary>
+    /// <param name="NewItemAnalysisView">The item analysis view to use.</param>
+    /// <param name="NewCurrentItemAnalysisViewCode">The code of the current analysis view.</param>
+    /// <param name="NewCurrentAnalysisArea">The analysis area type.</param>
+    /// <param name="NewLineDimType">The dimension type for matrix lines.</param>
+    /// <param name="NewColumnDimType">The dimension type for matrix columns.</param>
+    /// <param name="NewPeriodType">The period type for analysis.</param>
+    /// <param name="NewValueType">The value type to display.</param>
+    /// <param name="NewRoundingFactor">The rounding factor for displayed amounts.</param>
+    /// <param name="NewShowActualBudget">The actual or budget display setting.</param>
+    /// <param name="NewMatrixColumnCaptions">The column caption texts.</param>
+    /// <param name="NewShowOppositeSign">Whether to show amounts with opposite signs.</param>
+    /// <param name="NewPeriodInitialized">Whether the period is initialized.</param>
+    /// <param name="NewShowColumnName">Whether to show column names.</param>
+    /// <param name="NoOfRecordsLocal">The number of records to display.</param>
     procedure LoadMatrix(NewItemAnalysisView: Record "Item Analysis View"; NewCurrentItemAnalysisViewCode: Code[10]; NewCurrentAnalysisArea: Enum "Analysis Area Type"; NewLineDimType: Enum "Item Analysis Dimension Type"; NewColumnDimType: Enum "Item Analysis Dimension Type"; NewPeriodType: Enum "Analysis Period Type"; NewValueType: Enum "Item Analysis Value Type"; NewRoundingFactor: Enum "Analysis Rounding Factor"; NewShowActualBudget: Enum "Item Analysis Show Type"; NewMatrixColumnCaptions: array[32] of Text[1024]; NewShowOppositeSign: Boolean; NewPeriodInitialized: Boolean; NewShowColumnName: Boolean; NoOfRecordsLocal: Integer)
     begin
         Clear(MatrixColumnCaptions);
@@ -828,6 +848,17 @@ page 9227 "Sales Analysis by Dim Matrix"
         RoundingFactorFormatString := MatrixMgt.FormatRoundingFactor(RoundingFactor, false);
     end;
 
+    /// <summary>
+    /// Loads the filter settings for the matrix display.
+    /// </summary>
+    /// <param name="ItemFilter1">The item filter.</param>
+    /// <param name="LocationFilter1">The location filter.</param>
+    /// <param name="Dim1Filter1">The dimension 1 filter.</param>
+    /// <param name="Dim2Filter1">The dimension 2 filter.</param>
+    /// <param name="Dim3Filter1">The dimension 3 filter.</param>
+    /// <param name="DateFilter2">The date filter.</param>
+    /// <param name="BudgetFilter1">The budget filter.</param>
+    /// <param name="InternalDateFilter1">The internal date filter.</param>
     procedure LoadFilters(ItemFilter1: Code[250]; LocationFilter1: Code[250]; Dim1Filter1: Code[250]; Dim2Filter1: Code[250]; Dim3Filter1: Code[250]; DateFilter2: Text[30]; BudgetFilter1: Code[250]; InternalDateFilter1: Text[30])
     begin
         ItemFilter := ItemFilter1;
@@ -840,6 +871,10 @@ page 9227 "Sales Analysis by Dim Matrix"
         InternalDateFilter := InternalDateFilter1;
     end;
 
+    /// <summary>
+    /// Loads the code range filter for the matrix display.
+    /// </summary>
+    /// <param name="NewCodeRange">The code range to filter by.</param>
     procedure LoadCodeRange(NewCodeRange: Code[250])
     begin
         CodeRange := NewCodeRange;
@@ -937,6 +972,10 @@ page 9227 "Sales Analysis by Dim Matrix"
         Emphasize := Rec."Show in Bold";
     end;
 
+    /// <summary>
+    /// Returns the maximum number of matrix columns that can be displayed.
+    /// </summary>
+    /// <returns>The matrix column array dimension.</returns>
     procedure GetMatrixDimension(): Integer
     begin
         exit(ArrayLen(MatrixColumnCaptions));

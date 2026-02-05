@@ -11,6 +11,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Suggests sales prices on the worksheet based on item unit prices with optional adjustment factors and rounding.
+/// </summary>
 report 7051 "Suggest Item Price on Wksh."
 {
     Caption = 'Suggest Item Price on Wksh.';
@@ -202,6 +205,7 @@ report 7051 "Suggest Item Price on Wksh."
                     }
                     field(PriceLowerLimit; PriceLowerLimit)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Only Amounts Above';
                         DecimalPlaces = 2 : 5;
@@ -209,6 +213,7 @@ report 7051 "Suggest Item Price on Wksh."
                     }
                     field(UnitPriceFactor; UnitPriceFactor)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjustment Factor';
                         DecimalPlaces = 0 : 5;
@@ -338,6 +343,15 @@ report 7051 "Suggest Item Price on Wksh."
         ToStartDate: Date;
         ToEndDate: Date;
 
+    /// <summary>
+    /// Initializes the basic request parameters for suggesting item prices on the worksheet.
+    /// </summary>
+    /// <param name="NewToSalesType">The target sales type for the suggested prices.</param>
+    /// <param name="NewToSalesCode">The target sales code.</param>
+    /// <param name="NewToStartDateText">The starting date for the price validity.</param>
+    /// <param name="NewToEndDateText">The ending date for the price validity.</param>
+    /// <param name="NewToCurrCode">The target currency code.</param>
+    /// <param name="NewToUOMCode">The target unit of measure code.</param>
     procedure InitializeRequest(NewToSalesType: Option; NewToSalesCode: Code[20]; NewToStartDateText: Date; NewToEndDateText: Date; NewToCurrCode: Code[10]; NewToUOMCode: Code[10])
     begin
         ToSalesType := "Sales Price Type".FromInteger(NewToSalesType);
@@ -360,6 +374,19 @@ report 7051 "Suggest Item Price on Wksh."
             end;
     end;
 
+    /// <summary>
+    /// Initializes all request parameters for suggesting item prices on the worksheet including adjustment options.
+    /// </summary>
+    /// <param name="NewToSalesType">The target sales type for the suggested prices.</param>
+    /// <param name="NewToSalesCode">The target sales code.</param>
+    /// <param name="NewToStartDateText">The starting date for the price validity.</param>
+    /// <param name="NewToEndDateText">The ending date for the price validity.</param>
+    /// <param name="NewToCurrCode">The target currency code.</param>
+    /// <param name="NewToUOMCode">The target unit of measure code.</param>
+    /// <param name="NewPriceLowerLimit">The minimum price threshold for applying adjustments.</param>
+    /// <param name="NewUnitPriceFactor">The adjustment factor to multiply prices by.</param>
+    /// <param name="NewRoundingMethodCode">The rounding method code to apply to prices.</param>
+    /// <param name="NewCreateNewPrices">Specifies whether to create new price entries.</param>
     procedure InitializeRequest2(NewToSalesType: Option; NewToSalesCode: Code[20]; NewToStartDateText: Date; NewToEndDateText: Date; NewToCurrCode: Code[10]; NewToUOMCode: Code[10]; NewPriceLowerLimit: Decimal; NewUnitPriceFactor: Decimal; NewRoundingMethodCode: Code[10]; NewCreateNewPrices: Boolean)
     begin
         InitializeRequest(NewToSalesType, NewToSalesCode, NewToStartDateText, NewToEndDateText, NewToCurrCode, NewToUOMCode);
@@ -369,11 +396,24 @@ report 7051 "Suggest Item Price on Wksh."
         CreateNewPrices := NewCreateNewPrices;
     end;
 
+    /// <summary>
+    /// Raises an event before applying the rounding method to the calculated price.
+    /// </summary>
+    /// <param name="SalesPriceWorksheet">The sales price worksheet record being processed.</param>
+    /// <param name="Item">The item record.</param>
+    /// <param name="ToCurrency">The target currency record.</param>
+    /// <param name="UnitPriceFactor">The adjustment factor applied to prices.</param>
+    /// <param name="PriceLowerLimit">The minimum price threshold.</param>
+    /// <param name="CurrentUnitPrice">The current unit price being calculated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRoundMethod(var SalesPriceWorksheet: Record "Sales Price Worksheet"; Item: Record Item; ToCurrency: Record Currency; UnitPriceFactor: Decimal; PriceLowerLimit: Decimal; var CurrentUnitPrice: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying or inserting a sales price worksheet record.
+    /// </summary>
+    /// <param name="SalesPriceWorksheet">The sales price worksheet record to be modified or inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyOrInsertSalesPriceWksh(var SalesPriceWorksheet: Record "Sales Price Worksheet")
     begin

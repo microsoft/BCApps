@@ -58,12 +58,14 @@ table 28044 "WHT Entry"
         field(8; Base; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Base';
             Editable = false;
         }
         field(9; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
             Editable = false;
         }
@@ -132,24 +134,28 @@ table 28044 "WHT Entry"
         field(22; "Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Unrealized Amount';
             Editable = false;
         }
         field(23; "Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Unrealized Base';
             Editable = false;
         }
         field(24; "Remaining Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Remaining Unrealized Amount';
             Editable = false;
         }
         field(25; "Remaining Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Remaining Unrealized Base';
             Editable = false;
         }
@@ -191,12 +197,14 @@ table 28044 "WHT Entry"
         field(32; "Base (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base (LCY)';
             Editable = false;
         }
         field(33; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
             Editable = false;
         }
@@ -216,6 +224,7 @@ table 28044 "WHT Entry"
         }
         field(36; "WHT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WHT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -239,6 +248,7 @@ table 28044 "WHT Entry"
         field(39; "WHT Difference"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'WHT Difference';
             Editable = false;
         }
@@ -307,6 +317,8 @@ table 28044 "WHT Entry"
         }
         field(57; "Payment Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Payment Amount';
         }
         field(58; "Reversed by Entry No."; Integer)
@@ -325,23 +337,29 @@ table 28044 "WHT Entry"
         }
         field(61; "Rem Realized Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Rem Realized Amount';
             Editable = false;
         }
         field(62; "Rem Realized Amount (LCY)"; Decimal)
         {
-            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rem Realized Amount (LCY)';
             Editable = false;
         }
         field(63; "Rem Realized Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Rem Realized Base';
             Editable = false;
         }
         field(64; "Rem Realized Base (LCY)"; Decimal)
         {
-            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rem Realized Base (LCY)';
             Editable = false;
         }
@@ -351,10 +369,14 @@ table 28044 "WHT Entry"
         }
         field(28101; "Pymt. Disc. Diff. Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Pymt. Disc. Diff. Base';
         }
         field(28102; "Pymt. Disc. Diff. Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Pymt. Disc. Diff. Amount';
         }
     }

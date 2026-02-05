@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@ page 10870 "Payment Slip List"
     PageType = List;
     SourceTable = "Payment Header";
     UsageCategory = Lists;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -75,4 +79,4 @@ page 10870 "Payment Slip List"
         FeatureTelemetry.LogUptake('1000HP0', FRPaymentSlipTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 }
-
+#endif

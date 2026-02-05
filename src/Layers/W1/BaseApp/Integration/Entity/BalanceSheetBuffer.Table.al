@@ -25,6 +25,7 @@ table 5487 "Balance Sheet Buffer"
         }
         field(3; Balance; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance';
             DataClassification = SystemMetadata;
         }

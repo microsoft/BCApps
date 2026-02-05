@@ -151,7 +151,6 @@ page 489 "Column Layout"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a period formula that specifies the accounting periods you want to use to calculate the amount in this column.';
-                    Visible = false;
                 }
                 field(Show; Rec.Show)
                 {
@@ -255,6 +254,10 @@ page 489 "Column Layout"
                     Visible = false;
                 }
                 field("Show in ACY"; Rec."Show in ACY")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Internal Description"; Rec."Internal Description")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -364,7 +367,7 @@ page 489 "Column Layout"
         CurrentColumnName: Code[10];
         DimCaptionsInitialized: Boolean;
         CurrentDescription: Text[80];
-        InternalDescription: Text[250];
+        InternalDescription: Text[500];
 #if not CLEAN27
     local procedure CurrentColumnNameOnAfterValida()
     begin

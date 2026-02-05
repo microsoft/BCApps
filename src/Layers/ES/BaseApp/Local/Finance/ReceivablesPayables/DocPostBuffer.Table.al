@@ -23,6 +23,7 @@ table 7000011 "Doc. Post. Buffer"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

@@ -2417,6 +2417,77 @@ codeunit 137068 "SCM Inventory Orders-II"
         Assert.IsFalse(PurchaseOrderLine.IsEmpty(), PurchaseOrderMustBeCreatedErr);
     end;
 
+    [Test]
+    procedure SpecialOrderRespectsLeadTimeCalculationOnOrderDate()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Purchasing: Record Purchasing;
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ShipmentDate: Date;
+        ExpectedOrderDate: Date;
+        LeadTimeDays: Integer;
+    begin
+        // [SCENARIO 615979] Purchase Order created from Special Order via Carry Out Action Message respects Lead Time Calculation
+
+        Initialize();
+
+        // [GIVEN] Create and store random Lead Time.
+        LeadTimeDays := LibraryRandom.RandIntInRange(2, 5);
+
+        // [GIVEN] Create a Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create an Item with the Vendor and Lead Time Calculation.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", Vendor."No.");
+        Evaluate(Item."Lead Time Calculation", Format(LeadTimeDays) + 'D');
+        Item.Modify(true);
+
+        // [GIVEN] Create and store Shipment Date and Expected Date.
+        ShipmentDate := CalcDate('<+30D>', WorkDate());
+
+        // [GIVEN] Create a Purchaseing Code with "Special Order".
+        LibraryPurchase.CreatePurchasingCode(Purchasing);
+        Purchasing.Validate("Special Order", true);
+        Purchasing.Modify(true);
+
+        // [GIVEN] Create a Sales Order with the Item and Purchasing Code.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        SalesLine.Validate("Shipment Date", ShipmentDate);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Get Special Order into Requisition Worksheet.
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Req.");
+        ReqWkshTemplate.FindFirst();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+        LibraryPlanning.GetSpecialOrder(RequisitionLine, Item."No.");
+
+        // [WHEN] Carry Out Action Message with WorkDate as Order Date parameter
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.FindFirst();
+        ExpectedOrderDate := RequisitionLine."Order Date";
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
+
+        // [THEN] Purchase Header with Order Date = Expected Order Date is created.
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.SetRange("Document Type", PurchaseLine."Document Type");
+        PurchaseHeader.SetRange("No.", PurchaseLine."Document No.");
+        PurchaseHeader.SetRange("Order Date", ExpectedOrderDate);
+        Assert.RecordIsNotEmpty(PurchaseHeader);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -31,6 +31,9 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates a standard format printable document for posted sales credit memos with amounts and VAT details.
+/// </summary>
 report 1307 "Standard Sales - Credit Memo"
 {
     Caption = 'Sales - Credit Memo';
@@ -1300,6 +1303,11 @@ report 1307 "Standard Sales - Credit Memo"
         exit(SalesCreditMemoNoLbl);
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the sales credit memo report.
+    /// </summary>
+    /// <param name="NewLogInteraction">Specifies whether to log the interaction.</param>
+    /// <param name="DisplayAsmInfo">Specifies whether to display assembly information.</param>
     procedure InitializeRequest(NewLogInteraction: Boolean; DisplayAsmInfo: Boolean)
     begin
         LogInteraction := NewLogInteraction;

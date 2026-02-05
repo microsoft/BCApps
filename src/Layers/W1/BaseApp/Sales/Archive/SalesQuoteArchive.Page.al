@@ -14,6 +14,9 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Security.User;
 
+/// <summary>
+/// Displays the details of an archived sales quote document.
+/// </summary>
 page 5162 "Sales Quote Archive"
 {
     Caption = 'Sales Quote Archive';

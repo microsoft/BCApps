@@ -8,6 +8,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Creates finance charge memos for customers with overdue payments based on their finance charge terms configuration.
+/// </summary>
 report 191 "Create Finance Charge Memos"
 {
     Caption = 'Create Finance Charge Memos';
@@ -156,6 +159,11 @@ report 191 "Create Finance Charge Memos"
     protected var
         FinChrgMemoHeaderReq: Record "Finance Charge Memo Header";
 
+    /// <summary>
+    /// Initializes the request parameters for creating finance charge memos.
+    /// </summary>
+    /// <param name="PostingDate">The posting date for the finance charge memos.</param>
+    /// <param name="DocumentDate">The document date for the finance charge memos.</param>
     procedure InitializeRequest(PostingDate: Date; DocumentDate: Date)
     begin
         FinChrgMemoHeaderReq."Posting Date" := PostingDate;

@@ -244,6 +244,8 @@ table 846 "Cash Flow Worksheet Line"
         }
         field(11300; "VAT Base Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base Amount';
         }
     }

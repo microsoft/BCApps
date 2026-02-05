@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.Address;
+
 /// <summary>
 /// Validates VAT report data for completeness and accuracy before release.
 /// Performs standard validation checks and manages error reporting for VAT submissions.
@@ -25,18 +27,14 @@ codeunit 744 "VAT Report Validate"
 
     var
         TempVATReportErrorLog: Record "VAT Report Error Log" temporary;
-        VATReportLine: Record "VAT Report Line";
         ErrorID: Integer;
 
-#pragma warning disable AA0074
-#pragma warning disable AA0470
-        Text000: Label 'You cannot release the VAT report because no lines exist.';
-        Text001: Label 'Field %1 should be filled in table %2.';
-        Text002: Label 'Period from %1 till %2 already exists on VAT Report %3.';
-        Text003: Label 'Each cancellation line should have related corrective line.';
-        Text004: Label 'The %1 cannot be earlier than the %1 %2 (VAT Report %3).';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
+        CannotReleaseNoLinesErr: Label 'You cannot release the VAT report because no lines exist.';
+        FieldShouldBeFilledErr: Label 'Field %1 should be filled in table %2.', Comment = '%1 - Field caption, %2 - Table caption';
+        PeriodAlreadyExistsErr: Label 'Period from %1 till %2 already exists on VAT Report %3.', Comment = '%1 - Start Date, %2 - End Date, %3 - VAT Report No.';
+        CancellationMustHaveCorrectiveErr: Label 'Each cancellation line should have related corrective line.';
+        ProcessingDateCannotBeEarlierErr: Label 'The %1 cannot be earlier than the %1 %2 (VAT Report %3).', Comment = '%1 - Field caption, %2 - Date value, %3 - VAT Report No.';
+        EUCountryCodeMustBeTwoCharsErr: Label 'The EU Country/Region Code for country/region %1 must be exactly 2 characters.', Comment = '%1 - Country/Region Code';
 
     local procedure ClearErrorLog()
     begin
@@ -66,10 +64,12 @@ codeunit 744 "VAT Report Validate"
     end;
 
     local procedure ValidateVATReportLinesExists(VATReportHeader: Record "VAT Report Header")
+    var
+        VATReportLine: Record "VAT Report Line";
     begin
         VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
         if VATReportLine.IsEmpty() then begin
-            InsertErrorLog(Text000);
+            InsertErrorLog(CannotReleaseNoLinesErr);
             ShowErrorLog();
         end;
     end;
@@ -79,29 +79,29 @@ codeunit 744 "VAT Report Validate"
         OrigVATReport: Record "VAT Report Header";
     begin
         if VATReportHeader."No." = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("No."), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("No."), VATReportHeader.TableCaption));
         if VATReportHeader."Start Date" = 0D then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Start Date"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Start Date"), VATReportHeader.TableCaption));
         if VATReportHeader."End Date" = 0D then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("End Date"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("End Date"), VATReportHeader.TableCaption));
         if VATReportHeader."Processing Date" = 0D then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Processing Date"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Processing Date"), VATReportHeader.TableCaption));
         if VATReportHeader."Report Period Type" = VATReportHeader."Report Period Type"::" " then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Report Period Type"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Report Period Type"), VATReportHeader.TableCaption));
         if VATReportHeader."Report Period No." = 0 then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Report Period No."), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Report Period No."), VATReportHeader.TableCaption));
         if VATReportHeader."Report Year" = 0 then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Report Year"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Report Year"), VATReportHeader.TableCaption));
         if VATReportHeader."Company Name" = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Company Name"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Company Name"), VATReportHeader.TableCaption));
         if VATReportHeader."Company Address" = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Company Address"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Company Address"), VATReportHeader.TableCaption));
         if VATReportHeader."Post Code" = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("Post Code"), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("Post Code"), VATReportHeader.TableCaption));
         if VATReportHeader.City = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption(City), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption(City), VATReportHeader.TableCaption));
         if VATReportHeader."VAT Registration No." = '' then
-            InsertErrorLog(StrSubstNo(Text001, VATReportHeader.FieldCaption("VAT Registration No."), VATReportHeader.TableCaption));
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportHeader.FieldCaption("VAT Registration No."), VATReportHeader.TableCaption));
         case VATReportHeader."VAT Report Type" of
             VATReportHeader."VAT Report Type"::Standard:
                 begin
@@ -118,7 +118,7 @@ codeunit 744 "VAT Report Validate"
                     VATReportHeader.TestField("Report Period No.", OrigVATReport."Report Period No.");
                     VATReportHeader.TestField("Report Year", OrigVATReport."Report Year");
                     if OrigVATReport."Processing Date" > VATReportHeader."Processing Date" then
-                        Error(Text004,
+                        Error(ProcessingDateCannotBeEarlierErr,
                           VATReportHeader.FieldCaption("Processing Date"), OrigVATReport."Processing Date", OrigVATReport."No.");
                 end;
         end;
@@ -127,16 +127,18 @@ codeunit 744 "VAT Report Validate"
     local procedure ValidateVATReportLines(VATReportHeader: Record "VAT Report Header")
     var
         VATReportLine: Record "VAT Report Line";
+        CountryRegion: Record "Country/Region";
         CancelLines: Integer;
         CorrectLines: Integer;
     begin
         VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
         if VATReportLine.FindSet() then
             repeat
-                if VATReportLine."Country/Region Code" = '' then
-                    InsertErrorLog(StrSubstNo(Text001, VATReportLine.FieldCaption("Country/Region Code"), VATReportLine.TableCaption));
+                ValidateCountryRegionCode(VATReportLine, CountryRegion);
+
                 if VATReportLine."VAT Registration No." = '' then
-                    InsertErrorLog(StrSubstNo(Text001, VATReportLine.FieldCaption("VAT Registration No."), VATReportLine.TableCaption));
+                    InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportLine.FieldCaption("VAT Registration No."), VATReportLine.TableCaption));
+
                 case VATReportLine."Line Type" of
                     VATReportLine."Line Type"::Cancellation:
                         CancelLines += 1;
@@ -145,7 +147,21 @@ codeunit 744 "VAT Report Validate"
                 end;
             until VATReportLine.Next() = 0;
         if CancelLines <> CorrectLines then
-            Error(Text003);
+            Error(CancellationMustHaveCorrectiveErr);
+    end;
+
+    local procedure ValidateCountryRegionCode(VATReportLine: Record "VAT Report Line"; var CountryRegion: Record "Country/Region")
+    begin
+        if VATReportLine."Country/Region Code" = '' then begin
+            InsertErrorLog(StrSubstNo(FieldShouldBeFilledErr, VATReportLine.FieldCaption("Country/Region Code"), VATReportLine.TableCaption));
+            exit;
+        end;
+
+        if not CountryRegion.Get(VATReportLine."Country/Region Code") then
+            exit;
+
+        if StrLen(CountryRegion."EU Country/Region Code") <> 2 then
+            InsertErrorLog(StrSubstNo(EUCountryCodeMustBeTwoCharsErr, VATReportLine."Country/Region Code"));
     end;
 
     [Scope('OnPrem')]
@@ -163,7 +179,7 @@ codeunit 744 "VAT Report Validate"
             VATReportHeader2.SetFilter("No.", '<>%1', VATReportHeader."No.");
             OnValidateVATReportPeriodOnAfterSetFilters(VATReportHeader2);
             if VATReportHeader2.FindFirst() then
-                Error(Text002,
+                Error(PeriodAlreadyExistsErr,
                   VATReportHeader."Start Date", VATReportHeader."End Date", VATReportHeader2."No.");
         end;
     end;

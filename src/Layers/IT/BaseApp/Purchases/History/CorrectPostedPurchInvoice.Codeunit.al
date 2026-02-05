@@ -843,6 +843,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
                 PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
                 if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then begin
                     UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+                    UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
                     UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
                     TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
                     UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchaseLine."Expected Receipt Date", true);
@@ -934,9 +935,8 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
     begin
-        PurchCrMemoLine.SetLoadFields("Document No.", Type, "No.", Quantity);
+        PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
-        PurchCrMemoLine.SetRange(Type, PurchCrMemoLine.Type::Item);
         PurchCrMemoLine.SetFilter("No.", '<>%1', '');
         PurchCrMemoLine.SetFilter(Quantity, '<>%1', 0);
         if PurchCrMemoLine.FindSet() then

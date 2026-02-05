@@ -6181,6 +6181,110 @@ codeunit 136201 "Marketing Contacts"
         PurchaseOrder."Quote No.".AssertEquals(QuoteNo);
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerLinkPageHandler')]
+    [Scope('OnPrem')]
+    procedure TestPersonCustomerContactLookupShowsPersonContacts()
+    var
+        Contact: Record Contact;
+        Customer: Record Customer;
+        ContactList: TestPage "Contact List";
+        CurrMasterFields: Option Contact,Customer;
+    begin
+        // [SCENARIO 617692] When customer type is Person, contact lookup should show Person contacts related to customer
+
+        Initialize();
+
+        // [GIVEN] Create Customer with Person Business Relation and related Contact.
+        CreateCustomerWithSetupBusinessRelation(Customer);
+        LibraryVariableStorage.Enqueue(Customer."No.");
+        LibraryVariableStorage.Enqueue(CurrMasterFields::Customer);
+        LibraryMarketing.CreatePersonContact(Contact);
+        Contact.CreateCustomerLink();
+
+        //[WHEN] Open Contact List Page for Customer.
+        ContactList.Trap();
+        Customer.ShowContact();
+
+        // [THEN] Contact No. and Name in Contact List Page.
+        ContactList."No.".AssertEquals(Contact."No.");
+        ContactList.Name.AssertEquals(Customer.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('SendEmailEditorHandler')]
+    [Scope('OnPrem')]
+    procedure TestSendEmailCreateInteractionFromContactCard()
+    var
+        Contact: Record Contact;
+        InteractionLogEntry: Record "Interaction Log Entry";
+        InteractionTemplateSetup: Record "Interaction Template Setup";
+        LibraryEmail: Codeunit "Library - Email";
+        ContactCard: TestPage "Contact Card";
+    begin
+        // [SCENARIO 609198] Create Interaction when Send Email is used from Contact Card
+        Initialize();
+
+        // [GIVEN] Set up Email Account 
+        LibraryEmail.SetUpEmailAccount();
+
+        // [GIVEN] Create Company Contact
+        LibraryMarketing.CreateCompanyContact(Contact);
+        Contact.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Contact.Modify();
+
+        // [GIVEN] Enqueue Contact E-Mail to be used in Send Email Editor Handler
+        LibraryVariableStorage.Enqueue(Contact."E-Mail");
+
+        // [WHEN] Open Contact Card and Invoke Send Email action
+        ContactCard.OpenEdit();
+        ContactCard.GotoRecord(Contact);
+        ContactCard.Email.Invoke();
+
+        // [THEN] Verify Interaction Log Entry is created with Interaction Template "E-Mails"
+        InteractionTemplateSetup.Get();
+        InteractionLogEntry.SetRange("Contact No.", Contact."No.");
+        InteractionLogEntry.SetRange("Interaction Template Code", InteractionTemplateSetup."E-Mails");
+        Assert.RecordIsNotEmpty(InteractionLogEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('SendEmailEditorHandler')]
+    [Scope('OnPrem')]
+    procedure TestSendEmailCreateInteractionFromContactList()
+    var
+        Contact: Record Contact;
+        InteractionLogEntry: Record "Interaction Log Entry";
+        InteractionTemplateSetup: Record "Interaction Template Setup";
+        LibraryEmail: Codeunit "Library - Email";
+        ContactList: TestPage "Contact List";
+    begin
+        // [SCENARIO 609198] Create Interaction when Send Email is used from Contact Card
+        Initialize();
+
+        // [GIVEN] Set up Email Account 
+        LibraryEmail.SetUpEmailAccount();
+
+        // [GIVEN] Create Company Contact
+        LibraryMarketing.CreateCompanyContact(Contact);
+        Contact.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Contact.Modify();
+
+        // [GIVEN] Enqueue Contact E-Mail to be used in Send Email Editor Handler
+        LibraryVariableStorage.Enqueue(Contact."E-Mail");
+
+        // [WHEN] Open Contact List and Invoke Send Email action
+        ContactList.OpenEdit();
+        ContactList.GotoRecord(Contact);
+        ContactList.Email.Invoke();
+
+        // [THEN] Verify Interaction Log Entry is created with Interaction Template "E-Mails"
+        InteractionTemplateSetup.Get();
+        InteractionLogEntry.SetRange("Contact No.", Contact."No.");
+        InteractionLogEntry.SetRange("Interaction Template Code", InteractionTemplateSetup."E-Mails");
+        Assert.RecordIsNotEmpty(InteractionLogEntry);
+    end;
+
     local procedure Initialize()
     var
         MarketingSetup: Record "Marketing Setup";
@@ -7458,6 +7562,16 @@ codeunit 136201 "Marketing Contacts"
         VendorTemplate.Get(LibraryVariableStorage.DequeueText());
         VendorTemplateList.SetRecord(VendorTemplate);
         Reply := Action::LookupOK;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure SendEmailEditorHandler(var EmailEditor: TestPage "Email Editor")
+    begin
+        EmailEditor.ToField.AssertEquals(LibraryVariableStorage.DequeueText());
+        EmailEditor."Email Editor".Value('abc');
+        EmailEditor.SubjectField.Value('Test Subject');
+        EmailEditor.Send.Invoke();
     end;
 
     [SendNotificationHandler]

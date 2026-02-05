@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Lists all ship-to addresses for a customer with online map integration.
+/// </summary>
 page 301 "Ship-to Address List"
 {
     Caption = 'Ship-to Address List';

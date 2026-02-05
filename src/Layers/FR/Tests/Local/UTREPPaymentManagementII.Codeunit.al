@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144054 "UT REP Payment Management II"
 {
     // 1 - 29. Purpose of test is to validate error for Report 10882 (Transfer), 10881 (Withdraw), 10880 (ETEBAC Files), 10862 (Suggest Vendor Payments FR), 10864 (Suggest Customer Payments) and 10872 (Duplicate parameter).
@@ -32,6 +33,9 @@ codeunit 144054 "UT REP Payment Management II"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -700,4 +704,4 @@ codeunit 144054 "UT REP Payment Management II"
         Withdraw.OK().Invoke();
     end;
 }
-
+#endif

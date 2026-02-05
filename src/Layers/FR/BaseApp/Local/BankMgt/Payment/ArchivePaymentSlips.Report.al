@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,6 +11,9 @@ report 10873 "Archive Payment Slips"
     Caption = 'Archive Payment Slips';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -68,4 +72,4 @@ report 10873 "Archive Payment Slips"
         Text002: Label 'There is no Payment Header to archive.';
         Text003: Label 'One Payment Header has been archived.';
 }
-
+#endif

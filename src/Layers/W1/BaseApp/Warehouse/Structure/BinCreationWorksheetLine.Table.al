@@ -150,6 +150,7 @@ table 7338 "Bin Creation Worksheet Line"
         }
         field(15; "Min. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Min. Qty.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -165,6 +166,7 @@ table 7338 "Bin Creation Worksheet Line"
         }
         field(16; "Max. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Max. Qty.';
             DecimalPlaces = 0 : 5;
             MinValue = 1;
@@ -192,6 +194,7 @@ table 7338 "Bin Creation Worksheet Line"
         }
         field(22; "Maximum Cubage"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Cubage';
             DecimalPlaces = 0 : 5;
@@ -204,6 +207,7 @@ table 7338 "Bin Creation Worksheet Line"
         }
         field(23; "Maximum Weight"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Weight';
             DecimalPlaces = 0 : 5;
@@ -260,6 +264,7 @@ table 7338 "Bin Creation Worksheet Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;

@@ -47,6 +47,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field1; MATRIX_CellData[1])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[1];
                     ToolTip = 'Specifies the related data.';
@@ -58,6 +60,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field2; MATRIX_CellData[2])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[2];
                     ToolTip = 'Specifies the related data.';
@@ -69,6 +73,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field3; MATRIX_CellData[3])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[3];
                     ToolTip = 'Specifies the related data.';
@@ -80,6 +86,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field4; MATRIX_CellData[4])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[4];
                     ToolTip = 'Specifies the related data.';
@@ -91,6 +99,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field5; MATRIX_CellData[5])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[5];
                     ToolTip = 'Specifies the related data.';
@@ -102,6 +112,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field6; MATRIX_CellData[6])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[6];
                     ToolTip = 'Specifies the related data.';
@@ -113,6 +125,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field7; MATRIX_CellData[7])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[7];
                     ToolTip = 'Specifies the related data.';
@@ -124,6 +138,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field8; MATRIX_CellData[8])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[8];
                     ToolTip = 'Specifies the related data.';
@@ -135,6 +151,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field9; MATRIX_CellData[9])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[9];
                     ToolTip = 'Specifies the related data.';
@@ -146,6 +164,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field10; MATRIX_CellData[10])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[10];
                     ToolTip = 'Specifies the related data.';
@@ -157,6 +177,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field11; MATRIX_CellData[11])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[11];
                     ToolTip = 'Specifies the related data.';
@@ -168,6 +190,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field12; MATRIX_CellData[12])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[12];
                     ToolTip = 'Specifies the related data.';
@@ -179,6 +203,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field13; MATRIX_CellData[13])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[13];
                     ToolTip = 'Specifies the related data.';
@@ -190,6 +216,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field14; MATRIX_CellData[14])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[14];
                     ToolTip = 'Specifies the related data.';
@@ -201,6 +229,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field15; MATRIX_CellData[15])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[15];
                     ToolTip = 'Specifies the related data.';
@@ -212,6 +242,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field16; MATRIX_CellData[16])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[16];
                     ToolTip = 'Specifies the related data.';
@@ -223,6 +255,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field17; MATRIX_CellData[17])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[17];
                     ToolTip = 'Specifies the related data.';
@@ -234,6 +268,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field18; MATRIX_CellData[18])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[18];
                     ToolTip = 'Specifies the related data.';
@@ -245,6 +281,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field19; MATRIX_CellData[19])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[19];
                     ToolTip = 'Specifies the related data.';
@@ -256,6 +294,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field20; MATRIX_CellData[20])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[20];
                     ToolTip = 'Specifies the related data.';
@@ -267,6 +307,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field21; MATRIX_CellData[21])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[21];
                     ToolTip = 'Specifies the related data.';
@@ -278,6 +320,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field22; MATRIX_CellData[22])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[22];
                     ToolTip = 'Specifies the related data.';
@@ -289,6 +333,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field23; MATRIX_CellData[23])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[23];
                     ToolTip = 'Specifies the related data.';
@@ -300,6 +346,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field24; MATRIX_CellData[24])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[24];
                     ToolTip = 'Specifies the related data.';
@@ -311,6 +359,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field25; MATRIX_CellData[25])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[25];
                     ToolTip = 'Specifies the related data.';
@@ -322,6 +372,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field26; MATRIX_CellData[26])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[26];
                     ToolTip = 'Specifies the related data.';
@@ -333,6 +385,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field27; MATRIX_CellData[27])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[27];
                     ToolTip = 'Specifies the related data.';
@@ -344,6 +398,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field28; MATRIX_CellData[28])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[28];
                     ToolTip = 'Specifies the related data.';
@@ -355,6 +411,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field29; MATRIX_CellData[29])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[29];
                     ToolTip = 'Specifies the related data.';
@@ -366,6 +424,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field30; MATRIX_CellData[30])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[30];
                     ToolTip = 'Specifies the related data.';
@@ -377,6 +437,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field31; MATRIX_CellData[31])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[31];
                     ToolTip = 'Specifies the related data.';
@@ -388,6 +450,8 @@ page 35461 "Customer Aging Matrix"
                 }
                 field(Field32; MATRIX_CellData[32])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = '3,' + MATRIX_CaptionSet[32];
                     ToolTip = 'Specifies the related data.';

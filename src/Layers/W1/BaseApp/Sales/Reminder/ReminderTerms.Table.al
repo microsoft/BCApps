@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores reminder terms configurations that define posting rules, fee settings, and minimum amounts for customer reminders.
+/// </summary>
 table 292 "Reminder Terms"
 {
     Caption = 'Reminder Terms';
@@ -15,47 +18,78 @@ table 292 "Reminder Terms"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier code for the reminder terms.
+        /// </summary>
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Specifies a description of the reminder terms.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Indicates whether interest charges are posted when reminders using these terms are issued.
+        /// </summary>
         field(3; "Post Interest"; Boolean)
         {
             Caption = 'Post Interest';
         }
+        /// <summary>
+        /// Indicates whether additional fees are posted when reminders using these terms are issued.
+        /// </summary>
         field(4; "Post Additional Fee"; Boolean)
         {
             Caption = 'Post Additional Fee';
         }
+        /// <summary>
+        /// Specifies the maximum number of reminders that can be sent for an overdue entry before escalation stops.
+        /// </summary>
         field(5; "Max. No. of Reminders"; Integer)
         {
             Caption = 'Max. No. of Reminders';
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the minimum outstanding amount in local currency required for a reminder to be generated.
+        /// </summary>
         field(6; "Minimum Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Minimum Amount (LCY)';
             MinValue = 0;
         }
+        /// <summary>
+        /// Indicates whether line fees are posted when reminders using these terms are issued.
+        /// </summary>
         field(7; "Post Add. Fee per Line"; Boolean)
         {
             Caption = 'Post Add. Fee per Line';
         }
+        /// <summary>
+        /// Specifies a note about line fees that will appear on printed reminder reports.
+        /// </summary>
         field(8; "Note About Line Fee on Report"; Text[150])
         {
             Caption = 'Note About Line Fee on Report';
         }
+        /// <summary>
+        /// Links to the reminder attachment text configuration for PDF documents.
+        /// </summary>
         field(20; "Reminder Attachment Text"; Guid)
         {
             Caption = 'Reminder Attachment Text';
             TableRelation = "Reminder Attachment Text".Id;
         }
+        /// <summary>
+        /// Links to the reminder email text configuration for email communications.
+        /// </summary>
         field(21; "Reminder Email Text"; Guid)
         {
             Caption = 'Reminder Email Text';
@@ -114,6 +148,12 @@ table 292 "Reminder Terms"
         ReminderTermsTranslation: Record "Reminder Terms Translation";
         ReminderLevel: Record "Reminder Level";
 
+    /// <summary>
+    /// Sets visibility flags for account fields based on which reminder posting options are enabled.
+    /// </summary>
+    /// <param name="InterestVisible">Returns true if any reminder terms have interest posting enabled.</param>
+    /// <param name="AdditionalFeeVisible">Returns true if any reminder terms have additional fee posting enabled.</param>
+    /// <param name="AddFeePerLineVisible">Returns true if any reminder terms have per-line fee posting enabled.</param>
     procedure SetAccountVisibility(var InterestVisible: Boolean; var AdditionalFeeVisible: Boolean; var AddFeePerLineVisible: Boolean)
     var
         ReminderTerms: Record "Reminder Terms";

@@ -631,6 +631,89 @@ codeunit 134283 "Non-Deductible Purch. Posting"
     end;
 
     [Test]
+    [HandlerFunctions('ItemChargeAssignmentGetReceiptLinesHandler,PurchReceiptLinesHandler')]
+    procedure CostAmountInValueEntryForItemChargeAssignedByGetReceiptLines()
+    var
+        ItemCharge: Record "Item Charge";
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemChargePurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        ItemNo: Code[20];
+        DocumentNo: Code[20];
+        DirectUnitCost: Decimal;
+        ExpectedCostAmount: Decimal;
+        NonDeductibleVATAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 619963] Cost Amount in Value Entry for Item Charge assigned via Get Receipt Lines includes Non-Deductible VAT
+        Initialize();
+
+        // [GIVEN] Enable "Use For Item Cost" on VAT Setup
+        LibraryNonDeductibleVAT.SetUseForItemCost();
+
+        // [GIVEN] VAT Posting Setup "V" with VAT % = 25 and Non-Deductible VAT % = 90
+        LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(VATPostingSetup, 25, 90);
+
+        // [GIVEN] Item "I" with VAT Prod. Posting Group from "V"
+        ItemNo := LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group");
+
+        // [GIVEN] Vendor "VE" with VAT Bus. Posting Group from "V"
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        // [GIVEN] Posted Purchase Order with Item "I" for Vendor "VE"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeaderOrder, PurchaseLine.Type::Item, ItemNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(50, 100));
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, true);
+
+        // [GIVEN] Item Charge "IC" with VAT Prod. Posting Group from "V"
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        ItemCharge.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        ItemCharge.Modify(true);
+
+        // [GIVEN] Purchase Invoice for Vendor "VE" with Item Charge "IC" line, Direct Unit Cost = 100
+        DirectUnitCost := 100;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            ItemChargePurchaseLine, PurchaseHeaderInvoice, ItemChargePurchaseLine.Type::"Charge (Item)",
+            ItemCharge."No.", 1);
+        ItemChargePurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        ItemChargePurchaseLine.Modify(true);
+
+        // [GIVEN] Item Charge assigned to Receipt Line using "Get Receipt Lines"
+        ItemChargePurchaseLine.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        ItemChargePurchaseLine.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        ItemChargePurchaseLine.SetRange(Type, ItemChargePurchaseLine.Type::"Charge (Item)");
+        ItemChargePurchaseLine.FindFirst();
+        ItemChargePurchaseLine.ShowItemChargeAssgnt();
+
+        // [WHEN] Post Purchase Invoice
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, true, true);
+
+        // [THEN] Value Entry for Item Charge has Cost Amount (Actual) = 122.5 (100 + 22.5 Non-Deductible VAT)
+        ValueEntry.SetRange("Document No.", DocumentNo);
+        ValueEntry.SetRange("Item Charge No.", ItemCharge."No.");
+        ValueEntry.FindFirst();
+        NonDeductibleVATAmount := Round(DirectUnitCost * VATPostingSetup."VAT %" / 100 * VATPostingSetup."Non-Deductible VAT %" / 100);
+        ExpectedCostAmount := DirectUnitCost + NonDeductibleVATAmount;
+        Assert.AreEqual(
+            ExpectedCostAmount,
+            ValueEntry."Cost Amount (Actual)",
+            StrSubstNo(
+                CostAmountActualErr,
+                ValueEntry.FieldCaption("Cost Amount (Actual)"),
+                ExpectedCostAmount,
+                ValueEntry.TableCaption()));
+    end;
+
+    [Test]
     procedure PurchInvoiceWithNonDeductibleVATAndPricesIncludingVAT()
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -809,6 +892,22 @@ codeunit 134283 "Non-Deductible Purch. Posting"
     procedure SuggestItemChargeAssignmentPageHandler(var ItemChargeAssignmentPurch: TestPage "Item Charge Assignment (Purch)")
     begin
         ItemChargeAssignmentPurch.SuggestItemChargeAssignment.Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemChargeAssignmentGetReceiptLinesHandler(var ItemChargeAssignmentPurch: TestPage "Item Charge Assignment (Purch)")
+    begin
+        ItemChargeAssignmentPurch.GetReceiptLines.Invoke();
+        ItemChargeAssignmentPurch.SuggestItemChargeAssignment.Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PurchReceiptLinesHandler(var PurchReceiptLines: TestPage "Purch. Receipt Lines")
+    begin
+        PurchReceiptLines.First();
+        PurchReceiptLines.OK().Invoke();
     end;
 
     [ConfirmHandler]

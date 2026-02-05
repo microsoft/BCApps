@@ -353,6 +353,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Received (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor has granted as payment discount.';
                         }
@@ -360,6 +361,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Missed (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor granted as payment discount but you missed.';
                         }
@@ -412,6 +414,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Received (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor has granted as payment discount.';
                         }
@@ -419,6 +422,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Missed (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor granted as payment discount but you missed.';
                         }
@@ -471,6 +475,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Received (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor has granted as payment discount.';
                         }
@@ -478,6 +483,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Missed (LCY)';
                             ToolTip = 'Specifies the total amount that the vendor granted as payment discount but you missed.';
                         }
@@ -494,6 +500,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }
@@ -501,6 +508,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }
@@ -508,6 +516,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }
@@ -515,6 +524,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }
@@ -522,6 +532,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }
@@ -529,6 +540,7 @@ page 303 "Vendor Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Remaining Amt. (LCY)';
                             ToolTip = 'Specifies the amount that remains to be paid.';
                         }

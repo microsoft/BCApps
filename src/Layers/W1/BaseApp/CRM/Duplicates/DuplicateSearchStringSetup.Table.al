@@ -27,11 +27,9 @@ table 5095 "Duplicate Search String Setup"
                 "Field Name" := Field.FieldName;
             end;
         }
-        field(2; "Part of Field"; Option)
+        field(2; "Part of Field"; Enum "Duplicate Search String Part")
         {
             Caption = 'Part of Field';
-            OptionCaption = 'First,Last';
-            OptionMembers = First,Last;
         }
         field(3; Length; Integer)
         {

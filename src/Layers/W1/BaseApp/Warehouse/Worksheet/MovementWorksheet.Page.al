@@ -205,6 +205,7 @@ page 7351 "Movement Worksheet"
 #pragma warning restore AA0100
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Available Qty. to Move';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

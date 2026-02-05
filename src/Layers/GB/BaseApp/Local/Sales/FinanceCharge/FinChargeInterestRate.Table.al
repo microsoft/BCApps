@@ -29,6 +29,7 @@ table 10555 "Fin. Charge Interest Rate"
         }
         field(3; "Interest Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Interest Rate';
             MaxValue = 100;
             MinValue = 0;

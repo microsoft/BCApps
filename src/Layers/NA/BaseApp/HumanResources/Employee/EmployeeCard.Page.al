@@ -74,6 +74,8 @@ page 5200 "Employee Card"
                 field("Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                 }
                 field("Search Name"; Rec."Search Name")
                 {
@@ -413,6 +415,8 @@ page 5200 "Employee Card"
                 field("Payroll (LCY)"; Rec."Payroll (LCY)")
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the value of the Payroll (LCY) field.';
                 }
                 field("Working Type"; Rec."Working Type")
@@ -423,6 +427,7 @@ page 5200 "Employee Card"
                 field("Working Hours"; Rec."Working Hours")
                 {
                     ApplicationArea = BasicHR;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the value of the Working Hours field.';
                 }
             }

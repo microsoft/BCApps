@@ -11,6 +11,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
 
+/// <summary>
+/// Generates UBL 2.0 compliant XML for sales credit memos in PEPPOL 2.0 format.
+/// </summary>
 xmlport 1603 "Sales Credit Memo - PEPPOL 2.0"
 {
     ObsoleteState = Pending;
@@ -1701,6 +1704,9 @@ xmlport 1603 "Sales Credit Memo - PEPPOL 2.0"
         UnSupportedTableTypeErr: Label 'The %1 table is not supported.', Comment = '%1 is the table.';
         ProcessedDocType: Enum "PEPPOL Processing Type";
 
+    /// <summary>
+    /// Calculates VAT totals for the PEPPOL credit memo export.
+    /// </summary>
     procedure GetTotals()
     begin
         case ProcessedDocType of
@@ -1745,6 +1751,10 @@ xmlport 1603 "Sales Credit Memo - PEPPOL 2.0"
         exit(VATAmtLine.Next() <> 0);
     end;
 
+    /// <summary>
+    /// Initializes the XmlPort with the document to export.
+    /// </summary>
+    /// <param name="DocVariant">The sales credit memo header record to export.</param>
     procedure Initialize(DocVariant: Variant)
     var
         IsHandled: Boolean;
@@ -1785,21 +1795,46 @@ xmlport 1603 "Sales Credit Memo - PEPPOL 2.0"
         exit('urn:www.cenbii.eu:profile:bii05:ver1.0');
     end;
 
+    /// <summary>
+    /// Raised when calculating totals for PEPPOL 2.0 sales credit memo export.
+    /// </summary>
+    /// <param name="SourceRecRef">Specifies the source record reference.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
+    /// <param name="TempVATAmtLine">Specifies the temporary VAT amount line record.</param>
+    /// <param name="ProcessedDocType">Specifies the document type being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetTotals(SourceRecRef: RecordRef; var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
     end;
 
+    /// <summary>
+    /// Raised when initializing the PEPPOL 2.0 sales credit memo export.
+    /// </summary>
+    /// <param name="SourceRecRef">Specifies the source record reference.</param>
+    /// <param name="ProcessedDocType">Specifies the document type being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitialize(SourceRecRef: RecordRef; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised when finding the next credit memo record during PEPPOL 2.0 export.
+    /// </summary>
+    /// <param name="Position">Specifies the position in the iteration.</param>
+    /// <param name="SalesHeader">Specifies the sales header record.</param>
+    /// <param name="Found">Indicates whether a record was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindNextCreditMemoRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when finding the next credit memo line record during PEPPOL 2.0 export.
+    /// </summary>
+    /// <param name="Position">Specifies the position in the iteration.</param>
+    /// <param name="SalesLine">Specifies the sales line record.</param>
+    /// <param name="Found">Indicates whether a record was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindNextCreditMemoLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin

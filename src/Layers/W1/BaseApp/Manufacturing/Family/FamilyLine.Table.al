@@ -59,6 +59,7 @@ table 99000774 "Family Line"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

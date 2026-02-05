@@ -189,6 +189,7 @@ report 794 "Adjust Item Costs/Prices"
                     field(AdjustmentFactor; AdjFactor)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Adjustment Factor';
                         DecimalPlaces = 0 : 5;
                         MinValue = 0;

@@ -8,6 +8,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Reports;
 using System.Text;
 
+/// <summary>
+/// Displays a list of unissued reminder documents with options to create, edit, and issue reminders.
+/// </summary>
 page 436 "Reminder List"
 {
     ApplicationArea = Suite;
@@ -360,6 +363,10 @@ page 436 "Reminder List"
     var
         ReminderHeader: Record "Reminder Header";
 
+    /// <summary>
+    /// Gets a selection filter string for the currently selected reminder records.
+    /// </summary>
+    /// <returns>The selection filter string for the selected reminders.</returns>
     procedure GetSelectionFilter(): Text
     var
         ReminderHeader: Record "Reminder Header";

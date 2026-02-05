@@ -66,6 +66,7 @@ table 7014 "Purchase Line Discount"
         }
         field(11; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

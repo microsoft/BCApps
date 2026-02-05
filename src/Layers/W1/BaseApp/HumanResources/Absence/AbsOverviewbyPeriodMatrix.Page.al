@@ -37,6 +37,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field1; MATRIX_CellData[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[1];
@@ -49,6 +50,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field2; MATRIX_CellData[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[2];
@@ -61,6 +63,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field3; MATRIX_CellData[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[3];
@@ -73,6 +76,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field4; MATRIX_CellData[4])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[4];
@@ -85,6 +89,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field5; MATRIX_CellData[5])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[5];
@@ -97,6 +102,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field6; MATRIX_CellData[6])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[6];
@@ -109,6 +115,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field7; MATRIX_CellData[7])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[7];
@@ -121,6 +128,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field8; MATRIX_CellData[8])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[8];
@@ -133,6 +141,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field9; MATRIX_CellData[9])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[9];
@@ -145,6 +154,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field10; MATRIX_CellData[10])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[10];
@@ -157,6 +167,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field11; MATRIX_CellData[11])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[11];
@@ -169,6 +180,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field12; MATRIX_CellData[12])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[12];
@@ -181,6 +193,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field13; MATRIX_CellData[13])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[13];
@@ -193,6 +206,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field14; MATRIX_CellData[14])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[14];
@@ -205,6 +219,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field15; MATRIX_CellData[15])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[15];
@@ -217,6 +232,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field16; MATRIX_CellData[16])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[16];
@@ -229,6 +245,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field17; MATRIX_CellData[17])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[17];
@@ -241,6 +258,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field18; MATRIX_CellData[18])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[18];
@@ -253,6 +271,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field19; MATRIX_CellData[19])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[19];
@@ -265,6 +284,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field20; MATRIX_CellData[20])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[20];
@@ -277,6 +297,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field21; MATRIX_CellData[21])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[21];
@@ -289,6 +310,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field22; MATRIX_CellData[22])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[22];
@@ -301,6 +323,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field23; MATRIX_CellData[23])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[23];
@@ -313,6 +336,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field24; MATRIX_CellData[24])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[24];
@@ -325,6 +349,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field25; MATRIX_CellData[25])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[25];
@@ -337,6 +362,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field26; MATRIX_CellData[26])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[26];
@@ -349,6 +375,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field27; MATRIX_CellData[27])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[27];
@@ -361,6 +388,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field28; MATRIX_CellData[28])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[28];
@@ -373,6 +401,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field29; MATRIX_CellData[29])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[29];
@@ -385,6 +414,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field30; MATRIX_CellData[30])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[30];
@@ -397,6 +427,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field31; MATRIX_CellData[31])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[31];
@@ -409,6 +440,7 @@ page 9247 "Abs. Overview by Period Matrix"
                 }
                 field(Field32; MATRIX_CellData[32])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = BasicHR;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_ColumnCaption[32];

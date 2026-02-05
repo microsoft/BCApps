@@ -8,6 +8,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Manages the assignment of item charges to sales shipment and return receipt lines.
+/// </summary>
 codeunit 5807 "Item Charge Assgnt. (Sales)"
 {
     Permissions = TableData "Sales Header" = r,
@@ -31,12 +34,34 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         ItemChargeAssignedMenu4Lbl: Label '%1,%2,%3,%4', Locked = true;
         ItemChargesNotAssignedErr: Label 'No item charges were assigned.';
 
+    /// <summary>
+    /// Inserts an item charge assignment record linking a charge to a document line.
+    /// </summary>
+    /// <param name="ItemChargeAssgntSales">The source item charge assignment containing document and charge information.</param>
+    /// <param name="ApplToDocType">The document type to which the charge applies.</param>
+    /// <param name="ApplToDocNo">The document number to which the charge applies.</param>
+    /// <param name="ApplToDocLineNo">The document line number to which the charge applies.</param>
+    /// <param name="ItemNo">The item number for the charge assignment.</param>
+    /// <param name="Description">The description for the charge assignment.</param>
+    /// <param name="NextLineNo">The next available line number, updated after insertion.</param>
     procedure InsertItemChargeAssignment(ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; ApplToDocType: Enum "Sales Applies-to Document Type"; ApplToDocNo: Code[20]; ApplToDocLineNo: Integer; ItemNo: Code[20]; Description: Text[100]; var NextLineNo: Integer)
     begin
         InsertItemChargeAssignmentWithValues(
             ItemChargeAssgntSales, ApplToDocType, ApplToDocNo, ApplToDocLineNo, ItemNo, Description, 0, 0, NextLineNo);
     end;
 
+    /// <summary>
+    /// Inserts an item charge assignment with specified quantity and amount values.
+    /// </summary>
+    /// <param name="FromItemChargeAssgntSales">The source item charge assignment containing document and charge information.</param>
+    /// <param name="ApplToDocType">The document type to which the charge applies.</param>
+    /// <param name="FromApplToDocNo">The document number to which the charge applies.</param>
+    /// <param name="FromApplToDocLineNo">The document line number to which the charge applies.</param>
+    /// <param name="FromItemNo">The item number for the charge assignment.</param>
+    /// <param name="FromDescription">The description for the charge assignment.</param>
+    /// <param name="QtyToAssign">The quantity to assign for this charge.</param>
+    /// <param name="AmountToAssign">The amount to assign for this charge.</param>
+    /// <param name="NextLineNo">The next available line number, updated after insertion.</param>
     procedure InsertItemChargeAssignmentWithValues(FromItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; ApplToDocType: Enum "Sales Applies-to Document Type"; FromApplToDocNo: Code[20]; FromApplToDocLineNo: Integer; FromItemNo: Code[20]; FromDescription: Text[100]; QtyToAssign: Decimal; AmountToAssign: Decimal; var NextLineNo: Integer)
     var
         ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)";
@@ -46,6 +71,19 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
           QtyToAssign, AmountToAssign, NextLineNo, ItemChargeAssgntSales);
     end;
 
+    /// <summary>
+    /// Inserts an item charge assignment with values and returns the created record.
+    /// </summary>
+    /// <param name="FromItemChargeAssgntSales">The source item charge assignment containing document and charge information.</param>
+    /// <param name="ApplToDocType">The document type to which the charge applies.</param>
+    /// <param name="FromApplToDocNo">The document number to which the charge applies.</param>
+    /// <param name="FromApplToDocLineNo">The document line number to which the charge applies.</param>
+    /// <param name="FromItemNo">The item number for the charge assignment.</param>
+    /// <param name="FromDescription">The description for the charge assignment.</param>
+    /// <param name="QtyToAssign">The quantity to assign for this charge.</param>
+    /// <param name="AmountToAssign">The amount to assign for this charge.</param>
+    /// <param name="NextLineNo">The next available line number, updated after insertion.</param>
+    /// <param name="ItemChargeAssgntSales">Returns the created item charge assignment record.</param>
     procedure InsertItemChargeAssignmentWithValuesTo(FromItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; ApplToDocType: Enum "Sales Applies-to Document Type"; FromApplToDocNo: Code[20]; FromApplToDocLineNo: Integer; FromItemNo: Code[20]; FromDescription: Text[100]; QtyToAssign: Decimal; AmountToAssign: Decimal; var NextLineNo: Integer; var ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)")
     var
         IsHandled: Boolean;
@@ -76,6 +114,11 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         ItemChargeAssgntSales.Insert();
     end;
 
+    /// <summary>
+    /// Summarizes temporary item charge assignments by consolidating entries with the same document and line.
+    /// </summary>
+    /// <param name="TempToItemChargeAssignmentSales">The temporary item charge assignments to summarize.</param>
+    /// <param name="ToItemChargeAssignmentSales">Returns the summarized item charge assignment records.</param>
     procedure Summarize(var TempToItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary; var ToItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)")
     begin
         TempToItemChargeAssignmentSales.SetCurrentKey("Applies-to Doc. Type", "Applies-to Doc. No.", "Applies-to Doc. Line No.");
@@ -102,6 +145,11 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
             ToItemChargeAssignmentSales.Insert();
     end;
 
+    /// <summary>
+    /// Creates item charge assignments for all eligible item lines in a sales document.
+    /// </summary>
+    /// <param name="LastItemChargeAssgntSales">The item charge assignment identifying the document and charge.</param>
+    /// <param name="ShipmentNo">Optional shipment number to filter lines; empty to include all lines.</param>
     procedure CreateDocChargeAssgn(LastItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; ShipmentNo: Code[20])
     var
         FromSalesLine: Record "Sales Line";
@@ -140,6 +188,11 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         OnAfterCreateDocChargeAssgnt(LastItemChargeAssgntSales, ShipmentNo);
     end;
 
+    /// <summary>
+    /// Creates item charge assignments from sales shipment lines.
+    /// </summary>
+    /// <param name="FromSalesShptLine">The sales shipment lines to assign charges to.</param>
+    /// <param name="ItemChargeAssgntSales">The item charge assignment identifying the charge to assign.</param>
     procedure CreateShptChargeAssgnt(var FromSalesShptLine: Record "Sales Shipment Line"; ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)")
     var
         ItemChargeAssgntSales2: Record "Item Charge Assignment (Sales)";
@@ -172,6 +225,11 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         until FromSalesShptLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates item charge assignments from return receipt lines.
+    /// </summary>
+    /// <param name="FromReturnRcptLine">The return receipt lines to assign charges to.</param>
+    /// <param name="ItemChargeAssgntSales">The item charge assignment identifying the charge to assign.</param>
     procedure CreateRcptChargeAssgnt(var FromReturnRcptLine: Record "Return Receipt Line"; ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)")
     var
         ItemChargeAssgntSales2: Record "Item Charge Assignment (Sales)";
@@ -195,11 +253,25 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         until FromReturnRcptLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Suggests item charge assignment distribution across document lines using user selection.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TotalQtyToAssign">The total quantity to assign.</param>
+    /// <param name="TotalAmtToAssign">The total amount to assign.</param>
     procedure SuggestAssignment(SalesLine: Record "Sales Line"; TotalQtyToAssign: Decimal; TotalAmtToAssign: Decimal)
     begin
         SuggestAssignment(SalesLine, TotalQtyToAssign, TotalAmtToAssign, TotalQtyToAssign, TotalAmtToAssign)
     end;
 
+    /// <summary>
+    /// Suggests item charge assignment distribution with separate handle quantities.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TotalQtyToAssign">The total quantity to assign.</param>
+    /// <param name="TotalAmtToAssign">The total amount to assign.</param>
+    /// <param name="TotalQtyToHandle">The total quantity to handle.</param>
+    /// <param name="TotalAmtToHandle">The total amount to handle.</param>
     procedure SuggestAssignment(SalesLine: Record "Sales Line"; TotalQtyToAssign: Decimal; TotalAmtToAssign: Decimal; TotalQtyToHandle: Decimal; TotalAmtToHandle: Decimal)
     var
         ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)";
@@ -243,6 +315,13 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         AssignItemCharges(SalesLine, TotalQtyToAssign, TotalAmtToAssign, TotalQtyToHandle, TotalAmtToHandle, SelectionTxt);
     end;
 
+    /// <summary>
+    /// Assigns item charges using a numeric distribution option.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TotalQtyToAssign">The total quantity to assign.</param>
+    /// <param name="TotalAmtToAssign">The total amount to assign.</param>
+    /// <param name="SelectedOptionValue">The distribution option: 0=Equally, 1=By Amount, 2=By Weight, 3=By Volume.</param>
     procedure AssignItemCharges(SalesLine: Record "Sales Line"; TotalQtyToAssign: Decimal; TotalAmtToAssign: Decimal; SelectedOptionValue: Integer)
     begin
         AssignItemCharges(SalesLine, TotalQtyToAssign, TotalAmtToAssign, GetSelectionText(SelectedOptionValue));
@@ -257,11 +336,27 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         exit(SelectStr(OptionValue + 1, SuggestItemChargeMenuTxt));
     end;
 
+    /// <summary>
+    /// Assigns item charges using a text-based distribution method selection.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TotalQtyToAssign">The total quantity to assign.</param>
+    /// <param name="TotalAmtToAssign">The total amount to assign.</param>
+    /// <param name="SelectionTxt">The distribution method text: Equally, By Amount, By Weight, or By Volume.</param>
     procedure AssignItemCharges(SalesLine: Record "Sales Line"; TotalQtyToAssign: Decimal; TotalAmtToAssign: Decimal; SelectionTxt: Text)
     begin
         AssignItemCharges(SalesLine, TotalQtyToAssign, TotalAmtToAssign, TotalQtyToAssign, TotalAmtToAssign, SelectionTxt);
     end;
 
+    /// <summary>
+    /// Assigns item charges with separate handle quantities using a text-based distribution method.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TotalQtyToAssign">The total quantity to assign.</param>
+    /// <param name="TotalAmtToAssign">The total amount to assign.</param>
+    /// <param name="TotalQtyToHandle">The total quantity to handle.</param>
+    /// <param name="TotalAmtToHandle">The total amount to handle.</param>
+    /// <param name="SelectionTxt">The distribution method text: Equally, By Amount, By Weight, or By Volume.</param>
     procedure AssignItemCharges(SalesLine: Record "Sales Line"; TotalQtyToAssign: Decimal; TotalAmtToAssign: Decimal; TotalQtyToHandle: Decimal; TotalAmtToHandle: Decimal; SelectionTxt: Text)
     var
         Currency: Record Currency;
@@ -307,21 +402,37 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         end;
     end;
 
+    /// <summary>
+    /// Returns the menu text label for equal distribution assignment.
+    /// </summary>
+    /// <returns>The "Equally" menu text label.</returns>
     procedure AssignEquallyMenuText(): Text
     begin
         exit(EquallyTok)
     end;
 
+    /// <summary>
+    /// Returns the menu text label for distribution by amount.
+    /// </summary>
+    /// <returns>The "By Amount" menu text label.</returns>
     procedure AssignByAmountMenuText(): Text
     begin
         exit(ByAmountTok)
     end;
 
+    /// <summary>
+    /// Returns the menu text label for distribution by weight.
+    /// </summary>
+    /// <returns>The "By Weight" menu text label.</returns>
     procedure AssignByWeightMenuText(): Text
     begin
         exit(ByWeightTok)
     end;
 
+    /// <summary>
+    /// Returns the menu text label for distribution by volume.
+    /// </summary>
+    /// <returns>The "By Volume" menu text label.</returns>
     procedure AssignByVolumeMenuText(): Text
     begin
         exit(ByVolumeTok)
@@ -547,6 +658,14 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         TempItemChargeAssgntSales.DeleteAll();
     end;
 
+    /// <summary>
+    /// Assigns a calculated item charge quantity and amount to a specific assignment record.
+    /// </summary>
+    /// <param name="ItemChargeAssignmentSales">The item charge assignment record to update.</param>
+    /// <param name="ItemChargeAssignmentSales2">The source record containing calculated assignment values.</param>
+    /// <param name="Currency">The currency for rounding calculations.</param>
+    /// <param name="QtyRemaining">Tracks remaining quantity from rounding differences.</param>
+    /// <param name="AmountRemaining">Tracks remaining amount from rounding differences.</param>
     procedure AssignSalesItemCharge(var ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)"; ItemChargeAssignmentSales2: Record "Item Charge Assignment (Sales)"; Currency: Record Currency; var QtyRemaining: Decimal; var AmountRemaining: Decimal)
     begin
         ItemChargeAssignmentSales.Get(
@@ -568,6 +687,11 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         ItemChargeAssignmentSales.Modify();
     end;
 
+    /// <summary>
+    /// Retrieves item quantity, weight, and volume values for charge distribution calculations.
+    /// </summary>
+    /// <param name="TempItemChargeAssgntSales">The item charge assignment to get values for.</param>
+    /// <param name="DecimalArray">Returns array with [1]=Quantity, [2]=Gross Weight, [3]=Unit Volume.</param>
     procedure GetItemValues(TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var DecimalArray: array[3] of Decimal)
     var
         SalesLine: Record "Sales Line";
@@ -606,6 +730,10 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         OnAfterGetItemValues(TempItemChargeAssgntSales, DecimalArray);
     end;
 
+    /// <summary>
+    /// Recalculates item charge assignment amounts based on line-level changes.
+    /// </summary>
+    /// <param name="FromItemChargeAssignmentSales">The item charge assignment to recalculate from.</param>
     procedure SuggestAssignmentFromLine(var FromItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)")
     var
         Currency: Record Currency;

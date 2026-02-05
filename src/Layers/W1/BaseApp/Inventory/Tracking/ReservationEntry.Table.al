@@ -46,6 +46,7 @@ table 337 "Reservation Entry"
         }
         field(4; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -136,6 +137,7 @@ table 337 "Reservation Entry"
         }
         field(29; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -148,11 +150,13 @@ table 337 "Reservation Entry"
         }
         field(30; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(31; "Action Message Adjustment"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Action Message Entry".Quantity where("Reservation Entry" = field("Entry No."),
                                                                      Calculation = const(Sum)));
             Caption = 'Action Message Adjustment';
@@ -189,16 +193,19 @@ table 337 "Reservation Entry"
         }
         field(50; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(51; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(53; "Quantity Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced (Base)';
             DecimalPlaces = 0 : 5;
         }

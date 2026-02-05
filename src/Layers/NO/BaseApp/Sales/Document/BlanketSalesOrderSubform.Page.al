@@ -22,6 +22,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Displays the line items subform for a blanket sales order document.
+/// </summary>
 page 508 "Blanket Sales Order Subform"
 {
     AutoSplitKey = true;
@@ -540,6 +543,7 @@ page 508 "Blanket Sales Order Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 2;
                         Editable = InvDiscAmountEditable;
@@ -1083,6 +1087,9 @@ page 508 "Blanket Sales Order Subform"
         ItemReferenceVisible: Boolean;
         VATAmount: Decimal;
 
+    /// <summary>
+    /// Runs the invoice discount calculation with user confirmation.
+    /// </summary>
     procedure ApproveCalcInvDisc()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Disc. (Yes/No)", Rec);
@@ -1110,6 +1117,10 @@ page 508 "Blanket Sales Order Subform"
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Inserts extended text for the current line if available.
+    /// </summary>
+    /// <param name="Unconditionally">Whether to insert text without checking conditions.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec);
@@ -1122,6 +1133,10 @@ page 508 "Blanket Sales Order Subform"
             UpdateForm(true);
     end;
 
+    /// <summary>
+    /// Updates the current page.
+    /// </summary>
+    /// <param name="SetSaveRecord">Whether to save the record before updating.</param>
     procedure UpdateForm(SetSaveRecord: Boolean)
     begin
         CurrPage.Update(SetSaveRecord);
@@ -1132,11 +1147,17 @@ page 508 "Blanket Sales Order Subform"
         DocumentTotals.GetTotalSalesHeaderAndCurrency(Rec, TotalSalesHeader, Currency);
     end;
 
+    /// <summary>
+    /// Clears the total sales header variable.
+    /// </summary>
     procedure ClearTotalSalesHeader();
     begin
         Clear(TotalSalesHeader);
     end;
 
+    /// <summary>
+    /// Calculates the document totals for the subform.
+    /// </summary>
     procedure CalculateTotals()
     begin
         DocumentTotals.SalesCheckIfDocumentChanged(Rec, xRec);
@@ -1144,11 +1165,17 @@ page 508 "Blanket Sales Order Subform"
         DocumentTotals.RefreshSalesLine(Rec);
     end;
 
+    /// <summary>
+    /// Calls the delta update totals procedure.
+    /// </summary>
     procedure CallDeltaUpdateTotals()
     begin
         DeltaUpdateTotals();
     end;
 
+    /// <summary>
+    /// Performs incremental update of document totals based on line changes.
+    /// </summary>
     procedure DeltaUpdateTotals()
     begin
         OnBeforeDeltaUpdateTotals(Rec, xRec);
@@ -1157,11 +1184,17 @@ page 508 "Blanket Sales Order Subform"
             Rec.SendLineInvoiceDiscountResetNotification();
     end;
 
+    /// <summary>
+    /// Forces a recalculation of document totals.
+    /// </summary>
     procedure ForceTotalsCalculation()
     begin
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Updates the editable state of fields based on the current row.
+    /// </summary>
     procedure UpdateEditableOnRow()
     begin
         IsCommentLine := not Rec.HasTypeToFillMandatoryFields();
@@ -1174,6 +1207,9 @@ page 508 "Blanket Sales Order Subform"
         OnAfterUpdateEditableOnRow(Rec, IsCommentLine, IsBlankNumber);
     end;
 
+    /// <summary>
+    /// Handles post-validation processing when the No. field changes.
+    /// </summary>
     procedure NoOnAfterValidate()
     begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
@@ -1229,6 +1265,9 @@ page 508 "Blanket Sales Order Subform"
         end;
     end;
 
+    /// <summary>
+    /// Opens the Document Line Tracking page for the current line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";
@@ -1239,6 +1278,9 @@ page 508 "Blanket Sales Order Subform"
         DocumentLineTrackingPage.RunModal();
     end;
 
+    /// <summary>
+    /// Redistributes invoice discount amounts after validation.
+    /// </summary>
     procedure RedistributeTotalsOnAfterValidate()
     begin
         CurrPage.SaveRecord();

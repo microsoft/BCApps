@@ -22,6 +22,7 @@ page 6655 "Return Shipment Statistics"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = PurchReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that corresponds to the posted return shipment.';
@@ -29,6 +30,7 @@ page 6655 "Return Shipment Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = PurchReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total number of parcels returned in the shipment to your vendor.';
@@ -36,6 +38,7 @@ page 6655 "Return Shipment Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = PurchReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total net weight of the posted return shipment.';
@@ -43,6 +46,7 @@ page 6655 "Return Shipment Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = PurchReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total gross weight of the items in the return shipment.';
@@ -50,6 +54,7 @@ page 6655 "Return Shipment Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = PurchReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the items in the posted return shipment.';

@@ -8,6 +8,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
 
+/// <summary>
+/// Posts a sales document and sends the posted document to the customer via email.
+/// </summary>
 codeunit 89 "Sales-Post + Email"
 {
     TableNo = "Sales Header";
@@ -88,6 +91,10 @@ codeunit 89 "Sales-Post + Email"
         end
     end;
 
+    /// <summary>
+    /// Initializes the codeunit with settings that control whether the email dialog is displayed.
+    /// </summary>
+    /// <param name="NewHideMailDialog">Specifies whether to hide the email dialog when sending the posted document.</param>
     procedure InitializeFrom(NewHideMailDialog: Boolean)
     begin
         HideMailDialog := NewHideMailDialog;
@@ -111,26 +118,49 @@ codeunit 89 "Sales-Post + Email"
         Error(NotSupportedDocumentType, SalesHeader."Document Type");
     end;
 
+    /// <summary>
+    /// Raised after the user confirms posting the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was confirmed for posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConfirmPost(SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document has been posted and the email has been sent.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted and sent.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAndSend(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document has been posted but before the email is sent.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAndBeforeSend(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting and emailing the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted and emailed.</param>
+    /// <param name="HideDialog">Set to true to hide the confirmation dialog.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="HideMailDialog">Set to true to hide the email dialog.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostAndEMail(var SalesHeader: Record "Sales Header"; var HideDialog: Boolean; var IsHandled: Boolean; var HideMailDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending the posted invoice via email.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header to be emailed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendDocumentReportOnBeforeSendInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin

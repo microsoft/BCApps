@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +13,9 @@ page 10862 "View/Edit Payment Line"
     SourceTable = "Payment Status";
     SourceTableView = where(Look = const(true));
     UsageCategory = Lists;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -63,4 +67,4 @@ page 10862 "View/Edit Payment Line"
         }
     }
 }
-
+#endif

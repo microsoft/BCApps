@@ -103,6 +103,7 @@ table 5531 "Inventory Page Data"
         }
         field(20; "Remaining Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Remaining Quantity (Base)';
             DecimalPlaces = 0 : 5;
@@ -115,6 +116,7 @@ table 5531 "Inventory Page Data"
         }
         field(22; "Gross Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Gross Requirement';
             DecimalPlaces = 0 : 5;
@@ -122,6 +124,7 @@ table 5531 "Inventory Page Data"
         }
         field(23; "Scheduled Receipt"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Scheduled Receipt';
             DecimalPlaces = 0 : 5;
@@ -129,6 +132,7 @@ table 5531 "Inventory Page Data"
         }
         field(24; Forecast; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Forecast';
             DecimalPlaces = 0 : 5;
@@ -136,6 +140,7 @@ table 5531 "Inventory Page Data"
         }
         field(25; "Remaining Forecast"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Remaining Forecast';
             DecimalPlaces = 0 : 5;
@@ -143,6 +148,7 @@ table 5531 "Inventory Page Data"
         }
         field(26; "Action Message Qty."; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Action Message Qty.';
             DecimalPlaces = 0 : 5;
@@ -171,24 +177,28 @@ table 5531 "Inventory Page Data"
         }
         field(36; "Projected Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Projected Inventory';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(37; "Forecasted Projected Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Forecasted Projected Inventory';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(38; "Suggested Projected Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Suggested Projected Inventory';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(39; "Reserved Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Reserved Requirement';
             DecimalPlaces = 0 : 5;
@@ -196,6 +206,7 @@ table 5531 "Inventory Page Data"
         }
         field(40; "Reserved Receipt"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Reserved Receipt';
             DecimalPlaces = 0 : 5;

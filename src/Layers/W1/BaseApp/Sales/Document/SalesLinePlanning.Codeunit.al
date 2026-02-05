@@ -8,6 +8,9 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 
+/// <summary>
+/// Integrates sales lines with the planning worksheet for demand-driven supply planning.
+/// </summary>
 codeunit 99000850 "Sales Line-Planning"
 {
     var

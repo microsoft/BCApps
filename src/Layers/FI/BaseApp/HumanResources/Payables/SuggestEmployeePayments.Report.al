@@ -120,6 +120,8 @@ report 394 "Suggest Employee Payments"
                         field("Available Amount (LCY)"; AmountAvailable)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Available Amount (LCY)';
                             Importance = Additional;
                             ToolTip = 'Specifies a maximum amount (in LCY) that is available for payments.';

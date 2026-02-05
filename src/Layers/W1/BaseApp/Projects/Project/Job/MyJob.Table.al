@@ -45,10 +45,12 @@ table 9154 "My Job"
         }
         field(7; "Percent Completed"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Percent Completed';
         }
         field(8; "Percent Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Percent Invoiced';
         }
     }

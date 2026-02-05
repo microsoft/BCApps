@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Increments the print counter on a sales document when it is printed.
+/// </summary>
 codeunit 313 "Sales-Printed"
 {
     Permissions = TableData "Sales Header" = rm;
@@ -24,6 +27,10 @@ codeunit 313 "Sales-Printed"
     var
         SuppressCommit: Boolean;
 
+    /// <summary>
+    /// Specifies whether to suppress the commit after updating the print counter.
+    /// </summary>
+    /// <param name="NewSuppressCommit">True to suppress commit; false to allow commit after printing.</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;

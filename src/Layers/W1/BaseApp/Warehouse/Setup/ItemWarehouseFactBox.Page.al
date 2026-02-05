@@ -75,6 +75,7 @@ page 9109 "Item Warehouse FactBox"
             field(NetWeight; GetNetWeight())
             {
                 ApplicationArea = Suite;
+                AutoFormatType = 0;
                 Caption = 'Net Weight';
                 ToolTip = 'Specifies the total net weight of the items that should be shipped.';
             }

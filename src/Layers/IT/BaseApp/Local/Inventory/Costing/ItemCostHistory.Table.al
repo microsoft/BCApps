@@ -44,36 +44,48 @@ table 12131 "Item Cost History"
         }
         field(6; "Start Year Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Start Year Inventory';
             Editable = false;
         }
         field(7; "End Year Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'End Year Inventory';
             Editable = false;
         }
         field(8; "Year Average Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Year Average Cost';
             Editable = false;
         }
         field(9; "Weighted Average Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Weighted Average Cost';
             Editable = false;
         }
         field(10; "FIFO Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'FIFO Cost';
             Editable = false;
         }
         field(11; "LIFO Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'LIFO Cost';
             Editable = false;
         }
         field(12; "Discrete LIFO Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Discrete LIFO Cost';
             Editable = false;
         }
@@ -89,41 +101,55 @@ table 12131 "Item Cost History"
         }
         field(15; "Purchase Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Purchase Quantity';
             Editable = false;
         }
         field(16; "Purchase Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Purchase Amount';
             Editable = false;
         }
         field(17; "Production Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Production Quantity';
             Editable = false;
         }
         field(18; "Production Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Production Amount';
             Editable = false;
         }
         field(19; "Direct Components Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Direct Components Amount';
             Editable = false;
         }
         field(21; "Direct Routing Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Direct Routing Amount';
             Editable = false;
         }
         field(22; "Overhead Routing Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Overhead Routing Amount';
             Editable = false;
         }
         field(23; "Subcontracted Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Subcontracted Amount';
             Editable = false;
         }

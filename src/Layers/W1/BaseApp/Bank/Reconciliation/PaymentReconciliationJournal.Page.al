@@ -120,6 +120,8 @@ page 1290 "Payment Reconciliation Journal"
                 field(StatementToRemAmtDifference; StatementToRemAmtDifference)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = AppliedPmtEntry."Currency Code";
                     BlankZero = true;
                     Caption = 'Difference from Remaining Amount';
                     Enabled = false;
@@ -235,6 +237,8 @@ page 1290 "Payment Reconciliation Journal"
                 field(RemainingAmount; RemainingAmountAfterPosting)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = AppliedPmtEntry."Currency Code";
                     BlankZero = true;
                     Caption = 'Remaining Amount After Posting';
                     Editable = false;
@@ -514,6 +518,7 @@ page 1290 "Payment Reconciliation Journal"
                                 Caption = 'Balance After Posting';
                                 ApplicationArea = Basic, Suite;
                                 AutoFormatType = 1;
+                                AutoFormatExpression = AppliedPmtEntry."Currency Code";
                                 ToolTip = 'Specifies the total amount that will exist on the bank account as a result of payment applications that you post on the Payment Reconciliation Journal page.';
                             }
                             field(StatementEndingBalanceFixedLayout; StatementEndingBalance)

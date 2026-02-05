@@ -450,6 +450,7 @@ table 55 "Invoice Posting Buffer"
         }
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DataClassification = SystemMetadata;
             MaxValue = 100;

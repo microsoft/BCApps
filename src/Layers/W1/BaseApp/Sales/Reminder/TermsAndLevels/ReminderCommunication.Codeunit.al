@@ -19,6 +19,9 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Handles reminder email and attachment text generation with multi-language support and placeholder substitution.
+/// </summary>
 codeunit 1890 "Reminder Communication"
 {
 
@@ -35,6 +38,14 @@ codeunit 1890 "Reminder Communication"
 #endif
     end;
 
+    /// <summary>
+    /// Finds the description text for a line fee based on reminder level and customer language settings.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level to get the description from.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry for language lookup.</param>
+    /// <param name="ReminderLine">The reminder line for placeholder substitution.</param>
+    /// <param name="GLAccount">The G/L account for fallback description.</param>
+    /// <returns>The line fee description text.</returns>
     procedure FindDescriptionForLineFee(var ReminderLevel: Record "Reminder Level"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderLine: Record "Reminder Line"; var GLAccount: Record "G/L Account"): Text[100]
     var
         ReminderTerms: Record "Reminder Terms";
@@ -64,6 +75,12 @@ codeunit 1890 "Reminder Communication"
         exit(Result);
     end;
 
+    /// <summary>
+    /// Inserts the beginning text lines into a reminder based on the reminder level and language.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to insert text into.</param>
+    /// <param name="ReminderLevel">The reminder level containing the text template.</param>
+    /// <param name="ReminderLine">The reminder line record for positioning.</param>
     procedure InsertBeginningText(var ReminderHeader: Record "Reminder Header"; var ReminderLevel: Record "Reminder Level"; var ReminderLine: Record "Reminder Line")
     var
         ReminderTerms: Record "Reminder Terms";
@@ -96,6 +113,12 @@ codeunit 1890 "Reminder Communication"
 #endif
     end;
 
+    /// <summary>
+    /// Inserts the ending text lines into a reminder based on the reminder level and language.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to insert text into.</param>
+    /// <param name="ReminderLevel">The reminder level containing the text template.</param>
+    /// <param name="ReminderLine">The reminder line record for positioning.</param>
     procedure InsertEndingText(var ReminderHeader: Record "Reminder Header"; var ReminderLevel: Record "Reminder Level"; var ReminderLine: Record "Reminder Line")
     var
         ReminderLine2: Record "Reminder Line";
@@ -228,6 +251,13 @@ codeunit 1890 "Reminder Communication"
         exit(LanguageCode);
     end;
 
+    /// <summary>
+    /// Substitutes placeholders in the inline fee description with actual values from the reminder.
+    /// </summary>
+    /// <param name="FeeLineDescriptionText">The description text containing placeholders.</param>
+    /// <param name="ReminderLevel">The reminder level for substitution values.</param>
+    /// <param name="ReminderLine">The reminder line for substitution values.</param>
+    /// <returns>The description text with placeholders replaced.</returns>
     procedure SubstituteInlineFeeDescription(FeeLineDescriptionText: Text[100]; var ReminderLevel: Record "Reminder Level"; var ReminderLine: Record "Reminder Line"): Text[100]
     begin
         // Here we should work on improving the user experience instead of inputting %1, %2, %3.
@@ -243,6 +273,15 @@ codeunit 1890 "Reminder Communication"
                 ReminderLevel."No."))
     end;
 
+    /// <summary>
+    /// Substitutes placeholders in beginning or ending description text with actual reminder values.
+    /// </summary>
+    /// <param name="SourceDescriptionText">The source text containing placeholders.</param>
+    /// <param name="ReminderTotal">The total reminder amount for substitution.</param>
+    /// <param name="MaxLength">The maximum length of the resulting text.</param>
+    /// <param name="ReminderHeader">The reminder header for substitution values.</param>
+    /// <param name="FinanceChargeTerms">The finance charge terms for interest rate.</param>
+    /// <returns>The description text with placeholders replaced.</returns>
     procedure SubstituteBeginningOrEndingDescription(SourceDescriptionText: Text[100]; ReminderTotal: Decimal; MaxLength: Integer; var ReminderHeader: Record "Reminder Header"; var FinanceChargeTerms: Record "Finance Charge Terms"): Text[100]
     var
         CompanyInfo: Record "Company Information";
@@ -282,6 +321,12 @@ codeunit 1890 "Reminder Communication"
             1, 100));
     end;
 
+    /// <summary>
+    /// Gets a formatted text list of attachment language codes separated by the specified separator.
+    /// </summary>
+    /// <param name="SelectedGuid">The ID of the attachment text group.</param>
+    /// <param name="SeparatorText">The separator format text for combining languages.</param>
+    /// <returns>A formatted text with all language codes.</returns>
     procedure GetListOfAttachmentLanguagesFromIdWithSeparator(SelectedGuid: Guid; SeparatorText: Text): Text
     var
         LanguageCodes: List of [Code[10]];
@@ -290,6 +335,12 @@ codeunit 1890 "Reminder Communication"
         exit(GenerateTextofLanguagesFromListOfCode(LanguageCodes, SeparatorText));
     end;
 
+    /// <summary>
+    /// Gets a formatted text list of email language codes separated by the specified separator.
+    /// </summary>
+    /// <param name="SelectedGuid">The ID of the email text group.</param>
+    /// <param name="SeparatorText">The separator format text for combining languages.</param>
+    /// <returns>A formatted text with all language codes.</returns>
     procedure GetListOfEmailLanguagesFromIdWithSeparator(SelectedGuid: Guid; SeparatorText: Text): Text
     var
         LanguageCodes: List of [Code[10]];
@@ -315,6 +366,11 @@ codeunit 1890 "Reminder Communication"
         exit(ResultingText);
     end;
 
+    /// <summary>
+    /// Gets a list of all language codes that have attachment text defined for the specified ID.
+    /// </summary>
+    /// <param name="SelectedGuid">The ID of the attachment text group.</param>
+    /// <returns>A list of language codes.</returns>
     procedure GetListOfAttachmentLanguagesFromId(SelectedGuid: Guid): List of [Code[10]]
     var
         ReminderAttachmentText: Record "Reminder Attachment Text";
@@ -334,6 +390,11 @@ codeunit 1890 "Reminder Communication"
         exit(LanguageCodes);
     end;
 
+    /// <summary>
+    /// Gets a list of all language codes that have email text defined for the specified ID.
+    /// </summary>
+    /// <param name="SelectedGuid">The ID of the email text group.</param>
+    /// <returns>A list of language codes.</returns>
     procedure GetListOfEmailLanguagesFromId(SelectedGuid: Guid): List of [Code[10]]
     var
         ReminderEmailText: Record "Reminder Email Text";
@@ -353,6 +414,13 @@ codeunit 1890 "Reminder Communication"
         exit(LanguageCodes);
     end;
 
+    /// <summary>
+    /// Creates default attachment and email text records for a new language.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the text group.</param>
+    /// <param name="LanguageCode">The language code for the new records.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
+    /// <param name="SelectedSystemId">The system ID of the source record to link to.</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type"; SelectedSystemId: Guid)
     var
         ReminderAttachmentText: Record "Reminder Attachment Text";
@@ -362,16 +430,31 @@ codeunit 1890 "Reminder Communication"
         ReminderEmailText.SetDefaultContentForNewLanguage(SelectedId, LanguageCode, SourceType, SelectedSystemId);
     end;
 
+    /// <summary>
+    /// Extracts and formats the available attachment and email languages for the reminder terms.
+    /// </summary>
+    /// <param name="ReminderTerms">The reminder terms to extract languages from.</param>
+    /// <returns>A formatted text showing attachment and email languages.</returns>
     procedure ExtractAttachmentAndEmailLanguages(var ReminderTerms: Record "Reminder Terms"): Text
     begin
         exit(ExtractAttachmentAndEmailLanguages(ReminderTerms."Reminder Attachment Text"));
     end;
 
+    /// <summary>
+    /// Extracts and formats the available attachment and email languages for the reminder level.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level to extract languages from.</param>
+    /// <returns>A formatted text showing attachment and email languages.</returns>
     procedure ExtractAttachmentAndEmailLanguages(var ReminderLevel: Record "Reminder Level"): Text
     begin
         exit(ExtractAttachmentAndEmailLanguages(ReminderLevel."Reminder Attachment Text"));
     end;
 
+    /// <summary>
+    /// Extracts and formats the available attachment and email languages for the specified ID.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the text group to extract languages from.</param>
+    /// <returns>A formatted text showing attachment and email languages.</returns>
     procedure ExtractAttachmentAndEmailLanguages(SelectedId: Guid): Text
     var
         AttachmentLanguages: Text;
@@ -382,6 +465,17 @@ codeunit 1890 "Reminder Communication"
         exit(StrSubstNo(LanguagesCustomerCommunicationsLbl, AttachmentLanguages, EmailLanguages));
     end;
 
+    /// <summary>
+    /// Populates the email text components for an issued reminder based on language and template settings.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header to get text for.</param>
+    /// <param name="CompanyInfo">The company information for substitution.</param>
+    /// <param name="GreetingTxt">Returns the greeting text.</param>
+    /// <param name="AmtDueTxt">Returns the amount due text.</param>
+    /// <param name="BodyTxt">Returns the body text.</param>
+    /// <param name="ClosingTxt">Returns the closing text.</param>
+    /// <param name="DescriptionTxt">Returns the description text.</param>
+    /// <param name="NNC_TotalInclVAT">The total including VAT for substitution.</param>
     procedure PopulateEmailText(var IssuedReminderHeader: Record "Issued Reminder Header"; var CompanyInfo: Record "Company Information"; var GreetingTxt: Text; var AmtDueTxt: Text; var BodyTxt: Text; var ClosingTxt: Text; var DescriptionTxt: Text; NNC_TotalInclVAT: Decimal)
     var
         ReminderEmailText: Record "Reminder Email Text";

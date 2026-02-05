@@ -91,6 +91,7 @@ table 1250 "Bank Statement Matching Buffer"
         /// </summary>
         field(12; "Total Remaining Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Remaining Amount';
         }
         /// <summary>
@@ -141,6 +142,7 @@ table 1250 "Bank Statement Matching Buffer"
         /// </summary>
         field(18; "Amount Difference"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Matches';
         }
         /// <summary>

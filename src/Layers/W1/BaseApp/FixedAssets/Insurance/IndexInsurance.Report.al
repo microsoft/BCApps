@@ -88,6 +88,7 @@ report 5691 "Index Insurance"
                     field(IndexFigure; IndexFigure)
                     {
                         ApplicationArea = FixedAssets;
+                        AutoFormatType = 0;
                         Caption = 'Index Figure';
                         DecimalPlaces = 0 : 8;
                         ToolTip = 'Specifies an index figure that is to calculate the index amounts entered in the journal. For example, if you want to index by 2%, enter 102 in this field; if you want to index by -3% percent, enter 97 in this field.';

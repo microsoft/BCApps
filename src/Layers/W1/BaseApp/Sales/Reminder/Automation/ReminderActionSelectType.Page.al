@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays a list of available action types for selection when adding a new reminder automation action.
+/// </summary>
 page 6751 "Reminder Action Select Type"
 {
     Caption = 'Select action type';
@@ -30,6 +33,11 @@ page 6751 "Reminder Action Select Type"
         }
     }
 
+    /// <summary>
+    /// Adds an action type item to the list for selection.
+    /// </summary>
+    /// <param name="ItemName">The display name of the action type.</param>
+    /// <param name="ItemValue">The value identifier of the action type.</param>
     procedure AddItem(ItemName: Text[250]; ItemValue: Text[250])
     var
         NextID: Integer;

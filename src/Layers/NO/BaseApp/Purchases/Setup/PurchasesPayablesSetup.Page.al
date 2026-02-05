@@ -143,6 +143,7 @@ page 460 "Purchases & Payables Setup"
                 }
                 field("Amt. Spec limit to Norges Bank"; Rec."Amt. Spec limit to Norges Bank")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Amt. Spec limit to Norges Bank';
                     ToolTip = 'Specifies information about limits on amounts that can be sent to Norges Bank.';

@@ -25,6 +25,7 @@ table 6305 "Power BI Chart Buffer"
         }
         field(30; Value; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Value';
             DataClassification = SystemMetadata;
         }

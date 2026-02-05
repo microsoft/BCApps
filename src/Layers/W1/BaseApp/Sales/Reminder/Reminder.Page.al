@@ -15,6 +15,9 @@ using Microsoft.Sales.Reports;
 using Microsoft.Utilities;
 using System.Telemetry;
 
+/// <summary>
+/// Displays the document card for creating and editing reminder documents before issuing.
+/// </summary>
 page 434 Reminder
 {
     Caption = 'Reminder';

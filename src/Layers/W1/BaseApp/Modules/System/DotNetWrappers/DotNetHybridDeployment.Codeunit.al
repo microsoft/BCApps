@@ -60,6 +60,15 @@ codeunit 3030 DotNet_HybridDeployment
     end;
 
     [Scope('OnPrem')]
+    procedure EnableReplication(SourceProduct: Text; OnPremiseConnectionString: Text; DatabaseType: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; SourceCompaniesTableName: Text; SetupMappingsTableName: Text; ReplicationMappingsTableName: Text) InstanceId: Text
+    begin
+        InstanceId :=
+          DotNetALHybridDeployManagement.EnableReplication(
+            SourceProduct, OnPremiseConnectionString, DatabaseType, IntegrationRuntimeName, NotificationUrl, ClientState, SubscriptionId,
+            ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId, SourceCompaniesTableName, SetupMappingsTableName, ReplicationMappingsTableName);
+    end;
+
+    [Scope('OnPrem')]
     procedure GetIntegrationRuntimeKey(SourceProduct: Text) InstanceId: Text
     begin
         InstanceId := DotNetALHybridDeployManagement.GetIntegrationRuntimeKey(SourceProduct);

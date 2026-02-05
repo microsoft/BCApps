@@ -12,6 +12,9 @@ using Microsoft.Sales.Comment;
 using Microsoft.Utilities;
 using System.Automation;
 
+/// <summary>
+/// Displays a single posted sales shipment document with header and line details.
+/// </summary>
 page 130 "Posted Sales Shipment"
 {
     Caption = 'Posted Sales Shipment';

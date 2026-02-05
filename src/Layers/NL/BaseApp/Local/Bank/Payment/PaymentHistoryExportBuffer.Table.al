@@ -18,6 +18,7 @@ table 11000009 "Payment History Export Buffer"
         }
         field(2; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }

@@ -90,6 +90,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales ($)';
                     Editable = false;
                     ToolTip = 'Specifies the sales amount.';
@@ -98,6 +99,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     Importance = Additional;
@@ -107,6 +109,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit ($)';
                     Editable = false;
                     Importance = Additional;
@@ -115,6 +118,7 @@ page 10038 "Sales Order Stats."
                 field("ProfitPct[1]"; ProfitPct[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -124,6 +128,7 @@ page 10038 "Sales Order Stats."
                 field("AdjProfitPct[1]"; AdjProfitPct[1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -141,6 +146,7 @@ page 10038 "Sales Order Stats."
                 }
                 field("TotalSalesLine[1].""Units per Parcel"""; TotalSalesLine[1]."Units per Parcel")
                 {
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -187,6 +193,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost ($)';
                     Editable = false;
                     Importance = Additional;
@@ -196,6 +203,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount ($)';
                     Editable = false;
                     Importance = Additional;
@@ -216,6 +224,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt2; BreakdownAmt[1, 1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 1]);
                     Caption = 'BreakdownAmt';
@@ -225,6 +235,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt3; BreakdownAmt[1, 2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 2]);
                     Caption = 'BreakdownAmt';
@@ -234,6 +246,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAm4; BreakdownAmt[1, 3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 3]);
                     Caption = 'BreakdownAm';
@@ -243,6 +257,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAm5; BreakdownAmt[1, 4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 4]);
                     Caption = 'BreakdownAm';
@@ -339,6 +355,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     Importance = Additional;
@@ -348,6 +365,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit ($)';
                     Editable = false;
                     Importance = Additional;
@@ -356,6 +374,7 @@ page 10038 "Sales Order Stats."
                 field("ProfitPct[2]"; ProfitPct[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -365,6 +384,7 @@ page 10038 "Sales Order Stats."
                 field("AdjProfitPct[2]"; AdjProfitPct[2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -426,6 +446,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost ($)';
                     Editable = false;
                     Importance = Additional;
@@ -435,6 +456,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount ($)';
                     Editable = false;
                     Importance = Additional;
@@ -454,6 +476,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt6; BreakdownAmt[2, 1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 1]);
                     Caption = 'BreakdownAmt';
@@ -463,6 +487,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt7; BreakdownAmt[2, 2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 2]);
                     Caption = 'BreakdownAmt';
@@ -472,6 +498,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt8; BreakdownAmt[2, 3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 3]);
                     Caption = 'BreakdownAmt';
@@ -481,6 +509,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt9; BreakdownAmt[2, 4])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 4]);
                     Caption = 'BreakdownAmt';
@@ -568,6 +598,7 @@ page 10038 "Sales Order Stats."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     Importance = Additional;
@@ -576,6 +607,7 @@ page 10038 "Sales Order Stats."
                 field("ProfitPct[3]"; ProfitPct[3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -633,6 +665,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt10; BreakdownAmt[3, 1])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 1]);
                     Caption = 'BreakdownAmt';
@@ -642,6 +676,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt11; BreakdownAmt[3, 2])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 2]);
                     Caption = 'BreakdownAmt';
@@ -651,6 +687,8 @@ page 10038 "Sales Order Stats."
                 field(BreakdownAmt12; BreakdownAmt[3, 3])
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 3]);
                     Caption = 'BreakdownAmt';
@@ -659,6 +697,8 @@ page 10038 "Sales Order Stats."
                 }
                 field(BreakdownAmt13; BreakdownAmt[3, 4])
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 4]);
@@ -726,6 +766,7 @@ page 10038 "Sales Order Stats."
                 field(PrepmtInvPct; PrepmtInvPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Invoiced % of Prepayment Amt.';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Invoiced Percentage of Prepayment Amt.';
@@ -741,6 +782,7 @@ page 10038 "Sales Order Stats."
                 field(PrepmtDeductedPct; PrepmtDeductedPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Deducted % of Prepayment Amt. to Deduct';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Deducted Percentage of Prepayment Amt. to Deduct.';
@@ -788,6 +830,7 @@ page 10038 "Sales Order Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies how must of the customer''s credit is used, expressed as a percentage of the credit limit.';

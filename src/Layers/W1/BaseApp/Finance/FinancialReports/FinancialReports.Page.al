@@ -350,7 +350,7 @@ page 108 "Financial Reports"
 
             group(Category_Edit)
             {
-                Caption = 'Edit definitions';
+                Caption = 'Definitions';
                 actionref(Overview_Promoted; Overview) { }
                 actionref(EditRowGroup_Promoted; EditRowGroup) { }
                 actionref(EditColumnGroup_Promoted; EditColumnGroup) { }

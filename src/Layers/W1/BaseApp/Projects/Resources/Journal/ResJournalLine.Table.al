@@ -173,6 +173,7 @@ table 207 "Res. Journal Line"
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -185,12 +186,14 @@ table 207 "Res. Journal Line"
         field(13; "Direct Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
             MinValue = 0;
         }
         field(14; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             MinValue = 0;
 
@@ -202,6 +205,7 @@ table 207 "Res. Journal Line"
         field(15; "Total Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost';
 
             trigger OnValidate()
@@ -214,6 +218,7 @@ table 207 "Res. Journal Line"
         field(16; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
             MinValue = 0;
 
@@ -225,6 +230,7 @@ table 207 "Res. Journal Line"
         field(17; "Total Price"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price';
 
             trigger OnValidate()
@@ -323,6 +329,7 @@ table 207 "Res. Journal Line"
         }
         field(35; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
         }
         field(90; "Order Type"; Enum "Inventory Order Type")

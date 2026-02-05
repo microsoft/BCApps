@@ -1550,6 +1550,8 @@ codeunit 134763 "Test Sales Post Preview"
     var
         Customer: Record Customer;
         SalesLine: Record "Sales Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GLAccount: Record "G/L Account";
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Prepayment %", LibraryRandom.RandInt(10));
@@ -1559,6 +1561,11 @@ codeunit 134763 "Test Sales Post Preview"
           SalesHeader, SalesLine, SalesHeader."Document Type"::Order, Customer."No.", '', 1, '', 0D);
         SalesLine.Validate("Unit Price", LibraryRandom.RandInt(500));
         SalesLine.Modify(true);
+        if GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
+            if GLAccount.Get(GeneralPostingSetup."Sales Prepayments Account") then begin
+                GLAccount.validate("VAT Prod. Posting Group", SalesLine."VAT Prod. Posting Group");
+                GLAccount.Modify(true);
+            end;
         Commit();
     end;
 

@@ -22,6 +22,7 @@ table 12210 "Withholding Tax Line"
         field(3; "Base - Excluded Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base - Excluded Amount';
             NotBlank = true;
         }

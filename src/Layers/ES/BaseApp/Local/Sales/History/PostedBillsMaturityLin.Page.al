@@ -37,6 +37,7 @@ page 7000070 "Posted Bills Maturity Lin."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount';
                     DrillDown = true;
                     ToolTip = 'Specifies the amount for the posted bills for the period.';

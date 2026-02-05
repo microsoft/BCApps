@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Displays statistical information for a posted sales return receipt including line counts and quantities.
+/// </summary>
 page 6665 "Return Receipt Statistics"
 {
     Caption = 'Return Receipt Statistics';
@@ -22,6 +25,7 @@ page 6665 "Return Receipt Statistics"
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that corresponds to the posted return shipment.';
@@ -29,6 +33,7 @@ page 6665 "Return Receipt Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total number of parcels returned by the customer.';
@@ -36,6 +41,7 @@ page 6665 "Return Receipt Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total net weight in the posted return order.';
@@ -43,6 +49,7 @@ page 6665 "Return Receipt Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total gross weight of the items in the return receipt shipment.';
@@ -50,6 +57,7 @@ page 6665 "Return Receipt Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the volume of the items in the posted return order.';

@@ -113,6 +113,8 @@ table 32000002 "Ref. Payment - Exported"
         }
         field(10; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -131,6 +133,8 @@ table 32000002 "Ref. Payment - Exported"
         }
         field(11; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
 
             trigger OnValidate()
@@ -322,10 +326,12 @@ table 32000002 "Ref. Payment - Exported"
         }
         field(27; "Exchange Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
         }
         field(28; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;

@@ -149,6 +149,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(10; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -204,6 +205,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(11; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -222,6 +224,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(12; "Qty. (Absolute)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Absolute)';
             DecimalPlaces = 0 : 5;
 
@@ -244,6 +247,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(13; "Qty. (Absolute, Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Absolute, Base)';
             DecimalPlaces = 0 : 5;
 
@@ -415,12 +419,14 @@ table 7311 "Warehouse Journal Line"
         }
         field(40; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(41; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -440,6 +446,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(53; "Qty. (Calculated)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Calculated)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -451,6 +458,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(54; "Qty. (Phys. Inventory)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Phys. Inventory)';
             DecimalPlaces = 0 : 5;
 
@@ -497,12 +505,14 @@ table 7311 "Warehouse Journal Line"
         }
         field(68; "Qty. (Calculated) (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Calculated) (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(69; "Qty. (Phys. Inventory) (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Phys. Inventory) (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -540,6 +550,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -579,6 +590,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(5408; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -588,6 +600,7 @@ table 7311 "Warehouse Journal Line"
         }
         field(5409; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -1100,7 +1113,7 @@ table 7311 "Warehouse Journal Line"
         OnBeforeGetBinType(LocationCode, BinCode, BinTypeCode, IsHandled);
         if IsHandled then
             exit(BinTypeCode);
-            
+
         GetBin(LocationCode, BinCode);
         WhseJnlTemplate.Get("Journal Template Name");
         if WhseJnlTemplate.Type = WhseJnlTemplate.Type::Reclassification then
@@ -1829,7 +1842,7 @@ table 7311 "Warehouse Journal Line"
     begin
     end;
 
-    [IntegrationEvent(false,false)]
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeGetBinType(LocationCode: Code[10]; BinCode: Code[20]; var BinTypeCode: Code[10]; var IsHandled: Boolean)
     begin
     end;

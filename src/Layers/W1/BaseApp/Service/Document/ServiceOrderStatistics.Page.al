@@ -98,6 +98,7 @@ page 5914 "Service Order Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the total cost, in LCY, of the G/L account entries, costs, items and/or resources in the service order. The cost is calculated as a product of unit cost multiplied by quantity of the relevant items or resources.';
@@ -106,12 +107,14 @@ page 5914 "Service Order Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of profit for the service order, in LCY, adjusted for any changes in the original item costs.';
                 }
                 field(Original_ProfitPct_Gen; ProfitPct[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -120,6 +123,7 @@ page 5914 "Service Order Statistics"
                 }
                 field(Adj_ProfitPct_Gen; AdjProfitPct[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Service;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -186,6 +190,7 @@ page 5914 "Service Order Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the total cost, in LCY, of the items in the service order, adjusted for any changes in the original costs of these items';
@@ -196,6 +201,7 @@ page 5914 "Service Order Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the service order.';
@@ -310,6 +316,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Original Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the G/L account entries, costs, items and/or resources in the service order. The cost is calculated as a product of unit cost multiplied by quantity of the relevant items or resources.';
@@ -318,6 +325,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the amount of profit for the service order, in LCY, adjusted for any changes in the original item costs.';
@@ -325,6 +333,7 @@ page 5914 "Service Order Statistics"
                         field("ProfitPct[2]"; ProfitPct[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Original Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -333,6 +342,7 @@ page 5914 "Service Order Statistics"
                         field("AdjProfitPct[2]"; AdjProfitPct[2])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Adjusted Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -352,6 +362,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the items in the service order, adjusted for any changes in the original costs of these items';
@@ -362,6 +373,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Adjmt. Amount (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the service order.';
@@ -417,6 +429,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Original Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the G/L account entries, costs, items and/or resources in the service order. The cost is calculated as a product of unit cost multiplied by quantity of the relevant items or resources.';
@@ -425,6 +438,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the amount of profit for the service order, in LCY, adjusted for any changes in the original item costs.';
@@ -432,6 +446,7 @@ page 5914 "Service Order Statistics"
                         field("ProfitPct[4]"; ProfitPct[4])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Original Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -440,6 +455,7 @@ page 5914 "Service Order Statistics"
                         field("AdjProfitPct[4]"; AdjProfitPct[4])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Adjusted Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -459,6 +475,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the items in the service order, adjusted for any changes in the original costs of these items';
@@ -469,6 +486,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjustment Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the items in the service order, adjusted for any changes in the original costs of these items.';
@@ -485,6 +503,7 @@ page 5914 "Service Order Statistics"
                         field("TotalServLine[2].Quantity + TotalServLine[4].Quantity"; TotalServLine[2].Quantity + TotalServLine[4].Quantity)
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -559,6 +578,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -567,6 +587,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -574,6 +595,7 @@ page 5914 "Service Order Statistics"
                         field(DetailsTotalAmt; GetDetailsTotalAmt())
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -582,6 +604,7 @@ page 5914 "Service Order Statistics"
                         field(AdjDetailsTotalAmt; GetAdjDetailsTotalAmt())
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -593,6 +616,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost of the service in LCY.';
@@ -601,6 +625,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost of the service in LCY.';
@@ -609,6 +634,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost of the service in LCY.';
@@ -682,6 +708,7 @@ page 5914 "Service Order Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -689,6 +716,7 @@ page 5914 "Service Order Statistics"
                 field("ProfitPct[3]"; ProfitPct[3])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -829,6 +857,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Original Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the G/L account entries, costs, items and/or resources in the service order. The cost is calculated as a product of unit cost multiplied by quantity of the relevant items or resources.';
@@ -837,6 +866,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the amount of profit for the service order, in LCY, adjusted for any changes in the original item costs.';
@@ -844,6 +874,7 @@ page 5914 "Service Order Statistics"
                         field("ProfitPct[5]"; ProfitPct[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Original Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -852,6 +883,7 @@ page 5914 "Service Order Statistics"
                         field("AdjProfitPct[5]"; AdjProfitPct[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Adjusted Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -871,6 +903,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the items in the service order, adjusted for any changes in the original costs of these items';
@@ -881,6 +914,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Adjmt. Amount (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the service order.';
@@ -955,6 +989,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -963,6 +998,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -970,6 +1006,7 @@ page 5914 "Service Order Statistics"
                         field("ProfitPct[6]"; ProfitPct[6])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -1065,6 +1102,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -1073,6 +1111,7 @@ page 5914 "Service Order Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service order, in local currency.';
@@ -1080,6 +1119,7 @@ page 5914 "Service Order Statistics"
                         field("ProfitPct[7]"; ProfitPct[7])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -1137,6 +1177,7 @@ page 5914 "Service Order Statistics"
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the expended percentage of the credit limit in (LCY).';

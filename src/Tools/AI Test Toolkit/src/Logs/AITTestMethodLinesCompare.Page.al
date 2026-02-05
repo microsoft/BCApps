@@ -8,7 +8,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149035 "AIT Test Method Lines Compare"
 {
-    Caption = 'AI Test Method Lines Compare';
+    Caption = 'AI Eval Method Lines Compare';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Test Method Line";
@@ -60,28 +60,28 @@ page 149035 "AIT Test Method Lines Compare"
                         ShowCaption = false;
                         label(NoOfTests)
                         {
-                            Caption = 'Number of Tests';
-                            ToolTip = 'Specifies the number of tests in this Line';
+                            Caption = 'Number of Evals';
+                            ToolTip = 'Specifies the number of evals in this Line';
                         }
                         label(NoOfTestsPassed)
                         {
-                            Caption = 'Number of Tests Passed';
-                            ToolTip = 'Specifies the number of tests passed in the version.';
+                            Caption = 'Number of Evals Passed';
+                            ToolTip = 'Specifies the number of evals passed in the version.';
                         }
                         label(NoOfTestsFailed)
                         {
-                            Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the version.';
+                            Caption = 'Number of Evals Failed';
+                            ToolTip = 'Specifies the number of evals that failed in the version.';
                         }
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
-                            ToolTip = 'Specifies Total Duration of the test for given version.';
+                            ToolTip = 'Specifies Total Duration of the eval for given version.';
                         }
                         label(TokensConsumed)
                         {
                             Caption = 'Total Tokens Consumed';
-                            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+                            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module.';
                         }
                     }
                     group("Latest Version")
@@ -99,8 +99,8 @@ page 149035 "AIT Test Method Lines Compare"
                         field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
-                            Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the current version.';
+                            Caption = 'Number of Evals Failed';
+                            ToolTip = 'Specifies the number of evals that failed in the current version.';
                             ShowCaption = false;
                             Style = Unfavorable;
 
@@ -113,7 +113,7 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the tests for this version.';
+                            ToolTip = 'Specifies Total Duration of the evals for this version.';
                             ShowCaption = false;
                         }
                         field("Tokens Consumed"; Rec."Tokens Consumed")
@@ -126,7 +126,7 @@ page 149035 "AIT Test Method Lines Compare"
                         Caption = 'Base Version';
                         field("No. of Tests Executed - Base"; Rec."No. of Tests Executed - Base")
                         {
-                            ToolTip = 'Specifies the number of tests in this Line for the base version.';
+                            ToolTip = 'Specifies the number of evals in this Line for the base version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
@@ -137,8 +137,8 @@ page 149035 "AIT Test Method Lines Compare"
                         field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                         {
                             Editable = false;
-                            Caption = 'No. of Tests Failed - Base';
-                            ToolTip = 'Specifies the number of tests that failed in the base version.';
+                            Caption = 'No. of Evals Failed - Base';
+                            ToolTip = 'Specifies the number of evals that failed in the base version.';
                             Style = Unfavorable;
                             ShowCaption = false;
 
@@ -151,7 +151,7 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the tests for the base version.';
+                            ToolTip = 'Specifies Total Duration of the evals for the base version.';
                             Caption = 'Total Duration Base (ms)';
                             ShowCaption = false;
                         }

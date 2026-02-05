@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Configures the parameters for the automated send reminders action including email options and filters.
+/// </summary>
 page 6760 "Send Reminders Setup"
 {
     PageType = Card;

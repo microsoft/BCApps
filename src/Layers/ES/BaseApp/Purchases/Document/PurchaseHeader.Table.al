@@ -2721,6 +2721,21 @@ table 38 "Purchase Header"
             Editable = false;
             TableRelation = "Return Shipment Header";
         }
+        field(5850; "Receipt on Invoice"; Boolean)
+        {
+            Caption = 'Receipt on Invoice';
+            ToolTip = 'Specifies whether the receipt is posted with the invoice.';
+
+            trigger OnValidate()
+            var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+            begin
+                if "Receipt on Invoice" then
+                    MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowed(Rec);
+
+                MatchedOrderLineMgmt.RefreshMatchedOrderLineReceipt(Rec);
+            end;
+        }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
@@ -3118,6 +3133,7 @@ table 38 "Purchase Header"
         UpdateLinesOrderDateAutomaticallyQst: Label 'Do you want to update the order date for existing lines?';
         DifferentDatesQst: Label 'Posting Date %1 is different from Work Date %2.\\Do you want to continue?', Comment = '%1 - Posting Date, %2 - work date';
         DifferentDatesErr: Label 'Posting Date %1 is different from Work Date %2.\\Batch posting cannot be used.', Comment = '%1 - Posting Date, %2 - work date';
+        PurchLineMatchedToOrderLineErr: Label 'You cannot change the field because line %1 is matched to order line.', Comment = '%1 - Line No.';
         GLSetup: Record "General Ledger Setup";
         GLAcc: Record "G/L Account";
         xPurchLine: Record "Purchase Line";
@@ -3174,7 +3190,6 @@ table 38 "Purchase Header"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReplaceDocumentDate: Boolean;
-        UpdateDocumentDate: Boolean;
 #pragma warning disable AA0470
         PrepaymentInvoicesNotPaidErr: Label 'You cannot post the document of type %1 with the number %2 before all related prepayment invoices are posted.', Comment = 'You cannot post the document of type Order with the number 1001 before all related prepayment invoices are posted.';
 #pragma warning restore AA0470
@@ -3230,6 +3245,7 @@ table 38 "Purchase Header"
         SkipBuyFromContact: Boolean;
         SkipPayToContact: Boolean;
         SkipTaxCalculation: Boolean;
+        UpdateDocumentDate: Boolean;
 
     /// <summary>
     /// Initializes a new purchase header with a new document number from the number series.
@@ -3627,8 +3643,12 @@ table 38 "Purchase Header"
     /// </summary>
     /// <param name="VendNo">Vendor number to set.</param>
     procedure GetVend(VendNo: Code[20])
+    var
+        GetVendor: Boolean;
     begin
-        if VendNo <> Vend."No." then
+        GetVendor := VendNo <> Vend."No.";
+        OnBeforeGetVend(Rec, Vend, VendNo, GetVendor);
+        if GetVendor then
             Vend.Get(VendNo);
     end;
 
@@ -3685,8 +3705,10 @@ table 38 "Purchase Header"
 
         Contact.FilterGroup(2);
         LookupContact("Buy-from Vendor No.", "Buy-from Contact No.", Contact);
-        if PAGE.RunModal(0, Contact) = ACTION::LookupOK then
+        if PAGE.RunModal(0, Contact) = ACTION::LookupOK then begin
             Validate("Buy-from Contact No.", Contact."No.");
+            OnLookupBuyFromContactOnAfterValidateBuyFromContactNo(Rec, Contact);
+        end;
         Contact.FilterGroup(0);
     end;
 
@@ -4687,6 +4709,14 @@ table 38 "Purchase Header"
         PurchLine.SetRange("Quantity Received");
         if not PayTo then
             PurchLine.SetRange("Buy-from Vendor No.");
+
+        // Check if there are matched order lines and use testfield to raise error
+        if "Document Type" = "Document Type"::Invoice then begin
+            PurchLine.SetFilter("Matched Order Lines", '>0');
+            if PurchLine.FindFirst() then
+                Error(PurchLineMatchedToOrderLineErr, PurchLine."Line No.");
+            PurchLine.SetRange("Matched Order Lines");
+        end;
     end;
 
     local procedure CheckPrepmtInfo(var PurchLine: Record "Purchase Line")
@@ -6394,6 +6424,7 @@ table 38 "Purchase Header"
         if VendorNo = '' then begin
             if not PurchLine.IsEmpty() then
                 Error(Text005, VendorCaption);
+            OnInitFromVendorOnBeforeInit(Rec, xRec);
             Init();
             "No. Series" := xRec."No. Series";
             OnInitFromVendorOnBeforeInitRecord(Rec, xRec);
@@ -6412,6 +6443,7 @@ table 38 "Purchase Header"
         if (ContactNo = '') and (VendorNo = '') then begin
             if not PurchLine.IsEmpty() then
                 Error(Text005, ContactCaption);
+            OnInitFromContactOnBeforeInit(Rec, xRec);
             Init();
             GetPurchSetup();
             "No. Series" := xRec."No. Series";
@@ -7696,6 +7728,7 @@ table 38 "Purchase Header"
     local procedure TestPurchLineFieldsBeforeRecreate()
     var
         SalesHeader: Record "Sales Header";
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -7709,6 +7742,8 @@ table 38 "Purchase Header"
         PurchLine.CalcFields("Reserved Qty. (Base)");
         PurchLine.TestField("Reserved Qty. (Base)", 0);
         PurchLine.TestField("Receipt No.", '');
+        MatchedOrderLineMgmt.IsLineMatched(PurchLine, true);
+
         PurchLine.TestField("Return Shipment No.", '');
         PurchLine.TestField("Blanket Order No.", '');
         IsHandled := false;
@@ -9627,6 +9662,26 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePrepmtNoSeries(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetVend(PurchaseHeader: Record "Purchase Header"; var Vendor: Record Vendor; VendorNo: Code[20]; var GetVendor: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitFromVendorOnBeforeInit(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitFromContactOnBeforeInit(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnLookupBuyFromContactOnAfterValidateBuyFromContactNo(var PurchaseHeader: Record "Purchase Header"; Contact: Record Contact)
     begin
     end;
 }

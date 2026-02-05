@@ -20,6 +20,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a standard format printable document for posted sales return receipts.
+/// </summary>
 report 1309 "Standard Sales - Return Rcpt."
 {
     Caption = 'Return Receipt';
@@ -752,6 +755,11 @@ report 1309 "Standard Sales - Return Rcpt."
         exit(ReturnReceiptLbl);
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the standard return receipt report.
+    /// </summary>
+    /// <param name="NewLogInteraction">Specifies whether to log the interaction.</param>
+    /// <param name="NewShowCorrectionLines">Specifies whether to show correction lines.</param>
     procedure InitializeRequest(NewLogInteraction: Boolean; NewShowCorrectionLines: Boolean)
     begin
         LogInteraction := NewLogInteraction;

@@ -853,6 +853,7 @@ table 254 "VAT Entry"
         }
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             MaxValue = 100;
             MinValue = 0;
@@ -860,6 +861,7 @@ table 254 "VAT Entry"
         field(12102; "Nondeductible Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Nondeductible Amount';
         }
         field(12104; "Add. Curr. Nondeductible Amt."; Decimal)
@@ -870,12 +872,14 @@ table 254 "VAT Entry"
         }
         field(12106; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             MinValue = 0;
         }
         field(12109; "Nondeductible Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Nondeductible Base';
         }
         field(12110; "Add. Curr. Nondeductible Base"; Decimal)

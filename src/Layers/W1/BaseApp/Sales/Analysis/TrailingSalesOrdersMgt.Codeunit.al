@@ -8,6 +8,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Sales.Document;
 using System.Visualization;
 
+/// <summary>
+/// Manages trailing sales order chart data including order counts, amounts, and status tracking.
+/// </summary>
 codeunit 760 "Trailing Sales Orders Mgt."
 {
 
@@ -19,6 +22,10 @@ codeunit 760 "Trailing Sales Orders Mgt."
         TrailingSalesOrdersSetup: Record "Trailing Sales Orders Setup";
         SalesHeader: Record "Sales Header";
 
+    /// <summary>
+    /// Initializes the trailing sales orders setup for the current user when the page opens.
+    /// </summary>
+    /// <param name="TrailingSalesOrdersSetup">The setup record to initialize with default values.</param>
     procedure OnOpenPage(var TrailingSalesOrdersSetup: Record "Trailing Sales Orders Setup")
     begin
         if not TrailingSalesOrdersSetup.Get(UserId) then begin
@@ -32,6 +39,10 @@ codeunit 760 "Trailing Sales Orders Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Opens the sales order list filtered by the selected chart data point.
+    /// </summary>
+    /// <param name="BusChartBuf">The business chart buffer containing drill-down context.</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer")
     var
         SalesHeader: Record "Sales Header";
@@ -58,6 +69,10 @@ codeunit 760 "Trailing Sales Orders Mgt."
             PAGE.Run(PAGE::"Sales Order List", SalesHeader);
     end;
 
+    /// <summary>
+    /// Updates the chart data with trailing sales order counts or amounts by status.
+    /// </summary>
+    /// <param name="BusChartBuf">The business chart buffer to populate with order data.</param>
     procedure UpdateData(var BusChartBuf: Record "Business Chart Buffer")
     var
         ChartToStatusMap: array[4] of Integer;
@@ -163,6 +178,10 @@ codeunit 760 "Trailing Sales Orders Mgt."
         exit(SalesHeader.Count);
     end;
 
+    /// <summary>
+    /// Creates a mapping array of sales order status values for chart display.
+    /// </summary>
+    /// <param name="Map">The array to populate with status integer values.</param>
     procedure CreateMap(var Map: array[4] of Integer)
     var
         SalesHeader: Record "Sales Header";
@@ -173,16 +192,34 @@ codeunit 760 "Trailing Sales Orders Mgt."
         Map[4] := SalesHeader.Status::Open.AsInteger();
     end;
 
+    /// <summary>
+    /// Raised before calculating the sales order amount for a given status and date range.
+    /// </summary>
+    /// <param name="Status">The sales order status to filter by.</param>
+    /// <param name="FromDate">The start date of the period.</param>
+    /// <param name="ToDate">The end date of the period.</param>
+    /// <param name="Result">The calculated amount to return.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
+    /// <param name="TrailingSalesOrdersSetup">The current setup record for chart configuration.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesOrderAmount(Status: Option; FromDate: Date; ToDate: Date; var Result: Decimal; var IsHandled: Boolean; TrailingSalesOrdersSetup: Record "Trailing Sales Orders Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on the sales header for counting orders.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record with applied filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetSalesOrderCountOnAfterSetFilters(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the sales order list page during drill-down.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record with applied drill-down filters.</param>
+    /// <param name="IsHandled">Set to true to skip opening the default page.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDrillDownOnBeforeRunPage(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin

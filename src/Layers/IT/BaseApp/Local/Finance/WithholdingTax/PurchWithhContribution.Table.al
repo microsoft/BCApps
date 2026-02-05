@@ -98,6 +98,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(8; "Non Taxable Amount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Taxable Amount %';
             DecimalPlaces = 3 : 3;
         }
@@ -133,6 +134,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(12; "Withholding Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Withholding Tax %';
             DecimalPlaces = 3 : 3;
         }
@@ -202,6 +204,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(18; "Social Security %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Social Security %';
             DecimalPlaces = 3 : 3;
         }
@@ -213,6 +216,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(20; "Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Free-Lance %';
             DecimalPlaces = 4 : 4;
         }
@@ -330,6 +334,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(34; "INAIL Per Mil"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Per Mil';
             DecimalPlaces = 3 : 3;
         }
@@ -341,6 +346,7 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(36; "INAIL Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Free-Lance %';
             DecimalPlaces = 4 : 4;
         }
@@ -369,6 +375,8 @@ table 12137 "Purch. Withh. Contribution"
         }
         field(39; "WHT Amount Manual"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'WHT Amount Manual';
             DataClassification = CustomerContent;
 

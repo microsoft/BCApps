@@ -14,6 +14,9 @@ using Microsoft.Sales.Customer;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Generates a test report for validating finance charge memos before issuing, displaying errors and VAT breakdowns.
+/// </summary>
 report 123 "Finance Charge Memo - Test"
 {
     DefaultLayout = RDLC;
@@ -804,6 +807,10 @@ report 123 "Finance Charge Memo - Test"
         ErrorText[ErrorCounter] := Text;
     end;
 
+    /// <summary>
+    /// Initializes the request parameters for the finance charge memo test report.
+    /// </summary>
+    /// <param name="NewShowDim">Specifies whether to show dimensions on the report.</param>
     procedure InitializeRequest(NewShowDim: Boolean)
     begin
         ShowDim := NewShowDim;

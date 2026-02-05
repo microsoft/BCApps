@@ -15,6 +15,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Automation;
 
+/// <summary>
+/// Displays a list of sales quotes for managing customer proposals and offers.
+/// </summary>
 page 9300 "Sales Quotes"
 {
     AdditionalSearchTerms = 'offer';
@@ -816,6 +819,10 @@ page 9300 "Sales Quotes"
         LinesInstructionMgt.SalesCheckAllLinesHaveQuantityAssigned(Rec);
     end;
 
+    /// <summary>
+    /// Returns the style to use for displaying the sales quote based on its validity date.
+    /// </summary>
+    /// <returns>Returns 'Unfavorable' if the quote has expired, otherwise an empty string.</returns>
     procedure SetStyle(): Text
     begin
         if (Rec."Quote Valid Until Date" <> 0D) and (WorkDate() > Rec."Quote Valid Until Date") then

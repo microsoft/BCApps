@@ -492,11 +492,13 @@ table 49 "Invoice Post. Buffer"
 #endif
         field(11303; "Non Deductible VAT Amt."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Deductible VAT Amt.';
             DataClassification = SystemMetadata;
         }
         field(11304; "Non Ded. VAT Amt. (ACY)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Ded. VAT Amt. (ACY)';
             DataClassification = SystemMetadata;
         }

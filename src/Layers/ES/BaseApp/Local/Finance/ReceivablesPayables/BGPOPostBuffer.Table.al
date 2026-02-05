@@ -25,11 +25,15 @@ table 7000012 "BG/PO Post. Buffer"
         }
         field(3; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(4; "Gain - Loss Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Gain - Loss Amount (LCY)';
             DataClassification = SystemMetadata;
         }

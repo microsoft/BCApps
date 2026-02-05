@@ -8,6 +8,9 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays statistical information for finance charge memos including interest amounts, VAT, and customer credit status.
+/// </summary>
 page 449 "Finance Charge Memo Statistics"
 {
     Caption = 'Finance Charge Memo Statistics';
@@ -26,6 +29,8 @@ page 449 "Finance Charge Memo Statistics"
                 field(Interest; Interest)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Interest Amount';
                     DrillDown = false;
                     ToolTip = 'Specifies the interest amount that has been calculated on the finance charge memo.';
@@ -39,6 +44,8 @@ page 449 "Finance Charge Memo Statistics"
                 field(VatAmount; VatAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'VAT Amount';
                     DrillDown = false;
                     ToolTip = 'Specifies the VAT amount that has been calculated on the finance charge memo.';
@@ -54,6 +61,8 @@ page 449 "Finance Charge Memo Statistics"
                 field(InvoiceRoundingAmount; InvoiceRoundingAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatType = 1;
                     Caption = 'Invoice Rounding Amount';
                     ToolTip = 'Specifies the amount that must be added to the finance charge memo when it is posted according to invoice rounding setup.';
                 }
@@ -82,6 +91,7 @@ page 449 "Finance Charge Memo Statistics"
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the expended percentage of the credit limit in (LCY).';

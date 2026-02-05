@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Threading;
 
+/// <summary>
+/// Executes scheduled reminder automation actions through the job queue system.
+/// </summary>
 codeunit 6750 "Reminders Automation Job"
 {
     TableNo = "Job Queue Entry";

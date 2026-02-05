@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates a simplified aging summary showing customer balances in predefined 30-day periods.
+/// </summary>
+
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
@@ -255,6 +259,10 @@ report 109 "Customer - Summary Aging Simp."
     protected var
         CustFilter: Text;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Summary Aging Simplified report.
+    /// </summary>
+    /// <param name="StartingDate">The starting date for the aging calculation.</param>
     procedure InitializeRequest(StartingDate: Date)
     begin
         StartDate := StartingDate;

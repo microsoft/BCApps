@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 
+/// <summary>
+/// Handles events during automated reminder issuing to track progress and log results.
+/// </summary>
 codeunit 6756 "Issue Reminder Event Handler"
 {
     Permissions = tabledata "Issued Reminder Header" = rmid;
@@ -58,6 +61,9 @@ codeunit 6756 "Issue Reminder Event Handler"
         IssuedReminderHeader.Modify();
     end;
 
+    /// <summary>
+    /// Updates the action log status and summary after the reminder issuing process completes.
+    /// </summary>
     procedure UpdateStatusAfterRun()
     var
         ReminderActionLog: Record "Reminder Action Log";

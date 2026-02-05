@@ -16,6 +16,9 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 
+/// <summary>
+/// Processes the application and unapplication of posted customer ledger entries, enabling payment matching and reversal operations.
+/// </summary>
 codeunit 226 "CustEntry-Apply Posted Entries"
 {
     EventSubscriberInstance = Manual;
@@ -79,6 +82,12 @@ codeunit 226 "CustEntry-Apply Posted Entries"
 #pragma warning restore AA0470
         CannotApplyClosedEntriesErr: Label 'One or more of the entries that you selected is closed. You cannot apply closed entries.';
 
+    /// <summary>
+    /// Applies the customer ledger entry based on the specified application parameters.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry to apply.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters for the application, including document number and posting date.</param>
+    /// <returns>True if the application was successful; otherwise, false.</returns>
     procedure Apply(CustLedgEntry: Record "Cust. Ledger Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters"): Boolean
     var
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
@@ -109,6 +118,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         exit(true);
     end;
 
+    /// <summary>
+    /// Gets the latest posting date among all customer ledger entries with the same Applies-to ID.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry used to find related entries by Applies-to ID.</param>
+    /// <returns>The latest posting date of the entries to be applied.</returns>
     procedure GetApplicationDate(CustLedgEntry: Record "Cust. Ledger Entry") ApplicationDate: Date
     var
         ApplyToCustLedgEntry: Record "Cust. Ledger Entry";
@@ -214,6 +228,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         exit(DtldCustLedgEntry.GetLastEntryNo());
     end;
 
+    /// <summary>
+    /// Finds the last application entry number for the specified customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to search for applications.</param>
+    /// <returns>The entry number of the last application entry, or 0 if no application exists.</returns>
     procedure FindLastApplEntry(CustLedgEntryNo: Integer): Integer
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -253,6 +272,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         exit(LastTransactionNo);
     end;
 
+    /// <summary>
+    /// Unapplies the specified detailed customer ledger entry if it is the last application entry.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">Specifies the detailed customer ledger entry to unapply.</param>
     procedure UnApplyDtldCustLedgEntry(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         ApplicationEntryNo: Integer;
@@ -267,6 +290,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         UnApplyCustomer(DtldCustLedgEntry);
     end;
 
+    /// <summary>
+    /// Validates that the customer ledger entry can be unapplied and retrieves the last application entry.
+    /// </summary>
+    /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to check.</param>
+    /// <param name="DetailedCustLedgEntry">Returns the detailed customer ledger entry containing the last application.</param>
     procedure CheckCustLedgEntryToUnapply(CustLedgEntryNo: Integer; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         ApplicationEntryNo: Integer;
@@ -279,6 +307,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     end;
 
 
+    /// <summary>
+    /// Unapplies the customer ledger entry by its entry number.
+    /// </summary>
+    /// <param name="CustLedgEntryNo">Specifies the entry number of the customer ledger entry to unapply.</param>
     procedure UnApplyCustLedgEntry(CustLedgEntryNo: Integer)
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -306,11 +338,22 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         OnAfterUnApplyCustomer(DtldCustLedgEntry);
     end;
 
+    /// <summary>
+    /// Posts the unapplication of a customer ledger entry with automatic commit.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry2">Specifies the detailed customer ledger entry to unapply.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters for the unapplication, including document number and posting date.</param>
     procedure PostUnApplyCustomer(DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         PostUnApplyCustomerCommit(DtldCustLedgEntry2, ApplyUnapplyParameters, true);
     end;
 
+    /// <summary>
+    /// Posts the unapplication of a customer ledger entry with optional commit control.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry2">Specifies the detailed customer ledger entry to unapply.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters for the unapplication, including document number and posting date.</param>
+    /// <param name="CommitChanges">Specifies whether to commit changes after posting the unapplication.</param>
     procedure PostUnApplyCustomerCommit(DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters"; CommitChanges: Boolean)
     var
         GLEntry: Record "G/L Entry";
@@ -448,6 +491,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
                 Error(CannotUnapplyExchRateErr, NewPostingDate);
     end;
 
+    /// <summary>
+    /// Checks whether the customer ledger entry is part of a reversal and raises an error if it is.
+    /// </summary>
+    /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to check for reversal status.</param>
     procedure CheckReversal(CustLedgEntryNo: Integer)
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -458,6 +505,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         OnAfterCheckReversal(CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Opens the Apply Customer Entries page to allow the user to select entries for application.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">Specifies the customer ledger entry that is being applied to other entries.</param>
     procedure ApplyCustEntryFormEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -559,6 +610,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         exit(LastTransactionNo);
     end;
 
+    /// <summary>
+    /// Previews the application of a customer ledger entry without posting.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry to preview the application for.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters for the application preview, including document number and posting date.</param>
     procedure PreviewApply(CustLedgEntry: Record "Cust. Ledger Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -573,6 +629,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         GenJnlPostPreview.Preview(CustEntryApplyPostedEntries, CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Previews the unapplication of a detailed customer ledger entry without posting.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">Specifies the detailed customer ledger entry to preview the unapplication for.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters for the unapplication preview, including document number and posting date.</param>
     procedure PreviewUnapply(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -584,12 +645,21 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         GenJnlPostPreview.Preview(CustEntryApplyPostedEntries, CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Sets the context for an application preview operation.
+    /// </summary>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters to use for the application preview.</param>
     procedure SetApplyContext(ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         ApplyUnapplyParametersContext := ApplyUnapplyParameters;
         RunOptionPreviewContext := RunOptionPreview::Apply;
     end;
 
+    /// <summary>
+    /// Sets the context for an unapplication preview operation.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">Specifies the detailed customer ledger entry for the unapplication preview.</param>
+    /// <param name="ApplyUnapplyParameters">Specifies the parameters to use for the unapplication preview.</param>
     procedure SetUnapplyContext(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         ApplyUnapplyParametersContext := ApplyUnapplyParameters;
@@ -597,6 +667,11 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         RunOptionPreviewContext := RunOptionPreview::Unapply;
     end;
 
+    /// <summary>
+    /// Retrieves all customer ledger entries that have been applied to the specified entry.
+    /// </summary>
+    /// <param name="TempAppliedCustLedgerEntry">Returns a temporary table containing the applied customer ledger entries.</param>
+    /// <param name="CustLedgerEntryNo">Specifies the customer ledger entry number to find applied entries for.</param>
     procedure GetAppliedCustLedgerEntries(var TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary; CustLedgerEntryNo: Integer)
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -663,141 +738,297 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         Result := CustEntryApplyPostedEntries.Run(RecVar);
     end;
 
+    /// <summary>
+    /// Raised after checking if a customer ledger entry is part of a reversal.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was checked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckReversal(CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the application of a customer ledger entry.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line used for posting.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was applied.</param>
+    /// <param name="GenJnlPostLine">The posting codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostApplyCustLedgEntry(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the unapplication of a customer ledger entry.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line used for posting.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was unapplied.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry that was unapplied.</param>
+    /// <param name="GenJnlPostLine">The posting codeunit instance.</param>
+    /// <param name="CommitChanges">Indicates whether changes should be committed.</param>
+    /// <param name="TempCustLedgerEntry">Temporary table containing affected ledger entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostUnapplyCustLedgEntry(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var CommitChanges: Boolean; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after unapplying a customer ledger entry through the UI.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry that was unapplied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUnApplyCustomer(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry");
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking that the entry is open in the apply customer entry form.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustEntryFormEntryOnAfterCheckEntryOpen(ApplyingCustLedgEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Raised before running customer entry edit in the apply customer entry form.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustEntryFormEntryOnBeforeRunCustEntryEdit(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set on customer ledger entries in the apply form.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with filters applied.</param>
+    /// <param name="ApplyingCustLedgerEntry">The applying customer ledger entry.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="CustEntryApplID">The application ID.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyApplyCustEntryFormEntryOnAfterCustLedgEntrySetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyingCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var IsHandled: Boolean; var CustEntryApplID: Code[50]);
     begin
     end;
 
+    /// <summary>
+    /// Raised before applying a customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry to apply.</param>
+    /// <param name="DocumentNo">The document number for the application.</param>
+    /// <param name="ApplicationDate">The application date.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApply(var CustLedgerEntry: Record "Cust. Ledger Entry"; var DocumentNo: Code[20]; var ApplicationDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before opening the apply customer entry form.
+    /// </summary>
+    /// <param name="ApplyingCustLedgEntry">The applying customer ledger entry.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApplyCustEntryFormEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the application date.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry.</param>
+    /// <param name="ApplicationDate">The application date to return.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetApplicationDate(CustLedgEntry: Record "Cust. Ledger Entry"; var ApplicationDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the application of a customer ledger entry.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line for posting.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry to apply.</param>
+    /// <param name="GenJnlPostLine">The posting codeunit instance.</param>
+    /// <param name="ApplyUnapplyParameters">The application parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostApplyCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the unapplication of a customer ledger entry.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line for posting.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry to unapply.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry to unapply.</param>
+    /// <param name="GenJnlPostLine">The posting codeunit instance.</param>
+    /// <param name="ApplyUnapplyParameters">The unapplication parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUnapplyCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set when collecting affected ledger entries.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
+    /// <param name="DetailedCustLedgEntry2">The original detailed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCollectAffectedLedgerEntriesOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set when finding the last application entry.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindLastApplEntryOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the customer application.
+    /// </summary>
+    /// <param name="HideProgressWindow">Set to true to hide the progress window.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry to apply.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCustPostApplyCustLedgEntry(var HideProgressWindow: Boolean; CustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set when getting the application date.
+    /// </summary>
+    /// <param name="ApplyToCustLedgEntry">The apply-to customer ledger entry with filters.</param>
+    /// <param name="CustLedgEntry">The original customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetApplicationDateOnAfterSetFilters(var ApplyToCustLedgEntry: Record "Cust. Ledger Entry"; CustLedgEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the update analysis view.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunUpdateAnalysisView(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the customer exchange rate adjustment.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line.</param>
+    /// <param name="TempCustLedgerEntry">Temporary table of affected customer ledger entries.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunCustExchRateAdjustment(var GenJnlLine: Record "Gen. Journal Line"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the unapplication with commit control.
+    /// </summary>
+    /// <param name="HideProgressWindow">Set to true to hide the progress window.</param>
+    /// <param name="PreviewMode">Indicates whether in preview mode.</param>
+    /// <param name="DetailedCustLedgEntry2">The detailed customer ledger entry to unapply.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="CommitChanges">Indicates whether to commit changes.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUnApplyCustomerCommit(var HideProgressWindow: Boolean; PreviewMode: Boolean; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; CommitChanges: Boolean; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before raising the unapply all entries error.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry being checked.</param>
+    /// <param name="LastTransactionNo">The last transaction number found.</param>
+    /// <param name="IsHandled">Set to true to skip the error.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckUnappliedEntriesOnBeforeUnapplyAllEntriesError(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; LastTransactionNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before committing the customer application posting.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was applied.</param>
+    /// <param name="SuppressCommit">Set to true to suppress the commit.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCustPostApplyCustLedgEntryOnBeforeCommit(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SuppressCommit: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised before unapplying a customer entry through the UI.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry to unapply.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUnApplyCustomer(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set during unapplication posting.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
+    /// <param name="DetailedCustLedgEntry2">The original detailed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUnApplyCustomerCommitOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the customer ledger entry during unapplication.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUnApplyCustomerCommitOnAfterGetCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing payment tolerance during application.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry.</param>
+    /// <param name="PaymentToleranceMgt">The payment tolerance management codeunit.</param>
+    /// <param name="PreviewMode">Indicates whether in preview mode.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyOnBeforePmtTolCust(CustLedgEntry: Record "Cust. Ledger Entry"; var PaymentToleranceMgt: Codeunit "Payment Tolerance Management"; PreviewMode: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the customer ledger entry application.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry to apply.</param>
+    /// <param name="ApplyUnapplyParameters">The application parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyOnBeforeCustPostApplyCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised before filtering detailed customer ledger entries during unapplication.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry2">The detailed customer ledger entry to unapply.</param>
+    /// <param name="ApplyUnapplyParameters">The unapplication parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUnApplyCustomerCommitOnBeforeFilterDtldCustLedgEntry(DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised after preview mode processing during unapplication.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUnApplyCustomerCommitOnAfterPreviewMode(CustLedgerEntry: Record "Cust. Ledger Entry");
     begin

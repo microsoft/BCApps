@@ -643,8 +643,8 @@ codeunit 134561 "ERM Account Schedule Charts"
           AccScheduleOverview.CurrentSchedName.Value,
           'Unexpected account schedule in the overview page.');
         Assert.AreEqual(
-          DrillDownAccScheduleLine."Row No.",
-          AccScheduleOverview."Row No.".Value,
+          DrillDownAccScheduleLine.Description,
+          AccScheduleOverview.Description.Value,
           'Unexpected account schedule line selected in the overview page.');
         Assert.AreEqual(
           BusinessChartBuffer."Period Length",

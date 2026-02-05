@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Receivables;
 using Microsoft.Purchases.Payables;
 using System.Diagnostics;
 
+/// <summary>
+/// Enables change log tracking for customer and vendor ledger entry modifications by marking these tables as always logged.
+/// </summary>
 codeunit 106 "Ledg. Entry-Track Changes"
 {
     EventSubscriberInstance = Manual;

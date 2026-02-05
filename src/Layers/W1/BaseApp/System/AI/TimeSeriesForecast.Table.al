@@ -21,14 +21,17 @@ table 2001 "Time Series Forecast"
         }
         field(4; Value; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Value';
         }
         field(5; Delta; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Delta';
         }
         field(6; "Delta %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Delta %';
         }
     }

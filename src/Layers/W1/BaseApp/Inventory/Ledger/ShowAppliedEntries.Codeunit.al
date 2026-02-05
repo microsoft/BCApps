@@ -60,8 +60,9 @@ codeunit 5801 "Show Applied Entries"
         if IsHandled then
             exit;
 
-        if AppliedQty * ItemLedgEntry.Quantity < 0 then
-            exit;
+        if not ItemLedgEntry."Drop Shipment" then
+            if AppliedQty * ItemLedgEntry.Quantity < 0 then
+                exit;
 
         if not TempItemLedgerEntry.Get(EntryNo) then begin
             TempItemLedgerEntry.Init();

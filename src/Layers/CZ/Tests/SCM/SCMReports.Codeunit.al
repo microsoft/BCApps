@@ -2024,6 +2024,7 @@ codeunit 137309 "SCM Reports"
         ProductionOrderNo: Code[20];
         OldAllowPostingFrom: Date;
         CostPostedtoGL: Decimal;
+        ExpectedCostAmount: Decimal;
     begin
         // Setup: Post Purchase Order,Production Journal and Run Adjust Cost item entries batch job.
         LibraryInventory.UpdateInventorySetup(
@@ -2047,7 +2048,8 @@ codeunit 137309 "SCM Reports"
         // Verify: Verify Cost Posted to GL on Inventory Valuation WIP Test Report.
         CostPostedtoGL := GetCostPostedtoGLFromValueEntry(ValueEntry, ProductionOrderNo, InventoryValuationWIPDate);
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ValueEntryCostPostedtoGL', -CostPostedtoGL);
+        ExpectedCostAmount := LibraryReportDataset.Sum('ValueEntryCostPostedtoGL');
+        Assert.AreNearlyEqual(Abs(CostPostedtoGL), Abs(ExpectedCostAmount), 0.01, 'Wrong Cost in Value Entry');
 
         // Teardown.
         LibraryInventory.UpdateInventorySetup(

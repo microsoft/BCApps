@@ -6,6 +6,9 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Provides editing capabilities for specific fields on posted sales return receipts that can be modified after posting.
+/// </summary>
 page 1353 "Posted Return Receipt - Update"
 {
     Caption = 'Posted Return Receipt - Update';
@@ -127,6 +130,10 @@ page 1353 "Posted Return Receipt - Update"
         IsBillToCountyVisible := FormatAddress.UseCounty(Rec."Bill-to Country/Region Code");
     end;
 
+    /// <summary>
+    /// Sets the record for this page to edit.
+    /// </summary>
+    /// <param name="ReturnReceiptHeader">The return receipt header to edit.</param>
     procedure SetRec(ReturnReceiptHeader: Record "Return Receipt Header")
     begin
         Rec := ReturnReceiptHeader;

@@ -82,6 +82,7 @@ table 12175 "Customer Bill Line"
         field(28; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(30; "Due Date"; Date)

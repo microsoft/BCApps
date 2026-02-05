@@ -13,6 +13,7 @@ permissionset 8352 "MCP - Admin"
 
     IncludedPermissionSets = "MCP - Read";
 
-    Permissions = tabledata "MCP Configuration" = IMD,
+    Permissions = tabledata "MCP Entra Application" = IMD,
+                  tabledata "MCP Configuration" = IMD,
                   tabledata "MCP Configuration Tool" = IMD;
 }

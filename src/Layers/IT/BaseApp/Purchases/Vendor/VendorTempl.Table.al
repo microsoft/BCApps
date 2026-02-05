@@ -317,6 +317,7 @@ table 1383 "Vendor Templ."
         }
         field(124; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -436,6 +437,7 @@ table 1383 "Vendor Templ."
         field(12105; "Soc. Sec. 3 Parties Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Soc. Sec. 3 Parties Base';
         }
         field(12106; Resident; Option)
@@ -510,6 +512,7 @@ table 1383 "Vendor Templ."
         field(12119; "Tax Exempt Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Exempt Amount (LCY)';
         }
         field(12120; "INAIL Code"; Code[20])
@@ -519,6 +522,7 @@ table 1383 "Vendor Templ."
         field(12122; "INAIL 3 Parties Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'INAIL 3 Parties Base';
         }
         field(12126; "Tax Representative Type"; Option)

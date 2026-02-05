@@ -31,6 +31,7 @@ table 99000849 "Action Message Entry"
         }
         field(4; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

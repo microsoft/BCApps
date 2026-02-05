@@ -7,6 +7,9 @@ namespace Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Reports;
 
+/// <summary>
+/// Displays a list of unissued finance charge memos with creation, issuing, and batch processing capabilities.
+/// </summary>
 page 448 "Finance Charge Memo List"
 {
     ApplicationArea = Suite;

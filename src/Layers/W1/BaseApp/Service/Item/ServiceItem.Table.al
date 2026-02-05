@@ -510,6 +510,7 @@ table 5940 "Service Item"
         }
         field(19; "Warranty % (Parts)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Warranty % (Parts)';
             DecimalPlaces = 0 : 5;
@@ -524,6 +525,7 @@ table 5940 "Service Item"
         }
         field(20; "Warranty % (Labor)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Warranty % (Labor)';
             DecimalPlaces = 0 : 5;
@@ -569,6 +571,7 @@ table 5940 "Service Item"
         field(25; "Default Contract Value"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Default Contract Value';
         }
@@ -734,6 +737,7 @@ table 5940 "Service Item"
         field(63; "Usage (Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Service Ledger Entry"."Cost Amount" where("Entry Type" = const(Usage),
                                                                           "Service Item No. (Serviced)" = field("No."),
                                                                           "Service Contract No." = field("Contract Filter"),
@@ -747,6 +751,7 @@ table 5940 "Service Item"
         field(64; "Usage (Amount)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Service Ledger Entry"."Amount (LCY)" where("Entry Type" = const(Usage),
                                                                            "Service Item No. (Serviced)" = field("No."),
                                                                            "Service Contract No." = field("Contract Filter"),
@@ -760,6 +765,7 @@ table 5940 "Service Item"
         field(65; "Invoiced Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Service Ledger Entry"."Amount (LCY)" where("Entry Type" = const(Sale),
                                                                             "Moved from Prepaid Acc." = const(true),
                                                                             "Service Item No. (Serviced)" = field("No."),
@@ -803,6 +809,7 @@ table 5940 "Service Item"
         field(68; "Resources Used"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Service Ledger Entry"."Cost Amount" where("Service Item No. (Serviced)" = field("No."),
                                                                            "Entry Type" = const(Sale),
                                                                            Type = const(Resource),
@@ -814,6 +821,7 @@ table 5940 "Service Item"
         field(69; "Parts Used"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Service Ledger Entry"."Cost Amount" where("Service Item No. (Serviced)" = field("No."),
                                                                            "Entry Type" = const(Sale),
                                                                            Type = const(Item),
@@ -825,6 +833,7 @@ table 5940 "Service Item"
         field(70; "Cost Used"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Service Ledger Entry"."Cost Amount" where("Service Item No. (Serviced)" = field("No."),
                                                                            "Entry Type" = const(Sale),
                                                                            Type = const("Service Cost"),
@@ -974,6 +983,7 @@ table 5940 "Service Item"
         field(87; "Prepaid Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Service Ledger Entry"."Amount (LCY)" where("Entry Type" = const(Sale),
                                                                             "Moved from Prepaid Acc." = const(false),
                                                                             "Service Item No. (Serviced)" = field("No."),

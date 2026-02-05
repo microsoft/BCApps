@@ -240,6 +240,7 @@ table 5989 "Service Shipment Item Line"
         }
         field(42; "Actual Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }
@@ -258,6 +259,7 @@ table 5989 "Service Shipment Item Line"
         }
         field(46; "Base Amount to Adjust"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Base Amount to Adjust';
             Editable = false;
         }

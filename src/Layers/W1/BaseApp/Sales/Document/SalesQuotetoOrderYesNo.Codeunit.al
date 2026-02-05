@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.CRM.Outlook;
 
+/// <summary>
+/// Prompts for confirmation before converting a sales quote to a sales order.
+/// </summary>
 codeunit 83 "Sales-Quote to Order (Yes/No)"
 {
     TableNo = "Sales Header";

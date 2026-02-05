@@ -1155,7 +1155,7 @@ codeunit 137004 "SCM WIP Costing Production-II"
         ProdOrderRoutingLine.Validate(Type, CapacityType);
         ProdOrderRoutingLine.Validate("No.", MachineCenterNo);
         ProdOrderRoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
-        ProdOrderRoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
+        ProdOrderRoutingLine.Validate("Run Time", LibraryRandom.RandInt(2));
         ProdOrderRoutingLine.Modify(true);
     end;
 

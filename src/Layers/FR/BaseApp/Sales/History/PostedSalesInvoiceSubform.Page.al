@@ -12,6 +12,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Displays the line items of a posted sales invoice as a subform on the document page.
+/// </summary>
 page 133 "Posted Sales Invoice Subform"
 {
     AutoSplitKey = true;
@@ -535,6 +538,9 @@ page 133 "Posted Sales Invoice Subform"
         DimVisible8: Boolean;
         VATAmount: Decimal;
 
+    /// <summary>
+    /// Opens the document line tracking page for this invoice line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

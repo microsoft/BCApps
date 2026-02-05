@@ -47,6 +47,7 @@ using System.Globalization;
 using System.Integration;
 using System.Integration.Excel;
 using System.IO;
+using System.MCP;
 using System.Privacy;
 using System.Security.AccessControl;
 using System.Security.Encryption;
@@ -1077,6 +1078,12 @@ page 8900 "Administrator Main Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Copilot & agent capabilities';
                     RunObject = page "Copilot AI Capabilities";
+                }
+                action("MCPConfigList")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Model Context Protocol (MCP) Server Configurations';
+                    RunObject = page "MCP Config List";
                 }
             }
             group("Group28")

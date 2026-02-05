@@ -5,9 +5,14 @@
 namespace Microsoft.Sales.Document;
 
 using Microsoft.EServices.EDocument;
+#if not CLEAN28
 using Microsoft.Sales.Reports;
+#endif
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays a lookup list of sales documents filtered by document type.
+/// </summary>
 page 45 "Sales List"
 {
     Caption = 'Sales List';
@@ -221,6 +226,7 @@ page 45 "Sales List"
         }
         area(reporting)
         {
+#if not CLEAN28
             action("Sales Reservation Avail.")
             {
                 ApplicationArea = Reservation;
@@ -230,7 +236,11 @@ page 45 "Sales List"
                 //PromotedCategory = "Report";
                 RunObject = Report "Sales Reservation Avail.";
                 ToolTip = 'View, print, or save an overview of availability of items for shipment on sales documents, filtered on shipment status.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                ObsoleteTag = '28.0';
             }
+#endif
         }
         area(Promoted)
         {

@@ -63,6 +63,7 @@ page 9125 "Item Application FactBox"
             field(Available; Available)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Available';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number available for the relevant entry.';
@@ -70,6 +71,7 @@ page 9125 "Item Application FactBox"
             field(Applied; Applied)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Applied';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number applied to the relevant entry.';

@@ -42,6 +42,7 @@ table 99000799 "Order Tracking Entry"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

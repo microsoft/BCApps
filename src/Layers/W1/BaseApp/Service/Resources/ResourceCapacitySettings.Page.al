@@ -148,6 +148,7 @@ page 6013 "Resource Capacity Settings"
                 field(WeekTotal; WeekTotal)
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = 'Week Total';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

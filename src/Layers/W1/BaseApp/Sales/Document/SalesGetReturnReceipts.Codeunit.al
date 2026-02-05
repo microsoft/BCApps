@@ -8,6 +8,9 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Retrieves return receipt lines to create credit memo lines for invoicing returned goods.
+/// </summary>
 codeunit 6638 "Sales-Get Return Receipts"
 {
     TableNo = "Sales Line";
@@ -49,6 +52,10 @@ codeunit 6638 "Sales-Get Return Receipts"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Creates credit memo lines from return receipt lines.
+    /// </summary>
+    /// <param name="ReturnRcptLine2">The return receipt lines to create credit memo lines from.</param>
     procedure CreateInvLines(var ReturnRcptLine2: Record "Return Receipt Line")
     var
         DifferentCurrencies: Boolean;
@@ -117,6 +124,10 @@ codeunit 6638 "Sales-Get Return Receipts"
         ReturnReceiptLine.TestField("VAT Bus. Posting Group", SalesHeader."VAT Bus. Posting Group");
     end;
 
+    /// <summary>
+    /// Sets the sales header for which to get return receipts.
+    /// </summary>
+    /// <param name="SalesHeader2">The sales credit memo header.</param>
     procedure SetSalesHeader(var SalesHeader2: Record "Sales Header")
     var
         IsHandled: Boolean;
@@ -155,6 +166,11 @@ codeunit 6638 "Sales-Get Return Receipts"
         ReturnReceiptHeader.TestField("Bill-to Customer No.", ReturnReceiptLine."Bill-to Customer No.");
     end;
 
+    /// <summary>
+    /// Gets item charge assignments from the return receipt line.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line with item charges.</param>
+    /// <param name="QtyToInv">The quantity to invoice.</param>
     procedure GetItemChargeAssgnt(var ReturnRcptLine: Record "Return Receipt Line"; QtyToInv: Decimal)
     var
         SalesOrderLine: Record "Sales Line";
@@ -245,6 +261,11 @@ codeunit 6638 "Sales-Get Return Receipts"
             until ItemChargeAssgntSales.Next() = 0;
     end;
 
+    /// <summary>
+    /// Gets posted sales credit memos related to a return order.
+    /// </summary>
+    /// <param name="TempSalesCrMemoHeader">Returns the temporary table with related credit memo headers.</param>
+    /// <param name="ReturnOrderNo">The return order number to find credit memos for.</param>
     procedure GetSalesRetOrderCrMemos(var TempSalesCrMemoHeader: Record "Sales Cr.Memo Header" temporary; ReturnOrderNo: Code[20])
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";

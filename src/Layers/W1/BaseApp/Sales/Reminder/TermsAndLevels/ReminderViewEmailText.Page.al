@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a read-only view of email text configurations as a subpage part.
+/// </summary>
 page 843 "Reminder View Email Text"
 {
     PageType = ListPart;

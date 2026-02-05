@@ -31,10 +31,12 @@ table 10533 "MTD-Liability"
         }
         field(4; "Original Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Amount';
         }
         field(5; "Outstanding Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Amount';
         }
         field(6; "Due Date"; Date)
@@ -56,5 +58,5 @@ table 10533 "MTD-Liability"
     }
 }
 
- 
+
 #endif

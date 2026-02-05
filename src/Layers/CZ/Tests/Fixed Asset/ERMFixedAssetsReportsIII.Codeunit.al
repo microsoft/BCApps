@@ -140,6 +140,7 @@ codeunit 134990 "ERM Fixed Assets Reports - III"
 
         // 3. Verify: Verify Custom 1 and Custom 2 values on Fixed Asset Book Value 02 Report.
         LibraryReportDataset.LoadDataSetFile();
+
         LibraryReportDataset.AssertElementWithValueExists('NetChangeAmt5', 0); // NAVCZ
         LibraryReportDataset.AssertElementWithValueExists('NetChangeAmt6', 0); // NAVCZ
         LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879

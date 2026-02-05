@@ -17,6 +17,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
@@ -846,7 +847,7 @@ report 402 "Purchase Document - Test"
                                     AddError(StrSubstNo(Text040, "Purchase Line".FieldCaption("Qty. to Receive")));
                             end else begin
                                 if "Purchase Line"."Document Type" = "Purchase Line"."Document Type"::Invoice then begin
-                                    if ("Purchase Line"."Qty. to Receive" <> "Purchase Line".Quantity) and ("Purchase Line"."Receipt No." = '') then
+                                    if ("Purchase Line"."Qty. to Receive" <> "Purchase Line".Quantity) and not "Purchase Line".IsMatchedToReceiptOrOrder() then
                                         AddError(StrSubstNo(Text019, "Purchase Line".FieldCaption("Qty. to Receive"), "Purchase Line".Quantity));
                                     if "Purchase Line"."Qty. to Invoice" <> "Purchase Line".Quantity then
                                         AddError(StrSubstNo(Text019, "Purchase Line".FieldCaption("Qty. to Invoice"), "Purchase Line".Quantity));
@@ -860,7 +861,7 @@ report 402 "Purchase Document - Test"
                             if not "Purchase Header".Ship then
                                 "Purchase Line"."Return Qty. to Ship" := 0;
 
-                            if ("Purchase Line"."Document Type" = "Purchase Line"."Document Type"::Invoice) and ("Purchase Line"."Receipt No." <> '') then begin
+                            if ("Purchase Line"."Document Type" = "Purchase Line"."Document Type"::Invoice) and "Purchase Line".IsMatchedToReceiptOrOrder() then begin
                                 "Purchase Line"."Quantity Received" := "Purchase Line".Quantity;
                                 "Purchase Line"."Qty. to Receive" := 0;
                             end;
@@ -1478,6 +1479,7 @@ report 402 "Purchase Document - Test"
                     if "Document Type" = "Document Type"::Order then
                         PurchLine.SetFilter("Qty. to Receive", '<>0');
                     PurchLine.SetRange("Receipt No.", '');
+                    PurchLine.SetRange("Matched Order Lines", 0);
                     Receive := PurchLine.Find('-');
                 end;
                 if Ship then begin
@@ -2027,6 +2029,7 @@ report 402 "Purchase Document - Test"
     local procedure CheckRcptLines(PurchLine2: Record "Purchase Line")
     var
         TempPostedDimSetEntry: Record "Dimension Set Entry" temporary;
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
     begin
         if Abs(RemQtyToBeInvoiced) > Abs(PurchLine2."Qty. to Receive") then begin
             PurchRcptLine.Reset();
@@ -2038,7 +2041,9 @@ report 402 "Purchase Document - Test"
                         PurchRcptLine.SetRange("Order Line No.", PurchLine2."Line No.");
                     end;
                 PurchLine2."Document Type"::Invoice:
-                    begin
+                    if MatchedOrderLineMgmt.IsLineMatchedToReceiptShipment(PurchLine) then
+                        MatchedOrderLineMgmt.SetMatchedReceiptLinesFilter(PurchRcptLine, PurchLine)
+                    else begin
                         PurchRcptLine.SetRange("Document No.", PurchLine2."Receipt No.");
                         PurchRcptLine.SetRange("Line No.", PurchLine2."Receipt Line No.");
                     end;

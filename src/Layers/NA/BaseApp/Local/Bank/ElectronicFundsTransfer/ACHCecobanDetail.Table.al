@@ -36,6 +36,7 @@ table 10307 "ACH Cecoban Detail"
         }
         field(6; "Payment Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Amount';
         }
         field(7; "Customer/Vendor Number"; Text[30])
@@ -64,6 +65,7 @@ table 10307 "ACH Cecoban Detail"
         }
         field(14; "Operation Fee"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Operation Fee';
         }
         field(15; "Future Use"; Text[30])

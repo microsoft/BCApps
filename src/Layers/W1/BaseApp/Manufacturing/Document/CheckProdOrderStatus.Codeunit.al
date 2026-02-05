@@ -38,7 +38,7 @@ codeunit 99000777 "Check Prod. Order Status"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnCheckReceiptOrderStatus', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnCheckReceiptOrderStatus', '', true, false)]
     local procedure OnCheckReceiptOrderStatus(var SalesLine: Record "Sales Line")
     begin
         CheckReceiptOrderStatus(SalesLine);

@@ -82,6 +82,7 @@ table 11307 "G/L Entry Application Buffer"
         field(17; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
@@ -137,6 +138,7 @@ table 11307 "G/L Entry Application Buffer"
         }
         field(42; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -144,6 +146,7 @@ table 11307 "G/L Entry Application Buffer"
         field(43; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount';
             DataClassification = SystemMetadata;
         }
@@ -196,6 +199,7 @@ table 11307 "G/L Entry Application Buffer"
         field(53; "Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Debit Amount';
             DataClassification = SystemMetadata;
@@ -203,6 +207,7 @@ table 11307 "G/L Entry Application Buffer"
         field(54; "Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Credit Amount';
             DataClassification = SystemMetadata;
@@ -339,6 +344,7 @@ table 11307 "G/L Entry Application Buffer"
         field(11302; "Remaining Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Amount';
             DataClassification = SystemMetadata;
         }
@@ -355,6 +361,7 @@ table 11307 "G/L Entry Application Buffer"
         field(11305; "Closed by Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Closed by Amount';
             DataClassification = SystemMetadata;
         }

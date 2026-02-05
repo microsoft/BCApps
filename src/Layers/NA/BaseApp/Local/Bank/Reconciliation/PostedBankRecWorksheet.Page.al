@@ -58,6 +58,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("""Positive Adjustments"" - ""Negative Bal. Adjustments"""; Rec."Positive Adjustments" - Rec."Negative Bal. Adjustments")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = '+ Positive Adjustments';
                     Editable = false;
                     ToolTip = 'Specifies the total amount of positive adjustments for the bank statement.';
@@ -65,6 +67,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("""G/L Balance"" + (""Positive Adjustments"" - ""Negative Bal. Adjustments"")"; Rec."G/L Balance" + (Rec."Positive Adjustments" - Rec."Negative Bal. Adjustments"))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Subtotal';
                     Editable = false;
                     ToolTip = 'Specifies a subtotal amount for the posted worksheet. The subtotal is calculated by using the general ledger balance and any positive or negative adjustments.';
@@ -72,6 +76,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("""Negative Adjustments"" - ""Positive Bal. Adjustments"""; Rec."Negative Adjustments" - Rec."Positive Bal. Adjustments")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = '- Negative Adjustments';
                     Editable = false;
                     ToolTip = 'Specifies the total of the negative adjustment lines for the bank statement.';
@@ -79,6 +85,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("Ending G/L Balance"; Rec."G/L Balance" + (Rec."Positive Adjustments" - Rec."Negative Bal. Adjustments") + (Rec."Negative Adjustments" - Rec."Positive Bal. Adjustments"))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Ending G/L Balance';
                     Editable = false;
                     ToolTip = 'Specifies the sum of values in the G/L Balance field, plus the Positive Adjustments field, minus the Negative Adjustments field. This is what the G/L balance will be after the bank reconciliation worksheet is posted and the adjustments are posted to the general ledger.';
@@ -86,6 +94,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field(Difference; (Rec."G/L Balance" + (Rec."Positive Adjustments" - Rec."Negative Bal. Adjustments") + (Rec."Negative Adjustments" - Rec."Positive Bal. Adjustments")) - ((Rec."Statement Balance" + Rec."Outstanding Deposits") - Rec."Outstanding Checks"))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Difference';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the Amount field and the Cleared Amount field.';
@@ -119,6 +129,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("""Statement Balance"" + ""Outstanding Deposits"""; Rec."Statement Balance" + Rec."Outstanding Deposits")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Subtotal';
                     Editable = false;
                     ToolTip = 'Specifies a subtotal amount for the posted worksheet. The subtotal is calculated by using the general ledger balance and any positive or negative adjustments.';
@@ -133,6 +145,8 @@ page 10125 "Posted Bank Rec. Worksheet"
                 field("(""Statement Balance"" + ""Outstanding Deposits"") - ""Outstanding Checks"""; (Rec."Statement Balance" + Rec."Outstanding Deposits") - Rec."Outstanding Checks")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Ending Balance';
                     Editable = false;
                     ToolTip = 'Specifies the sum of values in the Balance on Statement field, plus the Outstanding Deposits field, minus the Outstanding Checks field.';

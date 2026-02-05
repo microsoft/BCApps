@@ -17,6 +17,7 @@ pageextension 99000774 "Mfg. Item Avail. by UOM Lines" extends "Item Avail. by U
 #pragma warning restore AA0100
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Scheduled Receipt (Qty.)';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -35,6 +36,7 @@ pageextension 99000774 "Mfg. Item Avail. by UOM Lines" extends "Item Avail. by U
 #pragma warning restore AA0100
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Qty. on Component Lines';
                 DecimalPlaces = 0 : 5;
                 Editable = false;

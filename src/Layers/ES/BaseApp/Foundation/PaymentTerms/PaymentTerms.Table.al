@@ -32,6 +32,7 @@ table 3 "Payment Terms"
         }
         field(4; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

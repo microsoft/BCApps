@@ -29,6 +29,9 @@ using System.IO;
 using System.Security.AccessControl;
 using System.Utilities;
 
+/// <summary>
+/// Stores customer ledger entries representing all financial transactions posted to customer accounts, including invoices, payments, credit memos, and finance charges.
+/// </summary>
 table 21 "Cust. Ledger Entry"
 {
     Caption = 'Cust. Ledger Entry';
@@ -39,27 +42,42 @@ table 21 "Cust. Ledger Entry"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique sequential number assigned to this customer ledger entry.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
+        /// <summary>
+        /// Specifies the customer account number associated with this ledger entry.
+        /// </summary>
         field(3; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
             TableRelation = Customer;
             ToolTip = 'Specifies the customer account number that the entry is linked to.';
         }
+        /// <summary>
+        /// Specifies the date when the transaction was posted to the general ledger.
+        /// </summary>
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             ToolTip = 'Specifies the customer entry''s posting date.';
         }
+        /// <summary>
+        /// Specifies the type of document that created this entry, such as Invoice, Credit Memo, Payment, or Reminder.
+        /// </summary>
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
             ToolTip = 'Specifies the document type that the customer entry belongs to.';
         }
+        /// <summary>
+        /// Specifies the document number of the source document that generated this entry.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
@@ -72,28 +90,43 @@ table 21 "Cust. Ledger Entry"
                 IncomingDocument.HyperlinkToDocument("Document No.", "Posting Date");
             end;
         }
+        /// <summary>
+        /// Specifies a text description of the transaction represented by this entry.
+        /// </summary>
         field(7; Description; Text[100])
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the customer entry.';
         }
+        /// <summary>
+        /// Specifies the name of the customer associated with this ledger entry.
+        /// </summary>
         field(8; "Customer Name"; Text[100])
         {
             Caption = 'Customer Name';
             ToolTip = 'Specifies the customer name that the entry is linked to.';
         }
+        /// <summary>
+        /// Specifies the customer's own reference number for the transaction.
+        /// </summary>
         field(10; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the customer''s reference.';
         }
+        /// <summary>
+        /// Specifies the currency in which the transaction amount is expressed.
+        /// </summary>
         field(11; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
             ToolTip = 'Specifies the currency code for the amount on the line.';
         }
+        /// <summary>
+        /// Contains the total transaction amount in the original currency, calculated from detailed ledger entries.
+        /// </summary>
         field(13; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -106,6 +139,9 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount of the entry.';
         }
+        /// <summary>
+        /// Contains the outstanding balance that has not yet been applied or paid, in the original currency.
+        /// </summary>
         field(14; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -117,9 +153,13 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount that remains to be applied to before the entry has been completely applied.';
         }
+        /// <summary>
+        /// Contains the original transaction amount in local currency when the entry was first created.
+        /// </summary>
         field(15; "Original Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
                                                                                  "Entry Type" = filter("Initial Entry"),
                                                                                  "Posting Date" = field("Date Filter")));
@@ -128,9 +168,13 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount that the entry originally consisted of, in LCY.';
         }
+        /// <summary>
+        /// Contains the outstanding balance that has not yet been applied or paid, expressed in local currency.
+        /// </summary>
         field(16; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
                                                                                  "Posting Date" = field("Date Filter")));
             Caption = 'Remaining Amt. (LCY)';
@@ -138,9 +182,13 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
         }
+        /// <summary>
+        /// Contains the total transaction amount expressed in local currency, calculated from detailed ledger entries.
+        /// </summary>
         field(17; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                  "Cust. Ledger Entry No." = field("Entry No."),
                                                                                  "Posting Date" = field("Date Filter")));
@@ -149,33 +197,54 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount of the entry in LCY.';
         }
+        /// <summary>
+        /// Stores the total sales amount excluding VAT in local currency for statistical purposes.
+        /// </summary>
         field(18; "Sales (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales (LCY)';
             ToolTip = 'Specifies the total sales amount excl. VAT to the customer in LCY.';
         }
+        /// <summary>
+        /// Stores the profit amount from the sales transaction in local currency.
+        /// </summary>
         field(19; "Profit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Profit (LCY)';
         }
+        /// <summary>
+        /// Stores the invoice discount amount granted to the customer in local currency.
+        /// </summary>
         field(20; "Inv. Discount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Discount (LCY)';
         }
+        /// <summary>
+        /// Specifies the customer who purchased the goods or services, which may differ from the bill-to customer.
+        /// </summary>
         field(21; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
             TableRelation = Customer;
         }
+        /// <summary>
+        /// Specifies the posting group that determines the general ledger accounts used for posting customer transactions.
+        /// </summary>
         field(22; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
             TableRelation = "Customer Posting Group";
             ToolTip = 'Specifies the customer''s market type to link business transactions to.';
         }
+        /// <summary>
+        /// Specifies the first global dimension value used for analysis and reporting of this entry.
+        /// </summary>
         field(23; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -183,6 +252,9 @@ table 21 "Cust. Ledger Entry"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
             ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
         }
+        /// <summary>
+        /// Specifies the second global dimension value used for analysis and reporting of this entry.
+        /// </summary>
         field(24; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -190,12 +262,18 @@ table 21 "Cust. Ledger Entry"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
             ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
         }
+        /// <summary>
+        /// Specifies the salesperson responsible for the customer or the transaction.
+        /// </summary>
         field(25; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
             TableRelation = "Salesperson/Purchaser";
             ToolTip = 'Specifies the code for the salesperson whom the entry is linked to.';
         }
+        /// <summary>
+        /// Specifies the user who posted this ledger entry for audit trail purposes.
+        /// </summary>
         field(27; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -204,12 +282,18 @@ table 21 "Cust. Ledger Entry"
             ValidateTableRelation = false;
             ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
         }
+        /// <summary>
+        /// Specifies the source code identifying the origin of the transaction, such as Sales Journal or Cash Receipt.
+        /// </summary>
         field(28; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             TableRelation = "Source Code";
             ToolTip = 'Specifies the source code that specifies where the entry was created.';
         }
+        /// <summary>
+        /// Indicates that this entry is excluded from payment suggestions, reminders, or finance charge calculations.
+        /// </summary>
         field(33; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
@@ -237,19 +321,31 @@ table 21 "Cust. Ledger Entry"
                         Error('');
             end;
         }
+        /// <summary>
+        /// Specifies the document type of the entry to which this entry is applied.
+        /// </summary>
         field(34; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Specifies the document number of the entry to which this entry is applied.
+        /// </summary>
         field(35; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
         }
+        /// <summary>
+        /// Indicates whether this entry has an outstanding balance that has not been fully applied or paid.
+        /// </summary>
         field(36; Open; Boolean)
         {
             Caption = 'Open';
             ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
         }
+        /// <summary>
+        /// Specifies the date by which payment is expected from the customer.
+        /// </summary>
         field(37; "Due Date"; Date)
         {
             Caption = 'Due Date';
@@ -271,6 +367,9 @@ table 21 "Cust. Ledger Entry"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the last date on which the customer can pay to receive a payment discount.
+        /// </summary>
         field(38; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
@@ -281,6 +380,9 @@ table 21 "Cust. Ledger Entry"
                 TestField(Open, true);
             end;
         }
+        /// <summary>
+        /// Stores the original payment discount amount that could be granted if paid before the discount date.
+        /// </summary>
         field(39; "Original Pmt. Disc. Possible"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -289,32 +391,52 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the discount that the customer can obtain if the entry is applied to before the payment discount date.';
         }
+        /// <summary>
+        /// Stores the payment discount amount that was actually granted to the customer in local currency.
+        /// </summary>
         field(40; "Pmt. Disc. Given (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Disc. Given (LCY)';
         }
+        /// <summary>
+        /// Stores the original payment discount amount in local currency that could be granted if paid before the discount date.
+        /// </summary>
         field(42; "Orig. Pmt. Disc. Possible(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Orig. Pmt. Disc. Possible (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether this entry represents a debit (positive) or credit (negative) amount.
+        /// </summary>
         field(43; Positive; Boolean)
         {
             Caption = 'Positive';
             ToolTip = 'Specifies if the entry to be applied is positive.';
         }
+        /// <summary>
+        /// Specifies the entry number of the customer ledger entry that closed this entry through application.
+        /// </summary>
         field(44; "Closed by Entry No."; Integer)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Cust. Ledger Entry";
         }
+        /// <summary>
+        /// Specifies the date when this entry was closed through application of payments or credit memos.
+        /// </summary>
         field(45; "Closed at Date"; Date)
         {
             Caption = 'Closed at Date';
             ToolTip = 'Specifies when the entry was closed.';
         }
+        /// <summary>
+        /// Stores the amount in the original currency that was applied to close this entry.
+        /// </summary>
         field(46; "Closed by Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -322,6 +444,9 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Closed by Amount';
             ToolTip = 'Specifies the amount that the entry was finally applied to (closed) with.';
         }
+        /// <summary>
+        /// Specifies an identifier used to group entries that will be applied together in a single application operation.
+        /// </summary>
         field(47; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
@@ -332,25 +457,40 @@ table 21 "Cust. Ledger Entry"
                 TestField(Open, true);
             end;
         }
+        /// <summary>
+        /// Specifies the journal template from which this entry was posted.
+        /// </summary>
         field(48; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
         }
+        /// <summary>
+        /// Specifies the journal batch from which this entry was posted.
+        /// </summary>
         field(49; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
         }
+        /// <summary>
+        /// Specifies a supplementary code that provides additional context about the purpose of this transaction.
+        /// </summary>
         field(50; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
             ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
         }
+        /// <summary>
+        /// Specifies the type of balancing account used in the original transaction, such as G/L Account, Bank Account, or Vendor.
+        /// </summary>
         field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
             ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
         }
+        /// <summary>
+        /// Specifies the account number of the balancing account used in the original transaction.
+        /// </summary>
         field(52; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -365,15 +505,25 @@ table 21 "Cust. Ledger Entry"
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
         }
+        /// <summary>
+        /// Specifies the transaction number that links all entries posted in the same posting operation.
+        /// </summary>
         field(53; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
         }
+        /// <summary>
+        /// Stores the amount in local currency that was applied to close this entry.
+        /// </summary>
         field(54; "Closed by Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Closed by Amount (LCY)';
         }
+        /// <summary>
+        /// Contains the total debit amount in the original currency, calculated from detailed ledger entries.
+        /// </summary>
         field(58; "Debit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -387,6 +537,9 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
+        /// <summary>
+        /// Contains the total credit amount in the original currency, calculated from detailed ledger entries.
+        /// </summary>
         field(59; "Credit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -400,9 +553,13 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
+        /// <summary>
+        /// Contains the total debit amount in local currency, calculated from detailed ledger entries.
+        /// </summary>
         field(60; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Debit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                        "Cust. Ledger Entry No." = field("Entry No."),
@@ -412,9 +569,13 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total of the ledger entries that represent debits, expressed in LCY.';
         }
+        /// <summary>
+        /// Contains the total credit amount in local currency, calculated from detailed ledger entries.
+        /// </summary>
         field(61; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Credit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                         "Cust. Ledger Entry No." = field("Entry No."),
@@ -424,35 +585,56 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total of the ledger entries that represent credits, expressed in LCY.';
         }
+        /// <summary>
+        /// Specifies the date on the original source document, which may differ from the posting date.
+        /// </summary>
         field(62; "Document Date"; Date)
         {
             Caption = 'Document Date';
             ToolTip = 'Specifies the customer entry''s document date.';
         }
+        /// <summary>
+        /// Specifies an external document number from the customer's or trading partner's system.
+        /// </summary>
         field(63; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
             ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
+        /// <summary>
+        /// Indicates whether finance charges should be calculated for this entry on overdue amounts.
+        /// </summary>
         field(64; "Calculate Interest"; Boolean)
         {
             Caption = 'Calculate Interest';
         }
+        /// <summary>
+        /// Indicates whether closing interest has already been calculated when the entry was closed.
+        /// </summary>
         field(65; "Closing Interest Calculated"; Boolean)
         {
             Caption = 'Closing Interest Calculated';
         }
+        /// <summary>
+        /// Specifies the number series used to generate the document number for this entry.
+        /// </summary>
         field(66; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Specifies the currency code of the entry that was applied to close this customer ledger entry.
+        /// </summary>
         field(67; "Closed by Currency Code"; Code[10])
         {
             Caption = 'Closed by Currency Code';
             TableRelation = Currency;
             ToolTip = 'Specifies the code of the currency of the entry that was applied to (and closed) this customer ledger entry.';
         }
+        /// <summary>
+        /// Stores the amount in the closing entry's currency that was applied to close this entry.
+        /// </summary>
         field(68; "Closed by Currency Amount"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -461,16 +643,27 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Closed by Currency Amount';
             ToolTip = 'Specifies the amount that was finally applied to (and closed) this customer ledger entry.';
         }
+        /// <summary>
+        /// Stores the currency exchange rate after exchange rate adjustments have been applied.
+        /// </summary>
         field(73; "Adjusted Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Adjusted Currency Factor';
             DecimalPlaces = 0 : 15;
         }
+        /// <summary>
+        /// Stores the original currency exchange rate used when the entry was created.
+        /// </summary>
         field(74; "Original Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Currency Factor';
             DecimalPlaces = 0 : 15;
         }
+        /// <summary>
+        /// Contains the original transaction amount in the original currency when the entry was first created.
+        /// </summary>
         field(75; "Original Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -483,11 +676,17 @@ table 21 "Cust. Ledger Entry"
             FieldClass = FlowField;
             ToolTip = 'Specifies the amount of the original entry.';
         }
+        /// <summary>
+        /// Specifies a date filter used to calculate flow fields for specific date ranges.
+        /// </summary>
         field(76; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Stores the remaining payment discount amount that can still be granted if the customer pays early.
+        /// </summary>
         field(77; "Remaining Pmt. Disc. Possible"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -507,6 +706,9 @@ table 21 "Cust. Ledger Entry"
                     FieldError("Remaining Pmt. Disc. Possible", StrSubstNo(Text001, FieldCaption("Original Amount")));
             end;
         }
+        /// <summary>
+        /// Specifies the final date on which the customer can pay and still receive the payment discount tolerance.
+        /// </summary>
         field(78; "Pmt. Disc. Tolerance Date"; Date)
         {
             Caption = 'Pmt. Disc. Tolerance Date';
@@ -517,6 +719,9 @@ table 21 "Cust. Ledger Entry"
                 TestField(Open, true);
             end;
         }
+        /// <summary>
+        /// Specifies the maximum amount difference allowed when applying payments that is accepted as a tolerance.
+        /// </summary>
         field(79; "Max. Payment Tolerance"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -537,25 +742,41 @@ table 21 "Cust. Ledger Entry"
                     FieldError("Max. Payment Tolerance", StrSubstNo(Text001, FieldCaption("Remaining Amount")));
             end;
         }
+        /// <summary>
+        /// Stores the highest reminder level that has been issued to the customer for this entry.
+        /// </summary>
         field(80; "Last Issued Reminder Level"; Integer)
         {
             Caption = 'Last Issued Reminder Level';
         }
+        /// <summary>
+        /// Stores the payment tolerance amount that has been accepted when applying this entry.
+        /// </summary>
         field(81; "Accepted Payment Tolerance"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Accepted Payment Tolerance';
         }
+        /// <summary>
+        /// Indicates whether a payment discount tolerance has been accepted when applying this entry.
+        /// </summary>
         field(82; "Accepted Pmt. Disc. Tolerance"; Boolean)
         {
             Caption = 'Accepted Pmt. Disc. Tolerance';
         }
+        /// <summary>
+        /// Stores the payment tolerance amount in local currency that has been applied to this entry.
+        /// </summary>
         field(83; "Pmt. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Tolerance (LCY)';
         }
+        /// <summary>
+        /// Specifies the amount that should be applied when performing entry application.
+        /// </summary>
         field(84; "Amount to Apply"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -576,22 +797,34 @@ table 21 "Cust. Ledger Entry"
                     FieldError("Amount to Apply", StrSubstNo(Text001, FieldCaption("Remaining Amount")));
             end;
         }
+        /// <summary>
+        /// Specifies the intercompany partner involved in this transaction for intercompany trade.
+        /// </summary>
         field(85; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             TableRelation = "IC Partner";
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
         }
+        /// <summary>
+        /// Indicates whether this entry is the applying entry in a payment application operation.
+        /// </summary>
         field(86; "Applying Entry"; Boolean)
         {
             Caption = 'Applying Entry';
         }
+        /// <summary>
+        /// Indicates whether this entry has been reversed through a reversal transaction.
+        /// </summary>
         field(87; Reversed; Boolean)
         {
             BlankZero = true;
             Caption = 'Reversed';
             ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
         }
+        /// <summary>
+        /// Specifies the entry number of the correcting entry that reversed this original entry.
+        /// </summary>
         field(88; "Reversed by Entry No."; Integer)
         {
             BlankZero = true;
@@ -599,6 +832,9 @@ table 21 "Cust. Ledger Entry"
             TableRelation = "Cust. Ledger Entry";
             ToolTip = 'Specifies the number of the correcting entry that replaced the original entry in the reverse transaction.';
         }
+        /// <summary>
+        /// Specifies the entry number of the original entry that was reversed by this correcting entry.
+        /// </summary>
         field(89; "Reversed Entry No."; Integer)
         {
             BlankZero = true;
@@ -606,15 +842,24 @@ table 21 "Cust. Ledger Entry"
             TableRelation = "Cust. Ledger Entry";
             ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
         }
+        /// <summary>
+        /// Indicates whether this entry represents a prepayment received before goods or services are delivered.
+        /// </summary>
         field(90; Prepayment; Boolean)
         {
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
         }
+        /// <summary>
+        /// Specifies the payment reference number used by banks to identify and track the payment.
+        /// </summary>
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
         }
+        /// <summary>
+        /// Specifies the payment method used or expected for this transaction, such as bank transfer, cash, or check.
+        /// </summary>
         field(172; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
@@ -626,16 +871,25 @@ table 21 "Cust. Ledger Entry"
                 TestField(Open, true);
             end;
         }
+        /// <summary>
+        /// Specifies the external document number of the entry to which this entry applies.
+        /// </summary>
         field(173; "Applies-to Ext. Doc. No."; Code[35])
         {
             Caption = 'Applies-to Ext. Doc. No.';
         }
+        /// <summary>
+        /// Specifies the customer's bank account where refund payments should be transferred.
+        /// </summary>
         field(288; "Recipient Bank Account"; Code[20])
         {
             Caption = 'Recipient Bank Account';
             TableRelation = "Customer Bank Account".Code where("Customer No." = field("Customer No."));
             ToolTip = 'Specifies the bank account to transfer the amount to.';
         }
+        /// <summary>
+        /// Specifies the message text that will be sent to the recipient when the payment is exported.
+        /// </summary>
         field(289; "Message to Recipient"; Text[140])
         {
             Caption = 'Message to Recipient';
@@ -653,12 +907,18 @@ table 21 "Cust. Ledger Entry"
                 TestField(Open, true);
             end;
         }
+        /// <summary>
+        /// Indicates whether this entry has been exported to a payment file for electronic processing.
+        /// </summary>
         field(290; "Exported to Payment File"; Boolean)
         {
             Caption = 'Exported to Payment File';
             Editable = false;
             ToolTip = 'Specifies that the entry was created as a result of exporting a payment journal line.';
         }
+        /// <summary>
+        /// Specifies the combination of dimension values applied to this entry for analysis and reporting.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -671,6 +931,9 @@ table 21 "Cust. Ledger Entry"
                 Rec.ShowDimensions();
             end;
         }
+        /// <summary>
+        /// Contains the third shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(481; "Shortcut Dimension 3 Code"; Code[20])
         {
             CaptionClass = '1,2,3';
@@ -681,6 +944,9 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(3)));
             ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Contains the fourth shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(482; "Shortcut Dimension 4 Code"; Code[20])
         {
             CaptionClass = '1,2,4';
@@ -691,6 +957,9 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(4)));
             ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Contains the fifth shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(483; "Shortcut Dimension 5 Code"; Code[20])
         {
             CaptionClass = '1,2,5';
@@ -701,6 +970,9 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(5)));
             ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Contains the sixth shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(484; "Shortcut Dimension 6 Code"; Code[20])
         {
             CaptionClass = '1,2,6';
@@ -711,6 +983,9 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(6)));
             ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Contains the seventh shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(485; "Shortcut Dimension 7 Code"; Code[20])
         {
             CaptionClass = '1,2,7';
@@ -721,6 +996,9 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(7)));
             ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Contains the eighth shortcut dimension value for additional analysis and reporting capabilities.
+        /// </summary>
         field(486; "Shortcut Dimension 8 Code"; Code[20])
         {
             CaptionClass = '1,2,8';
@@ -731,12 +1009,18 @@ table 21 "Cust. Ledger Entry"
                                                                                     "Global Dimension No." = const(8)));
             ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
         }
+        /// <summary>
+        /// Specifies the SEPA direct debit mandate used to collect payments directly from the customer's bank account.
+        /// </summary>
         field(1200; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
             TableRelation = "SEPA Direct Debit Mandate" where("Customer No." = field("Customer No."));
             ToolTip = 'Specifies the direct-debit mandate that the customer has signed to allow direct debit collection of payments.';
         }
+        /// <summary>
+        /// Specifies the dispute status when the customer has raised an issue regarding the invoice.
+        /// </summary>
         field(1340; "Dispute Status"; Code[10])
         {
             Caption = 'Dispute Status';
@@ -756,6 +1040,9 @@ table 21 "Cust. Ledger Entry"
                         "On Hold" := MarkedAsOnHoldLbl;
             end;
         }
+        /// <summary>
+        /// Specifies the date on which the customer has committed to pay the outstanding balance.
+        /// </summary>
         field(1341; "Promised Pay Date"; Date)
         {
             Caption = 'Promised Pay Date';
@@ -980,6 +1267,10 @@ table 21 "Cust. Ledger Entry"
         NoStampErr: Label 'There is no electronic stamp for document no. %1.', Comment = '%1=The document number.';
         NetBalanceOnHoldErr: Label 'General journal line number %3 on template name %1 batch name %2 is applied. Do you want to change On Hold value anyway?', Comment = '%1 - template name, %2 - batch name, %3 - line number';
 
+    /// <summary>
+    /// Gets the entry number of the last customer ledger entry in the table.
+    /// </summary>
+    /// <returns>The entry number of the last customer ledger entry.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Cust. Ledger Entry", 'r')]
     procedure GetLastEntryNo(): Integer;
     var
@@ -988,6 +1279,10 @@ table 21 "Cust. Ledger Entry"
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("Entry No.")))
     end;
 
+    /// <summary>
+    /// Opens the appropriate posted document page based on the document type.
+    /// </summary>
+    /// <returns>True if a document was found and displayed; otherwise, false.</returns>
     procedure ShowDoc(): Boolean
     var
         SalesInvoiceHdr: Record "Sales Invoice Header";
@@ -1029,6 +1324,9 @@ table 21 "Cust. Ledger Entry"
         OnAfterShowDoc(Rec);
     end;
 
+    /// <summary>
+    /// Opens the document attachment details page for the posted document associated with this entry.
+    /// </summary>
     procedure ShowPostedDocAttachment()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1061,6 +1359,10 @@ table 21 "Cust. Ledger Entry"
         DocumentAttachmentDetails.RunModal();
     end;
 
+    /// <summary>
+    /// Checks whether the posted document associated with this entry has any attachments.
+    /// </summary>
+    /// <returns>True if the posted document has attachments; otherwise, false.</returns>
     procedure HasPostedDocAttachment(): Boolean
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -1083,6 +1385,10 @@ table 21 "Cust. Ledger Entry"
         exit(HasPostedDocumentAttachment);
     end;
 
+    /// <summary>
+    /// Opens the Customer Ledger Entries page filtered by the specified detailed customer ledger entry filters.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry with filters to apply.</param>
     procedure DrillDownOnEntries(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -1100,6 +1406,10 @@ table 21 "Cust. Ledger Entry"
         PAGE.Run(DrillDownPageID, CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Opens the Customer Ledger Entries page filtered to show only overdue entries.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry with filters to apply.</param>
     procedure DrillDownOnOverdueEntries(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -1124,6 +1434,10 @@ table 21 "Cust. Ledger Entry"
         PAGE.Run(DrillDownPageID, CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Gets the original currency factor, returning 1 if not set.
+    /// </summary>
+    /// <returns>The original currency factor or 1 if not set.</returns>
     procedure GetOriginalCurrencyFactor(): Decimal
     begin
         if "Original Currency Factor" = 0 then
@@ -1131,6 +1445,10 @@ table 21 "Cust. Ledger Entry"
         exit("Original Currency Factor");
     end;
 
+    /// <summary>
+    /// Gets the adjusted currency factor, returning 1 if not set.
+    /// </summary>
+    /// <returns>The adjusted currency factor or 1 if not set.</returns>
     procedure GetAdjustedCurrencyFactor(): Decimal
     begin
         if "Adjusted Currency Factor" = 0 then
@@ -1138,6 +1456,9 @@ table 21 "Cust. Ledger Entry"
         exit("Adjusted Currency Factor");
     end;
 
+    /// <summary>
+    /// Opens the Dimension Set Entries page showing the dimensions for this entry.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimMgt: Codeunit DimensionManagement;
@@ -1145,6 +1466,10 @@ table 21 "Cust. Ledger Entry"
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "Entry No."));
     end;
 
+    /// <summary>
+    /// Determines the visual style for displaying this entry based on its payment status.
+    /// </summary>
+    /// <returns>A style text for page rendering: 'Unfavorable' for overdue open entries, 'Attention' for entries closed after due date.</returns>
     procedure SetStyle() Style: Text
     var
         IsHandled: Boolean;
@@ -1162,6 +1487,13 @@ table 21 "Cust. Ledger Entry"
         exit('');
     end;
 
+    /// <summary>
+    /// Sets filters on the record to show entries that can be applied based on the specified criteria.
+    /// </summary>
+    /// <param name="CustomerNo">The customer number to filter by.</param>
+    /// <param name="ApplyDocType">The document type to filter by.</param>
+    /// <param name="ApplyDocNo">The document number to filter by.</param>
+    /// <param name="ApplyAmount">The amount to filter by for determining positive/negative entries.</param>
     procedure SetApplyToFilters(CustomerNo: Code[20]; ApplyDocType: Option; ApplyDocNo: Code[20]; ApplyAmount: Decimal)
     begin
         SetCurrentKey("Customer No.", Open, Positive, "Due Date");
@@ -1186,6 +1518,11 @@ table 21 "Cust. Ledger Entry"
                 end;
     end;
 
+    /// <summary>
+    /// Toggles the Amount to Apply field between the remaining amount and zero for the specified document.
+    /// </summary>
+    /// <param name="AppliesToDocNo">The document number to set the amount to apply for.</param>
+    /// <param name="CustomerNo">The customer number of the entry.</param>
     procedure SetAmountToApply(AppliesToDocNo: Code[20]; CustomerNo: Code[20])
     begin
         OnBeforeSetAmountToApply(Rec, AppliesToDocNo, CustomerNo);
@@ -1207,6 +1544,10 @@ table 21 "Cust. Ledger Entry"
         end;
     end;
 
+    /// <summary>
+    /// Copies field values from a general journal line to this customer ledger entry.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line to copy values from.</param>
     procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         "Customer No." := GenJnlLine."Account No.";
@@ -1254,6 +1595,10 @@ table 21 "Cust. Ledger Entry"
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;
 
+    /// <summary>
+    /// Copies field values from a CV ledger entry buffer to this customer ledger entry.
+    /// </summary>
+    /// <param name="CVLedgerEntryBuffer">The CV ledger entry buffer to copy values from.</param>
     procedure CopyFromCVLedgEntryBuffer(var CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer")
     begin
         TransferFields(CVLedgerEntryBuffer);
@@ -1267,6 +1612,12 @@ table 21 "Cust. Ledger Entry"
         OnAfterCopyCustLedgerEntryFromCVLedgEntryBuffer(Rec, CVLedgerEntryBuffer);
     end;
 
+    /// <summary>
+    /// Recalculates amount fields from one currency to another using exchange rates at the specified posting date.
+    /// </summary>
+    /// <param name="FromCurrencyCode">The source currency code.</param>
+    /// <param name="ToCurrencyCode">The target currency code.</param>
+    /// <param name="PostingDate">The date to use for the exchange rate.</param>
     procedure RecalculateAmounts(FromCurrencyCode: Code[10]; ToCurrencyCode: Code[10]; PostingDate: Date)
     var
         CurrExchRate: Record "Currency Exchange Rate";
@@ -1290,6 +1641,13 @@ table 21 "Cust. Ledger Entry"
         OnAfterRecalculateAmounts(Rec, FromCurrencyCode, ToCurrencyCode, PostingDate);
     end;
 
+    /// <summary>
+    /// Updates amount fields for application by converting to the application currency.
+    /// </summary>
+    /// <param name="ApplnDate">The application date for exchange rate lookup.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
+    /// <param name="RoundAmounts">Specifies whether to use rounded exchange amounts.</param>
+    /// <param name="UpdateMaxPaymentTolerance">Specifies whether to update the maximum payment tolerance.</param>
     procedure UpdateAmountsForApplication(ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean)
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
@@ -1334,6 +1692,11 @@ table 21 "Cust. Ledger Entry"
         OnAfterUpdateAmountsForApplication(Rec, ApplnDate, ApplnCurrencyCode, RoundAmounts, UpdateMaxPaymentTolerance);
     end;
 
+    /// <summary>
+    /// Gets the remaining payment discount possible, allowing for customization through events.
+    /// </summary>
+    /// <param name="ReferenceDate">The reference date for calculating the payment discount.</param>
+    /// <returns>The remaining payment discount amount possible.</returns>
     procedure GetRemainingPmtDiscPossible(ReferenceDate: Date) RemainingPmtDiscPossible: Decimal
     begin
         RemainingPmtDiscPossible := "Remaining Pmt. Disc. Possible";
@@ -1415,11 +1778,21 @@ table 21 "Cust. Ledger Entry"
             InvoicePartAmount := BaseInvoicePartAmount;
     end;
 
+    /// <summary>
+    /// Raised after copying customer ledger entry fields from a general journal line.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was updated.</param>
+    /// <param name="GenJournalLine">The general journal line that was copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyCustLedgerEntryFromGenJnlLine(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying customer ledger entry fields from a CV ledger entry buffer.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was updated.</param>
+    /// <param name="CVLedgerEntryBuffer">The CV ledger entry buffer that was copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyCustLedgerEntryFromCVLedgEntryBuffer(var CustLedgerEntry: Record "Cust. Ledger Entry"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer")
     begin
@@ -1451,91 +1824,194 @@ table 21 "Cust. Ledger Entry"
         EInvoiceMgt.CancelDocument(LoCRecRef);
     end;
 
+    /// <summary>
+    /// Raised after recalculating amounts from one currency to another.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with recalculated amounts.</param>
+    /// <param name="FromCurrencyCode">The source currency code.</param>
+    /// <param name="ToCurrencyCode">The target currency code.</param>
+    /// <param name="PostingDate">The posting date used for exchange rates.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecalculateAmounts(var CustLedgerEntry: Record "Cust. Ledger Entry"; FromCurrencyCode: Code[10]; ToCurrencyCode: Code[10]; PostingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the Amount to Apply field to allow custom validation.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAmounttoApplyBeforeFieldError(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after attempting to show the document associated with the entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDoc(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after showing the posted document attachment.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="DocumentFound">Indicates whether a document was found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowPostedDocAttachment(var CustLedgerEntry: Record "Cust. Ledger Entry"; DocumentFound: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking whether the posted document has attachments.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="HasPostedDocumentAttachment">Returns whether attachments were found.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasPostedDocAttachment(var CustLedgerEntry: Record "Cust. Ledger Entry"; var HasPostedDocumentAttachment: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before drilling down on customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
+    /// <param name="DrillDownPageID">The page ID to use for drill-down.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDrillDownEntries(var CustLedgerEntry: Record "Cust. Ledger Entry"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var DrillDownPageID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before drilling down on overdue customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
+    /// <param name="DrillDownPageID">The page ID to use for drill-down.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDrillDownOnOverdueEntries(var CustLedgerEntry: Record "Cust. Ledger Entry"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var DrillDownPageID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the amount to apply for a customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="AppliesToDocNo">The document number to apply to.</param>
+    /// <param name="CustomerNo">The customer number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetAmountToApply(var CustLedgerEntry: Record "Cust. Ledger Entry"; AppliesToDocNo: Code[20]; CustomerNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining the visual style for the entry.
+    /// </summary>
+    /// <param name="Style">The style text to set.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSetStyle(var Style: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before showing the document associated with the entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="IsPageOpened">Returns whether a page was opened.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDoc(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsPageOpened: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the Message to Recipient field.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateMessagetoRecipient(var CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating amounts for application.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with updated amounts.</param>
+    /// <param name="ApplnDate">The application date.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
+    /// <param name="RoundAmounts">Indicates whether amounts were rounded.</param>
+    /// <param name="UpdateMaxPaymentTolerance">Indicates whether max payment tolerance was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateAmountsForApplication(var CustLedgerEntry: Record "Cust. Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after getting the remaining payment discount possible.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ReferenceDate">The reference date used.</param>
+    /// <param name="RemainingPmtDiscPossible">The remaining payment discount amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetRemainingPmtDiscPossible(CustLedgerEntry: Record "Cust. Ledger Entry"; ReferenceDate: Date; var RemainingPmtDiscPossible: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before drilling down on overdue entries to allow custom handling.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry with filters.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDrillDownOnOverdueEntriesBeforeCode(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before recalculating amounts from one currency to another.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="FromCurrencyCode">The source currency code.</param>
+    /// <param name="ToCurrencyCode">The target currency code.</param>
+    /// <param name="PostingDate">The posting date for exchange rates.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRecalculateAmounts(var CustLedgerEntry: Record "Cust. Ledger Entry"; FromCurrencyCode: Code[10]; ToCurrencyCode: Code[10]; PostingDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating amounts for application.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ApplnDate">The application date.</param>
+    /// <param name="ApplnCurrencyCode">The application currency code.</param>
+    /// <param name="RoundAmounts">Indicates whether to round amounts.</param>
+    /// <param name="UpdateMaxPaymentTolerance">Indicates whether to update max payment tolerance.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAmountsForApplication(var CustLedgerEntry: Record "Cust. Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the remaining amount when setting amount to apply.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetAmountToApplyOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the Max Payment Tolerance field to allow custom validation.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateMaxPaymentToleranceOnBeforeFieldError(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

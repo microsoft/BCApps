@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays and manages currency-specific fee amounts for a reminder level.
+/// </summary>
 page 478 "Currencies for Reminder Level"
 {
     Caption = 'Currencies for Reminder Level';

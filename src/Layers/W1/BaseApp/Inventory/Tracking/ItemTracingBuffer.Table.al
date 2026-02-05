@@ -105,6 +105,7 @@ table 6520 "Item Tracing Buffer"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -112,6 +113,7 @@ table 6520 "Item Tracing Buffer"
         }
         field(14; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

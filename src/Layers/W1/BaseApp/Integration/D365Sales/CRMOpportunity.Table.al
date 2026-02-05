@@ -96,6 +96,7 @@ table 5343 "CRM Opportunity"
         }
         field(10; EstimatedValue; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Est. Revenue';
             Description = 'Type the estimated revenue amount to indicate the potential sale or value of the opportunity for revenue forecasting. This field can be either system-populated or editable based on the selection in the Revenue field.';
             ExternalName = 'estimatedvalue';
@@ -155,6 +156,7 @@ table 5343 "CRM Opportunity"
         }
         field(17; ActualValue; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Revenue';
             Description = 'Type the actual revenue amount for the opportunity for reporting and analysis of estimated versus actual sales. Field defaults to the Est. Revenue value when an opportunity is won.';
             ExternalName = 'actualvalue';
@@ -348,6 +350,7 @@ table 5343 "CRM Opportunity"
         }
         field(39; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -397,6 +400,7 @@ table 5343 "CRM Opportunity"
         }
         field(45; ActualValue_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Revenue (Base)';
             Description = 'Shows the Actual Revenue field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -405,6 +409,7 @@ table 5343 "CRM Opportunity"
         }
         field(46; EstimatedValue_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Est. Revenue (Base)';
             Description = 'Shows the Actual Revenue field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -413,6 +418,7 @@ table 5343 "CRM Opportunity"
         }
         field(47; TotalTax; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax';
             Description = 'Shows the total of the Tax amounts specified on all products included in the opportunity, included in the Total Amount field calculation for the opportunity.';
             ExternalAccess = Modify;
@@ -421,6 +427,7 @@ table 5343 "CRM Opportunity"
         }
         field(48; DiscountPercentage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Opportunity Discount (%)';
             Description = 'Type the discount rate that should be applied to the Product Totals field to include additional savings for the customer in the opportunity.';
             ExternalName = 'discountpercentage';
@@ -428,6 +435,7 @@ table 5343 "CRM Opportunity"
         }
         field(49; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount';
             Description = 'Shows the total amount due, calculated as the sum of the products, discounts, freight, and taxes for the opportunity.';
             ExternalAccess = Modify;
@@ -436,6 +444,7 @@ table 5343 "CRM Opportunity"
         }
         field(50; DiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Opportunity Discount Amount';
             Description = 'Type the discount amount for the opportunity if the customer is eligible for special savings.';
             ExternalName = 'discountamount';
@@ -443,6 +452,7 @@ table 5343 "CRM Opportunity"
         }
         field(51; TotalAmountLessFreight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount';
             Description = 'Shows the total product amount for the opportunity, minus any discounts. This value is added to freight and tax amounts in the calculation for the total amount of the opportunity.';
             ExternalAccess = Modify;
@@ -451,6 +461,7 @@ table 5343 "CRM Opportunity"
         }
         field(52; FreightAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount';
             Description = 'Type the cost of freight or shipping for the products included in the opportunity for use in calculating the Total Amount field.';
             ExternalName = 'freightamount';
@@ -458,6 +469,7 @@ table 5343 "CRM Opportunity"
         }
         field(53; TotalLineItemDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount';
             Description = 'Shows the total of the Manual Discount amounts specified on all products included in the opportunity. This value is reflected in the Total Detail Amount field on the opportunity and is added to any discount amount or rate specified on the opportunity.';
             ExternalAccess = Modify;
@@ -466,6 +478,7 @@ table 5343 "CRM Opportunity"
         }
         field(54; TotalLineItemAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount';
             Description = 'Shows the sum of all existing and write-in products included on the opportunity, based on the specified price list and quantities.';
             ExternalAccess = Modify;
@@ -474,6 +487,7 @@ table 5343 "CRM Opportunity"
         }
         field(55; TotalDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount';
             Description = 'Shows the total discount amount, based on the discount price and rate entered on the opportunity.';
             ExternalAccess = Modify;
@@ -482,6 +496,7 @@ table 5343 "CRM Opportunity"
         }
         field(56; TotalLineItemAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount (Base)';
             Description = 'Shows the Total Detail Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -490,6 +505,7 @@ table 5343 "CRM Opportunity"
         }
         field(57; TotalDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount (Base)';
             Description = 'Shows the Total Discount Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -498,6 +514,7 @@ table 5343 "CRM Opportunity"
         }
         field(58; TotalTax_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax (Base)';
             Description = 'Shows the Total Tax field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -506,6 +523,7 @@ table 5343 "CRM Opportunity"
         }
         field(59; DiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Opportunity Discount Amount (Base)';
             Description = 'Shows the Opportunity Discount Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -514,6 +532,7 @@ table 5343 "CRM Opportunity"
         }
         field(60; TotalLineItemDiscountAmount_Ba; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount (Base)';
             Description = 'Shows the Total Line Item Discount Amount field to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -522,6 +541,7 @@ table 5343 "CRM Opportunity"
         }
         field(61; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount (Base)';
             Description = 'Shows the Total Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -530,6 +550,7 @@ table 5343 "CRM Opportunity"
         }
         field(62; TotalAmountLessFreight_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount (Base)';
             Description = 'Shows the Total Pre-Freight Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -538,6 +559,7 @@ table 5343 "CRM Opportunity"
         }
         field(63; FreightAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount (Base)';
             Description = 'Shows the Freight Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -631,6 +653,7 @@ table 5343 "CRM Opportunity"
         }
         field(73; BudgetAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Budget Amount';
             Description = 'Type a value between 0 and 1,000,000,000,000 to indicate the lead''s potential available budget.';
             ExternalName = 'budgetamount';
@@ -638,6 +661,7 @@ table 5343 "CRM Opportunity"
         }
         field(74; BudgetAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Budget Amount (Base)';
             Description = 'Shows the budget amount converted to the system''s base currency.';
             ExternalAccess = Read;

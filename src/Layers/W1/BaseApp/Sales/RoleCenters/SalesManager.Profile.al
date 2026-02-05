@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.RoleCenters;
 
+/// <summary>
+/// Defines the Sales Manager profile for users who coordinate sales activities and track sales performance.
+/// </summary>
 profile "SALES MANAGER"
 {
     Caption = 'Sales Manager';

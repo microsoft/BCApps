@@ -2552,7 +2552,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         CODEUNIT.Run(CODEUNIT::"CA Jnl.-Post Batch", CostJournalLine);
 
         // Verify: To check if amount of respective Cost Journal Line is posted correctly on Cost entries.
-        VerifyCostEntry(CostJournalDocumentNo, CostJournalAmount);
+        VerifyCostEntry(CostJournalDocumentNo, -CostJournalAmount);
     end;
 
     [Test]
@@ -3698,7 +3698,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         CostEntry: Record "Cost Entry";
     begin
         CostEntry.SetRange("Document No.", ExpectedDocumentNo);
-        CostEntry.FindFirst();
+        CostEntry.FindLast();
         CostEntry.TestField(Amount, ExpectedAmount);
     end;
 

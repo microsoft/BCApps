@@ -181,7 +181,7 @@ codeunit 97 "Blanket Purch. Order to Order"
                 else
                     if (PurchLine."Document Type" = PurchLine."Document Type"::Order) or
                        ((PurchLine."Document Type" = PurchLine."Document Type"::Invoice) and
-                        (PurchLine."Receipt No." = ''))
+                        not PurchLine.IsMatchedToReceiptOrOrder())
                     then
                         QuantityOnOrders := QuantityOnOrders + PurchLine."Outstanding Qty. (Base)";
             until PurchLine.Next() = 0;

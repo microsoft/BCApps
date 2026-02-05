@@ -31,61 +31,78 @@ table 5310 "Item Statistics Cache"
         }
         field(5; "CurrentInventoryValue"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(6; "ExpiredStockValue"; Decimal)
         {
+            AutoFormatType = 0;
         }
         #region This period
         field(7; "SalesGrowthRateThisPeriod"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(8; "NetSalesLCYThisPeriod"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(9; "GrossMarginThisPeriod"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(10; "ReturnRateThisPeriod"; Decimal)
         {
+            AutoFormatType = 0;
         }
         #endregion
         #region This fiscal year
         field(11; "SalesGrowthRateThisFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(12; "NetSalesLCYThisFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(13; "GrossMarginThisFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(14; "ReturnRateThisFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         #endregion
         #region Last fiscal year
         field(15; "SalesGrowthRateLastFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(16; "NetSalesLCYLastFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(17; "GrossMarginLastFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(18; "ReturnRateLastFY"; Decimal)
         {
+            AutoFormatType = 0;
         }
         #endregion
         #region Lifetime
         field(19; "NetSalesLCYLifetime"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(20; "GrossMarginLifetime"; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(21; "ReturnRateLifetime"; Decimal)
         {
+            AutoFormatType = 0;
         }
         #endregion
     }

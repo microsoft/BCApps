@@ -18,6 +18,9 @@ using Microsoft.Utilities;
 using System.Automation;
 using System.Security.User;
 
+/// <summary>
+/// Displays and manages a single blanket sales order for long-term customer agreements.
+/// </summary>
 page 507 "Blanket Sales Order"
 {
     Caption = 'Blanket Sales Order';

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays line items for posted finance charge memos as a read-only subpage.
+/// </summary>
 page 451 "Issued Fin. Charge Memo Lines"
 {
     AutoSplitKey = true;

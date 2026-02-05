@@ -8,6 +8,9 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 
+/// <summary>
+/// Displays sales price lists for projects, enabling project-specific pricing management.
+/// </summary>
 page 7019 "Sales Job Price Lists"
 {
     Caption = 'Sales Project Price Lists';
@@ -146,6 +149,10 @@ page 7019 "Sales Job Price Lists"
     var
         CurrRec: Record "Price List Header";
 
+    /// <summary>
+    /// Sets the record filter to show job-related sales price lists.
+    /// </summary>
+    /// <param name="PriceListHeader">The price list header record with filters to apply.</param>
     procedure SetRecordFilter(var PriceListHeader: Record "Price List Header")
     begin
         Rec.FilterGroup := 2;
@@ -155,6 +162,11 @@ page 7019 "Sales Job Price Lists"
         Rec.FilterGroup := 0;
     end;
 
+    /// <summary>
+    /// Sets the source filter for the price list based on the provided price source list.
+    /// </summary>
+    /// <param name="PriceSourceList">The price source list to use for filtering.</param>
+    /// <param name="AmountType">The amount type (Price, Discount, or both) to filter by.</param>
     procedure SetSource(PriceSourceList: Codeunit "Price Source List"; AmountType: Enum "Price Amount Type")
     var
         PriceUXManagement: Codeunit "Price UX Management";

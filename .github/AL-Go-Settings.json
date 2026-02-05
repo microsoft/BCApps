@@ -7,7 +7,7 @@
   "UsePsSession": false,
   "runs-on": "windows-latest",
   "gitHubRunner": "windows-latest",
-  "artifact": "bcinsider/Sandbox/28.0.44324.0//latest",
+  "artifact": "bcinsider/Sandbox/28.0.45299.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "28.0",

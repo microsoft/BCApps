@@ -5,8 +5,10 @@ codeunit 143002 "ERM Dimension Subscriber - FR"
     begin
     end;
 
+#if not CLEAN28
     var
         LibraryDim: Codeunit "Library - Dimension";
+#endif        
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Dimension", 'OnGetLocalTablesWithDimSetIDValidationIgnored', '', false, false)]
     local procedure GetCountOfLocalTablesWithDimSetIDValidationIgnored(var CountOfTablesIgnored: Integer)
@@ -16,6 +18,7 @@ codeunit 143002 "ERM Dimension Subscriber - FR"
         CountOfTablesIgnored += 5;
     end;
 
+#if not CLEAN28
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Dimension", 'OnVerifyShorcutDimCodesUpdatedOnDimSetIDValidationLocal', '', false, false)]
     local procedure VerifyShorcutDimCodesUpdatedOnDimSetIDValidation(var TempAllObj: Record AllObj temporary; DimSetID: Integer; GlobalDim1ValueCode: Code[20]; GlobalDim2ValueCode: Code[20])
     var
@@ -28,5 +31,6 @@ codeunit 143002 "ERM Dimension Subscriber - FR"
           PaymentHeader.FieldNo("Shortcut Dimension 1 Code"), PaymentHeader.FieldNo("Shortcut Dimension 2 Code"),
           DimSetID, GlobalDim1ValueCode, GlobalDim2ValueCode);
     end;
+#endif    
 }
 

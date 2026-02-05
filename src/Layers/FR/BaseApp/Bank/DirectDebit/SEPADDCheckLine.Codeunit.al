@@ -4,11 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
+#if not CLEAN28
 using Microsoft.Sales.Receivables;
+#endif
 
 /// <summary>
 /// Validates direct debit collection entries for SEPA compliance and data completeness.
@@ -39,10 +43,12 @@ codeunit 1233 "SEPA DD-Check Line"
         PartnerTypeErr: Label 'The customer''s %1, %2, must be equal to the %1, %3, specified in the collection.', Comment = '%1 = Partner Type; %2 = Company/Person; %3 = Company/Person.';
         TransferDateErr: Label 'The earliest possible transfer date is today.';
         TransferDateAddnlInfoTxt: Label 'You can use the Reset Transfer Date action to eliminate the error.';
+#if not CLEAN28        
         SummarizeNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents. Make sure that the Summarize per field in the Suggest Customer Payments window is blank.';
         UnappliedLinesNotAllowedErr: Label 'Payment slip line %1 must be applied to a customer invoice.';
         AccTypeErr: Label 'Only customer transactions are allowed.';
         BankAccErr: Label 'You must use customer bank account, %1, which you specified in the selected direct debit mandate.';
+#endif        
         SelectedRecordTxt: Label 'the currently selected record';
 #pragma warning disable AA0470
         PartnerTypeBlankErr: Label '%1 must be filled.', Comment = 'Partner Type must be filled.';
@@ -140,6 +146,7 @@ codeunit 1233 "SEPA DD-Check Line"
         DirectDebitCollectionEntry.InsertPaymentFileError(ErrorText);
     end;
 
+#if not CLEAN28
     [Scope('OnPrem')]
     procedure CheckPaymentLine(DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; PaymentLine: Record "Payment Line"; var AppliesToEntryNo: Integer) Result: Boolean
     var
@@ -173,6 +180,7 @@ codeunit 1233 "SEPA DD-Check Line"
 
         exit(not DirectDebitCollectionEntry.HasPaymentFileErrors());
     end;
+#endif    
 
     /// <summary>
     /// Integration event that allows customization of collection entry validation logic.
@@ -195,9 +203,12 @@ codeunit 1233 "SEPA DD-Check Line"
     begin
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPaymentLine(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var PaymentLine: Record "Payment Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 }
 

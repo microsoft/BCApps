@@ -8,6 +8,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays posted sales document lines from shipments, invoices, credit memos, and return receipts for a selected customer.
+/// </summary>
 page 5850 "Posted Sales Document Lines"
 {
     Caption = 'Posted Sales Document Lines';
@@ -205,6 +208,9 @@ page 5850 "Posted Sales Document Lines"
         ShowRevLinesOnly: Boolean;
         CurrentMenuType: Integer;
 
+    /// <summary>
+    /// Copies the selected posted document line to the target sales document.
+    /// </summary>
     procedure CopyLineToDoc()
     var
         FromSalesShptLine: Record "Sales Shipment Line";
@@ -261,6 +267,10 @@ page 5850 "Posted Sales Document Lines"
                 Message(Text000);
     end;
 
+    /// <summary>
+    /// Changes the visible submenu to display a different posted document type.
+    /// </summary>
+    /// <param name="NewMenuType">The menu type to display (0=Shipments, 1=Invoices, 2=Return Receipts, 3=Credit Memos).</param>
     procedure ChangeSubMenu(NewMenuType: Integer)
     begin
         if OldMenuType <> NewMenuType then
@@ -270,6 +280,10 @@ page 5850 "Posted Sales Document Lines"
         CurrentMenuType := NewMenuType;
     end;
 
+    /// <summary>
+    /// Gets the currently selected menu type.
+    /// </summary>
+    /// <returns>The current menu type (0=Shipments, 1=Invoices, 2=Return Receipts, 3=Credit Memos).</returns>
     procedure GetCurrentMenuType(): Integer
     begin
         exit(CurrentMenuType);
@@ -305,6 +319,10 @@ page 5850 "Posted Sales Document Lines"
         end;
     end;
 
+    /// <summary>
+    /// Sets the target sales header for copying lines.
+    /// </summary>
+    /// <param name="NewToSalesHeader">The sales header to copy lines to.</param>
     procedure SetToSalesHeader(NewToSalesHeader: Record "Sales Header")
     begin
         ToSalesHeader := NewToSalesHeader;

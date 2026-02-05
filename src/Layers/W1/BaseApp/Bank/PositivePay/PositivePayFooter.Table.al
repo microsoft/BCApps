@@ -62,6 +62,8 @@ table 1242 "Positive Pay Footer"
         /// </summary>
         field(5; "Check Total"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Positive Pay Detail".Amount where("Void Check Indicator" = const(''),
                                                                   "Data Exch. Entry No." = field("Data Exch. Detail Entry No.")));
@@ -84,6 +86,8 @@ table 1242 "Positive Pay Footer"
         /// </summary>
         field(7; "Void Total"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Positive Pay Detail".Amount where("Void Check Indicator" = const('V'),
                                                                   "Data Exch. Entry No." = field("Data Exch. Detail Entry No.")));
@@ -105,6 +109,8 @@ table 1242 "Positive Pay Footer"
         /// </summary>
         field(9; "Grand Total"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Positive Pay Detail".Amount where("Data Exch. Entry No." = field("Data Exch. Detail Entry No.")));
             Caption = 'Grand Total';

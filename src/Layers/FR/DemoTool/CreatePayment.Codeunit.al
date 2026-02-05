@@ -1,5 +1,9 @@
+#if not CLEAN28
 codeunit 160201 "Create Payment"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -239,4 +243,4 @@ codeunit 160201 "Create Payment"
         PaymentStepLedger.Insert();
     end;
 }
-
+#endif

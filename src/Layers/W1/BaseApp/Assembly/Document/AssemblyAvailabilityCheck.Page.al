@@ -98,6 +98,7 @@ page 913 "Assembly Availability Check"
                     field(Inventory; Inventory)
                     {
                         ApplicationArea = Assembly;
+                        AutoFormatType = 0;
                         Caption = 'Inventory';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies how many units of the assembly item are in inventory.';
@@ -115,6 +116,7 @@ page 913 "Assembly Availability Check"
                     field(GrossRequirement; GrossRequirement)
                     {
                         ApplicationArea = Assembly;
+                        AutoFormatType = 0;
                         Caption = 'Gross Requirement';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies the total demand for the assembly item.';
@@ -122,6 +124,7 @@ page 913 "Assembly Availability Check"
                     field(AbleToAssemble; QtyAvailToMake)
                     {
                         ApplicationArea = Assembly;
+                        AutoFormatType = 0;
                         Caption = 'Able to Assemble';
                         DecimalPlaces = 0 : 5;
                         Style = Unfavorable;
@@ -138,12 +141,14 @@ page 913 "Assembly Availability Check"
                     field(ReservedRequirement; ReservedRequirement)
                     {
                         ApplicationArea = Planning;
+                        AutoFormatType = 0;
                         Caption = 'Reserved Requirement';
                         DecimalPlaces = 0 : 5;
                     }
                     field(ScheduledReceipts; ScheduledReceipts)
                     {
                         ApplicationArea = Assembly;
+                        AutoFormatType = 0;
                         Caption = 'Scheduled Receipts';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies how many units of the assembly item are inbound on orders.';
@@ -151,6 +156,7 @@ page 913 "Assembly Availability Check"
                     field(ReservedReceipts; ReservedReceipts)
                     {
                         ApplicationArea = Planning;
+                        AutoFormatType = 0;
                         Caption = 'Reserved Receipts';
                         DecimalPlaces = 0 : 5;
                     }

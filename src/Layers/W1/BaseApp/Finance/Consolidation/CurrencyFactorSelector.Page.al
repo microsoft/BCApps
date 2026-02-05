@@ -23,6 +23,7 @@ page 153 "Currency Factor Selector"
             field(ExchangeRateAmount; ExchangeRateAmount)
             {
                 ApplicationArea = All;
+                AutoFormatType = 0;
                 CaptionClass = ExchangeRateAmountCaption;
                 DecimalPlaces = 0 : 15;
                 ToolTip = 'Specifies the exchange rate amount in the consolidation currency.';
@@ -35,6 +36,7 @@ page 153 "Currency Factor Selector"
             field(RelationalExchangeRateAmount; RelationalExchangeRateAmount)
             {
                 ApplicationArea = All;
+                AutoFormatType = 0;
                 CaptionClass = RelationalExchangeRateAmountCaption;
                 DecimalPlaces = 0 : 15;
                 ToolTip = 'Specifies the exchange rate amount in the currency of the business unit.';

@@ -5,7 +5,9 @@
 namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using Microsoft.Bank.BankAccount;
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Currency;
@@ -232,12 +234,14 @@ table 98 "General Ledger Setup"
                           Text001, TaxJurisdiction.TableCaption(),
                           TaxJurisdiction.Code, TaxJurisdiction.FieldCaption("Unrealized VAT Type"),
                           TaxJurisdiction."Unrealized VAT Type");
+#if not CLEAN28
                     PaymentClass.SetFilter(
                       PaymentClass."Unrealized VAT Reversal", '=%1', PaymentClass."Unrealized VAT Reversal"::Delayed);
                     if PaymentClass.Find('-') then
                         Error(
                           Text10801, PaymentClass.TableCaption(), PaymentClass.Code,
                           PaymentClass.FieldCaption("Unrealized VAT Reversal"), PaymentClass."Unrealized VAT Reversal");
+#endif
                 end;
                 if "Unrealized VAT" then
                     "Prepayment Unrealized VAT" := true
@@ -1379,7 +1383,9 @@ table 98 "General Ledger Setup"
         AnalysisViewEntry: Record "Analysis View Entry";
         AnalysisViewBudgetEntry: Record "Analysis View Budget Entry";
         AdjAddReportingCurr: Report "Adjust Add. Reporting Currency";
+#if not CLEAN28
         PaymentClass: Record "Payment Class";
+#endif
         UserSetupManagement: Codeunit "User Setup Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ErrorMessage: Boolean;
@@ -1406,7 +1412,9 @@ table 98 "General Ledger Setup"
 #pragma warning restore AA0074
 #pragma warning disable AA0470
         DependentFieldActivatedErr: Label 'You cannot change %1 because %2 is selected.';
+#if not CLEAN28
         Text10801: Label '%1 %2 has %3 set to %4.';
+#endif
         Text10802: Label 'It is not allowed to specify %1 when %2 is %3.';
 #pragma warning restore AA0470
         AccSchedObsoleteErr: Label 'This field is obsolete and it has been replaced by Table 88 Financial Report';

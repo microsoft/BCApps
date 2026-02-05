@@ -85,6 +85,7 @@ table 5841 "Standard Cost Worksheet"
         field(11; "Standard Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Standard Cost';
             Editable = false;
             MinValue = 0;
@@ -92,6 +93,7 @@ table 5841 "Standard Cost Worksheet"
         field(12; "New Standard Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Standard Cost';
             MinValue = 0;
 
@@ -103,6 +105,7 @@ table 5841 "Standard Cost Worksheet"
         }
         field(13; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -110,18 +113,21 @@ table 5841 "Standard Cost Worksheet"
         }
         field(14; "New Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'New Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(15; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
         field(16; "New Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'New Overhead Rate';
             DecimalPlaces = 2 : 5;
 
@@ -134,12 +140,14 @@ table 5841 "Standard Cost Worksheet"
         field(21; "Single-Lvl Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Lvl Material Cost';
             Editable = false;
         }
         field(22; "New Single-Lvl Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Single-Lvl Material Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -147,6 +155,7 @@ table 5841 "Standard Cost Worksheet"
         field(23; "Single-Lvl Cap. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Lvl Cap. Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -154,6 +163,7 @@ table 5841 "Standard Cost Worksheet"
         field(24; "New Single-Lvl Cap. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Single-Lvl Cap. Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -161,6 +171,7 @@ table 5841 "Standard Cost Worksheet"
         field(25; "Single-Lvl Subcontrd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Lvl Subcontrd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -168,6 +179,7 @@ table 5841 "Standard Cost Worksheet"
         field(26; "New Single-Lvl Subcontrd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Single-Lvl Subcontrd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -175,6 +187,7 @@ table 5841 "Standard Cost Worksheet"
         field(27; "Single-Lvl Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Lvl Cap. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -182,6 +195,7 @@ table 5841 "Standard Cost Worksheet"
         field(28; "New Single-Lvl Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Single-Lvl Cap. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -189,6 +203,7 @@ table 5841 "Standard Cost Worksheet"
         field(29; "Single-Lvl Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Lvl Mfg. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -196,6 +211,7 @@ table 5841 "Standard Cost Worksheet"
         field(30; "New Single-Lvl Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Single-Lvl Mfg. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -203,6 +219,7 @@ table 5841 "Standard Cost Worksheet"
         field(41; "Rolled-up Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -210,6 +227,7 @@ table 5841 "Standard Cost Worksheet"
         field(42; "New Rolled-up Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Rolled-up Material Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -217,6 +235,7 @@ table 5841 "Standard Cost Worksheet"
         field(43; "Rolled-up Cap. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -224,6 +243,7 @@ table 5841 "Standard Cost Worksheet"
         field(44; "New Rolled-up Cap. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Rolled-up Cap. Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -231,6 +251,7 @@ table 5841 "Standard Cost Worksheet"
         field(45; "Rolled-up Subcontrd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Subcontrd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -238,6 +259,7 @@ table 5841 "Standard Cost Worksheet"
         field(46; "New Rolled-up Subcontrd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Rolled-up Subcontrd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -245,6 +267,7 @@ table 5841 "Standard Cost Worksheet"
         field(47; "Rolled-up Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -252,6 +275,7 @@ table 5841 "Standard Cost Worksheet"
         field(48; "New Rolled-up Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Rolled-up Cap. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -259,6 +283,7 @@ table 5841 "Standard Cost Worksheet"
         field(49; "Rolled-up Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Mfg. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;
@@ -266,6 +291,7 @@ table 5841 "Standard Cost Worksheet"
         field(50; "New Rolled-up Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'New Rolled-up Mfg. Ovhd Cost';
             DataClassification = CustomerContent;
             Editable = false;

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Prints mailing labels for customers using their address information in a multi-column format.
+/// </summary>
+
 using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 
@@ -192,6 +196,10 @@ report 110 "Customer - Labels"
         Counter: Integer;
         RecPerPageNum: Integer;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Labels report.
+    /// </summary>
+    /// <param name="SetLabelFormat">The label format option to use for printing.</param>
     procedure InitializeRequest(SetLabelFormat: Option)
     begin
         LabelFormat := SetLabelFormat;

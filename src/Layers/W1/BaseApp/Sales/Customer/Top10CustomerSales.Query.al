@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Retrieves the top 10 customers ranked by sales amount in local currency.
+/// </summary>
 query 1311 "Top 10 Customer Sales"
 {
     Caption = 'Top 10 Customer Sales';

@@ -21,7 +21,7 @@ table 7110 "Analysis Field Value"
         }
         field(3; Value; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Value';
         }
         field(4; "Has Error"; Boolean)

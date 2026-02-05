@@ -30,6 +30,7 @@ page 9107 "Resource Statistics FactBox"
             field(ResCapacity; ResCapacity)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Capacity';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the scheduled capacity of the resource. The amount is the sum of values in the Quantity field on project planning lines for the resource.';
@@ -37,6 +38,7 @@ page 9107 "Resource Statistics FactBox"
             field(UnusedCapacity; UnusedCapacity)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Unused Capacity';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the difference between the capacity and the capacity used. It is calculated as follows: Unused Capacity = Capacity - Charg. Usage + Not Charg. Usage.';
@@ -45,12 +47,14 @@ page 9107 "Resource Statistics FactBox"
             {
                 ApplicationArea = Jobs;
                 AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Invoiced';
                 ToolTip = 'Specifies the unit prices of postings of the type sale. Sales can be posted in the resource group journal and the sales lines.';
             }
             field(InvoicedPct; InvoicedPct)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Invoiced %';
                 DecimalPlaces = 1 : 1;
                 ToolTip = 'Specifies the percentage of invoiced amounts in unit prices. It is calculated as follows: Invoiced % = (Invoiced (LCY) / Usage(Unit Price)) x 100.';
@@ -59,6 +63,7 @@ page 9107 "Resource Statistics FactBox"
             {
                 ApplicationArea = Jobs;
                 AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Usage (Cost)';
                 ToolTip = 'Specifies values for project usage based on cost. Specifies, based on cost, how much the resources has been used.';
             }
@@ -66,12 +71,14 @@ page 9107 "Resource Statistics FactBox"
             {
                 ApplicationArea = Jobs;
                 AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Profit';
                 ToolTip = 'Specifies the profit amounts.';
             }
             field(ResProfitPct; ResProfitPct)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Profit %';
                 DecimalPlaces = 1 : 1;
                 ToolTip = 'Specifies the profit percentages.';

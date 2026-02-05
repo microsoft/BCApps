@@ -8,6 +8,9 @@ namespace Microsoft.Sales.Peppol;
 using Microsoft.Sales.History;
 using System.IO;
 
+/// <summary>
+/// Exports sales credit memos to PEPPOL 2.1 electronic document format.
+/// </summary>
 codeunit 1601 "Export Sales Cr.M. - PEPPOL2.1"
 {
     ObsoleteState = Pending;
@@ -30,6 +33,11 @@ codeunit 1601 "Export Sales Cr.M. - PEPPOL2.1"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Generates an XML file in PEPPOL 2.1 format for the sales credit memo.
+    /// </summary>
+    /// <param name="VariantRec">Specifies the sales credit memo record to export.</param>
+    /// <param name="OutStr">Returns the generated XML content as an output stream.</param>
     [Scope('OnPrem')]
     procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream)
     var

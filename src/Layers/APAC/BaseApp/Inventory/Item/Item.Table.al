@@ -2189,6 +2189,7 @@ table 27 Item
         field(99000756; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
             Editable = false;
         }

@@ -1,6 +1,8 @@
 namespace System.Security.AccessControl;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Document;
@@ -11,9 +13,13 @@ permissionset 1001 "LOCAL"
     Assignable = true;
     Caption = 'Country/region-specific func.';
 
-    Permissions = tabledata "Bank Account Buffer" = RIMD,
+    Permissions =
+#if not CLEAN28
+                  tabledata "Bank Account Buffer" = RIMD,
+#endif
                   tabledata "FR Acc. Schedule Line" = RIMD,
                   tabledata "FR Acc. Schedule Name" = RIMD,
+#if not CLEAN28
                   tabledata "Payment Address" = RIMD,
                   tabledata "Payment Class" = RIMD,
                   tabledata "Payment Header" = RIMD,
@@ -24,6 +30,7 @@ permissionset 1001 "LOCAL"
                   tabledata "Payment Status" = RIMD,
                   tabledata "Payment Step" = RIMD,
                   tabledata "Payment Step Ledger" = RIMD,
+#endif
                   tabledata "Shipment Invoiced" = RIMD,
                   tabledata "Unreal. CV Ledg. Entry Buffer" = RIMD;
 }

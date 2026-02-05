@@ -55,7 +55,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', true, false)]
     local procedure OnTransferToTrackingEntrySourceTypeElseCase(var InventoryProfile: Record "Inventory Profile"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
         if InventoryProfile."Source Type" = Database::"Prod. Order Component" then begin
@@ -66,7 +66,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetDemandPriority', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetDemandPriority', '', true, false)]
     local procedure OnAfterSetDemandPriority(var InventoryProfile: Record "Inventory Profile")
     begin
         if InventoryProfile."Source Type" = Database::"Prod. Order Component" then
@@ -84,7 +84,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', true, false)]
     local procedure OnAfterSetSupplyPriority(var InventoryProfile: Record "Inventory Profile")
     begin
         if InventoryProfile."Source Type" = Database::"Prod. Order Component" then
@@ -102,7 +102,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDemandToInvProfile', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDemandToInvProfile', '', true, false)]
     local procedure OnAfterDemandToInvProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var ReservEntry: Record "Reservation Entry"; var NextLineNo: Integer)
     begin
         TransProdOrderCompToProfile(InventoryProfile, Item, ReservEntry, NextLineNo);
@@ -158,7 +158,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Plng. Component Invt. Profile", 'OnTransferInventoryProfileFromPlamComponentByRefOrderType', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Plng. Component Invt. Profile", 'OnTransferInventoryProfileFromPlamComponentByRefOrderType', '', true, false)]
     local procedure OnTransferInventoryProfileFromPlamComponentByRefOrderType(var InventoryProfile: Record "Inventory Profile"; PlanningComponent: Record "Planning Component")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -192,7 +192,7 @@ codeunit 99000868 "Prod. Order Comp. Invt.Profile"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Plng. Component Invt. Profile", 'OnTransferToTrackingEntrySourceTypeElseCaseOnSetSource', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Plng. Component Invt. Profile", 'OnTransferToTrackingEntrySourceTypeElseCaseOnSetSource', '', true, false)]
     local procedure OnTransferToTrackingEntrySourceTypeElseCaseOnSetSource(var InventoryProfile: Record "Inventory Profile"; var ReservationEntry: Record "Reservation Entry"; var RequisitionLine: Record "Requisition Line")
     begin
         case RequisitionLine."Ref. Order Type" of

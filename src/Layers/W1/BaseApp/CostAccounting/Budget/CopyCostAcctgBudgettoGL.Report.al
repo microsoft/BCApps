@@ -146,6 +146,7 @@ report 1136 "Copy Cost Acctg. Budget to G/L"
                     field("Amount multiplication factor"; Factor)
                     {
                         ApplicationArea = CostAccounting;
+                        AutoFormatType = 0;
                         Caption = 'Amount multiplication factor';
                         ToolTip = 'Specifies the amount multiplication factor. Enter a 1.00 if you want to copy the values 1:1. The value 1.05 increases the budget figures by 5 percent.';
                     }

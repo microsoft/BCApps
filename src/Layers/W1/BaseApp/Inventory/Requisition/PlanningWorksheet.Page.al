@@ -665,12 +665,9 @@ page 99000852 "Planning Worksheet"
 
                 trigger OnAction()
                 var
-                    [SecurityFiltering(SecurityFilter::Filtered)]
-                    RequisitionLine: Record "Requisition Line";
                     ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                 begin
-                    GetCurrentlySelectedLines(RequisitionLine);
-                    ApprovalsMgmt.ShowWorksheetApprovalEntries(RequisitionLine);
+                    ApprovalsMgmt.ShowWorksheetApprovalEntries(Rec);
                 end;
             }
         }
@@ -969,7 +966,7 @@ page 99000852 "Planning Worksheet"
                     var
                         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.ApproveRequisitionWkshLineRequest(Rec);
+                        ApprovalsMgmt.ApproveRequisitionWkshRequest(Rec);
                     end;
                 }
                 action(Reject)
@@ -984,7 +981,7 @@ page 99000852 "Planning Worksheet"
                     var
                         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.RejectRequisitionWkshLineRequest(Rec);
+                        ApprovalsMgmt.RejectRequisitionWkshRequest(Rec);
                     end;
                 }
                 action(Delegate)
@@ -999,7 +996,7 @@ page 99000852 "Planning Worksheet"
                     var
                         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.DelegateRequisitionWkshLineRequest(Rec);
+                        ApprovalsMgmt.DelegateRequisitionWkshRequest(Rec);
                     end;
                 }
                 action(Comments)
@@ -1186,7 +1183,7 @@ page 99000852 "Planning Worksheet"
     begin
         PlanningWkshManagement.GetDescriptionAndRcptName(Rec, ItemDescription, RoutingDescription);
         if RequisitionWkshName.Get(Rec.GetRangeMax("Worksheet Template Name"), CurrentWkshBatchName) then begin
-            SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
+            RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
             ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
         end;
 
@@ -1378,28 +1375,6 @@ page 99000852 "Planning Worksheet"
         NewOpenFromItemAvailabilityByEvent := OpenFromItemAvailabilityByEvent;
     end;
 
-    internal procedure SetApprovalStateForWkshBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; RequisitionLine: Record "Requisition Line"; var OpenApprovalEntriesExistForCurrentUser: Boolean; var OpenApprovalEntriesOnWorksheetBatchExist: Boolean; var CanCancelApprovalForWorksheetBatch: Boolean; var LocalCanRequestFlowApprovalForWkshBatch: Boolean; var LocalCanCancelFlowApprovalForWkshBatch: Boolean; var LocalApprovalEntriesExistSentByCurrentUser: Boolean; var EnabledWorksheetBatchWorkflowsExist: Boolean)
-    var
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
-        WorkflowEventHandling: Codeunit "Workflow Event Handling";
-        WorkflowManagement: Codeunit "Workflow Management";
-    begin
-        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(RequisitionWkshName.RecordId());
-        OpenApprovalEntriesOnWorksheetBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(RequisitionWkshName.RecordId());
-        CanCancelApprovalForWorksheetBatch := ApprovalsMgmt.CanCancelApprovalForRecord(RequisitionWkshName.RecordId());
-        WorkflowWebhookManagement.GetCanRequestAndCanCancel(RequisitionWkshName.RecordId(), LocalCanRequestFlowApprovalForWkshBatch, LocalCanCancelFlowApprovalForWkshBatch);
-        LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(RequisitionWkshName.RecordId());
-        EnabledWorksheetBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"Requisition Wksh. Name", WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
-    end;
-
-    local procedure GetCurrentlySelectedLines(var RequisitionLine: Record "Requisition Line"): Boolean
-    begin
-        CurrPage.SetSelectionFilter(RequisitionLine);
-
-        exit(RequisitionLine.FindSet());
-    end;
-
     local procedure SetControlAppearanceFromWkshBatch()
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -1408,7 +1383,7 @@ page 99000852 "Planning Worksheet"
             exit;
 
         ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
-        SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
+        RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
     end;
 
     [IntegrationEvent(false, false)]

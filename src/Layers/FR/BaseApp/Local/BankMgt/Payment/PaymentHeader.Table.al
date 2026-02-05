@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -21,9 +22,19 @@ using Microsoft.Sales.Customer;
 table 10865 "Payment Header"
 {
     Caption = 'Payment Header';
+#if not CLEAN28
     DrillDownPageID = "Payment Slip List";
     LookupPageID = "Payment Slip List";
+#endif
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -83,6 +94,7 @@ table 10865 "Payment Header"
         }
         field(3; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
 
@@ -154,7 +166,9 @@ table 10865 "Payment Header"
             begin
                 PaymentStep.SetRange("Payment Class", "Payment Class");
                 PaymentStep.SetFilter("Next Status", '>%1', "Status No.");
+#if not CLEAN28                
                 PaymentStep.SetRange("Action Type", PaymentStep."Action Type"::Ledger);
+#endif                
                 if PaymentStep.FindFirst() then
                     "Source Code" := PaymentStep."Source Code";
                 PaymentStatus.Get("Payment Class", "Status No.");
@@ -270,8 +284,10 @@ table 10865 "Payment Header"
                         "SWIFT Code" := CompanyBankAccount."SWIFT Code";
                         "Bank Country/Region Code" := CompanyBankAccount."Country/Region Code";
                         "Agency Code" := CompanyBankAccount."Agency Code";
+#if not CLEAN28                        
                         "RIB Key" := CompanyBankAccount."RIB Key";
                         "RIB Checked" := CompanyBankAccount."RIB Checked";
+#endif                        
                         "Bank Name" := CompanyBankAccount.Name;
                         "Bank Post Code" := CompanyBankAccount."Post Code";
                         "Bank City" := CompanyBankAccount.City;
@@ -287,6 +303,8 @@ table 10865 "Payment Header"
         }
         field(16; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Payment Line"."Amount (LCY)" where("No." = field("No.")));
             Caption = 'Amount (LCY)';
             Editable = false;
@@ -294,6 +312,8 @@ table 10865 "Payment Header"
         }
         field(17; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Payment Line".Amount where("No." = field("No.")));
             Caption = 'Amount';
             Editable = false;
@@ -303,37 +323,45 @@ table 10865 "Payment Header"
         {
             Caption = 'Bank Branch No.';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(19; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(20; "Agency Code"; Text[20])
         {
             Caption = 'Agency Code';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(21; "RIB Key"; Integer)
         {
             Caption = 'RIB Key';
 
+#if not CLEAN28
             trigger OnValidate()
             begin
                 "RIB Checked" := RibKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(22; "RIB Checked"; Boolean)
         {
@@ -500,6 +528,7 @@ table 10865 "Payment Header"
         PaymentLine.DeleteAll(true);
     end;
 
+#if not CLEAN28
     trigger OnInsert()
     var
         NoSeries: Codeunit "No. Series";
@@ -516,6 +545,7 @@ table 10865 "Payment Header"
         end;
         InitHeader();
     end;
+#endif    
 
     var
         PaymentClass: Record "Payment Class";
@@ -525,7 +555,9 @@ table 10865 "Payment Header"
         CompanyBankAccount: Record "Bank Account";
         PostCode: Record "Post Code";
         DimensionManagement: Codeunit DimensionManagement;
+#if not CLEAN28        
         RibKey: Codeunit "RIB Key";
+#endif        
         CurrencyDate: Date;
 
         Text000: Label 'Deleting the line is not allowed.';
@@ -700,3 +732,4 @@ table 10865 "Payment Header"
             until PaymentLine.Next() = 0;
     end;
 }
+#endif

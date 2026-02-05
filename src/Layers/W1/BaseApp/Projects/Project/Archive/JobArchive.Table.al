@@ -148,6 +148,7 @@ table 5135 "Job Archive"
         }
         field(49; "Scheduled Res. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line Archive"."Quantity (Base)" where("Job No." = field("No."),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -178,6 +179,7 @@ table 5135 "Job Archive"
         }
         field(56; "Scheduled Res. Gr. Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line Archive"."Quantity (Base)" where("Job No." = field("No."),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -336,6 +338,7 @@ table 5135 "Job Archive"
         field(1030; "Calc. Recog. Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Job Task Archive"."Recognized Sales Amount" where("Job No." = field("No."),
                                                                         "Version No." = field("Version No.")));
             Caption = 'Calc. Recog. Sales Amount';
@@ -345,6 +348,7 @@ table 5135 "Job Archive"
         field(1031; "Calc. Recog. Costs Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Job Task Archive"."Recognized Costs Amount" where("Job No." = field("No."),
                                                                                 "Version No." = field("Version No.")));
             Caption = 'Calc. Recog. Costs Amount';
@@ -354,6 +358,7 @@ table 5135 "Job Archive"
         field(1032; "Calc. Recog. Sales G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Job Task Archive"."Recognized Sales G/L Amount" where("Job No." = field("No."),
                                                                                     "Version No." = field("Version No.")));
             Caption = 'Calc. Recog. Sales G/L Amount';
@@ -363,6 +368,7 @@ table 5135 "Job Archive"
         field(1033; "Calc. Recog. Costs G/L Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             CalcFormula = sum("Job Task Archive"."Recognized Costs G/L Amount" where("Job No." = field("No."),
                                                                                     "Version No." = field("Version No.")));
             Caption = 'Calc. Recog. Costs G/L Amount';

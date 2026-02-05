@@ -26,7 +26,7 @@ codeunit 99000816 "Mfg. Carry Out Action Print"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Carry Out Action Msg. - Plan.", 'OnPostDataItemOnPrintOrders', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Carry Out Action Msg. - Plan.", 'OnPostDataItemOnPrintOrders', '', true, false)]
     local procedure OnPostDataItemOnPrintOrders()
     begin
         PrintProductionOrders();
@@ -50,7 +50,7 @@ codeunit 99000816 "Mfg. Carry Out Action Print"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Carry Out Action", 'OnCollectProdOrderForPrinting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Carry Out Action", 'OnCollectProdOrderForPrinting', '', true, false)]
     local procedure OnCollectProdOrderForPrinting(var ProductionOrder: Record "Production Order")
     begin
         CollectProdOrderForPrinting(ProductionOrder);

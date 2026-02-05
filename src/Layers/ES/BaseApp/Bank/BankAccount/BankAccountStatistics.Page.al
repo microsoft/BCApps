@@ -88,6 +88,7 @@ page 375 "Bank Account Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Net Change (LCY)';
                             ToolTip = 'Specifies the net value of entries in LCY on the bank account for the periods: Current Month, This Year, Last Year, and To Date.';
                         }
@@ -112,6 +113,7 @@ page 375 "Bank Account Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Net Change (LCY)';
                             ToolTip = 'Specifies the net value of entries in LCY on the bank account for the periods: Current Month, This Year, Last Year, and To Date.';
                         }
@@ -136,6 +138,7 @@ page 375 "Bank Account Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Net Change (LCY)';
                             ToolTip = 'Specifies the net value of entries in LCY on the bank account for the periods: Current Month, This Year, Last Year, and To Date.';
                         }
@@ -159,6 +162,7 @@ page 375 "Bank Account Statistics"
                         field("BankAccNetChangeLCY[4]"; BankAccNetChangeLCY[4])
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatExpression = '';
                             AutoFormatType = 1;
                             Caption = 'Net Change (LCY)';
                             ToolTip = 'Specifies the net value of entries in LCY on the bank account for the periods: Current Month, This Year, Last Year, and To Date.';
@@ -821,6 +825,7 @@ page 375 "Bank Account Statistics"
                         }
                         field(RiskPerc; RiskPerc)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Basic, Suite;
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;

@@ -1073,6 +1073,9 @@ codeunit 5760 "Whse.-Post Receipt"
 
         GetLocation(PostedWhseReceiptLine."Location Code");
         SkipPutAwayProcessing := not Location."Require Put-away";
+
+        OnCreatePostedRcptLineOnBeforePutAwayProcessing(PostedWhseReceiptLine, SkipPutAwayProcessing);
+
         if not SkipPutAwayProcessing then
             SkipPutAwayProcessing := IsReceiptForJob(PostedWhseReceiptLine);
         if SkipPutAwayProcessing then begin
@@ -1366,10 +1369,10 @@ codeunit 5760 "Whse.-Post Receipt"
         RemQtyToHandleBase: Decimal;
         IsHandled: Boolean;
         DoCheckIsReceiptForJob, ReceiptIsForJob : Boolean;
+        SkipPutAwayCreationForLine: Boolean;
     begin
         DoCheckIsReceiptForJob := true;
         OnBeforeCreatePutAwayDocProcedure(PostedWhseReceiptLine, WarehouseReceiptHeader, RemQtyToHandleBase, CreatePutAway, ItemTrackingManagement, TempPostedWhseReceiptLine, TempPostedWhseReceiptLine2, WarehouseActivityHeader, CounterPutAways, DoCheckIsReceiptForJob);
-
         PostedWhseReceiptLine.SetRange("No.", WarehouseReceiptHeader."Receiving No.");
         if not PostedWhseReceiptLine.Find('-') then
             exit;
@@ -1380,7 +1383,9 @@ codeunit 5760 "Whse.-Post Receipt"
             else
                 ReceiptIsForJob := false;
 
-            if not ReceiptIsForJob then begin
+            SkipPutAwayCreationForLine := false;
+            OnBeforeCreatePutAwayLine(PostedWhseReceiptLine, SkipPutAwayCreationForLine);
+            if not ReceiptIsForJob and not SkipPutAwayCreationForLine then begin
                 RemQtyToHandleBase := PostedWhseReceiptLine."Qty. (Base)";
                 IsHandled := false;
                 OnBeforeCreatePutAwayDoc(WarehouseReceiptHeader, PostedWhseReceiptLine, IsHandled);
@@ -1517,7 +1522,7 @@ codeunit 5760 "Whse.-Post Receipt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePutAwayDocProcedure(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var RemQtyToHandleBase: Decimal; var CreatePutAway: Codeunit "Create Put-away"; var ItemTrackingManagement: Codeunit "Item Tracking Management"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary; var TempPostedWhseReceiptLine2: Record "Posted Whse. Receipt Line" temporary; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var CounterPutAways: Integer; var DoCheckIsReceiptForJob: Boolean);
+    local procedure OnBeforeCreatePutAwayDocProcedure(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var RemQtyToHandleBase: Decimal; var CreatePutAway: Codeunit "Create Put-away"; var ItemTrackingManagement: Codeunit "Item Tracking Management"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary; var TempPostedWhseReceiptLine2: Record "Posted Whse. Receipt Line" temporary; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var CounterPutAways: Integer; var DoCheckIsReceiptForJob: Boolean)
     begin
     end;
 
@@ -2078,6 +2083,16 @@ codeunit 5760 "Whse.-Post Receipt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsReceiptForJob(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var IsReceiptForJob: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePostedRcptLineOnBeforePutAwayProcessing(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayProcessing: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreatePutAwayLine(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayCreationForLine: Boolean)
     begin
     end;
 }

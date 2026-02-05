@@ -37,13 +37,13 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         MustBeSpecified3Err: Label '%1,%2,%3 or %4 must be specified.';
 #pragma warning restore AA0470
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnIsMfgItem', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnIsMfgItem', '', true, false)]
     local procedure OnIsMfgItem(Item: Record Item; var Result: Boolean)
     begin
         Result := Item."Replenishment System" = Item."Replenishment System"::"Prod. Order";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitAmountOnUpdateByEntryType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitAmountOnUpdateByEntryType', '', true, false)]
     local procedure OnValidateUnitAmountOnUpdateByEntryType(var ItemJournalLine: Record "Item Journal Line"; CurrentFieldNo: Integer)
     var
         Item: Record Item;
@@ -67,7 +67,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitCostOnUpdateByEntryType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitCostOnUpdateByEntryType', '', true, false)]
     local procedure OnValidateUnitCostOnUpdateByEntryType(var ItemJournalLine: Record "Item Journal Line"; CurrentFieldNo: Integer)
     var
         Item: Record Item;
@@ -84,7 +84,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateItemNoOnSetCostAndPrice', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateItemNoOnSetCostAndPrice', '', true, false)]
     local procedure OnValidateItemNoOnSetCostAndPrice(var ItemJournalLine: Record "Item Journal Line"; UnitCost: Decimal)
     begin
         case ItemJournalLine."Entry Type" of
@@ -95,7 +95,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateItemNoOnAfterValidateUnitofMeasureCode', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateItemNoOnAfterValidateUnitofMeasureCode', '', true, false)]
     local procedure OnValidateItemNoOnAfterValidateUnitofMeasureCode(var ItemJournalLine: Record "Item Journal Line"; var xItemJournalLine: Record "Item Journal Line"; var Item: Record Item; CurrentFieldNo: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -146,7 +146,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateOrderNoOnCaseOrderTypeElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateOrderNoOnCaseOrderTypeElse', '', true, false)]
     local procedure OnValidateOrderNoOnCaseOrderTypeElse(var ItemJournalLine: Record "Item Journal Line"; var xItemJournalLine: Record "Item Journal Line")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -192,7 +192,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateOrderLineNoOnCaseOrderTypeElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateOrderLineNoOnCaseOrderTypeElse', '', true, false)]
     local procedure OnValidateOrderLineNoOnCaseOrderTypeElse(var ItemJournalLine: Record "Item Journal Line"; var xItemJournalLine: Record "Item Journal Line")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -222,7 +222,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterSigned', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterSigned', '', true, false)]
     local procedure OnAfterSigned(ItemJournalLine: Record "Item Journal Line"; Value: Decimal; var Result: Decimal)
     begin
         case ItemJournalLine."Entry Type" of
@@ -233,14 +233,14 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterCheckEntryType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterCheckEntryType', '', true, false)]
     local procedure OnAfterCheckEntryType(var ItemJournalLine: Record "Item Journal Line")
     begin
         if ItemJournalLine.Type <> ItemJournalLine.Type::Resource then
             ItemJournalLine.TestField("Entry Type", ItemJournalLine."Entry Type"::Output);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterSetDefaultPriceCalculationMethod', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterSetDefaultPriceCalculationMethod', '', true, false)]
     local procedure OnAfterSetDefaultPriceCalculationMethod(var ItemJournalLine: Record "Item Journal Line")
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -254,7 +254,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateCapUnitOfMeasureCodeOnSetQtyPerCapUnitOfMeasure', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateCapUnitOfMeasureCodeOnSetQtyPerCapUnitOfMeasure', '', true, false)]
     local procedure OnValidateCapUnitOfMeasureCodeOnSetQtyPerCapUnitOfMeasure(var ItemJournalLine: Record "Item Journal Line")
     var
         ShopCalendarMgt: Codeunit "Shop Calendar Management";
@@ -270,7 +270,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         ItemJournalLine.Validate("Stop Time");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateCapUnitOfMeasureCodeOnCaseOrderTypeElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateCapUnitOfMeasureCodeOnCaseOrderTypeElse', '', true, false)]
     local procedure OnValidateCapUnitOfMeasureCodeOnCaseOrderTypeElse(var ItemJournalLine: Record "Item Journal Line")
     var
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
@@ -291,7 +291,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateEntryTypeOnUpdateByEntryType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateEntryTypeOnUpdateByEntryType', '', true, false)]
     local procedure OnValidateEntryTypeOnUpdateByEntryType(var ItemJournalLine: Record "Item Journal Line")
     begin
         case ItemJournalLine."Entry Type" of
@@ -300,7 +300,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateNoOnAfterValidateItemNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateNoOnAfterValidateItemNo', '', true, false)]
     local procedure OnValidateNoOnAfterValidateItemNo(var ItemJournalLine: Record "Item Journal Line")
     begin
         if ItemJournalLine.Type in [ItemJournalLine.Type::"Work Center", ItemJournalLine.Type::"Machine Center"] then
@@ -309,14 +309,14 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
             ItemJournalLine.CreateDimFromDefaultDim(ItemJournalLine.FieldNo("Work Center No."));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateNoOnBeforeValidateItemNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateNoOnBeforeValidateItemNo', '', true, false)]
     local procedure OnValidateNoOnBeforeValidateItemNo(var ItemJournalLine: Record "Item Journal Line")
     begin
         ItemJournalLine."Work Center No." := '';
         ItemJournalLine."Work Center Group Code" := '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateQuantityOnAfterSetCallWhseCheck', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateQuantityOnAfterSetCallWhseCheck', '', true, false)]
     local procedure OnValidateQuantityOnAfterSetCallWhseCheck(var ItemJournalLine: Record "Item Journal Line"; var CallWhseCheck: Boolean)
     begin
         CallWhseCheck :=
@@ -324,7 +324,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
             ItemJournalLine.LastOutputOperation(ItemJournalLine);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnSelectItemEntryOnSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnSelectItemEntryOnSetFilters', '', true, false)]
     local procedure OnSelectItemEntryOnSetFilters(var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
         if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
@@ -342,7 +342,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateBinCodeOnCompBinCheck', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateBinCodeOnCompBinCheck', '', true, false)]
     local procedure OnValidateBinCodeOnCompBinCheck(var ItemJournalLine: Record "Item Journal Line")
     begin
         if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Consumption) and
@@ -354,7 +354,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnBeforeLookupItemNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnBeforeLookupItemNo', '', true, false)]
     local procedure OnBeforeLookupItemNo(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
         case ItemJournalLine."Entry Type" of
@@ -371,7 +371,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterValidateNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterValidateNo', '', true, false)]
     local procedure OnAfterValidateNo(var ItemJournalLine: Record "Item Journal Line")
     var
         MachineCenter: Record "Machine Center";
@@ -405,41 +405,41 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
             ItemJournalLine.CreateDimWithProdOrderLine();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnGetOrderTypeProduction', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnGetOrderTypeProduction', '', true, false)]
     local procedure OnGetOrderTypeProduction(var OrderType: Enum "Inventory Order Type")
     begin
         OrderType := "Inventory Order Type"::Production;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeOutput', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeOutput', '', true, false)]
     local procedure OnAfterIsEntryTypeOutput(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeConsumption', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeConsumption', '', true, false)]
     local procedure OnAfterIsEntryTypeConsumption(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Consumption then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeProduction', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeProduction', '', true, false)]
     local procedure OnAfterIsEntryTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         if ItemJournalLine."Entry Type" in [ItemJournalLine."Entry Type"::Consumption, ItemJournalLine."Entry Type"::Output] then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsOrderTypeAsmOrProd', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsOrderTypeAsmOrProd', '', true, false)]
     local procedure OnAfterIsOrderTypeAsmOrProd(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         if ItemJournalLine."Order Type" = ItemJournalLine."Order Type"::Production then
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsDocNoProdOrderNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsDocNoProdOrderNo', '', true, false)]
     local procedure OnAfterIsDocNoProdOrderNo(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -448,19 +448,19 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         Result := ManufacturingSetup."Doc. No. Is Prod. Order No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnTimeIsEmpty', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnTimeIsEmpty', '', true, false)]
     local procedure OnTimeIsEmpty(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         Result := (ItemJournalLine."Setup Time" = 0) and (ItemJournalLine."Run Time" = 0) and (ItemJournalLine."Stop Time" = 0);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnOnlyStopTime', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnOnlyStopTime', '', true, false)]
     local procedure OnOnlyStopTime(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
         Result := (ItemJournalLine."Setup Time" = 0) and (ItemJournalLine."Run Time" = 0) and (ItemJournalLine."Stop Time" <> 0);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterInitDefaultDimensionSources', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterInitDefaultDimensionSources', '', true, false)]
     local procedure OnAfterInitDefaultDimensionSources(var ItemJournalLine: Record "Item Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     var
         DimMgt: Codeunit DimensionManagement;
@@ -468,14 +468,14 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         DimMgt.AddDimSource(DefaultDimSource, Database::"Work Center", ItemJournalLine."Work Center No.", FieldNo = ItemJournalLine.FieldNo("Work Center No."));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterInitTableValuePair', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterInitTableValuePair', '', true, false)]
     local procedure OnAfterInitTableValuePair(var ItemJournalLine: Record "Item Journal Line"; var TableValuePair: Dictionary of [Integer, Code[20]]; FieldNo: Integer)
     begin
         if FieldNo = ItemJournalLine.FieldNo("Work Center No.") then
             TableValuePair.Add(Database::"Work Center", ItemJournalLine."Work Center No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitOfMeasureCodeOnBeforeValidateQuantity', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnValidateUnitOfMeasureCodeOnBeforeValidateQuantity', '', true, false)]
     local procedure OnValidateUnitOfMeasureCodeOnBeforeValidateQuantity(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean);
     begin
         if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output then begin
@@ -485,7 +485,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterCopyItemJnlLineFromPurchLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterCopyItemJnlLineFromPurchLine', '', true, false)]
     local procedure OnAfterCopyItemJnlLineFromPurchLine(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     begin
         if PurchLine."Prod. Order No." <> '' then begin
@@ -495,7 +495,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Standard Item Journal Line", 'OnAfterInitDefaultDimensionSources', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Standard Item Journal Line", 'OnAfterInitDefaultDimensionSources', '', true, false)]
     local procedure StandardItemJournalLineOnAfterInitDefaultDimensionSources(var StandardItemJournalLine: Record "Standard Item Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     var
         DimMgt: Codeunit DimensionManagement;
@@ -505,31 +505,31 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
 
     // Table Item Journal Template
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetConsumptionTemplateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetConsumptionTemplateType', '', true, false)]
     local procedure OnGetConsumptionTemplateType(var Type: Enum "Item Journal Template Type")
     begin
         Type := "Item Journal Template Type"::Consumption;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetOutputTemplateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetOutputTemplateType', '', true, false)]
     local procedure OnGetOutputTemplateType(var Type: Enum "Item Journal Template Type")
     begin
         Type := "Item Journal Template Type"::Output;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetCapacityTemplateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetCapacityTemplateType', '', true, false)]
     local procedure OnGetCapacityTemplateType(var Type: Enum "Item Journal Template Type")
     begin
         Type := "Item Journal Template Type"::Capacity;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetProdOrderTemplateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetProdOrderTemplateType', '', true, false)]
     local procedure OnGetProdOrderTemplateType(var Type: Enum "Item Journal Template Type")
     begin
         Type := "Item Journal Template Type"::"Prod. Order";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterValidateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterValidateType', '', true, false)]
     local procedure OnAfterValidateType(var ItemJournalTemplate: Record "Item Journal Template"; SourceCodeSetup: Record "Source Code Setup")
     begin
         case ItemJournalTemplate.Type of
@@ -634,7 +634,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl. Line-Reserve", 'OnCallItemTrackingOnCheckItemPosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl. Line-Reserve", 'OnCallItemTrackingOnCheckItemPosting', '', true, false)]
     local procedure OnCallItemTrackingOnCheckItemPosting(var ItemJournalLine: Record "Item Journal Line")
     var
         ReservationEntry: Record "Reservation Entry";
@@ -648,7 +648,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Calculate Inventory Value", 'OnAfterOnPreDataItem', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Calculate Inventory Value", 'OnAfterOnPreDataItem', '', true, false)]
     local procedure OnAfterOnPreDataItem(var Item: Record Item; CalcBase: Enum "Inventory Value Calc. Base"; PostingDate: Date; var TempNewStdCostItem: Record Item temporary)
     var
         CalculateStandardCost: Codeunit "Calculate Standard Cost";
@@ -663,7 +663,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Inventory Movement", 'OnShouldShowOutput', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Inventory Movement", 'OnShouldShowOutput', '', true, false)]
     local procedure OnShouldShowOutput(TemplateType: Enum "Item Journal Template Type"; var Result: Boolean)
     begin
         Result :=
@@ -671,7 +671,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
                              "Item Journal Template Type"::Output, "Item Journal Template Type"::"Prod. Order"];
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Inventory Posting - Test", 'OnAfterGetRecordOnCheckManufacturing', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Inventory Posting - Test", 'OnAfterGetRecordOnCheckManufacturing', '', true, false)]
     local procedure OnAfterGetRecordOnCheckManufacturing(var ItemJournalLine: Record "Item Journal Line"; var QtyError: Boolean; sender: Report "Inventory Posting - Test")
     begin
         if (ItemJournalLine."Entry Type" in [ItemJournalLine."Entry Type"::Output, ItemJournalLine."Entry Type"::Consumption]) and
@@ -712,7 +712,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Inventory Posting - Test", 'OnAfterGetRecordOnSetManufacturingFields', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Inventory Posting - Test", 'OnAfterGetRecordOnSetManufacturingFields', '', true, false)]
     local procedure OnAfterGetRecordOnSetManufacturingFields(
         var ItemJournalLine: Record "Item Journal Line";
         var OperationNo: Code[20]; var OperationNoCaption: Text; var OutputQuantity: Decimal; var OutputQuantityCaption: Text;
@@ -736,7 +736,7 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         StopTimeCaption := ItemJournalLine.FieldCaption("Stop Time");
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Calc. Inventory Value - Test", 'OnPreDataItemOnCalcStdCost', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Calc. Inventory Value - Test", 'OnPreDataItemOnCalcStdCost', '', true, false)]
     local procedure OnPreDataItemOnCalcStdCost(var Item: Record Item; PostingDate: Date; CalcBase: Enum "Inventory Value Calc. Base"; sender: Report "Calc. Inventory Value - Test")
     begin
         sender.CalculateStandardCost(Item, PostingDate, CalcBase);

@@ -280,6 +280,17 @@ table 334 "Column Layout"
             Caption = 'Show in ACY';
             ToolTip = 'Specifies whether amounts are shown in the Additional Reporting Currency.';
         }
+#if not CLEAN28
+#pragma warning disable AS0086
+#endif
+        field(44; "Internal Description"; Text[500])
+#if not CLEAN28
+#pragma warning restore AS0086
+#endif
+        {
+            Caption = 'Internal Description';
+            ToolTip = 'Specifies the internal description for the column definition line that highlights complex logic or areas needing review for the next report designer.';
+        }
     }
 
     keys

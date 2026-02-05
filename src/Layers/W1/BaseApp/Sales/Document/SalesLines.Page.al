@@ -10,6 +10,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays a list of sales lines across all documents for searching and analysis.
+/// </summary>
 page 516 "Sales Lines"
 {
     ApplicationArea = Basic, Suite;

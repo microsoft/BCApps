@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Globalization;
 
+/// <summary>
+/// Stores language-specific text configurations for reminder PDF attachment documents by source type.
+/// </summary>
 table 502 "Reminder Attachment Text"
 {
     Caption = 'Reminder Attachment Text';
@@ -14,11 +17,17 @@ table 502 "Reminder Attachment Text"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique identifier for this attachment text configuration.
+        /// </summary>
         field(1; Id; Guid)
         {
             Caption = 'ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the language code for this attachment text configuration.
+        /// </summary>
         field(2; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
@@ -26,17 +35,26 @@ table 502 "Reminder Attachment Text"
             TableRelation = Language;
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies whether this text is linked to reminder terms or a specific reminder level.
+        /// </summary>
         field(3; "Source Type"; Enum "Reminder Text Source Type")
         {
             Caption = 'Source Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Specifies the file name for the generated reminder PDF attachment.
+        /// </summary>
         field(4; "File Name"; Text[100])
         {
             Caption = 'File Name';
             DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA28
+        /// <summary>
+        /// Contains the text that appears at the beginning of the reminder attachment.
+        /// </summary>
         field(5; "Beginning Line"; Text[100])
         {
             Caption = 'Beginning Line';
@@ -54,12 +72,18 @@ table 502 "Reminder Attachment Text"
 #endif
         }
 #endif
+        /// <summary>
+        /// Specifies the description text for inline fees shown on the reminder attachment.
+        /// </summary>
         field(6; "Inline Fee Description"; Text[100])
         {
             Caption = 'Inline Fee Description';
             DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA28
+        /// <summary>
+        /// Contains the text that appears at the end of the reminder attachment.
+        /// </summary>
         field(7; "Ending Line"; Text[100])
         {
             Caption = 'Ending Line';
@@ -77,6 +101,9 @@ table 502 "Reminder Attachment Text"
 #endif
         }
 #endif
+        /// <summary>
+        /// Indicates whether beginning text lines exist for this attachment configuration.
+        /// </summary>
         field(10; "Beginning Lines"; Boolean)
         {
             CalcFormula = exist("Reminder Attachment Text Line"
@@ -87,6 +114,9 @@ table 502 "Reminder Attachment Text"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether ending text lines exist for this attachment configuration.
+        /// </summary>
         field(11; "Ending Lines"; Boolean)
         {
             CalcFormula = exist("Reminder Attachment Text Line"
@@ -155,6 +185,11 @@ table 502 "Reminder Attachment Text"
         MissingLanguageCodeErr: Label 'A reminder attachment text cannot be created without a language code.';
         AlreadyExistsSelectedLanguageErr: Label 'There is already a reminder attachment text for the selected language %1. Remove the existing personalization before setting the default communication for that language.', Comment = '%1 = Language Code';
 
+    /// <summary>
+    /// Creates a new reminder attachment text record for the user's language with default content.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the reminder attachment text group.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; SourceType: Enum "Reminder Text Source Type")
     var
         Language: Codeunit Language;
@@ -162,6 +197,12 @@ table 502 "Reminder Attachment Text"
         SetDefaultContentForNewLanguage(SelectedId, Language.GetUserLanguageCode(), SourceType);
     end;
 
+    /// <summary>
+    /// Creates a new reminder attachment text record for the specified language with default content.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the reminder attachment text group.</param>
+    /// <param name="LanguageCode">The language code for the new record.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type")
     var
         EmptyGuid: Guid;
@@ -169,6 +210,13 @@ table 502 "Reminder Attachment Text"
         SetDefaultContentForNewLanguage(SelectedId, LanguageCode, SourceType, EmptyGuid);
     end;
 
+    /// <summary>
+    /// Creates a new reminder attachment text record for the specified language and links it to the source record.
+    /// </summary>
+    /// <param name="SelectedId">The ID of the reminder attachment text group.</param>
+    /// <param name="LanguageCode">The language code for the new record.</param>
+    /// <param name="SourceType">The source type (Reminder Term or Reminder Level).</param>
+    /// <param name="SelectedSystemId">The system ID of the source record to link to.</param>
     procedure SetDefaultContentForNewLanguage(SelectedId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type"; SelectedSystemId: Guid)
     var
         ExistingReminderAttachmentText: Record "Reminder Attachment Text";

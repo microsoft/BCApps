@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Lists available sales budget names for budget planning and analysis.
+/// </summary>
 page 9374 "Budget Names Sales"
 {
     ApplicationArea = SalesBudget;

@@ -105,6 +105,7 @@ page 6030 "Service Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the original profit that was associated with the service document.';
@@ -113,6 +114,7 @@ page 6030 "Service Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the amount of profit for the service document, in LCY, adjusted for any changes in the original item costs.';
@@ -120,6 +122,7 @@ page 6030 "Service Statistics"
                 field("ProfitPct[1]"; ProfitPct[1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -128,6 +131,7 @@ page 6030 "Service Statistics"
                 field("AdjProfitPct[1]"; AdjProfitPct[1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -195,6 +199,7 @@ page 6030 "Service Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the total cost, in LCY, of the items in the service document, adjusted for any changes in the original costs of these items.';
@@ -205,6 +210,7 @@ page 6030 "Service Statistics"
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the service document.';
@@ -298,6 +304,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Original Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the original profit that was associated with the service document.';
@@ -306,6 +313,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the amount of profit for the service document, in LCY, adjusted for any changes in the original item costs.';
@@ -313,6 +321,7 @@ page 6030 "Service Statistics"
                         field("ProfitPct[5]"; ProfitPct[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Original Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -321,6 +330,7 @@ page 6030 "Service Statistics"
                         field("AdjProfitPct[5]"; AdjProfitPct[5])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Adjusted Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -340,6 +350,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Adjusted Cost (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total cost, in LCY, of the items in the service document, adjusted for any changes in the original costs of these items.';
@@ -350,6 +361,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cost Adjmt. Amount (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the service document.';
@@ -430,6 +442,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service document, in local currency.';
@@ -438,6 +451,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service document, in local currency.';
@@ -445,6 +459,7 @@ page 6030 "Service Statistics"
                         field("ProfitPct[6]"; ProfitPct[6])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -549,6 +564,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service document, in local currency.';
@@ -557,6 +573,7 @@ page 6030 "Service Statistics"
                         {
                             ApplicationArea = Service;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Profit (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the profit related to the service document, in local currency.';
@@ -564,6 +581,7 @@ page 6030 "Service Statistics"
                         field("ProfitPct[7]"; ProfitPct[7])
                         {
                             ApplicationArea = Service;
+                            AutoFormatType = 0;
                             Caption = 'Profit %';
                             DecimalPlaces = 1 : 1;
                             Editable = false;
@@ -624,6 +642,7 @@ page 6030 "Service Statistics"
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the expended percentage of the credit limit in (LCY).';

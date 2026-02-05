@@ -553,7 +553,7 @@ codeunit 144012 "UT TAB Cash Bank Giro"
 
         CBGStatementLine."Journal Template Name" := CBGStatement."Journal Template Name";
         CBGStatementLine."No." := CBGStatement."No.";
-        CBGStatementLine."Line No." := LibraryRandom.RandInt(10);
+        CBGStatementLine."Line No." := LibraryRandom.RandInt(5);
         CBGStatementLine."Account Type" := AccountType;
         CBGStatementLine."Account No." := AccountNo;
         CBGStatementLine.Date := CBGStatement.Date;

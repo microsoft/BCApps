@@ -388,6 +388,40 @@ codeunit 136304 "Job Performance WIP"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure JobCalculateWIPWithoutGUIDialog()
+    var
+        Job: Record Job;
+        JobWIPMethod: Record "Job WIP Method";
+        JobTask: Record "Job Task";
+        JobWIPEntry: Record "Job WIP Entry";
+        PurchaseHeader: Record "Purchase Header";
+        JobCalculateWIPReport: Report "Job Calculate WIP";
+    begin
+        // [SCENARIO 616659] Report 1086 "Job Calculate WIP" executes successfully without GUI dialog interactions
+        // [GIVEN] A job with WIP method, job task, and posted purchase invoice
+        Initialize();
+        CreateJobWIPMethod(
+          JobWIPMethod."Recognized Costs"::"At Completion", JobWIPMethod."Recognized Sales"::"At Completion", JobWIPMethod);
+        CreateJobWithWIPMethod(Job, JobWIPMethod.Code, Job."WIP Posting Method"::"Per Job");
+        LibraryJob.CreateJobTask(Job, JobTask);
+        CreatePurchaseInvoiceWithJobTask(PurchaseHeader, JobTask);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Calculate WIP is run with SetHideValidationDialog to suppress GUI interactions
+        Job.SetRecFilter();
+        JobCalculateWIPReport.SetTableView(Job);
+        JobCalculateWIPReport.InitializeRequest();
+        JobCalculateWIPReport.SetHideValidationDialog(true);
+        JobCalculateWIPReport.UseRequestPage(false);
+        JobCalculateWIPReport.Run();
+
+        // [THEN] WIP entries are created successfully without user interaction
+        JobWIPEntry.SetRange("Job No.", Job."No.");
+        Assert.IsFalse(JobWIPEntry.IsEmpty, 'WIP entries should be created without GUI dialog');
+    end;
+
+    [Test]
     [HandlerFunctions('WIPFailedMessageHandler')]
     [Scope('OnPrem')]
     procedure NoWIPCosts()

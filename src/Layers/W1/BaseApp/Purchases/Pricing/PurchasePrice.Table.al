@@ -65,6 +65,7 @@ table 7012 "Purchase Price"
         }
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

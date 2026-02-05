@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Analysis;
 using System.Integration;
 using System.Visualization;
 
+/// <summary>
+/// Displays a chart visualization of trailing sales orders by status and period.
+/// </summary>
 page 760 "Trailing Sales Orders Chart"
 {
     Caption = 'Trailing Sales Orders';
@@ -363,6 +366,9 @@ page 760 "Trailing Sales Orders Chart"
         UpdateStatus();
     end;
 
+    /// <summary>
+    /// Updates the enabled state of chart action buttons based on current settings.
+    /// </summary>
     procedure SetActionsEnabled()
     begin
         AllOrdersEnabled := (TrailingSalesOrdersSetup."Show Orders" <> TrailingSalesOrdersSetup."Show Orders"::"All Orders") and

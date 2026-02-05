@@ -99,6 +99,7 @@ table 5345 "CRM Transactioncurrency"
         }
         field(10; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Exchange rate between the transaction currency and the base currency.';
             ExternalName = 'exchangerate';

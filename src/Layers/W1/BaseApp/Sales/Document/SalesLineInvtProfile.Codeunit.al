@@ -7,10 +7,19 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 
+/// <summary>
+/// Creates inventory profile records from sales lines for supply planning calculations.
+/// </summary>
 codeunit 99000862 "Sales Line Invt. Profile"
 {
     // Inventory Profile
 
+    /// <summary>
+    /// Transfers inventory profile data from a sales line for supply planning.
+    /// </summary>
+    /// <param name="InventoryProfile">The inventory profile record to populate.</param>
+    /// <param name="SalesLine">The sales line to transfer from.</param>
+    /// <param name="TrackingReservationEntry">The tracking reservation entry for bindings.</param>
     procedure TransferInventoryProfileFromSalesLine(var InventoryProfile: Record "Inventory Profile"; var SalesLine: Record "Sales Line"; var TrackingReservationEntry: Record "Reservation Entry")
     var
         ReservationEntry: Record "Reservation Entry";

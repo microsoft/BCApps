@@ -1856,6 +1856,7 @@ table 5902 "Service Line"
         }
         field(5750; "Whse. Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding (Base)" where("Source Type" = const(5902),
 #pragma warning disable AL0603

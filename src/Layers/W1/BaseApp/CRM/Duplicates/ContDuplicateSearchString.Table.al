@@ -23,11 +23,9 @@ table 5086 "Cont. Duplicate Search String"
         {
             Caption = 'Field No.';
         }
-        field(3; "Part of Field"; Option)
+        field(3; "Part of Field"; Enum "Duplicate Search String Part")
         {
             Caption = 'Part of Field';
-            OptionCaption = 'First,Last';
-            OptionMembers = First,Last;
         }
         field(4; "Search String"; Text[10])
         {

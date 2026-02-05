@@ -6,7 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// This enum has the Status of the AI Test Line.
+/// This enum has the Status of the AI Eval Line.
 /// </summary>
 enum 149031 "AIT Line Status"
 {
@@ -21,14 +21,14 @@ enum 149031 "AIT Line Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Line state is Starting.
+    /// Specifies that the AI Eval Line state is Starting.
     /// </summary>
     value(10; Starting)
     {
         Caption = 'Starting';
     }
     /// <summary>
-    /// Specifies that the AI Test Line state is Running.
+    /// Specifies that the AI Eval Line state is Running.
     /// </summary>
     value(20; Running)
     {
@@ -36,7 +36,7 @@ enum 149031 "AIT Line Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Line state is Completed.
+    /// Specifies that the AI Eval Line state is Completed.
     /// </summary>
     value(30; Completed)
     {
@@ -44,7 +44,7 @@ enum 149031 "AIT Line Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Test Line state is Cancelled.
+    /// Specifies that the AI Eval Line state is Cancelled.
     /// </summary>
     value(40; Cancelled)
     {

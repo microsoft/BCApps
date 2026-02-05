@@ -13,6 +13,7 @@ permissionset 8351 "MCP - Read"
 
     IncludedPermissionSets = "MCP - Objects";
 
-    Permissions = tabledata "MCP Configuration" = R,
+    Permissions = tabledata "MCP Entra Application" = R,
+                  tabledata "MCP Configuration" = R,
                   tabledata "MCP Configuration Tool" = R;
 }

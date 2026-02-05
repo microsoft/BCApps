@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates customer balance statements showing ledger entries and remaining amounts as of a specified date.
+/// </summary>
+
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
@@ -401,6 +405,13 @@ report 121 "Customer - Balance to Date"
         RemainingAmt: Decimal;
         Counter1: Integer;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Balance to Date report.
+    /// </summary>
+    /// <param name="NewPrintAmountInLCY">True to print amounts in local currency.</param>
+    /// <param name="NewPrintOnePrPage">True to start a new page per customer.</param>
+    /// <param name="NewPrintUnappliedEntries">True to include unapplied entries.</param>
+    /// <param name="NewEndingDate">The ending date for the balance calculation.</param>
     procedure InitializeRequest(NewPrintAmountInLCY: Boolean; NewPrintOnePrPage: Boolean; NewPrintUnappliedEntries: Boolean; NewEndingDate: Date)
     begin
         PrintAmountInLCY := NewPrintAmountInLCY;

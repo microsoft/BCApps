@@ -232,7 +232,9 @@ page 729 "Copy Item"
     begin
         InitCopyItemBuffer();
         ShouldCopyAllInformation := true;
-        ValidateShouldCopyAllInformation();
+        OnBeforeValidateShouldCopyAllInformation(ShouldCopyAllInformation);
+        if ShouldCopyAllInformation then
+            ValidateShouldCopyAllInformation();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -249,6 +251,8 @@ page 729 "Copy Item"
         SpecifyTargetItemNoErr: Label 'You must specify the target item number.';
         TargetItemNoTxt: Label 'Target Item No.';
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
+
+    protected var
         ShouldCopyAllInformation: Boolean;
 
     procedure GetParameters(var CopyItemBuffer: Record "Copy Item Buffer")
@@ -339,6 +343,11 @@ page 729 "Copy Item"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShouldCopyAllInformation(var CopyItemBuffer: Record "Copy Item Buffer"; ShouldCopyAllInfo: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateShouldCopyAllInformation(var CopyAllInformation: Boolean);
     begin
     end;
 }

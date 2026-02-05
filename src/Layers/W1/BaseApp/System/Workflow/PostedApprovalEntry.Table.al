@@ -85,6 +85,7 @@ table 456 "Posted Approval Entry"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(17; "Currency Code"; Code[10])
@@ -104,6 +105,7 @@ table 456 "Posted Approval Entry"
         {
             Caption = 'Available Credit Limit (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
         field(22; "Posted Record ID"; RecordID)
         {

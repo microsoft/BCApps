@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Lists dispute status codes used to track and categorize customer ledger entry disputes.
+/// </summary>
 page 166 "Dispute Status"
 {
     ApplicationArea = Basic, Suite;

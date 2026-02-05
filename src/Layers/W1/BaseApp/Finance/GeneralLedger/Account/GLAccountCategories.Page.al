@@ -75,6 +75,8 @@ page 790 "G/L Account Categories"
                 field(GetBalance; Rec.GetBalance())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Balance';
                     Editable = false;
                     Style = Strong;

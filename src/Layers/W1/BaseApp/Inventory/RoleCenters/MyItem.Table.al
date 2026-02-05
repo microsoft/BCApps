@@ -39,11 +39,14 @@ table 9152 "My Item"
         }
         field(4; "Unit Price"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
             Editable = false;
         }
         field(5; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item No.")));
             Caption = 'Inventory';
             Editable = false;

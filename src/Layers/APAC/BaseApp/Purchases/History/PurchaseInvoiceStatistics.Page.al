@@ -68,13 +68,15 @@ page 400 "Purchase Invoice Statistics"
                 field(AmountLCY; AmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatType = 1;
+                    AutoFormatType = 0;
+                    AutoFormatExpression = '';
                     Caption = 'Purchase (LCY)';
                     ToolTip = 'Specifies your total purchases.';
                 }
                 field(LineQty; LineQty)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total quantity of G/L account entries, items and/or resources in the purchase document.';
@@ -82,6 +84,7 @@ page 400 "Purchase Invoice Statistics"
                 field(TotalParcels; TotalParcels)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total number of parcels in the purchase document.';
@@ -89,6 +92,7 @@ page 400 "Purchase Invoice Statistics"
                 field(TotalNetWeight; TotalNetWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total net weight of the items in the purchase document.';
@@ -96,6 +100,7 @@ page 400 "Purchase Invoice Statistics"
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total gross weight of the items in the purchase document.';
@@ -103,6 +108,7 @@ page 400 "Purchase Invoice Statistics"
                 field(TotalVolume; TotalVolume)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total volume of the items in the purchase document.';

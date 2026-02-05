@@ -61,7 +61,7 @@ table 99000848 "Registered Absence"
         }
         field(7; Capacity; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Capacity';
             MinValue = 0;
         }

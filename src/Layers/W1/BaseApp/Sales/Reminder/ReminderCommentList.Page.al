@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a read-only list of comments associated with a reminder or issued reminder document.
+/// </summary>
 page 443 "Reminder Comment List"
 {
     AutoSplitKey = true;
@@ -56,6 +59,11 @@ page 443 "Reminder Comment List"
         Text001: Label 'Reminder';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Gets the page caption text based on the reminder comment line.
+    /// </summary>
+    /// <param name="ReminderCommentLine">The reminder comment line to generate caption for.</param>
+    /// <returns>The caption text for the page.</returns>
     procedure Caption(ReminderCommentLine: Record "Reminder Comment Line"): Text
     begin
         if ReminderCommentLine."No." = '' then

@@ -55,6 +55,7 @@ report 6035 "Upd. Disc.% on Contract"
                     field(DiscountPct; DiscountPct)
                     {
                         ApplicationArea = Service;
+                        AutoFormatType = 0;
                         Caption = 'Add/Subtract Discount %';
                         ToolTip = 'Specifies if any contract discount percent is included in the batch job. ';
                     }

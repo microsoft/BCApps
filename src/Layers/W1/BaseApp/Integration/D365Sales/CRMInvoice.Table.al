@@ -129,6 +129,7 @@ table 5355 "CRM Invoice"
         }
         field(14; DiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoice Discount Amount';
             Description = 'Type the discount amount for the invoice if the customer is eligible for special savings.';
             ExternalName = 'discountamount';
@@ -136,6 +137,7 @@ table 5355 "CRM Invoice"
         }
         field(15; FreightAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount';
             Description = 'Type the cost of freight or shipping for the products included in the invoice for use in calculating the total amount due.';
             ExternalName = 'freightamount';
@@ -143,6 +145,7 @@ table 5355 "CRM Invoice"
         }
         field(16; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount';
             Description = 'Shows the total amount due, calculated as the sum of the products, discount, freight, and taxes for the invoice.';
             ExternalAccess = Modify;
@@ -151,6 +154,7 @@ table 5355 "CRM Invoice"
         }
         field(17; TotalLineItemAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount';
             Description = 'Shows the sum of all existing and write-in products included on the invoice, based on the specified price list and quantities.';
             ExternalAccess = Modify;
@@ -159,6 +163,7 @@ table 5355 "CRM Invoice"
         }
         field(18; TotalLineItemDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount';
             Description = 'Shows the Manual Discount amounts specified on all products included in the invoice. This value is reflected in the Detail Amount field on the invoice and is added to any discount amount or rate specified on the invoice.';
             ExternalAccess = Modify;
@@ -167,6 +172,7 @@ table 5355 "CRM Invoice"
         }
         field(19; TotalAmountLessFreight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount';
             Description = 'Shows the total product amount due, minus any discounts. This value is added to freight and tax amounts in the calculation for the total amount due for the invoice.';
             ExternalAccess = Modify;
@@ -175,6 +181,7 @@ table 5355 "CRM Invoice"
         }
         field(20; TotalDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount';
             Description = 'Shows the total discount amount, based on the discount price and rate entered on the invoice.';
             ExternalAccess = Modify;
@@ -192,6 +199,7 @@ table 5355 "CRM Invoice"
         }
         field(22; TotalTax; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax';
             Description = 'Shows the total of the Tax amounts specified on all products included in the invoice, included in the Total Amount due calculation for the invoice.';
             ExternalAccess = Modify;
@@ -425,6 +433,7 @@ table 5355 "CRM Invoice"
         }
         field(54; DiscountPercentage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoice Discount (%)';
             Description = 'Type the discount rate that should be applied to the Detail Amount field, for use in calculating the Pre-Freight Amount and Total Amount values for the invoice.';
             ExternalName = 'discountpercentage';
@@ -577,6 +586,7 @@ table 5355 "CRM Invoice"
         }
         field(72; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -602,6 +612,7 @@ table 5355 "CRM Invoice"
         }
         field(75; TransactionCurrencyIdName; Text[100])
         {
+            AutoFormatType = 0;
             CalcFormula = lookup("CRM Transactioncurrency".CurrencyName where(TransactionCurrencyId = field(TransactionCurrencyId)));
             Caption = 'TransactionCurrencyIdName';
             ExternalAccess = Read;
@@ -611,6 +622,7 @@ table 5355 "CRM Invoice"
         }
         field(76; TotalLineItemAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Detail Amount (Base)';
             Description = 'Shows the Detail Amount field converted to the system''s default base currency. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -619,6 +631,7 @@ table 5355 "CRM Invoice"
         }
         field(77; TotalLineItemDiscountAmount_Ba; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Line Item Discount Amount (Base)';
             Description = 'Shows the total of the Manual Discount amounts specified on all products included in the invoice. This value is reflected in the Detail Amount field on the invoice and is added to any discount amount or rate specified on the invoice.';
             ExternalAccess = Read;
@@ -627,6 +640,7 @@ table 5355 "CRM Invoice"
         }
         field(78; TotalTax_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Tax (Base)';
             Description = 'Shows the Total Tax field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -635,6 +649,7 @@ table 5355 "CRM Invoice"
         }
         field(79; TotalAmountLessFreight_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount (Base)';
             Description = 'Shows the Pre-Freight Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -643,6 +658,7 @@ table 5355 "CRM Invoice"
         }
         field(80; DiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoice Discount Amount (Base)';
             Description = 'Shows the Invoice Discount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -651,6 +667,7 @@ table 5355 "CRM Invoice"
         }
         field(81; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Amount (Base)';
             Description = 'Shows the Total Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -659,6 +676,7 @@ table 5355 "CRM Invoice"
         }
         field(82; FreightAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Freight Amount (Base)';
             Description = 'Shows the Freight Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -667,6 +685,7 @@ table 5355 "CRM Invoice"
         }
         field(83; TotalDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount Amount (Base)';
             Description = 'Shows the Total Discount Amount field converted to the system''s default base currency for reporting purposes. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

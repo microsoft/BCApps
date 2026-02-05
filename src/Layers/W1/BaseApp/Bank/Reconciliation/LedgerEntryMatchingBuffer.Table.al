@@ -134,6 +134,7 @@ table 1248 "Ledger Entry Matching Buffer"
         /// </summary>
         field(20; "Remaining Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Amount';
         }
         /// <summary>
@@ -142,6 +143,7 @@ table 1248 "Ledger Entry Matching Buffer"
         /// </summary>
         field(21; "Remaining Amt. Incl. Discount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Amt. Incl. Discount';
         }
         /// <summary>

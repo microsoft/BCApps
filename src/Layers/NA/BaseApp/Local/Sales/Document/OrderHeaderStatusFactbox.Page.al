@@ -160,6 +160,8 @@ page 36640 "Order Header Status Factbox"
                 field(TotalOpenAmount; TotalOpenAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Total';
                     Editable = false;
                     ToolTip = 'Specifies the total amount less any invoice discount amount and exclusive of VAT for the posted document.';
@@ -167,6 +169,8 @@ page 36640 "Order Header Status Factbox"
                 field(TotalOpenAmountOnHold; TotalOpenAmountOnHold)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'On Hold';
                     Editable = false;
                     ToolTip = 'Specifies lines that are on orders that are on hold.';
@@ -174,6 +178,8 @@ page 36640 "Order Header Status Factbox"
                 field(TotalOpenAmountPendingApproval; TotalOpenAmountPendingApproval)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Pending Approval';
                     Editable = false;
                     ToolTip = 'Specifies that the document remains to be approved.';

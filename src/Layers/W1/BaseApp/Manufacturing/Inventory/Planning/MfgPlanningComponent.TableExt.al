@@ -55,6 +55,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
         }
         field(20; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankNumbers = BlankNeg;
             Caption = 'Scrap %';
             DataClassification = CustomerContent;
@@ -113,6 +114,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
         "Line No." := ProdOrderComp."Line No.";
         "Item No." := ProdOrderComp."Item No.";
         Description := ProdOrderComp.Description;
+        "Description 2" := ProdOrderComp."Description 2";
         "Unit of Measure Code" := ProdOrderComp."Unit of Measure Code";
         "Quantity per" := ProdOrderComp."Quantity per";
         Quantity := ProdOrderComp.Quantity;

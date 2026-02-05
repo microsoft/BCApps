@@ -345,6 +345,7 @@ table 325 "VAT Posting Setup"
         }
         field(12103; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DecimalPlaces = 0 : 5;
             InitValue = 100;

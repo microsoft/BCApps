@@ -70,32 +70,40 @@ page 5841 "Standard Cost Worksheet"
                 }
                 field("Standard Cost"; Rec."Standard Cost")
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the unit cost that is used as an estimation to be adjusted with variances later. It is typically used in assembly and production where costs can vary.';
                 }
                 field("New Standard Cost"; Rec."New Standard Cost")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                 }
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                 }
                 field("New Indirect Cost %"; Rec."New Indirect Cost %")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                 }
                 field("Overhead Rate"; Rec."Overhead Rate")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the overhead rate.';
                 }
                 field("New Overhead Rate"; Rec."New Overhead Rate")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                 }
                 field(Implemented; Rec.Implemented)
@@ -111,120 +119,160 @@ page 5841 "Standard Cost Worksheet"
                 field("Single-Lvl Material Cost"; Rec."Single-Lvl Material Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the single-level material cost of the item.';
                     Visible = false;
                 }
                 field("New Single-Lvl Material Cost"; Rec."New Single-Lvl Material Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Single-Lvl Cap. Cost"; Rec."Single-Lvl Cap. Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the single-level capacity cost of the item.';
                     Visible = false;
                 }
                 field("New Single-Lvl Cap. Cost"; Rec."New Single-Lvl Cap. Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Single-Lvl Subcontrd Cost"; Rec."Single-Lvl Subcontrd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the single-level subcontracted cost of the item.';
                     Visible = false;
                 }
                 field("New Single-Lvl Subcontrd Cost"; Rec."New Single-Lvl Subcontrd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Single-Lvl Cap. Ovhd Cost"; Rec."Single-Lvl Cap. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the single-level capacity overhead cost of the item.';
                     Visible = false;
                 }
                 field("New Single-Lvl Cap. Ovhd Cost"; Rec."New Single-Lvl Cap. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Single-Lvl Mfg. Ovhd Cost"; Rec."Single-Lvl Mfg. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the single-level manufacturing overhead cost of the item.';
                     Visible = false;
                 }
                 field("New Single-Lvl Mfg. Ovhd Cost"; Rec."New Single-Lvl Mfg. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Rolled-up Material Cost"; Rec."Rolled-up Material Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the rolled-up material cost of the item.';
                     Visible = false;
                 }
                 field("New Rolled-up Material Cost"; Rec."New Rolled-up Material Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated rolled-up material cost based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Rolled-up Cap. Cost"; Rec."Rolled-up Cap. Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the rolled-up capacity cost of the item.';
                     Visible = false;
                 }
                 field("New Rolled-up Cap. Cost"; Rec."New Rolled-up Cap. Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Rolled-up Subcontrd Cost"; Rec."Rolled-up Subcontrd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the rolled-up subcontracted cost of the item.';
                     Visible = false;
                 }
                 field("New Rolled-up Subcontrd Cost"; Rec."New Rolled-up Subcontrd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Rolled-up Cap. Ovhd Cost"; Rec."Rolled-up Cap. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the rolled-up capacity overhead cost of the item.';
                     Visible = false;
                 }
                 field("New Rolled-up Cap. Ovhd Cost"; Rec."New Rolled-up Cap. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }
                 field("Rolled-up Mfg. Ovhd Cost"; Rec."Rolled-up Mfg. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the rolled-up manufacturing overhead cost of the item.';
                     Visible = false;
                 }
                 field("New Rolled-up Mfg. Ovhd Cost"; Rec."New Rolled-up Mfg. Ovhd Cost")
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
                     Visible = false;
                 }

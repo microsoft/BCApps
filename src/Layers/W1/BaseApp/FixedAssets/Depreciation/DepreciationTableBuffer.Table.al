@@ -24,6 +24,7 @@ table 5646 "Depreciation Table Buffer"
         }
         field(3; "Period Depreciation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Period Depreciation %';
             DataClassification = SystemMetadata;
             DecimalPlaces = 1 : 1;

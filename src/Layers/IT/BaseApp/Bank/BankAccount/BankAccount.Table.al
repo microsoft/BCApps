@@ -1012,6 +1012,8 @@ table 270 "Bank Account"
         }
         field(12172; "Credit Limit"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             BlankZero = true;
             Caption = 'Credit Limit';
         }

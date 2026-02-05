@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores alternative customer posting groups that can substitute the default posting group.
+/// </summary>
 table 960 "Alt. Customer Posting Group"
 {
     Caption = 'Alternative Customer Posting Group';
@@ -12,11 +15,17 @@ table 960 "Alt. Customer Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Specifies the primary customer posting group that can use an alternative posting group.
+        /// </summary>
         field(1; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer. Posting Group';
             TableRelation = "Customer Posting Group";
         }
+        /// <summary>
+        /// Specifies the alternative customer posting group that can substitute the primary posting group for G/L account mappings.
+        /// </summary>
         field(2; "Alt. Customer Posting Group"; Code[20])
         {
             Caption = 'Alternative Customer Posting Group';

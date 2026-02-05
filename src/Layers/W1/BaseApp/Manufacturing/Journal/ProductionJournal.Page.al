@@ -204,6 +204,7 @@ page 5510 "Production Journal"
                 }
                 field("Concurrent Capacity"; Rec."Concurrent Capacity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Editable = ConcurrentCapacityEditable;
                     ToolTip = 'Specifies the concurrent capacity.';
@@ -211,6 +212,7 @@ page 5510 "Production Journal"
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Editable = SetupTimeEditable;
                     HideValue = SetupTimeHideValue;
@@ -218,6 +220,7 @@ page 5510 "Production Journal"
                 }
                 field("Run Time"; Rec."Run Time")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Editable = RunTimeEditable;
                     HideValue = RunTimeHideValue;
@@ -239,6 +242,7 @@ page 5510 "Production Journal"
                 }
                 field("Output Quantity"; Rec."Output Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Editable = OutputQuantityEditable;
                     HideValue = OutputQuantityHideValue;
@@ -246,6 +250,7 @@ page 5510 "Production Journal"
                 }
                 field("Scrap Quantity"; Rec."Scrap Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     Editable = ScrapQuantityEditable;
                     HideValue = ScrapQuantityHideValue;
@@ -403,6 +408,7 @@ page 5510 "Production Journal"
                         Caption = 'Consump. Qty.';
                         field(ActualConsumpQty; ActualConsumpQty)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             DecimalPlaces = 0 : 5;
                             Editable = false;
@@ -415,6 +421,7 @@ page 5510 "Production Journal"
                         Caption = 'Setup Time';
                         field(ActualSetupTime; ActualSetupTime)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Setup Time';
                             DecimalPlaces = 0 : 5;
@@ -428,6 +435,7 @@ page 5510 "Production Journal"
                         Caption = 'Run Time';
                         field(ActualRunTime; ActualRunTime)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Run Time';
                             DecimalPlaces = 0 : 5;
@@ -441,6 +449,7 @@ page 5510 "Production Journal"
                         Caption = 'Output Qty.';
                         field(ActualOutputQty; ActualOutputQty)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Output Qty.';
                             DecimalPlaces = 0 : 5;
@@ -454,6 +463,7 @@ page 5510 "Production Journal"
                         Caption = 'Scrap Qty.';
                         field(ActualScrapQty; ActualScrapQty)
                         {
+                            AutoFormatType = 0;
                             ApplicationArea = Manufacturing;
                             Caption = 'Scrap Qty.';
                             DecimalPlaces = 0 : 5;

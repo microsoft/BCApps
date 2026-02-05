@@ -55,38 +55,47 @@ table 10003 "Document Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
         }
         field(22; "Unit Price/Direct Unit Cost"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Price/Direct Unit Cost';
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
         }
         field(28; "Line Discount Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount Amount';
         }
         field(29; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(30; "Amount Including VAT"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Including VAT';
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
@@ -108,8 +117,8 @@ table 10003 "Document Line"
         }
         field(10002; "Retention VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Retention VAT %';
-            AutoFormatType = 2;	    
         }
         field(10003; "Custom Transit Number"; Text[30])
         {

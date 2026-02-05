@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores dispute status codes and descriptions for categorizing customer ledger entry disputes.
+/// </summary>
 table 142 "Dispute Status"
 {
     Caption = 'Dispute Status';

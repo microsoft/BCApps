@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Reopens a released sales document through manual user action for editing.
+/// </summary>
 codeunit 4141 "Sales Manual Reopen"
 {
     TableNo = "Sales Header";

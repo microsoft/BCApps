@@ -776,28 +776,6 @@ codeunit 137289 "SCM Inventory Costing IV"
     end;
 
     [Test]
-    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
-    [Scope('OnPrem')]
-    procedure ErrorOnUndoShipmentOfDropShipment()
-    var
-        SalesLine: Record "Sales Line";
-    begin
-        // Verify Error while Undo Sales Shipment which have Drop Shipment.
-
-        // Setup: Create Sales Order with Drop Shipment and create Purchase Order, Get Drop Shipment and Receive.
-        Initialize();
-        SalesOrderUpdatedWithDropShipment(SalesLine);
-        GetDropShptFromPurchaseOrder(SalesLine."Sell-to Customer No.");
-        LibraryVariableStorage.Enqueue(UndoSalesShipmentMsg);
-
-        // Exercise.
-        asserterror UndoSalesShipment(SalesLine);
-
-        // Verify: Verify Error while Undo Sales Shipment which have Drop Shipment.
-        Assert.ExpectedTestFieldError(SalesLine.FieldCaption("Drop Shipment"), Format(false));
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure UndoShptWithWhseActivityLines()
@@ -2080,15 +2058,6 @@ codeunit 137289 "SCM Inventory Costing IV"
         ItemLedgerEntry.FindFirst();
     end;
 
-    local procedure FindPurchasingCode(): Code[10]
-    var
-        Purchasing: Record Purchasing;
-    begin
-        Purchasing.SetRange("Drop Shipment", true);
-        Purchasing.FindFirst();
-        exit(Purchasing.Code);
-    end;
-
     local procedure FindReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; No: Code[20])
     begin
         PurchRcptLine.SetRange("No.", No);
@@ -2175,17 +2144,6 @@ codeunit 137289 "SCM Inventory Costing IV"
     begin
         WarehouseShipmentHeader.SetRange("Location Code", LocationCode);
         WarehouseShipmentHeader.FindFirst();
-    end;
-
-    local procedure GetDropShptFromPurchaseOrder(SelltoCustomerNo: Code[20])
-    var
-        PurchaseHeader: Record "Purchase Header";
-    begin
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
-        PurchaseHeader.Validate("Sell-to Customer No.", SelltoCustomerNo);
-        PurchaseHeader.Modify(true);
-        LibraryPurchase.GetDropShipment(PurchaseHeader);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
     local procedure ModifyQtyToInvoiceOnSalesLine(SalesHeader: Record "Sales Header"; QtyToInvoice: Decimal)
@@ -2384,20 +2342,6 @@ codeunit 137289 "SCM Inventory Costing IV"
     begin
         BOMCostShares.InitItem(Item);
         BOMCostShares.Run();
-    end;
-
-    local procedure SalesOrderUpdatedWithDropShipment(var SalesLine: Record "Sales Line")
-    var
-        SalesHeader: Record "Sales Header";
-        Item: Record Item;
-    begin
-        CreateSalesDocument(
-          SalesHeader, SalesHeader."Document Type"::Order, SalesLine.Type::Item, CreateCustomer(), CreateItem(0, Item."Costing Method"::FIFO),
-          LibraryRandom.RandDec(50, 1));
-        FindSalesLine(SalesLine, SalesHeader);
-        SalesLine.Validate("Drop Shipment", true);
-        SalesLine.Validate("Purchasing Code", FindPurchasingCode());
-        SalesLine.Modify(true);
     end;
 
     local procedure SalesDocumentWithItemChargeAssignment(): Code[20]

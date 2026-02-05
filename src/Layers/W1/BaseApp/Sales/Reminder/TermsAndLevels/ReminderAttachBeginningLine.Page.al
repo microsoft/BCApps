@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Manages the beginning text lines for reminder PDF attachment documents.
+/// </summary>
 page 534 "Reminder Attach Beginning Line"
 {
     PageType = ListPart;

@@ -15,6 +15,8 @@ pageextension 6481 "Serv. Cash Flow Forecast Stat." extends "Cash Flow Forecast 
             field(ServiceOrders; Rec.CalcSourceTypeAmount("Cash Flow Source Type"::"Service Orders"))
             {
                 ApplicationArea = Service;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Service Orders';
                 ToolTip = 'Specifies amounts related to service orders.';
 

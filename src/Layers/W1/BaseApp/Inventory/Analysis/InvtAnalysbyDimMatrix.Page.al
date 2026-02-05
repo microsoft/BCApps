@@ -88,6 +88,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field1; MATRIX_CellData[1])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[1];
                     StyleExpr = 'Strong';
@@ -100,6 +102,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field2; MATRIX_CellData[2])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[2];
                     StyleExpr = 'Strong';
@@ -112,6 +116,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field3; MATRIX_CellData[3])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[3];
                     StyleExpr = 'Strong';
@@ -124,6 +130,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field4; MATRIX_CellData[4])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[4];
                     StyleExpr = 'Strong';
@@ -136,6 +144,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field5; MATRIX_CellData[5])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[5];
                     StyleExpr = 'Strong';
@@ -148,6 +158,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field6; MATRIX_CellData[6])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[6];
                     StyleExpr = 'Strong';
@@ -160,6 +172,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field7; MATRIX_CellData[7])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[7];
                     StyleExpr = 'Strong';
@@ -172,6 +186,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field8; MATRIX_CellData[8])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[8];
                     StyleExpr = 'Strong';
@@ -184,6 +200,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field9; MATRIX_CellData[9])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[9];
                     StyleExpr = 'Strong';
@@ -196,6 +214,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field10; MATRIX_CellData[10])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[10];
                     StyleExpr = 'Strong';
@@ -208,6 +228,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field11; MATRIX_CellData[11])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[11];
                     StyleExpr = 'Strong';
@@ -220,6 +242,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field12; MATRIX_CellData[12])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[12];
                     StyleExpr = 'Strong';
@@ -232,6 +256,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field13; MATRIX_CellData[13])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[13];
                     StyleExpr = 'Strong';
@@ -244,6 +270,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field14; MATRIX_CellData[14])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[14];
                     StyleExpr = 'Strong';
@@ -256,6 +284,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field15; MATRIX_CellData[15])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[15];
                     StyleExpr = 'Strong';
@@ -268,6 +298,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field16; MATRIX_CellData[16])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[16];
                     StyleExpr = 'Strong';
@@ -280,6 +312,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field17; MATRIX_CellData[17])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[17];
                     StyleExpr = 'Strong';
@@ -292,6 +326,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field18; MATRIX_CellData[18])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[18];
                     StyleExpr = 'Strong';
@@ -304,6 +340,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field19; MATRIX_CellData[19])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[19];
                     StyleExpr = 'Strong';
@@ -316,6 +354,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field20; MATRIX_CellData[20])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[20];
                     StyleExpr = 'Strong';
@@ -328,6 +368,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field21; MATRIX_CellData[21])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[21];
                     StyleExpr = 'Strong';
@@ -340,6 +382,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field22; MATRIX_CellData[22])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[22];
                     StyleExpr = 'Strong';
@@ -352,6 +396,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field23; MATRIX_CellData[23])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[23];
                     StyleExpr = 'Strong';
@@ -364,6 +410,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field24; MATRIX_CellData[24])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[24];
                     StyleExpr = 'Strong';
@@ -376,6 +424,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field25; MATRIX_CellData[25])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[25];
                     StyleExpr = 'Strong';
@@ -388,6 +438,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field26; MATRIX_CellData[26])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[26];
                     StyleExpr = 'Strong';
@@ -400,6 +452,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field27; MATRIX_CellData[27])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[27];
                     StyleExpr = 'Strong';
@@ -412,6 +466,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field28; MATRIX_CellData[28])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[28];
                     StyleExpr = 'Strong';
@@ -424,6 +480,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field29; MATRIX_CellData[29])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[29];
                     StyleExpr = 'Strong';
@@ -436,6 +494,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field30; MATRIX_CellData[30])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[30];
                     StyleExpr = 'Strong';
@@ -448,6 +508,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field31; MATRIX_CellData[31])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[31];
                     StyleExpr = 'Strong';
@@ -460,6 +522,8 @@ page 9209 "Invt. Analys by Dim. Matrix"
                 field(Field32; MATRIX_CellData[32])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[32];
                     StyleExpr = 'Strong';

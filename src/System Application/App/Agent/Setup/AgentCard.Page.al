@@ -130,6 +130,7 @@ page 4315 "Agent Card"
                 Caption = 'Setup';
                 ToolTip = 'Set up agent';
                 Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 begin
@@ -156,7 +157,7 @@ page 4315 "Agent Card"
             action(AgentTasks)
             {
                 ApplicationArea = All;
-                Caption = 'Agent Tasks';
+                Caption = 'View tasks';
                 ToolTip = 'View agent tasks';
                 Image = Log;
 

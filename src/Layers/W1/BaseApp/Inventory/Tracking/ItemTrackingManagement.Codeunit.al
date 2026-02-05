@@ -741,6 +741,53 @@ codeunit 6500 "Item Tracking Management"
         until ItemEntryRelation.Next() = 0;
     end;
 
+    internal procedure CopyMatchedItemTrkgToPurchLine(FromPurchLine: Record "Purchase Line"; ToPurchLine: Record "Purchase Line"; MatchedOrderLine: Record "Matched Order Line"; CheckLineQty: Boolean)
+    var
+        ItemEntryRelation: Record "Item Entry Relation";
+        TrackingSpecification: Record "Tracking Specification";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReservationEntry: Record "Reservation Entry";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        QtyBase: Decimal;
+    begin
+        // Used for combined receipts/returns:
+        if FromPurchLine.Type <> FromPurchLine.Type::Item then
+            exit;
+
+        case ToPurchLine."Document Type" of
+            ToPurchLine."Document Type"::Invoice:
+                begin
+                    PurchRcptLine.GetBySystemId(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId");
+                    ItemEntryRelation.SetSourceFilter(Database::"Purch. Rcpt. Line", 0, PurchRcptLine."Document No.", PurchRcptLine."Line No.", true);
+                    ItemEntryRelation.SetSourceFilter2('', 0);
+                end;
+            ToPurchLine."Document Type"::"Credit Memo":
+                begin
+                    ItemEntryRelation.SetSourceFilter(Database::"Return Shipment Line", 0, ToPurchLine."Return Shipment No.", ToPurchLine."Return Shipment Line No.", true);
+                    ItemEntryRelation.SetSourceFilter2('', 0);
+                end;
+            else
+                ToPurchLine.FieldError("Document Type", Format(ToPurchLine."Document Type"));
+        end;
+
+        ItemEntryRelation.SetLoadFields("Item Entry No.");
+        if not ItemEntryRelation.FindSet() then
+            exit;
+
+        ReservationEntry.SetSourceFilter(Database::"Purchase Line", ToPurchLine."Document Type".AsInteger(), ToPurchLine."Document No.", ToPurchLine."Line No.", true);
+        repeat
+            TrackingSpecification.Get(ItemEntryRelation."Item Entry No.");
+
+            ReservationEntry.SetRange("Item Ledger Entry No.", TrackingSpecification."Item Ledger Entry No.");
+            ReservationEntry.DeleteAll(true);
+
+            QtyBase := TrackingSpecification."Quantity (Base)" - TrackingSpecification."Quantity Invoiced (Base)";
+            if CheckLineQty and (QtyBase > ToPurchLine.Quantity) then
+                QtyBase := ToPurchLine.Quantity;
+            ItemTrackingMgt.InsertReservEntryFromTrackingSpec(
+              TrackingSpecification, ToPurchLine."Document Type".AsInteger(), ToPurchLine."Document No.", ToPurchLine."Line No.", QtyBase);
+        until ItemEntryRelation.Next() = 0;
+    end;
 
     procedure CollectItemEntryRelation(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: Integer; TotalQty: Decimal) Result: Boolean
     var

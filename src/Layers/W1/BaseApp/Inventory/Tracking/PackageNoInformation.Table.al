@@ -67,6 +67,7 @@ table 6515 "Package No. Information"
         }
         field(20; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item No."),
                                                                   "Variant Code" = field("Variant Code"),
                                                                   "Package No." = field("Package No."),
@@ -95,6 +96,7 @@ table 6515 "Package No. Information"
         }
         field(24; "Expired Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry"."Remaining Quantity" where("Item No." = field("Item No."),
                                                                               "Variant Code" = field("Variant Code"),
                                                                               "Package No." = field("Package No."),

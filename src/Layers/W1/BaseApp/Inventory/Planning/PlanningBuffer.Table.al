@@ -49,18 +49,21 @@ table 99000846 "Planning Buffer"
         }
         field(8; "Gross Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Requirement';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(10; "Planned Receipts"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Planned Receipts';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(11; "Scheduled Receipts"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Receipts';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

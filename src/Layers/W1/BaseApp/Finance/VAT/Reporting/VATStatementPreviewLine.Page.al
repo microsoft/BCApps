@@ -74,6 +74,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Column Amount';
                     DrillDown = true;

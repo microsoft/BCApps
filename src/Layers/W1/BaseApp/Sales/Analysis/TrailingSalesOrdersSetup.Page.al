@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Analysis;
 
+/// <summary>
+/// Provides user configuration options for the trailing sales orders chart.
+/// </summary>
 page 761 "Trailing Sales Orders Setup"
 {
     Caption = 'Trailing Sales Orders Setup';

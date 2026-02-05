@@ -17,6 +17,9 @@ using Microsoft.Sales.Customer;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Provides an overview and entry interface for sales budget data by dimensions.
+/// </summary>
 page 7139 "Sales Budget Overview"
 {
     Caption = 'Sales Budget Overview';
@@ -859,6 +862,10 @@ page 7139 "Sales Budget Overview"
         BudgetDim3FilterEnable := ItemBudgetName."Budget Dimension 3 Code" <> '';
     end;
 
+    /// <summary>
+    /// Sets the budget name to be used when the page opens.
+    /// </summary>
+    /// <param name="NewPurchBudgetName">The budget name code to set.</param>
     procedure SetNewBudgetName(NewPurchBudgetName: Code[10])
     begin
         NewBudgetName := NewPurchBudgetName;

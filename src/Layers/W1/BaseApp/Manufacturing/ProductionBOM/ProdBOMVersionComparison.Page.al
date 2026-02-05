@@ -72,9 +72,16 @@ page 9288 "Prod. BOM Version Comparison"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description of the entry.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field(BOMField1; BOMMatrix_CellData)
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + BOMMatrix_CaptionSet;
                     DecimalPlaces = 0 : 5;
@@ -82,6 +89,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field1; Matrix_CellData[1])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[1];
                     DecimalPlaces = 0 : 5;
@@ -90,6 +98,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field2; Matrix_CellData[2])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[2];
                     DecimalPlaces = 0 : 5;
@@ -98,6 +107,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field3; Matrix_CellData[3])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[3];
                     DecimalPlaces = 0 : 5;
@@ -106,6 +116,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field4; Matrix_CellData[4])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[4];
                     DecimalPlaces = 0 : 5;
@@ -114,6 +125,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field5; Matrix_CellData[5])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[5];
                     DecimalPlaces = 0 : 5;
@@ -122,6 +134,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field6; Matrix_CellData[6])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[6];
                     DecimalPlaces = 0 : 5;
@@ -130,6 +143,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field7; Matrix_CellData[7])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[7];
                     DecimalPlaces = 0 : 5;
@@ -138,6 +152,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field8; Matrix_CellData[8])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[8];
                     DecimalPlaces = 0 : 5;
@@ -146,6 +161,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field9; Matrix_CellData[9])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[9];
                     DecimalPlaces = 0 : 5;
@@ -154,6 +170,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field10; Matrix_CellData[10])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[10];
                     DecimalPlaces = 0 : 5;
@@ -162,6 +179,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field11; Matrix_CellData[11])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[11];
                     DecimalPlaces = 0 : 5;
@@ -170,6 +188,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field12; Matrix_CellData[12])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[12];
                     DecimalPlaces = 0 : 5;
@@ -178,6 +197,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field13; Matrix_CellData[13])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[13];
                     DecimalPlaces = 0 : 5;
@@ -186,6 +206,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field14; Matrix_CellData[14])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[14];
                     DecimalPlaces = 0 : 5;
@@ -194,6 +215,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field15; Matrix_CellData[15])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[15];
                     DecimalPlaces = 0 : 5;
@@ -202,6 +224,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field16; Matrix_CellData[16])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[16];
                     DecimalPlaces = 0 : 5;
@@ -210,6 +233,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field17; Matrix_CellData[17])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[17];
                     DecimalPlaces = 0 : 5;
@@ -218,6 +242,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field18; Matrix_CellData[18])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[18];
                     DecimalPlaces = 0 : 5;
@@ -226,6 +251,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field19; Matrix_CellData[19])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[19];
                     DecimalPlaces = 0 : 5;
@@ -234,6 +260,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field20; Matrix_CellData[20])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[20];
                     DecimalPlaces = 0 : 5;
@@ -242,6 +269,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field21; Matrix_CellData[21])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[21];
                     DecimalPlaces = 0 : 5;
@@ -250,6 +278,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field22; Matrix_CellData[22])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[22];
                     DecimalPlaces = 0 : 5;
@@ -258,6 +287,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field23; Matrix_CellData[23])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[23];
                     DecimalPlaces = 0 : 5;
@@ -266,6 +296,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field24; Matrix_CellData[24])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[24];
                     DecimalPlaces = 0 : 5;
@@ -274,6 +305,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field25; Matrix_CellData[25])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[25];
                     DecimalPlaces = 0 : 5;
@@ -282,6 +314,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field26; Matrix_CellData[26])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[26];
                     DecimalPlaces = 0 : 5;
@@ -290,6 +323,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field27; Matrix_CellData[27])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[27];
                     DecimalPlaces = 0 : 5;
@@ -298,6 +332,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field28; Matrix_CellData[28])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[28];
                     DecimalPlaces = 0 : 5;
@@ -306,6 +341,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field29; Matrix_CellData[29])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[29];
                     DecimalPlaces = 0 : 5;
@@ -314,6 +350,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field30; Matrix_CellData[30])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[30];
                     DecimalPlaces = 0 : 5;
@@ -322,6 +359,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field31; Matrix_CellData[31])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[31];
                     DecimalPlaces = 0 : 5;
@@ -330,6 +368,7 @@ page 9288 "Prod. BOM Version Comparison"
                 field(Field32; Matrix_CellData[32])
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     BlankZero = true;
                     CaptionClass = '3,' + Matrix_CaptionSet[32];
                     DecimalPlaces = 0 : 5;

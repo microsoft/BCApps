@@ -332,6 +332,8 @@ table 5600 "Fixed Asset"
         }
         field(11103; "Prem. Depr. Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Prem. Depr. Amount';
             Editable = false;
         }

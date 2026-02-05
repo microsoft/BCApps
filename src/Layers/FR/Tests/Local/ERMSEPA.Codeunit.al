@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144059 "ERM SEPA"
 {
     // 1. Test to Verify XML Data after print Payment Slip using report Remittance.
@@ -14,6 +15,9 @@ codeunit 144059 "ERM SEPA"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -278,4 +282,4 @@ codeunit 144059 "ERM SEPA"
         WithdrawRecapitulation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif

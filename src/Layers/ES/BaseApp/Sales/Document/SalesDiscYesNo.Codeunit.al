@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Prompts for confirmation before calculating invoice discounts on a sales document.
+/// </summary>
 codeunit 61 "Sales-Disc. (Yes/No)"
 {
     TableNo = "Sales Line";

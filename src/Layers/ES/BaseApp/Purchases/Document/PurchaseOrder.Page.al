@@ -580,6 +580,11 @@ page 50 "Purchase Order"
                     ApplicationArea = OrderPromising;
                     ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
                 }
+                field("Receipt on Invoice"; Rec."Receipt on Invoice")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the receipt is posted on the invoice.';
+                }	
                 group("SII Information")
                 {
                     Caption = 'SII Information';

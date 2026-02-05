@@ -13,6 +13,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Setup;
 
+/// <summary>
+/// Handles sales-specific processing during warehouse shipment posting, including updating sales lines and posting sales documents.
+/// </summary>
 codeunit 5746 "Sales Whse. Post Shipment"
 {
 
@@ -465,146 +468,336 @@ codeunit 5746 "Sales Whse. Post Shipment"
         end;
     end;
 
+    /// <summary>
+    /// Raises an event before updating the sales line quantity to ship based on warehouse shipment quantities.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to update.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
+    /// <param name="ATOWhseShptLine">Specifies the assemble-to-order warehouse shipment line.</param>
+    /// <param name="NonATOWhseShptLine">Specifies the non-assemble-to-order warehouse shipment line.</param>
+    /// <param name="ATOLineFound">Indicates whether an assemble-to-order line was found.</param>
+    /// <param name="NonATOLineFound">Indicates whether a non-assemble-to-order line was found.</param>
+    /// <param name="SumOfQtyToShip">Specifies the total quantity to ship.</param>
+    /// <param name="SumOfQtyToShipBase">Specifies the total quantity to ship in base units.</param>
+    /// <param name="IsHandled">Set to true to skip the default quantity update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSaleslineQtyToShip(var SalesLine: Record "Sales Line"; var WhseShptLine: Record "Warehouse Shipment Line"; var ATOWhseShptLine: Record "Warehouse Shipment Line"; var NonATOWhseShptLine: Record "Warehouse Shipment Line"; var ATOLineFound: Boolean; var NonATOLineFound: Boolean; SumOfQtyToShip: Decimal; SumOfQtyToShipBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before validating the posting date on the sales header during source document initialization.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record to validate.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line being processed.</param>
+    /// <param name="ValidatePostingDate">Indicates whether to validate the posting date.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting date validation.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="WhseShptHeader">Specifies the warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitSourceDocumentHeaderOnBeforeValidatePostingDate(var SalesHeader: Record "Sales Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ValidatePostingDate: Boolean; var IsHandled: Boolean; var ModifyHeader: Boolean; var WhseShptHeader: Record "Warehouse Shipment Header");
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before reopening the sales header during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to reopen.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
+    /// <param name="NewCalledFromWhseDoc">Indicates whether the operation is called from a warehouse document.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(var SalesHeader: Record "Sales Header"; WhsePostParameters: Record "Whse. Post Parameters"; var NewCalledFromWhseDoc: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before releasing the sales header during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to release.</param>
+    /// <param name="WhseShptHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(var SalesHeader: Record "Sales Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying the sales header during source document initialization.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header being modified.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean; WhsePostParameters: Record "Whse. Post Parameters"; var WarehouseShipmentLine: Record "Warehouse Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before handling a sales line during warehouse shipment processing.
+    /// </summary>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="SalesLine">Specifies the sales line to process.</param>
+    /// <param name="SalesHeader">Specifies the sales header.</param>
+    /// <param name="WhseShptHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="ModifyLine">Indicates whether the line should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default line handling logic.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandleSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean; WhsePostParameters: Record "Whse. Post Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before finding a sales line during warehouse shipment line handling.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnBeforeSalesLineFind(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after finding a warehouse shipment line for a sales line.
+    /// </summary>
+    /// <param name="WarehouseShipmentLine">Specifies the found warehouse shipment line.</param>
+    /// <param name="SalesLine">Specifies the corresponding sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindWhseShptLineForSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying a sales order line during warehouse shipment handling.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to modify.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(var SalesLine: Record "Sales Line"; WhseShptLine: Record "Warehouse Shipment Line"; WhsePostParameters: Record "Whse. Post Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after validating the return quantity to receive on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line with validated return quantity.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnAfterValidateRetQtytoReceive(var SalesLine: Record "Sales Line"; var WhseShptLine: Record "Warehouse Shipment Line"; WhsePostParameters: Record "Whse. Post Parameters");
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after calculating whether the shipment date should be modified on the sales line.
+    /// </summary>
+    /// <param name="WarehouseShipmentHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="SalesLine">Specifies the sales line.</param>
+    /// <param name="ShouldModifyShipmentDate">Indicates whether the shipment date should be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record "Sales Line"; var ShouldModifyShipmentDate: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying a sales line during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to modify.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="ModifyLine">Indicates whether the line should be modified.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineModify(var SalesLine: Record "Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; WhsePostParameters: Record "Whse. Post Parameters"; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after a sales line has been modified during warehouse shipment handling.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the modified sales line.</param>
+    /// <param name="ModifyLine">Indicates whether the line was modified.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnAfterSalesLineModify(var SalesLine: Record "Sales Line"; ModifyLine: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after handling a sales line during warehouse shipment processing.
+    /// </summary>
+    /// <param name="WhseShipmentLine">Specifies the warehouse shipment line that was processed.</param>
+    /// <param name="SalesHeader">Specifies the sales header.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHandleSalesLine(var WhseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record "Sales Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhsePostParameters: Record "Whse. Post Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after calculating whether a non-warehouse line should be modified.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line.</param>
+    /// <param name="ModifyLine">Indicates whether the line should be modified.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(var SalesLine: Record "Sales Line"; var ModifyLine: Boolean; WhseShptLine: Record "Warehouse Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before posting a sales header during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesPost">Specifies the Sales-Post codeunit instance.</param>
+    /// <param name="SalesHeader">Specifies the sales header to post.</param>
+    /// <param name="WhseShptHeader">Specifies the warehouse shipment header.</param>
+    /// <param name="CounterSourceDocOK">Specifies the count of successfully posted source documents.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforePostSalesHeader(var SalesPost: Codeunit "Sales-Post"; var SalesHeader: Record "Sales Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var CounterSourceDocOK: Integer; var WhsePostParameters: Record "Whse. Post Parameters"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before printing sales documents after warehouse shipment posting.
+    /// </summary>
+    /// <param name="LastShippingNo">Specifies the number of the last shipment document.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforePrintSalesDocuments(LastShippingNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before printing a sales shipment document.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default print logic.</param>
+    /// <param name="SalesShptHeader">Specifies the posted sales shipment header.</param>
+    /// <param name="WhseShptHeader">Specifies the warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforePrintSalesShipment(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var SalesShptHeader: Record "Sales Shipment Header"; WhseShptHeader: Record "Warehouse Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before printing a sales invoice after warehouse shipment posting.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default print logic.</param>
+    /// <param name="WhseShptLine">Specifies the warehouse shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforePrintSalesInvoice(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var WhseShptLine: Record "Warehouse Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after the sales document has been posted during warehouse shipment processing.
+    /// </summary>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="SalesHeader">Specifies the posted sales header.</param>
+    /// <param name="WhsePostParameters">Specifies the warehouse posting parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesPost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record "Sales Header"; WhsePostParameters: Record "Whse. Post Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before executing the Sales-Post codeunit during warehouse shipment posting.
+    /// </summary>
+    /// <param name="CounterSourceDocOK">Specifies the count of successfully posted source documents.</param>
+    /// <param name="SalesPost">Specifies the Sales-Post codeunit instance.</param>
+    /// <param name="SalesHeader">Specifies the sales header to post.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforeSalesPost(var CounterSourceDocOK: Integer; var SalesPost: Codeunit "Sales-Post"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after executing the Sales-Post codeunit during warehouse shipment posting.
+    /// </summary>
+    /// <param name="CounterSourceDocOK">Specifies the count of successfully posted source documents.</param>
+    /// <param name="SalesPost">Specifies the Sales-Post codeunit instance.</param>
+    /// <param name="SalesHeader">Specifies the posted sales header.</param>
+    /// <param name="Result">Indicates whether the posting was successful.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnAfterSalesPost(var CounterSourceDocOK: Integer; var SalesPost: Codeunit "Sales-Post"; var SalesHeader: Record "Sales Header"; Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before posting a source sales document.
+    /// </summary>
+    /// <param name="SalesPost">Specifies the Sales-Post codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostSourceSalesDocument(var SalesPost: Codeunit "Sales-Post")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after posting a source sales document.
+    /// </summary>
+    /// <param name="CounterSourceDocOK">Specifies the count of successfully posted source documents.</param>
+    /// <param name="SalesPost">Specifies the Sales-Post codeunit instance.</param>
+    /// <param name="SalesHeader">Specifies the posted sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostSourceSalesDocument(var CounterSourceDocOK: Integer; var SalesPost: Codeunit "Sales-Post"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after printing a sales shipment document.
+    /// </summary>
+    /// <param name="ShipmentNo">Specifies the shipment document number that was printed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrintDocumentsOnAfterPrintSalesShipment(ShipmentNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before updating an attached line during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the attached sales line to update.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="ModifyLine">Indicates whether the line should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="Result">Returns the result of the update operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAttachedLine(var SalesLine: Record "Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying an attached line during warehouse shipment processing.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the attached sales line.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line.</param>
+    /// <param name="ModifyLine">Indicates whether the line should be modified.</param>
+    /// <param name="QtyToHandle">Specifies the quantity to handle.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAttachedLineOnBeforeModifyLine(var SalesLine: Record "Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; var QtyToHandle: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event when filtering warehouse shipment lines for a sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the warehouse shipment line with filters to apply.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleSalesLineOnFilterWhseShptLine(var SalesLine: Record "Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before printing documents after warehouse shipment posting.
+    /// </summary>
+    /// <param name="DocumentEntryToPrint">Specifies the document entries to print.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintDocuments(var DocumentEntryToPrint: Record "Document Entry")
     begin

@@ -66,7 +66,7 @@ codeunit 6061 "Hybrid Deployment Handler"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Deployment", 'OnEnableReplication', '', false, false)]
-    local procedure HandleEnableReplication(OnPremiseConnectionString: Text; DatabaseType: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; var InstanceId: Text)
+    local procedure HandleEnableReplication(OnPremiseConnectionString: Text; DatabaseType: Text; IntegrationRuntimeName: Text; NotificationUrl: Text; ClientState: Text; SubscriptionId: Text; ServiceNotificationUrl: Text; ServiceClientState: Text; ServiceSubscriptionId: Text; var InstanceId: Text; SourceCompaniesTableName: Text; SetupMappingsTableName: Text; ReplicationMappingsTableName: Text)
     begin
         if not CanHandle() then
             exit;
@@ -76,7 +76,7 @@ codeunit 6061 "Hybrid Deployment Handler"
         InstanceId :=
           DotNet_HybridDeployment.EnableReplication(
             SourceProduct, OnPremiseConnectionString, DatabaseType, IntegrationRuntimeName, NotificationUrl, ClientState, SubscriptionId,
-            ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId);
+            ServiceNotificationUrl, ServiceClientState, ServiceSubscriptionId, SourceCompaniesTableName, SetupMappingsTableName, ReplicationMappingsTableName);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Deployment", 'OnGetIntegrationRuntimeKeys', '', false, false)]

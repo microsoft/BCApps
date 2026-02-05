@@ -27,23 +27,27 @@ table 5005360 "Phys. Invt. Tracking Buffer"
         }
         field(10; "Qty. Recorded (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Recorded (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(11; "Qty. Expected (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Expected (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(20; "Qty. To Transfer"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. To Transfer';
             DataClassification = SystemMetadata;
         }
         field(21; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             DataClassification = SystemMetadata;
         }
@@ -70,5 +74,5 @@ table 5005360 "Phys. Invt. Tracking Buffer"
     }
 }
 
- 
+
 #endif

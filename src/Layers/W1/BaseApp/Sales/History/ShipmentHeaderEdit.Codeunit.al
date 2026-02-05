@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Provides functionality to edit shipping agent and package tracking fields on posted sales shipment headers.
+/// </summary>
 codeunit 391 "Shipment Header - Edit"
 {
     Permissions = TableData "Sales Shipment Header" = rm;

@@ -112,6 +112,7 @@ table 5718 "Nonstock Item"
         field(7; "Published Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Published Cost';
 
             trigger OnValidate()
@@ -122,6 +123,7 @@ table 5718 "Nonstock Item"
         field(8; "Negotiated Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Negotiated Cost';
 
             trigger OnValidate()
@@ -132,6 +134,7 @@ table 5718 "Nonstock Item"
         field(9; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
 
             trigger OnValidate()
@@ -141,6 +144,7 @@ table 5718 "Nonstock Item"
         }
         field(10; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
 
@@ -151,6 +155,7 @@ table 5718 "Nonstock Item"
         }
         field(11; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
 

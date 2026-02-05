@@ -31,6 +31,7 @@ table 5224 "Payable Employee Ledger Entry"
         field(5; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(7; "Currency Code"; Code[10])

@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.Comment;
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Manufacturing.Reports;
+using System.Text;
 
 page 99000755 "Work Center List"
 {
@@ -451,6 +452,17 @@ page 99000755 "Work Center List"
             }
         }
     }
+
+    procedure GetCurrSelectionFilter(): Text
+    var
+        WorkCenter: Record "Work Center";
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        RecRef: RecordRef;
+    begin
+        CurrPage.SetSelectionFilter(WorkCenter);
+        RecRef.GetTable(WorkCenter);
+        exit(SelectionFilterManagement.GetSelectionFilter(RecRef, WorkCenter.FieldNo("No.")));
+    end;
 
     procedure GetSelectionFilter(): Code[80]
     var

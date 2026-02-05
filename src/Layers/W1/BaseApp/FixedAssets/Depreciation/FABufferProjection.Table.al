@@ -24,13 +24,13 @@ table 5641 "FA Buffer Projection"
         }
         field(3; Depreciation; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Depreciation';
             DataClassification = SystemMetadata;
         }
         field(4; "Custom 1"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Custom 1';
             DataClassification = SystemMetadata;
         }

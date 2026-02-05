@@ -255,6 +255,8 @@ table 11401 "CBG Statement Line"
         }
         field(15; Debit; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Debit';
 
             trigger OnValidate()
@@ -265,6 +267,8 @@ table 11401 "CBG Statement Line"
         }
         field(16; Credit; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Credit';
 
             trigger OnValidate()
@@ -312,6 +316,8 @@ table 11401 "CBG Statement Line"
         }
         field(20; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -401,6 +407,7 @@ table 11401 "CBG Statement Line"
         }
         field(33; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             Editable = false;
         }
@@ -418,19 +425,27 @@ table 11401 "CBG Statement Line"
         }
         field(36; "Debit Incl. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Debit Incl. VAT';
             Editable = false;
         }
         field(37; "Credit Incl. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Credit Incl. VAT';
         }
         field(38; "Debit VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Debit VAT';
         }
         field(39; "Credit VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Credit VAT';
         }
         field(40; "Shortcut Dimension 1 Code"; Code[20])
@@ -496,6 +511,8 @@ table 11401 "CBG Statement Line"
         }
         field(11400; "Amount Settled"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount Settled';
         }
         field(11401; "Data Exch. Entry No."; Integer)
@@ -1422,13 +1439,13 @@ table 11401 "CBG Statement Line"
 
         TestField("Journal Template Name");
         JournalTemplate.Get("Journal Template Name");
-            "No. Series" := JournalTemplate."No. Series";
-            if "Document No." = '' then begin
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "Document No." := NoSeries.GetNextNo("No. Series", Date);
-            end else
-                NoSeries.TestManual("No. Series");
+        "No. Series" := JournalTemplate."No. Series";
+        if "Document No." = '' then begin
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "Document No." := NoSeries.GetNextNo("No. Series", Date);
+        end else
+            NoSeries.TestManual("No. Series");
     end;
 
     local procedure GetCurrency()
@@ -1441,6 +1458,12 @@ table 11401 "CBG Statement Line"
                 Currency.Get(CBGStatement.Currency);
                 Currency.TestField("Amount Rounding Precision");
             end;
+    end;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        GetCBGStatementHeader();
+        exit(CBGStatement.Currency);
     end;
 
     procedure GetCBGStatementHeader()

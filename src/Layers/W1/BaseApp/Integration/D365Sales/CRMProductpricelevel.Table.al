@@ -67,6 +67,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(7; Percentage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Percentage';
             Description = 'Percentage for the price list.';
             ExternalName = 'percentage';
@@ -74,6 +75,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(8; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             Description = 'Monetary amount for the price list.';
             ExternalName = 'amount';
@@ -141,6 +143,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(15; RoundingOptionAmount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rounding Amount';
             Description = 'Rounding option amount for the price list.';
             ExternalName = 'roundingoptionamount';
@@ -245,6 +248,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(27; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -278,6 +282,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(31; Amount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount (Base)';
             Description = 'Shows the Amount field converted to the system''s default base currency, if specified as a fixed amount. The calculation uses the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -295,6 +300,7 @@ table 5347 "CRM Productpricelevel"
         }
         field(33; RoundingOptionAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rounding Amount (Base)';
             Description = 'Shows the Rounding Amount field converted to the system''s default base currency for reporting purposes. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

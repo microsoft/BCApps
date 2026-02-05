@@ -695,6 +695,7 @@ page 97 "Purchase Quote Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
                         Editable = InvDiscAmountEditable;

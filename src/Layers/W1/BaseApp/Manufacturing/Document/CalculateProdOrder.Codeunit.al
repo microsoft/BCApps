@@ -299,6 +299,7 @@ codeunit 99000773 "Calculate Prod. Order"
             ProdOrderComp."Location Code" := SKU."Components at Location";
             ProdOrderComp."Bin Code" := GetDefaultBin();
             ProdOrderComp.Description := ProdBOMLine[Level].Description;
+            ProdOrderComp."Description 2" := ProdBOMLine[Level]."Description 2";
             ProdOrderComp.Validate("Unit of Measure Code", ProdBOMLine[Level]."Unit of Measure Code");
             if (ProdOrderComp."Item No." <> '') and Item2.Get(ProdOrderComp."Item No.") then
                 QtyRoundPrecision := UOMMgt.GetQtyRoundingPrecision(Item2, ProdBOMLine[Level]."Unit of Measure Code");

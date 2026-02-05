@@ -11,6 +11,9 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Comment;
 using System.Automation;
 
+/// <summary>
+/// Displays a single posted sales return receipt document with header and line details.
+/// </summary>
 page 6660 "Posted Return Receipt"
 {
     Caption = 'Posted Return Receipt';

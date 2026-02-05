@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Displays sales history statistics for the bill-to customer in a factbox.
+/// </summary>
 page 9081 "Sales Hist. Bill-to FactBox"
 {
     Caption = 'Bill-to Customer Sales History';

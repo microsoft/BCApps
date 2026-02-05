@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Calculates customer remaining amounts grouped by due date and posting group for aging analysis.
+/// </summary>
 query 22 "Cust. Remain. Amt. By Due Date"
 {
     Caption = 'Cust. Remain. Amt. By Due Date';

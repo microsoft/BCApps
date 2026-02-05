@@ -37,6 +37,7 @@ table 11604 "BAS Calc. Sheet Entry"
         }
         field(5; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(6; "Entry No."; Integer)

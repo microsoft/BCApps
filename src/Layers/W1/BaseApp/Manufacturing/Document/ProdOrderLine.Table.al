@@ -268,6 +268,7 @@ table 5406 "Prod. Order Line"
 #endif
         field(40; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -301,6 +302,7 @@ table 5406 "Prod. Order Line"
         }
         field(41; "Finished Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Finished Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -308,6 +310,7 @@ table 5406 "Prod. Order Line"
         }
         field(42; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -315,6 +318,7 @@ table 5406 "Prod. Order Line"
         }
         field(45; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -516,6 +520,7 @@ table 5406 "Prod. Order Line"
         field(65; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
 
             trigger OnValidate()
@@ -543,11 +548,13 @@ table 5406 "Prod. Order Line"
         field(67; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
             Editable = false;
         }
         field(68; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry".Quantity where("Source ID" = field("Prod. Order No."),
                                                                   "Source Ref. No." = const(0),
                                                                   "Source Type" = const(5406),
@@ -582,6 +589,7 @@ table 5406 "Prod. Order Line"
         }
         field(73; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -591,6 +599,7 @@ table 5406 "Prod. Order Line"
         }
         field(74; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -631,6 +640,7 @@ table 5406 "Prod. Order Line"
         }
         field(81; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -654,18 +664,21 @@ table 5406 "Prod. Order Line"
         }
         field(82; "Finished Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Finished Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(83; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(84; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Prod. Order No."),
                                                                            "Source Ref. No." = const(0),
                                                                            "Source Type" = const(5406),
@@ -683,6 +696,7 @@ table 5406 "Prod. Order Line"
         field(90; "Expected Operation Cost Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Routing Line"."Expected Operation Cost Amt." where(Status = field(Status),
                                                                                                "Prod. Order No." = field("Prod. Order No."),
                                                                                                "Routing No." = field("Routing No."),
@@ -693,6 +707,7 @@ table 5406 "Prod. Order Line"
         }
         field(91; "Total Exp. Oper. Output (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Line".Quantity where(Status = field(Status),
                                                                  "Prod. Order No." = field("Prod. Order No."),
                                                                  "Routing No." = field("Routing No."),
@@ -706,6 +721,7 @@ table 5406 "Prod. Order Line"
         field(94; "Expected Component Cost Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Component"."Cost Amount" where(Status = field(Status),
                                                                            "Prod. Order No." = field("Prod. Order No."),
                                                                            "Prod. Order Line No." = field("Line No."),
@@ -771,18 +787,21 @@ table 5406 "Prod. Order Line"
         }
         field(5850; "Qty. Put Away"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5851; "Qty. Put Away (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Put Away (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5852; "Put-away Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = const("Put-away"),
                                                                                   "Whse. Document Type" = const(Production),
                                                                                   "Whse. Document No." = field("Prod. Order No."),
@@ -800,6 +819,7 @@ table 5406 "Prod. Order Line"
         }
         field(5853; "Put-away Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = const("Put-away"),
                                                                                          "Whse. Document Type" = const(Production),
                                                                                          "Whse. Document No." = field("Prod. Order No."),
@@ -878,6 +898,7 @@ table 5406 "Prod. Order Line"
         }
         field(99000753; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -898,12 +919,13 @@ table 5406 "Prod. Order Line"
         }
         field(99000764; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
         }
         field(99000765; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
         }
     }

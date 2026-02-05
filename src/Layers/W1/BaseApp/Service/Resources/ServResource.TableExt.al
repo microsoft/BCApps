@@ -15,6 +15,7 @@ tableextension 6456 "Serv. Resource" extends Resource
     {
         field(5900; "Qty. on Service Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Service Order Allocation"."Allocated Hours" where(Posted = const(false),
                                                                                   "Resource No." = field("No."),
                                                                                   "Allocation Date" = field("Date Filter"),

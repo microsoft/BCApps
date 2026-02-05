@@ -140,6 +140,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field1; CellData[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[1];
@@ -147,6 +148,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field2; CellData[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[2];
@@ -154,6 +156,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field3; CellData[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[3];
@@ -161,6 +164,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field4; CellData[4])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[4];
@@ -168,6 +172,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field5; CellData[5])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[5];
@@ -175,6 +180,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field6; CellData[6])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[6];
@@ -182,6 +188,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field(Field7; CellData[7])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     CaptionClass = '3,' + ColumnCaption[7];
@@ -189,6 +196,7 @@ page 961 "Manager Time Sheet Archive"
                 }
                 field("Total Quantity"; Rec."Total Quantity")
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Jobs;
                     Caption = 'Total';
                     DrillDown = false;

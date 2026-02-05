@@ -9,6 +9,9 @@ using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists posted sales shipment lines with navigation to related sales and purchase documents.
+/// </summary>
 page 5824 "Sales Shipment Lines"
 {
     Caption = 'Sales Shipment Lines';
@@ -236,6 +239,12 @@ page 5824 "Sales Shipment Lines"
         AssignmentType: Option Sale,Purchase;
         DocumentNoHideValue: Boolean;
 
+    /// <summary>
+    /// Initializes the page for sales item charge assignment.
+    /// </summary>
+    /// <param name="NewItemChargeAssgnt">The sales item charge assignment to initialize from.</param>
+    /// <param name="NewSellToCustomerNo">The sell-to customer number.</param>
+    /// <param name="NewUnitCost">The unit cost for the charge assignment.</param>
     procedure InitializeSales(NewItemChargeAssgnt: Record "Item Charge Assignment (Sales)"; NewSellToCustomerNo: Code[20]; NewUnitCost: Decimal)
     begin
         ItemChargeAssgntSales := NewItemChargeAssgnt;
@@ -244,6 +253,11 @@ page 5824 "Sales Shipment Lines"
         AssignmentType := AssignmentType::Sale;
     end;
 
+    /// <summary>
+    /// Initializes the page for purchase item charge assignment.
+    /// </summary>
+    /// <param name="NewItemChargeAssgnt">The purchase item charge assignment to initialize from.</param>
+    /// <param name="NewUnitCost">The unit cost for the charge assignment.</param>
     procedure InitializePurchase(NewItemChargeAssgnt: Record "Item Charge Assignment (Purch)"; NewUnitCost: Decimal)
     begin
         ItemChargeAssgntPurch := NewItemChargeAssgnt;

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Provides an editable interface for adding and managing comments on reminder documents.
+/// </summary>
 page 442 "Reminder Comment Sheet"
 {
     AutoSplitKey = true;
@@ -57,6 +60,11 @@ page 442 "Reminder Comment Sheet"
         Text001: Label 'Reminder';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Gets the page caption text based on the reminder comment line.
+    /// </summary>
+    /// <param name="ReminderCommentLine">The reminder comment line to generate caption for.</param>
+    /// <returns>The caption text for the page.</returns>
     procedure Caption(ReminderCommentLine: Record "Reminder Comment Line"): Text
     begin
         if ReminderCommentLine."No." = '' then

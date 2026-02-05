@@ -143,6 +143,7 @@ table 12181 "Vendor Bill Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
         }
@@ -213,8 +214,8 @@ table 12181 "Vendor Bill Header"
         if "No." = '' then begin
             PurchSetup.Get();
             PurchSetup.TestField("Temporary Bill List No.");
-                "No. Series" := PurchSetup."Temporary Bill List No.";
-                "No." := NoSeries.GetNextNo("No. Series");
+            "No. Series" := PurchSetup."Temporary Bill List No.";
+            "No." := NoSeries.GetNextNo("No. Series");
         end;
 
         "List Date" := WorkDate();

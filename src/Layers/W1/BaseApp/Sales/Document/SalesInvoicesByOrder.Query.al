@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Retrieves posted sales invoices that originated from a specific sales order.
+/// </summary>
 query 201 "Sales Invoices By Order"
 {
     Caption = 'Sales Invoices By Order';

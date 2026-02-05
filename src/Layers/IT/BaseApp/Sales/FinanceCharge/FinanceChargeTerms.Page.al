@@ -6,6 +6,9 @@ namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Displays a list of finance charge terms configurations with interest rates, grace periods, and fee settings.
+/// </summary>
 page 6 "Finance Charge Terms"
 {
     ApplicationArea = Basic, Suite;

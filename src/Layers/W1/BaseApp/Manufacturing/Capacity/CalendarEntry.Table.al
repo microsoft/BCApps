@@ -145,18 +145,21 @@ table 99000757 "Calendar Entry"
         }
         field(10; "Capacity (Total)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity (Total)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(11; "Capacity (Effective)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity (Effective)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(20; Efficiency; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Efficiency';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -168,6 +171,7 @@ table 99000757 "Calendar Entry"
         }
         field(21; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -179,6 +183,7 @@ table 99000757 "Calendar Entry"
         }
         field(22; "Absence Efficiency"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Absence Efficiency';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -191,6 +196,7 @@ table 99000757 "Calendar Entry"
         }
         field(23; "Absence Capacity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Absence Capacity';
             DecimalPlaces = 0 : 5;
             Editable = false;

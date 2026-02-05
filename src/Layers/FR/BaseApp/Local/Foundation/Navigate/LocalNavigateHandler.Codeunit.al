@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,6 +9,10 @@ using Microsoft.Bank.Payment;
 
 codeunit 355 "Local Navigate Handler"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
+
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
         PaymentHeader: Record "Payment Header";
@@ -98,3 +103,4 @@ codeunit 355 "Local Navigate Handler"
         PaymentLineArchive.SetFilter("Posting Date", PostingDateFilter);
     end;
 }
+#endif

@@ -30,7 +30,7 @@
         DimFilterStringTok: Label 'Dimension 1 Filter: %1, Dimension 2 Filter: %2, Dimension 3 Filter: %3, Dimension 4 Filter: %4';
         CopySourceNameMissingErr: Label 'You must specify a valid name for the source rows definition to copy from.';
         MultipleSourcesErr: Label 'You can only copy one rows definition at a time.';
-        SystemGeneratedAccSchedQst: Label 'This account schedule may be automatically updated by the system, so any changes you make may be lost. Do you want to make a copy?';
+        SystemGeneratedAccSchedQst: Label 'This report definition may be automatically updated by the system, so any changes you make may be lost. Do you want to make a copy?';
         TargetExistsErr: Label 'The new rows definition already exists.';
         TargetNameMissingErr: Label 'You must specify a name for the new rows definition.';
         InvalidRowErr: Label 'Row %1 with is visible with the value %2.';

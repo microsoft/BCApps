@@ -14,6 +14,7 @@ tableextension 12153 "Service Line IT" extends "Service Line"
     {
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DataClassification = CustomerContent;
             DecimalPlaces = 2 : 2;

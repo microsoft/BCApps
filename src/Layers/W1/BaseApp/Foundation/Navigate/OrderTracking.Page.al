@@ -48,6 +48,7 @@ page 99000822 "Order Tracking"
                 field("Total Quantity"; CurrQuantity + DerivedTrackingQty)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -56,6 +57,7 @@ page 99000822 "Order Tracking"
                 field("Untracked Quantity"; CurrUntrackedQuantity + DerivedTrackingQty)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     Caption = 'Untracked Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -133,6 +135,7 @@ page 99000822 "Order Tracking"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Planning;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the quantity, in the base unit of measure, of the item that has been tracked in this entry.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")

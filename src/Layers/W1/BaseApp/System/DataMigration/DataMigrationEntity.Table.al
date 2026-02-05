@@ -41,6 +41,7 @@ table 1801 "Data Migration Entity"
         }
         field(5; Balance; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance';
         }
         field(6; Post; Boolean)

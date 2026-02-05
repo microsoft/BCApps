@@ -253,7 +253,7 @@ table 6084 "Service Line Price Adjmt."
         end;
     end;
 
-    local procedure GetCurrency(): Code[10]
+    procedure GetCurrency(): Code[10]
     begin
         GetServHeader();
         exit(ServHeader."Currency Code");

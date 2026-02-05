@@ -15,6 +15,7 @@ pageextension 6485 "Serv. ItemAvailbyUOMLines" extends "Item Avail. by UOM Lines
 #pragma warning restore AA0100
             {
                 ApplicationArea = Service;
+                AutoFormatType = 0;
                 Caption = 'Qty. on Service Order';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies how many units of the item are allocated to service orders, meaning listed on outstanding service order lines.';

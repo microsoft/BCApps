@@ -21,7 +21,6 @@ report 20401 "Qlty. Certificate of Analysis"
     Caption = 'Quality Management - Certificate of Analysis';
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'COA,Cert of Analysis,Test Report,Inspection Report,Quality Test Report,Printable Tests,Printable Certificate';
 
     dataset
     {

@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +10,9 @@ xmlport 10863 "Import/Export Parameters"
     Caption = 'Import/Export Parameters';
     DefaultFieldsValidation = false;
     Format = VariableText;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     schema
     {
@@ -208,4 +212,4 @@ xmlport 10863 "Import/Export Parameters"
         }
     }
 }
-
+#endif

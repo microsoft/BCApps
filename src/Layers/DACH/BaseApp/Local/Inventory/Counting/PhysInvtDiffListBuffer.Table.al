@@ -32,6 +32,7 @@ table 5005363 "Phys. Invt. Diff. List Buffer"
         }
         field(12; "Exp. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exp. Qty. (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -58,6 +59,7 @@ table 5005363 "Phys. Invt. Diff. List Buffer"
         }
         field(24; "Rec. Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rec. Qty. (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -74,12 +76,14 @@ table 5005363 "Phys. Invt. Diff. List Buffer"
         }
         field(32; "Track. Qty. Neg. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Track. Qty. Neg. (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(33; "Track. Qty. Pos. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Track. Qty. Pos. (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -99,5 +103,5 @@ table 5005363 "Phys. Invt. Diff. List Buffer"
     }
 }
 
- 
+
 #endif

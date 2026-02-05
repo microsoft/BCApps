@@ -171,6 +171,7 @@ table 2000001 "Payment Journal Line"
         }
         field(13; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -236,6 +237,7 @@ table 2000001 "Payment Journal Line"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
             Editable = false;
 
@@ -253,6 +255,7 @@ table 2000001 "Payment Journal Line"
         field(17; "Pmt. Disc. Possible (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Disc. Possible (LCY)';
             Editable = false;
 

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Displays customer credit details including balance, outstanding amounts, and available credit.
+/// </summary>
 page 7177 "Available Credit"
 {
     Caption = 'Available Credit';
@@ -46,6 +49,8 @@ page 7177 "Available Credit"
                 field(GetReturnRcdNotInvAmountLCY; Rec.GetReturnRcdNotInvAmountLCY())
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Ret. Rcd. Not Inv. (LCY)';
                     ToolTip = 'Specifies the amount on sales returns from the customer that are not yet refunded.';
                 }
@@ -57,6 +62,7 @@ page 7177 "Available Credit"
                 {
                     ApplicationArea = Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total (LCY)';
                     ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases plus purchases that are still ongoing.';
                 }
@@ -68,12 +74,16 @@ page 7177 "Available Credit"
                 field(CalcAvailableCreditUI; Rec.CalcAvailableCreditUI())
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Available Credit (LCY)';
                     ToolTip = 'Specifies a customer''s available credit. If the available credit is 0 and the customer''s credit limit is also 0, then the customer has unlimited credit because no credit limit has been defined.';
                 }
                 field("Balance Due (LCY)"; Rec.CalcOverdueBalance())
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = Format(StrSubstNo(Text000, Format(WorkDate())));
 
                     trigger OnDrillDown()
@@ -91,6 +101,8 @@ page 7177 "Available Credit"
                 field(GetInvoicedPrepmtAmountLCY; Rec.GetInvoicedPrepmtAmountLCY())
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Invoiced Prepayment Amount (LCY)';
                     ToolTip = 'Specifies your sales income from the customer based on invoiced prepayments.';
                 }

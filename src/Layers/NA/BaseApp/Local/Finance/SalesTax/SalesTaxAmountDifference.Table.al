@@ -60,6 +60,7 @@ table 10012 "Sales Tax Amount Difference"
         }
         field(8; "Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax %';
         }
         field(9; "Expense/Capitalize"; Boolean)
@@ -78,7 +79,7 @@ table 10012 "Sales Tax Amount Difference"
         }
         field(15; "Tax Difference"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Tax Difference';
             Editable = false;
         }

@@ -1,3 +1,5 @@
+
+#if not CLEAN28
 codeunit 144011 "ERM Bank Account FR"
 {
     // 1. Purpose of the test is to Post Payment Slip and verify created GL Entry for Customer Bank Account Code.
@@ -12,6 +14,9 @@ codeunit 144011 "ERM Bank Account FR"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -268,4 +273,4 @@ codeunit 144011 "ERM Bank Account FR"
         PaymentClassList.OK().Invoke();
     end;
 }
-
+#endif

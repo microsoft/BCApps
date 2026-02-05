@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays a list part of the current user's favorite customers for Role Center integration.
+/// </summary>
 page 9150 "My Customers"
 {
     Caption = 'My Customers';
@@ -45,6 +48,9 @@ page 9150 "My Customers"
                 field("Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = '';
+                    AutoFormatType = 1;
+
                     trigger OnDrillDown()
                     begin
                         Customer.OpenCustomerLedgerEntries(false);

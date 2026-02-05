@@ -49,14 +49,14 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        case QltyManagementSetup."Auto Output Configuration" of
-            QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity:
+        case QltyManagementSetup."Prod. trigger output condition" of
+            QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity:
                 if (ItemJournalLine.Quantity = 0) and (ItemJournalLine."Scrap Quantity" = 0) then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity:
+            QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity:
                 if ItemJournalLine.Quantity = 0 then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap:
+            QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap:
                 if ItemJournalLine."Scrap Quantity" = 0 then
                     exit;
         end;
@@ -84,7 +84,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if ProdOrderRoutingLine."Next Operation No." <> '' then
                 Clear(VerifiedItemLedgerEntry);
 
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost);
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
@@ -124,7 +124,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionReleased(ToProdOrder, QltyInspectionGenRule);
@@ -173,7 +173,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionReleased(ProductionOrder, QltyInspectionGenRule);
@@ -632,4 +632,3 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     begin
     end;
 }
-

@@ -143,6 +143,8 @@ page 2000041 "CODA Statement Lines"
                 field(UnappliedAmount; UnappliedAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     Caption = 'Unapplied Amount';
                     Editable = false;
                     Enabled = UnappliedAmountEnable;
@@ -150,6 +152,8 @@ page 2000041 "CODA Statement Lines"
                 }
                 field("Balance + ""Statement Amount"""; Balance + Rec."Statement Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance';
                     Editable = false;
@@ -158,6 +162,8 @@ page 2000041 "CODA Statement Lines"
                 }
                 field("TotalBalance + ""Statement Amount"""; TotalBalance + Rec."Statement Amount")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Balance';
                     Editable = false;

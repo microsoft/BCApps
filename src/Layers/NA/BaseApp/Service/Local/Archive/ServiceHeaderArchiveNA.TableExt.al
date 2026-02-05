@@ -35,6 +35,7 @@ tableextension 10010 "Service Header Archive NA" extends "Service Header Archive
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 6;

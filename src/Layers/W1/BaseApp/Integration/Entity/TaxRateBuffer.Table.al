@@ -30,6 +30,7 @@ table 5502 "Tax Rate Buffer"
         }
         field(3; "Tax Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tax Rate';
             DataClassification = SystemMetadata;
             Editable = false;

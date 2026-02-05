@@ -26,17 +26,14 @@
         "includeSourceInSymbolFile": true,
         "allowDownloadingSource": true
     },
-    "resourceFolders": [
-        "Resources"
-    ],
     "features": [
         "NoImplicitWith",
         "TranslationFile"
     ],
     "internalsVisibleTo": [
         {
-            "id": "aa5fc5d3-ef4e-4b03-8512-9c584cdc1ceb",
-            "name": "Quality Management-Tests",
+            "id": "9c32d4af-77d5-4fba-a3de-361805163a00",
+            "name": "Quality Management Test Library",
             "publisher": "Microsoft"
         }
     ]

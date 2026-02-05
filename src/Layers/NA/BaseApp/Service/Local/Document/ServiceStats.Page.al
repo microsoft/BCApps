@@ -111,6 +111,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit ($)';
                     Editable = false;
                     ToolTip = 'Specifies the profit, expressed as an amount.  ';
@@ -118,6 +119,7 @@ page 10053 "Service Stats."
                 field("ProfitPct[1]"; ProfitPct[1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -163,6 +165,8 @@ page 10053 "Service Stats."
                 field(BreakdownAmt; BreakdownAmt[1, 1])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 1]);
                     Caption = 'BreakdownAmt';
@@ -171,6 +175,8 @@ page 10053 "Service Stats."
                 field(BreakdownAmt2; BreakdownAmt[1, 2])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 2]);
                     Caption = 'BreakdownAmt';
@@ -179,6 +185,8 @@ page 10053 "Service Stats."
                 field(BreakdownAmt3; BreakdownAmt[1, 3])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 3]);
                     Caption = 'BreakdownAmt';
@@ -187,7 +195,8 @@ page 10053 "Service Stats."
                 field(BreakdownAmt4; BreakdownAmt[1, 4])
                 {
                     ApplicationArea = Service;
-                    BlankZero = true;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     CaptionClass = Format(BreakdownLabel[1, 4]);
                     Caption = 'BreakdownAmt';
                     Editable = false;
@@ -314,6 +323,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit, expressed as an amount in local currency, which was associated with the service  item, when it was originally posted.';
@@ -322,6 +332,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the adjusted profit, in local currency.';
@@ -329,6 +340,7 @@ page 10053 "Service Stats."
                 field("ProfitPct[5]"; ProfitPct[5])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -337,6 +349,7 @@ page 10053 "Service Stats."
                 field("AdjProfitPct[5]"; AdjProfitPct[5])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -354,6 +367,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the adjusted cost of the service order, in local currency.';
@@ -362,6 +376,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the cost adjustment amount, in local currency.';
@@ -462,6 +477,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit in LCY.';
@@ -470,6 +486,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit in LCY.';
@@ -478,6 +495,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit in LCY.';
@@ -486,6 +504,7 @@ page 10053 "Service Stats."
                 {
                     ApplicationArea = Service;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit in LCY.';
@@ -493,6 +512,7 @@ page 10053 "Service Stats."
                 field("ProfitPct[6]"; ProfitPct[6])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -501,6 +521,7 @@ page 10053 "Service Stats."
                 field("ProfitPct[7]"; ProfitPct[7])
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Profit %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -545,6 +566,7 @@ page 10053 "Service Stats."
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
                     Caption = 'Expended % of Credit Limit ($)';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Expended Percentage of Credit Limit ($).';

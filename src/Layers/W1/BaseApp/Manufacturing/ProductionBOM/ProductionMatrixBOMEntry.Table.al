@@ -29,6 +29,7 @@ table 99000789 "Production Matrix  BOM Entry"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

@@ -197,6 +197,7 @@ table 753 "Standard Item Journal Line"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -219,7 +220,8 @@ table 753 "Standard Item Journal Line"
         }
         field(16; "Unit Amount"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             Caption = 'Unit Amount';
 
             trigger OnValidate()
@@ -277,6 +279,7 @@ table 753 "Standard Item Journal Line"
         field(17; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
 
             trigger OnValidate()
@@ -325,6 +328,7 @@ table 753 "Standard Item Journal Line"
         field(18; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -378,6 +382,7 @@ table 753 "Standard Item Journal Line"
         }
         field(37; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -431,6 +436,7 @@ table 753 "Standard Item Journal Line"
         }
         field(53; "Qty. (Calculated)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Calculated)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -442,6 +448,7 @@ table 753 "Standard Item Journal Line"
         }
         field(54; "Qty. (Phys. Inventory)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Phys. Inventory)';
             DecimalPlaces = 0 : 5;
 
@@ -590,6 +597,7 @@ table 753 "Standard Item Journal Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -617,6 +625,7 @@ table 753 "Standard Item Journal Line"
         }
         field(5410; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -626,6 +635,7 @@ table 753 "Standard Item Journal Line"
         }
         field(5411; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -635,6 +645,7 @@ table 753 "Standard Item Journal Line"
         }
         field(5413; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -692,6 +703,7 @@ table 753 "Standard Item Journal Line"
         }
         field(99000755; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
 

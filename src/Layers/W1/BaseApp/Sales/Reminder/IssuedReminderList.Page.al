@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Reports;
 
+/// <summary>
+/// Displays a list of all issued reminders with options to view, print, cancel, or send them.
+/// </summary>
 page 440 "Issued Reminder List"
 {
     ApplicationArea = Suite;

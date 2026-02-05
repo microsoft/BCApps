@@ -33,6 +33,7 @@ table 10534 "MTD-Payment"
         }
         field(5; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
     }
@@ -50,5 +51,5 @@ table 10534 "MTD-Payment"
     }
 }
 
- 
+
 #endif

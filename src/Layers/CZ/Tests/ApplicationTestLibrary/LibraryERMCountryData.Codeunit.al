@@ -18,7 +18,7 @@ codeunit 131305 "Library - ERM Country Data"
 
     procedure CreateVATData()
     begin
-        exit;
+        CreateVATPeriodIfNotExist();
     end;
 
     procedure GetVATCalculationType(): Enum "Tax Calculation Type"
@@ -90,6 +90,7 @@ codeunit 131305 "Library - ERM Country Data"
     procedure UpdateGeneralPostingSetup()
     begin
         CreateUserSetup(); // NAVCZ
+        UpdateDirectCostAppliedAccount();
     end;
 
     procedure UpdateInventoryPostingSetup()
@@ -122,7 +123,7 @@ codeunit 131305 "Library - ERM Country Data"
         PurchasesPayablesSetup."Allow Document Deletion Before" := CalcDate('<CY>', WorkDate());
         PurchasesPayablesSetup.Modify();
         // NAVCZ
-	    UpdatePostingDateCheckonPostingPurchase();
+        UpdatePostingDateCheckonPostingPurchase();
     end;
 
     procedure SetDiscountPostingInPurchasePayablesSetup()
@@ -142,7 +143,7 @@ codeunit 131305 "Library - ERM Country Data"
         SalesReceivablesSetup."Allow Document Deletion Before" := CalcDate('<CY>', WorkDate());
         SalesReceivablesSetup.Modify();
         // NAVCZ
-	    UpdatePostingDateCheckonPostingSales();
+        UpdatePostingDateCheckonPostingSales();
     end;
 
     procedure SetDiscountPostingInSalesReceivablesSetup()
@@ -281,6 +282,29 @@ codeunit 131305 "Library - ERM Country Data"
             until GeneralPostingSetup.Next() = 0;
     end;
 
+    local procedure UpdateDirectCostAppliedAccount()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        IAssemblyTok: Label 'I_ASSEMBLY', MaxLength = 20;
+        MiscTok: Label 'MISC', MaxLength = 20;
+    begin
+        GeneralPostingSetup.SetRange("Gen. Bus. Posting Group", IAssemblyTok);
+        GeneralPostingSetup.SetRange("Gen. Prod. Posting Group", MiscTok);
+        GeneralPostingSetup.SetFilter("Direct Cost Applied Account", '');
+        if GeneralPostingSetup.FindFirst() then begin
+            GeneralPostingSetup."Direct Cost Applied Account" := CreateGLAccount();
+            GeneralPostingSetup.Modify(true);
+        end;
+    end;
+
+    local procedure CreateGLAccount(): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        exit(GLAccount."No.");
+    end;
+
     procedure CompanyInfoSetVATRegistrationNo()
     var
         CompanyInformation: Record "Company Information";
@@ -322,7 +346,7 @@ codeunit 131305 "Library - ERM Country Data"
         UserSetup."Time Sheet Admin." := true;
         UserSetup.Modify(true);
     end;
-    
+
     local procedure UpdatePostingDateCheckonPostingSales()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -339,6 +363,29 @@ codeunit 131305 "Library - ERM Country Data"
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Posting Date Check on Posting", false);
         PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure CreateVATPeriodIfNotExist()
+    var
+        AllObjects: Record AllObjWithCaption;
+        DataTypeManagement: Codeunit "Data Type Management";
+        RecordRef: RecordRef;
+        FieldRef: FieldRef;
+    begin
+        AllObjects.SetRange("Object Type", AllObjects."Object Type"::Table);
+        AllObjects.SetRange("Object Name", 'VAT Period CZL');
+        if AllObjects.IsEmpty() then
+            exit;
+
+        AllObjects.FindFirst();
+        RecordRef.Open(AllObjects."Object ID");
+        if not RecordRef.IsEmpty() then
+            exit;
+
+        RecordRef.Init();
+        DataTypeManagement.FindFieldByName(RecordRef, FieldRef, 'Starting Date');
+        FieldRef.Value := WorkDate();
+        RecordRef.Insert();
     end;
 }
 

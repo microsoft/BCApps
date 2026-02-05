@@ -788,6 +788,8 @@ page 39 "General Journal"
                         field(DisplayTotalDebit; GetTotalDebitAmt())
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Debit';
                             Editable = false;
                             ToolTip = 'Specifies the total debit amount in the general journal.';
@@ -800,6 +802,8 @@ page 39 "General Journal"
                         field(DisplayTotalCredit; GetTotalCreditAmt())
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Credit';
                             Editable = false;
                             ToolTip = 'Specifies the total credit amount in the general journal.';
@@ -812,6 +816,7 @@ page 39 "General Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the general journal on the line where the cursor is.';
@@ -825,6 +830,7 @@ page 39 "General Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the general journal.';

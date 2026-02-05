@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+/// <summary>
+/// Displays and manages currency-specific additional fees for finance charge terms.
+/// </summary>
 page 477 "Currencies for Fin. Chrg Terms"
 {
     Caption = 'Currencies for Fin. Chrg Terms';

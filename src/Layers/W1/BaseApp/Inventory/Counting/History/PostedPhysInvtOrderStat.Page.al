@@ -84,21 +84,29 @@ page 5898 "Posted Phys. Invt. Order Stat."
                         field(RecAmountAllLines; RecAmountAllLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the recorded amount of all lines.';
                         }
                         field(RecAmountCorrectLines; RecAmountCorrectLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the recorded amount of lines with no difference between actual and calculated inventory.';
                         }
                         field(RecAmountPosDiffLines; RecAmountPosDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the recorded amount of lines with a positive difference between actual and calculated inventory.';
                         }
                         field(RecAmountNegDiffLines; RecAmountNegDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the recorded amount of lines with a negative difference between actual and calculated inventory.';
                         }
                     }
@@ -108,21 +116,29 @@ page 5898 "Posted Phys. Invt. Order Stat."
                         field(ExpAmountAllLines; ExpAmountAllLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the expected amount of all lines.';
                         }
                         field(ExpAmountCorrectLines; ExpAmountCorrectLines)
                         {
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ApplicationArea = Warehouse;
                             ToolTip = 'Specifies the expected amount of lines with no difference between actual and calculated inventory.';
                         }
                         field(ExpAmountPosDiffLines; ExpAmountPosDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the expected amount of lines with a positive difference between actual and calculated inventory.';
                         }
                         field(ExpAmountNegDiffLines; ExpAmountNegDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the expected amount of lines with a negative difference between actual and calculated inventory.';
                         }
                     }
@@ -132,6 +148,8 @@ page 5898 "Posted Phys. Invt. Order Stat."
                         field(DiffAmountAllLines; DiffAmountAllLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the difference amount of all lines.';
                         }
                         field(PlaceHolderLbl; PlaceHolderLbl)
@@ -142,11 +160,15 @@ page 5898 "Posted Phys. Invt. Order Stat."
                         field(DiffAmountPosDiffLines; DiffAmountPosDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the difference amount of lines with a positive difference between actual and calculated inventory.';
                         }
                         field(DiffAmountNegDiffLines; DiffAmountNegDiffLines)
                         {
                             ApplicationArea = Warehouse;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the difference amount of lines with a negative difference between actual and calculated inventory.';
                         }
                     }

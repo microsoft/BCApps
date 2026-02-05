@@ -10,7 +10,7 @@ page 3845 "Scheduled Tasks"
     UsageCategory = Administration;
     SourceTable = "Scheduled Task";
     Editable = false;
-    Extensible = false;
+    Extensible = true;
 
     layout
     {

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Retrieves posted sales credit memos that originated from a specific return order.
+/// </summary>
 query 205 "Sales Cr. Memos By Ret. Order"
 {
     Caption = 'Sales Cr. Memos By Ret. Order';

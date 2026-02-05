@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a summary of email text configurations for reminder documents as a card part.
+/// </summary>
 page 834 "Reminder Email Text"
 {
     Caption = 'Email Texts';

@@ -227,6 +227,8 @@ report 393 "Suggest Vendor Payments"
                         field("Available Amount (LCY)"; AmountAvailable)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Available Amount (LCY)';
                             Importance = Additional;
                             ToolTip = 'Specifies a maximum amount (in LCY) that is available for payments. The batch job will then create a payment suggestion on the basis of this amount and the Use Vendor Priority check box. It will only include vendor entries that can be paid fully.';

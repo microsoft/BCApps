@@ -99,6 +99,7 @@ page 7000018 "Bank Account Selection"
                 field(RiskPercIncGr; RiskPercIncGr)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Risk % Including Current Bill Group';
                     ExtendedDatatype = Ratio;
                     MaxValue = 100;

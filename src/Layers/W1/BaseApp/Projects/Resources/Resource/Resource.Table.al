@@ -241,6 +241,7 @@ table 156 Resource
         field(19; "Direct Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
             MinValue = 0;
 
@@ -251,6 +252,7 @@ table 156 Resource
         }
         field(20; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 2 : 2;
 
@@ -262,6 +264,7 @@ table 156 Resource
         field(21; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             MinValue = 0;
 
@@ -304,6 +307,7 @@ table 156 Resource
         field(24; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
             MinValue = 0;
 
@@ -359,6 +363,7 @@ table 156 Resource
         }
         field(41; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Res. Capacity Entry".Capacity where("Resource No." = field("No."),
                                                                     Date = field("Date Filter")));
             Caption = 'Capacity';
@@ -367,6 +372,7 @@ table 156 Resource
         }
         field(42; "Qty. on Order (Job)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line"."Quantity (Base)" where(Status = const(Order),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -379,6 +385,7 @@ table 156 Resource
         }
         field(43; "Qty. Quoted (Job)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line"."Quantity (Base)" where(Status = const(Quote),
                                                                            "Schedule Line" = const(true),
                                                                            Type = const(Resource),
@@ -391,6 +398,7 @@ table 156 Resource
         }
         field(44; "Usage (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Res. Ledger Entry"."Quantity (Base)" where("Entry Type" = const(Usage),
                                                                            Chargeable = field("Chargeable Filter"),
                                                                            "Unit of Measure Code" = field("Unit of Measure Filter"),
@@ -403,7 +411,8 @@ table 156 Resource
         }
         field(45; "Usage (Cost)"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Res. Ledger Entry"."Total Cost" where("Entry Type" = const(Usage),
                                                                       Chargeable = field("Chargeable Filter"),
                                                                       "Unit of Measure Code" = field("Unit of Measure Filter"),
@@ -416,6 +425,7 @@ table 156 Resource
         field(46; "Usage (Price)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             CalcFormula = sum("Res. Ledger Entry"."Total Price" where("Entry Type" = const(Usage),
                                                                        Chargeable = field("Chargeable Filter"),
                                                                        "Unit of Measure Code" = field("Unit of Measure Filter"),
@@ -427,6 +437,7 @@ table 156 Resource
         }
         field(47; "Sales (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Res. Ledger Entry"."Quantity (Base)" where("Entry Type" = const(Sale),
                                                                             "Unit of Measure Code" = field("Unit of Measure Filter"),
                                                                             "Resource No." = field("No."),
@@ -438,7 +449,8 @@ table 156 Resource
         }
         field(48; "Sales (Cost)"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Res. Ledger Entry"."Total Cost" where("Entry Type" = const(Sale),
                                                                        "Unit of Measure Code" = field("Unit of Measure Filter"),
                                                                        "Resource No." = field("No."),
@@ -450,6 +462,7 @@ table 156 Resource
         field(49; "Sales (Price)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Res. Ledger Entry"."Total Price" where("Entry Type" = const(Sale),
                                                                         "Unit of Measure Code" = field("Unit of Measure Filter"),
                                                                         "Resource No." = field("No."),
@@ -583,6 +596,7 @@ table 156 Resource
         }
         field(900; "Qty. on Assembly Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Assembly Line"."Remaining Quantity (Base)" where("Document Type" = const(Order),
                                                                                  Type = const(Resource),
                                                                                  "No." = field("No."),

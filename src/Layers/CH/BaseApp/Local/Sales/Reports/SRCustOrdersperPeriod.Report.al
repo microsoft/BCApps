@@ -195,6 +195,9 @@ report 11535 "SR Cust. Orders per Period"
 
                 trigger OnAfterGetRecord()
                 begin
+                    Clear(SaleAmtInOrder);
+                    Clear(SaleAmtInOrderLCY);
+
                     PeriodNo := 1;
                     while "Shipment Date" >= PeriodStartDate[PeriodNo] do
                         PeriodNo := PeriodNo + 1;

@@ -260,6 +260,8 @@ table 272 "Check Ledger Entry"
         }
         field(28040; "WHT Amount"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCodeFromBank();
+            AutoFormatType = 1;
             Caption = 'WHT Amount';
         }
         field(28090; "PDC Check No."; Code[20])
@@ -268,6 +270,8 @@ table 272 "Check Ledger Entry"
         }
         field(28091; "Interest Amount"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCodeFromBank();
+            AutoFormatType = 1;
             Caption = 'Interest Amount';
         }
     }

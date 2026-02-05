@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates an item-level sales analysis showing quantities and amounts sold to each customer for a specified period.
+/// </summary>
+
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Customer;
@@ -531,11 +535,21 @@ report 113 "Customer/Item Sales"
         Item: Record Item;
         TempValueEntryBuffer: Record "Value Entry" temporary;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Item Sales report.
+    /// </summary>
+    /// <param name="NewPagePerCustomer">True to start a new page per customer.</param>
     procedure InitializeRequest(NewPagePerCustomer: Boolean)
     begin
         PrintOnlyOnePerPageReq := NewPagePerCustomer;
     end;
 
+    /// <summary>
+    /// Calculates the profit percentage based on amount and profit.
+    /// </summary>
+    /// <param name="Amount">The total amount.</param>
+    /// <param name="ProfitAmt">The profit amount.</param>
+    /// <returns>The profit percentage rounded to one decimal.</returns>
     procedure CalculateProfitPercent(Amount: Decimal; ProfitAmt: Decimal) ProfitPercent: Decimal
     begin
         if Amount <> 0 then

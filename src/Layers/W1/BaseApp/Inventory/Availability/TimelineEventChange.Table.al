@@ -37,6 +37,7 @@ table 5541 "Timeline Event Change"
         }
         field(20; "Original Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -44,6 +45,7 @@ table 5541 "Timeline Event Change"
         }
         field(21; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

@@ -36,7 +36,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         LocationMustBeBinMandatoryErr: Label 'Location %1 must be set up with Bin Mandatory if the Work Center %2 uses it.', Comment = '%1 - location code,  %2 = Object No.';
         CannotPostConsumptionErr: Label 'You cannot post consumption for order no. %1 because a quantity of %2 remains to be picked.', Comment = '%1 - order number, %2 - quantity';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowSourceDocLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowSourceDocLine', '', true, false)]
     local procedure OnShowSourceDocLine(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20]; SourceLineNo: Integer; SourceSubLineNo: Integer)
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -58,7 +58,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowSourceDocCard', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowSourceDocCard', '', true, false)]
     local procedure OnShowSourceDocCard(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20])
     var
         ProductionOrder: Record "Production Order";
@@ -70,7 +70,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowWhseActivityDocLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnShowWhseActivityDocLine', '', true, false)]
     local procedure OnAfterShowWhseActivityDocLine(WhseActivityDocType: Enum "Warehouse Activity Document Type"; WhseDocNo: Code[20]; WhseDocLineNo: Integer)
     begin
         if WhseActivityDocType = WhseActivityDocType::Production then
@@ -88,7 +88,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         PAGE.RunModal(PAGE::"Prod. Order Line List", ProdOrderLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnCheckIfBinIsEligible', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnCheckIfBinIsEligible', '', true, false)]
     local procedure OnCheckIfBinIsEligible(ItemJournalLine: Record "Item Journal Line"; var BinIsEligible: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -630,7 +630,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Request", 'OnShowSourceDocumentCard', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Request", 'OnShowSourceDocumentCard', '', true, false)]
     local procedure OnShowSourceDocumentCard(var WarehouseRequest: Record "Warehouse Request")
     var
         ProductionOrder: Record "Production Order";
@@ -644,7 +644,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetSrcDocLineQtyOutstanding', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetSrcDocLineQtyOutstanding', '', true, false)]
     local procedure OnAfterGetSrcDocLineQtyOutstanding(SourceType: Integer; SourceSubType: Integer; SourceNo: Code[20]; SourceLineNo: Integer; SourceSubLineNo: Integer; var QtyBaseOutstanding: Decimal; var QtyOutstanding: Decimal)
     var
         ProdOrderComp: Record "Prod. Order Component";
@@ -664,7 +664,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetSourceDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetSourceDocumentType', '', true, false)]
     local procedure WhseManagementGetSourceDocumentType(SourceType: Integer; SourceSubType: Integer; var SourceDocument: Enum "Warehouse Journal Source Document"; var IsHandled: Boolean)
     begin
         case SourceType of
@@ -681,7 +681,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetJournalSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetJournalSourceDocument', '', true, false)]
     local procedure WhseManagementGetJournalSourceDocument(SourceType: Integer; SourceSubType: Integer; var SourceDocument: Enum "Warehouse Journal Source Document"; var IsHandled: Boolean)
     begin
         if SourceType = Database::"Prod. Order Component" then begin
@@ -690,7 +690,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnBeforeGetSourceType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnBeforeGetSourceType', '', true, false)]
     local procedure WhseManagementOnBeforeGetSourceType(WhseWorksheetLine: Record "Whse. Worksheet Line"; var SourceType: Integer; var IsHandled: Boolean)
     begin
         if WhseWorksheetLine."Whse. Document Type" = WhseWorksheetLine."Whse. Document Type"::Production then
@@ -700,7 +700,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Create Pick", 'OnCheckSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Create Pick", 'OnCheckSourceDocument', '', true, false)]
     local procedure CreatePickOnCheckSourceDocument(var PickWhseWkshLine: Record "Whse. Worksheet Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -715,7 +715,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Cross-Dock Management", 'OnCalcCrossDockToProdOrderComponent', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Cross-Dock Management", 'OnCalcCrossDockToProdOrderComponent', '', true, false)]
     local procedure OnCalcCrossDockToProdOrderComponent(var WhseCrossDockOpportunity: Record "Whse. Cross-Dock Opportunity"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; CrossDockDate: Date; LineNo: Integer; var sender: Codeunit "Whse. Cross-Dock Management")
     begin
         CalcCrossDockToProdOrderComponent(WhseCrossDockOpportunity, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo, sender);
@@ -757,7 +757,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Integration Management", 'OnCheckBinTypeAndCode', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Integration Management", 'OnCheckBinTypeAndCode', '', true, false)]
     local procedure OnCheckBinTypeAndCode(BinType: Record "Bin Type"; AdditionalIdentifier: Option; SourceTable: Integer; BinCodeFieldCaption: Text)
     begin
         CheckBinTypeAndCode(BinType, AdditionalIdentifier, SourceTable, BinCodeFieldCaption);
@@ -793,7 +793,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Integration Management", 'OnAfterIsOpenShopFloorBin', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Integration Management", 'OnAfterIsOpenShopFloorBin', '', true, false)]
     local procedure OnAfterIsOpenShopFloorBin(LocationCode: Code[10]; BinCode: Code[20]; var Result: Boolean)
     var
         WorkCenter: Record "Work Center";
@@ -812,7 +812,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Location, 'OnValidateBinMandatoryOnAfterCheckBins', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnValidateBinMandatoryOnAfterCheckBins', '', true, false)]
     local procedure OnValidateBinMandatoryOnAfterCheckBins(Location: Record Location)
     begin
         CheckLocationOnBins(Location);
@@ -830,7 +830,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
             until WorkCenter.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'CheckWhseDocLineOnCheckSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'CheckWhseDocLineOnCheckSourceDocument', '', true, false)]
     local procedure CheckWhseDocLineOnCheckSourceDocument(var WarehouseActivityLine: Record "Warehouse Activity Line"; WhseDocType: Enum "Warehouse Activity Document Type")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -868,7 +868,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnCheckBinInSourceDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnCheckBinInSourceDoc', '', true, false)]
     local procedure OnCheckBinInSourceDoc(var WarehouseActivityLine: Record "Warehouse Activity Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -884,7 +884,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnShowWhseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnShowWhseDoc', '', true, false)]
     local procedure WarehouseActivityLineOnShowWhseDoc(var WarehouseActivityLine: Record "Warehouse Activity Line")
     var
         ReleasedProductionOrder: Record "Production Order";
@@ -899,7 +899,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnUpdateRelatedItemTrkgForInvtMovement', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", 'OnUpdateRelatedItemTrkgForInvtMovement', '', true, false)]
     local procedure OnUpdateRelatedItemTrkgForInvtMovement(var WarehouseActivityLine: Record "Warehouse Activity Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin
         case WarehouseActivityLine."Source Type" of
@@ -925,6 +925,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         WarehouseActivityLine."Item No." := ProdOrderCompLine."Item No.";
         WarehouseActivityLine."Variant Code" := ProdOrderCompLine."Variant Code";
         WarehouseActivityLine.Description := ProdOrderCompLine.Description;
+        WarehouseActivityLine."Description 2" := ProdOrderCompLine."Description 2";
         WarehouseActivityLine."Due Date" := ProdOrderCompLine."Due Date";
         WarehouseActivityLine."Whse. Document Type" := WarehouseActivityLine."Whse. Document Type"::Production;
         WarehouseActivityLine."Whse. Document No." := ProdOrderCompLine."Prod. Order No.";
@@ -956,7 +957,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Header", 'OnValidateSourceDocumentOnAssignSourceType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Header", 'OnValidateSourceDocumentOnAssignSourceType', '', true, false)]
     local procedure OnValidateSourceDocumentOnAssignSourceType(var WarehouseActivityHeader: Record "Warehouse Activity Header")
     begin
         case WarehouseActivityHeader."Source Document" of
@@ -973,7 +974,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Registered Whse. Activity Line", 'OnShowWhseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Registered Whse. Activity Line", 'OnShowWhseDoc', '', true, false)]
     local procedure RegisteredWhseActivityLineOnShowWhseDoc(var RegisteredWhseActivityLine: Record "Registered Whse. Activity Line")
     var
         ProductionOrder: Record "Production Order";
@@ -990,7 +991,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Whse. Cross-Dock Opportunity", 'OnShowReservation', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Whse. Cross-Dock Opportunity", 'OnShowReservation', '', true, false)]
     local procedure OnShowReservation(var WhseCrossDockOpportunity: Record "Whse. Cross-Dock Opportunity")
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -1004,7 +1005,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnGetDestinationEntityName', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnGetDestinationEntityName', '', true, false)]
     local procedure OnGetDestinationEntityName(DestinationType: Enum "Warehouse Destination Type"; DestNo: Code[20]; var DestinationName: Text[100])
     var
         Family: Record Family;
@@ -1016,7 +1017,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnGetCaptionClass', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WMS Management", 'OnGetCaptionClass', '', true, false)]
     local procedure OnGetCaptionClass(DestinationType: Enum "Warehouse Destination Type"; Selection: Integer; var CaptionClass: Text[50])
     var
         Family: Record Family;
@@ -1053,7 +1054,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Whse. Pick Request", 'OnLookupDocumentNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Whse. Pick Request", 'OnLookupDocumentNo', '', true, false)]
     local procedure OnLookupDocumentNo(var WhsePickRequest: Record "Whse. Pick Request")
     var
         ProdOrderHeader: Record "Production Order";
@@ -1070,7 +1071,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Validate Source Line", 'OnItemLineVerifyChangeOnCheckEntryType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Validate Source Line", 'OnItemLineVerifyChangeOnCheckEntryType', '', true, false)]
     local procedure OnItemLineVerifyChangeOnCheckEntryType(NewItemJnlLine: Record "Item Journal Line"; OldItemJnlLine: Record "Item Journal Line"; var LinesExist: Boolean; var QtyChecked: Boolean)
     var
         ProdOrderComp: Record "Prod. Order Component";
@@ -1173,7 +1174,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Whse. Item Tracking Lines", 'OnSetSourceFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Whse. Item Tracking Lines", 'OnSetSourceFilters', '', true, false)]
     local procedure OnSetSourceFilters(var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var WhseWorksheetLine: Record "Whse. Worksheet Line"; SourceType: Integer)
     begin
         case SourceType of
@@ -1187,7 +1188,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Whse. Item Tracking Lines", 'OnCopyToReservEntryOnUpdate', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Whse. Item Tracking Lines", 'OnCopyToReservEntryOnUpdate', '', true, false)]
     local procedure OnCopyToReservEntryOnUpdate(var TempSourceWhseItemTrackingLine: Record "Whse. Item Tracking Line" temporary; var DueDate: Date; var QuantityBase: Decimal; var Updated: Boolean; var IsHandled: Boolean; FormSourceType: Integer; sender: Page "Whse. Item Tracking Lines")
     var
         ProdOrderComp: Record "Prod. Order Component";
@@ -1210,7 +1211,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Whse. Worksheet Line", 'OnWhseItemTrackingLinesSetSource', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Whse. Worksheet Line", 'OnWhseItemTrackingLinesSetSource', '', true, false)]
     local procedure OnWhseItemTrackingLinesSetSource(var WhseWorksheetLine: Record "Whse. Worksheet Line"; var IsHandled: Boolean; var WhseItemTrackingLines: Page "Whse. Item Tracking Lines");
     begin
         case WhseWorksheetLine."Whse. Document Type" of
@@ -1219,7 +1220,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnCalcLineReservedQtyOnInvtOnSetSourceFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnCalcLineReservedQtyOnInvtOnSetSourceFilters', '', true, false)]
     local procedure OnCalcLineReservedQtyOnInvtOnSetSourceFilters(var ReservEntry: Record "Reservation Entry"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceLineNo: Integer; SourceSubLineNo: Integer; var IsHandled: Boolean)
     begin
         case SourceType of
@@ -1232,14 +1233,14 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnCalcLineReservQtyOnPicksShipsOnAfterCalcPickedNotYetShippedQty', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnCalcLineReservQtyOnPicksShipsOnAfterCalcPickedNotYetShippedQty', '', true, false)]
     local procedure OnCalcLineReservQtyOnPicksShipsOnAfterCalcPickedNotYetShippedQty(SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceProdOrderLine: Integer; SourceRefNo: Integer; var PickedNotYetShippedQty: Decimal)
     begin
         if SourceType = Database::"Prod. Order Component" then
             PickedNotYetShippedQty := CalcQtyPickedOnProdOrderComponentLine(SourceSubType, SourceID, SourceProdOrderLine, SourceRefNo)
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnBeforeCalcQtyRegisteredPick', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnBeforeCalcQtyRegisteredPick', '', true, false)]
     local procedure OnBeforeCalcQtyRegisteredPick(SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer; SourceProdOrderLine: Integer; var Quantity: Decimal; var IsHandled: Boolean)
     begin
         if SourceType = Database::"Prod. Order Component" then begin
@@ -1263,7 +1264,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         exit(0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnGetOutboundBinsOnBasicWarehouseLocationOnAfterSetWarehouseEntryFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Warehouse Availability Mgt.", 'OnGetOutboundBinsOnBasicWarehouseLocationOnAfterSetWarehouseEntryFilters', '', true, false)]
     local procedure OnGetOutboundBinsOnBasicWarehouseLocationOnAfterSetWarehouseEntryFilters(var WarehouseEntry: Record "Warehouse Entry")
     var
         FilterString: Text;
@@ -1313,6 +1314,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         WhseWkshLine."Unit of Measure Code" := ProdOrderCompLine."Unit of Measure Code";
         WhseWkshLine."Qty. per Unit of Measure" := ProdOrderCompLine."Qty. per Unit of Measure";
         WhseWkshLine.Description := ProdOrderCompLine.Description;
+        WhseWkshLine."Description 2" := ProdOrderCompLine."Description 2";
         WhseWkshLine."Due Date" := ProdOrderCompLine."Due Date";
         WhseWkshLine."Qty. Handled" := ProdOrderCompLine."Qty. Picked" + ProdOrderCompLine."Pick Qty.";
         WhseWkshLine."Qty. Handled (Base)" := ProdOrderCompLine."Qty. Picked (Base)" + ProdOrderCompLine."Pick Qty. (Base)";
@@ -1411,7 +1413,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetWhseRqstSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetWhseRqstSourceDocument', '', true, false)]
     local procedure OnAfterGetWhseRqstSourceDocument(WhseJournalSourceDocument: Enum "Warehouse Journal Source Document"; var SourceDocument: Enum "Warehouse Request Source Document")
     begin
         case WhseJournalSourceDocument of
@@ -1422,7 +1424,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Header", 'OnProdWhseHandlingIsInventoryPutaway', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Header", 'OnProdWhseHandlingIsInventoryPutaway', '', true, false)]
     local procedure OnProdWhseHandlingIsInventoryPutaway(Location: Record Location; var Result: Boolean)
     begin
         Result := Location."Prod. Output Whse. Handling" = Location."Prod. Output Whse. Handling"::"Inventory Put-away";

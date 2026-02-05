@@ -25,6 +25,7 @@ table 12105 "Withhold Code Line"
         }
         field(20; "Withholding Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Withholding Tax %';
             DecimalPlaces = 0 : 3;
             MaxValue = 100;
@@ -32,6 +33,7 @@ table 12105 "Withhold Code Line"
         }
         field(21; "Taxable Base %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Taxable Base %';
             DecimalPlaces = 0 : 3;
             MaxValue = 100;

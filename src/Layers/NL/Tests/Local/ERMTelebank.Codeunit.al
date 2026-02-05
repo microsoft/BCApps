@@ -1432,6 +1432,42 @@ codeunit 144037 "ERM Telebank"
         Assert.AreEqual(ProposalLine."Foreign Amount", AmountInDocumentCurrency, ForeignAmountRecalculatedCorrectlyErr);
     end;
 
+    [Test]
+    [HandlerFunctions('GetProposalEntriesRequestPageHandlerSetValueDate,MessageHandler')]
+    procedure ForeignAmountRemainsZeroForSEPAPaymentsAfterDeletingDetailLine()
+    var
+        ProposalLine: Record "Proposal Line";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        i: Integer;
+    begin
+        // [SCENARIO 603120] When a Detail Line is deleted from Telebank Proposal, the Foreign Amount is not calculated when Currency Code is not aviliable.
+        Initialize();
+
+        // [GIVEN] Create Vendor and Vendor Bank Account with the created Currency.
+        CreateVendorAndVendorBankAccount(Vendor, '');
+
+        // [GIVEN] Create and Post two Purchase Invoices.
+        for i := 1 to 2 do begin
+            CreatePurchaseInvoiceWithAmountAndCurrency(
+                PurchaseHeader, Vendor."No.", LibraryRandom.RandDecInRange(1000, 2000, 2),
+                LibraryRandom.RandInt(10), LibraryRandom.RandInt(20), Vendor."Currency Code");
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        end;
+
+        // [GIVEN] Run Report Get Proposal Entries.
+        RunReportGetProposalEntries(Vendor."No.");
+
+        // [WHEN] Delete one Detail Line for the Vendor.
+        DeleteDetailLine(Vendor."No.");
+
+        // [GIVEN] Find Proposal Line for the Vendor.
+        FindProposalLine(ProposalLine, Vendor."No.");
+
+        // [THEN] Verify Foreign Amount on Proposal Line is recalculated correctly based on the Exchange Rate.
+        Assert.AreEqual(ProposalLine."Foreign Amount", 0, ForeignAmountRecalculatedCorrectlyErr);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Telebank");

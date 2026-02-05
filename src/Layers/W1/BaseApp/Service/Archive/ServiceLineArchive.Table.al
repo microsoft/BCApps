@@ -498,12 +498,14 @@ table 6012 "Service Line Archive"
         }
         field(1030; "Job Remaining Qty."; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData Job = R;
             Caption = 'Project Remaining Qty.';
             DecimalPlaces = 0 : 5;
         }
         field(1031; "Job Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Project Remaining Qty. (Base)';
         }
         field(1032; "Job Remaining Total Cost"; Decimal)
@@ -518,6 +520,7 @@ table 6012 "Service Line Archive"
         {
             AccessByPermission = TableData Job = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Project Remaining Total Cost (LCY)';
             Editable = false;
         }
@@ -549,6 +552,7 @@ table 6012 "Service Line Archive"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -570,6 +574,7 @@ table 6012 "Service Line Archive"
         }
         field(5408; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -579,6 +584,7 @@ table 6012 "Service Line Archive"
         }
         field(5409; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -588,39 +594,46 @@ table 6012 "Service Line Archive"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5416; "Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5417; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5418; "Qty. to Ship (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5458; "Qty. Shipped Not Invd. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invd. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5460; "Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -755,24 +768,28 @@ table 6012 "Service Line Archive"
         }
         field(5917; "Qty. to Consume"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Consume';
             DecimalPlaces = 0 : 5;
         }
         field(5918; "Quantity Consumed"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Consumed';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5919; "Qty. to Consume (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Consume (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(5920; "Qty. Consumed (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Consumed (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -820,6 +837,7 @@ table 6012 "Service Line Archive"
         }
         field(5938; "Contract Disc. %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Contract Disc. %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -828,6 +846,7 @@ table 6012 "Service Line Archive"
         }
         field(5939; "Warranty Disc. %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty Disc. %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -906,12 +925,14 @@ table 6012 "Service Line Archive"
         }
         field(7300; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(7301; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -923,6 +944,7 @@ table 6012 "Service Line Archive"
         }
         field(7303; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;

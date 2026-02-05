@@ -45,6 +45,8 @@ table 3010834 "LSV Journal Line"
         }
         field(7; "Collection Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Collection Amount';
             Editable = false;
         }
@@ -187,11 +189,15 @@ table 3010834 "LSV Journal Line"
         }
         field(20; "Remaining Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Remaining Amount';
             Editable = false;
         }
         field(21; "Pmt. Discount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Pmt. Discount';
             Editable = false;
         }

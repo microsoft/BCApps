@@ -555,6 +555,7 @@ page 610 "IC General Journal"
                         {
                             ApplicationArea = Intercompany;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the general journal on the line where the cursor is.';
@@ -568,6 +569,7 @@ page 610 "IC General Journal"
                         {
                             ApplicationArea = Intercompany;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the general journal.';

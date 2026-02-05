@@ -29,21 +29,25 @@ table 338 "Entry Summary"
         }
         field(4; "Total Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(5; "Total Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Reserved Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(6; "Total Available Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Available Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(7; "Current Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Current Reserved Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -53,11 +57,13 @@ table 338 "Entry Summary"
         }
         field(15; "Qty. Alloc. in Warehouse"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Alloc. in Warehouse';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Res. Qty. on Picks & Shipmts."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Res. Qty. on Picks & Shipmts.';
             DecimalPlaces = 0 : 5;
         }
@@ -83,11 +89,13 @@ table 338 "Entry Summary"
         }
         field(6504; "Total Requested Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Requested Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(6505; "Selected Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Selected Quantity';
             DecimalPlaces = 0 : 5;
@@ -110,15 +118,18 @@ table 338 "Entry Summary"
         }
         field(6506; "Current Pending Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Current Pending Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(6507; "Current Requested Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Current Requested Quantity';
         }
         field(6508; "Bin Content"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Bin Content';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -130,11 +141,13 @@ table 338 "Entry Summary"
         }
         field(6510; "Non-specific Reserved Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non-specific Reserved Qty.';
             Editable = false;
         }
         field(6511; "Double-entry Adjustment"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Double-entry Adjustment';
             Editable = false;
         }
@@ -150,6 +163,7 @@ table 338 "Entry Summary"
         }
         field(6516; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;

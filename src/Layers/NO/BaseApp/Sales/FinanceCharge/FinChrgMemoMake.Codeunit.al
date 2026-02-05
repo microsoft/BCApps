@@ -9,6 +9,9 @@ using Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Creates and suggests finance charge memo lines from customer ledger entries based on finance charge terms.
+/// </summary>
 codeunit 394 "FinChrgMemo-Make"
 {
 
@@ -32,6 +35,10 @@ codeunit 394 "FinChrgMemo-Make"
         HeaderExists: Boolean;
         OverDue: Boolean;
 
+    /// <summary>
+    /// Executes the finance charge memo creation process for the specified customer and ledger entries.
+    /// </summary>
+    /// <returns>True if the process completes successfully; otherwise, false if the customer is blocked.</returns>
     procedure "Code"() Result: Boolean
     var
         CustIsBlocked: Boolean;
@@ -102,6 +109,12 @@ codeunit 394 "FinChrgMemo-Make"
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets the customer, customer ledger entries, and finance charge memo header parameters for the memo creation process.
+    /// </summary>
+    /// <param name="Cust2">Specifies the customer record for whom to create the finance charge memo.</param>
+    /// <param name="CustLedgEntry2">Specifies the customer ledger entries to include in the finance charge memo.</param>
+    /// <param name="FinChrgMemoHeaderReq2">Specifies the finance charge memo header with request parameters such as document date and posting date.</param>
     procedure Set(Cust2: Record Customer; var CustLedgEntry2: Record "Cust. Ledger Entry"; FinChrgMemoHeaderReq2: Record "Finance Charge Memo Header")
     begin
         Cust := Cust2;
@@ -110,6 +123,11 @@ codeunit 394 "FinChrgMemo-Make"
         OnAfterSet(CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Sets the finance charge memo header and customer ledger entries for suggesting lines on an existing memo.
+    /// </summary>
+    /// <param name="FinChrgMemoHeader2">Specifies the existing finance charge memo header to suggest lines for.</param>
+    /// <param name="CustLedgEntry2">Specifies the customer ledger entries to use when suggesting lines.</param>
     procedure SuggestLines(FinChrgMemoHeader2: Record "Finance Charge Memo Header"; var CustLedgEntry2: Record "Cust. Ledger Entry")
     begin
         FinChrgMemoHeader := FinChrgMemoHeader2;
@@ -251,71 +269,161 @@ codeunit 394 "FinChrgMemo-Make"
         exit(FinanceChargeMemoLine."Line No.");
     end;
 
+    /// <summary>
+    /// Raised after a finance charge memo line is created from a customer ledger entry.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line that was created.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
+    /// <param name="CurrencyCode">Specifies the currency code for the memo line.</param>
+    /// <param name="TempCurrency">Specifies the temporary currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinChrgMemoLineCreated(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; Checking: Boolean; CurrencyCode: Code[10]; var TempCurrency: Record Currency temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Set procedure assigns parameters for finance charge memo creation.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSet(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the finance charge memo header is created.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the created finance charge memo header.</param>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="CurrencyCode">Specifies the currency code.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
+    /// <param name="Result">Specifies the result that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterMakeHeader(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; CurrencyCode: Code[10]; Checking: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the finance charge memo header is created.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="CurrencyCode">Specifies the currency code that can be modified.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
+    /// <param name="Result">Specifies the result that can be set.</param>
+    /// <param name="IsHandled">Set to true to skip the default header creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMakeHeader(var FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; var CurrencyCode: Code[10]; var Checking: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set on customer ledger entries during the Code procedure.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record with filters applied.</param>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="Customer">Specifies the customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterCustLedgEntrySetFilters(var CustLedgEntry: Record "Cust. Ledger Entry"; FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining whether the customer is blocked.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record.</param>
+    /// <param name="CustIsBlocked">Specifies whether the customer is blocked that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterCalcCustIsBlocked(Customer: Record Customer; var CustIsBlocked: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are set on the finance charge memo header during header creation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
+    /// <param name="Customer">Specifies the customer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeHeaderOnAfterSetFilters(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; FinanceChargeTerms: Record "Finance Charge Terms"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the finance charge memo header is inserted.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header to be inserted.</param>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
+    /// <param name="Customer">Specifies the customer record.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeHeaderOnBeforeInsert(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; FinanceChargeTerms: Record "Finance Charge Terms"; Customer: Record Customer; Checking: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating lines from closed customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record with filters applied.</param>
+    /// <param name="CurrencyCode">Specifies the currency code.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeLinesOnBeforeMakeLinesClosedEntries(var CustLedgEntry: Record "Cust. Ledger Entry"; CurrencyCode: Code[10]; Checking: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating lines from open customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record with filters applied.</param>
+    /// <param name="CurrencyCode">Specifies the currency code.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeLinesOnBeforeMakeLinesOpenEntries(var CustLedgEntry: Record "Cust. Ledger Entry"; CurrencyCode: Code[10]; Checking: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether to insert a finance charge memo line.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line to be checked.</param>
+    /// <param name="Checking">Specifies whether the process is in checking mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeLines2OnBeforeCheckInsertFinChrgMemoLine(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; Checking: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating lines during the finance charge memo check.
+    /// </summary>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinChrgMemoCheckOnBeforeMakeLines(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var FinanceChargeTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the Code procedure executes the main finance charge memo creation logic.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record.</param>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry record.</param>
+    /// <param name="FinanceChargeMemoHeaderReq">Specifies the request parameters for the memo header.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default Code procedure logic.</param>
+    /// <param name="Result">Specifies the result to return.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCode(Customer: Record Customer; var CustLedgerEntry: Record "Cust. Ledger Entry"; FinanceChargeMemoHeaderReq: Record "Finance Charge Memo Header"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the Code procedure completes the finance charge memo creation.
+    /// </summary>
+    /// <param name="FinChrgMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinChrgMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var FinChrgMemoLine: Record "Finance Charge Memo Line"; var FinChrgMemoHeader: Record "Finance Charge Memo Header"; var CustLedgEntry: Record "Cust. Ledger Entry");
     begin

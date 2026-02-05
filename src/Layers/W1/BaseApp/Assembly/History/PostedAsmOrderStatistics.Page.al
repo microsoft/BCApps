@@ -33,6 +33,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Material Cost';
                             Editable = false;
                             ToolTip = 'Specifies the material cost amount of all assembly order lines of type Item in the assembly order.';
@@ -41,6 +42,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Resource Cost';
                             Editable = false;
                             ToolTip = 'Specifies the material cost amount of all assembly order lines of type Resource in the assembly order.';
@@ -49,6 +51,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Resource Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the resource overhead amount of all assembly order lines of type Resource.';
@@ -57,6 +60,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Assembly Overhead';
                             Editable = false;
                             ToolTip = 'Specifies the overhead amount of the entire posted assembly order.';
@@ -65,6 +69,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             Editable = false;
                             ToolTip = 'Specifies the sum of the lines in each column.';
@@ -77,6 +82,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -84,6 +90,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -91,12 +98,15 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
                         field(ExpAsmOvhd; Value[ColIdx::ExpCost, RowIdx::AsmOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -104,6 +114,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -115,6 +126,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -122,6 +134,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -129,6 +142,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                             ToolTip = 'Specifies the actual overhead cost of the resource.';
@@ -136,6 +150,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(ActAsmOvhd; Value[ColIdx::ActCost, RowIdx::AsmOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -143,6 +159,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -153,6 +170,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(DevMatCost; Value[ColIdx::Dev, RowIdx::MatCost])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -160,6 +179,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(DevResCost; Value[ColIdx::Dev, RowIdx::ResCost])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -167,6 +188,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(DevResOvhd; Value[ColIdx::Dev, RowIdx::ResOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -174,6 +197,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(DevAsmOvhd; Value[ColIdx::Dev, RowIdx::AsmOvhd])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -181,6 +206,8 @@ page 923 "Posted Asm. Order Statistics"
                         field(DevTotalCost; Value[ColIdx::Dev, RowIdx::Total])
                         {
                             ApplicationArea = Assembly;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             Editable = false;
                             ShowCaption = false;
@@ -193,6 +220,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -200,6 +228,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -207,6 +236,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -214,6 +244,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }
@@ -221,6 +252,7 @@ page 923 "Posted Asm. Order Statistics"
                         {
                             ApplicationArea = Assembly;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Editable = false;
                             ShowCaption = false;
                         }

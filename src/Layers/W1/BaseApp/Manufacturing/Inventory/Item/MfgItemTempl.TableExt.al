@@ -47,6 +47,7 @@ tableextension 99000757 "Mfg. Item Templ." extends "Item Templ."
         field(99000779; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Non-Inventory Cost';
             DataClassification = CustomerContent;
 

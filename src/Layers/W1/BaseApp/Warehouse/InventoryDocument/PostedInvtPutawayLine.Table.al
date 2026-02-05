@@ -92,6 +92,7 @@ table 7341 "Posted Invt. Put-away Line"
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -106,6 +107,7 @@ table 7341 "Posted Invt. Put-away Line"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -117,6 +119,7 @@ table 7341 "Posted Invt. Put-away Line"
         }
         field(21; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
         }

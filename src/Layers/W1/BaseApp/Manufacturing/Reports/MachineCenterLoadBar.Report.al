@@ -220,6 +220,7 @@ report 99000786 "Machine Center Load/Bar"
                     field(MinCapEfficToPrint; MinCapEfficToPrint)
                     {
                         ApplicationArea = Manufacturing;
+                        AutoFormatType = 0;
                         Caption = 'Load bigger than (pct.)';
                         DecimalPlaces = 0 : 5;
                         ToolTip = 'Specifies a filter to print only work centers whose loads exceed this percentage, for example, if you want to print all work centers with a load of over 95% in order to troubleshoot a particular problem.';

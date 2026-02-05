@@ -352,6 +352,7 @@ page 88 "Job Card"
                 field("% Completed"; Rec.PercentCompleted())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% Completed';
                     Editable = false;
                     Importance = Promoted;
@@ -360,6 +361,7 @@ page 88 "Job Card"
                 field("% Invoiced"; Rec.PercentInvoiced())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% Invoiced';
                     Editable = false;
                     Importance = Promoted;
@@ -368,6 +370,7 @@ page 88 "Job Card"
                 field("% of Overdue Planning Lines"; Rec.PercentOverdue())
                 {
                     ApplicationArea = Jobs;
+                    AutoFormatType = 0;
                     Caption = '% of Overdue Planning Lines';
                     Editable = false;
                     Importance = Additional;
@@ -874,18 +877,23 @@ page 88 "Job Card"
                     field("Recog. Profit Amount"; Rec.CalcRecognizedProfitAmount())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec."Currency Code";
                         Caption = 'Recog. Profit Amount';
                         ToolTip = 'Specifies the recognized profit amount for the project.';
                     }
                     field("Recog. Profit %"; Rec.CalcRecognizedProfitPercentage())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         Caption = 'Recog. Profit %';
                         ToolTip = 'Specifies the recognized profit percentage for the project.';
                     }
                     field("Acc. WIP Costs Amount"; Rec.CalcAccWIPCostsAmount())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec."Currency Code";
                         Caption = 'Acc. WIP Costs Amount';
                         ToolTip = 'Specifies the total WIP costs for the project.';
                         Visible = false;
@@ -893,6 +901,8 @@ page 88 "Job Card"
                     field("Acc. WIP Sales Amount"; Rec.CalcAccWIPSalesAmount())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec."Currency Code";
                         Caption = 'Acc. WIP Sales Amount';
                         ToolTip = 'Specifies the total WIP sales for the project.';
                         Visible = false;
@@ -941,12 +951,15 @@ page 88 "Job Card"
                     field("Recog. Profit G/L Amount"; Rec.CalcRecognizedProfitGLAmount())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = Rec."Currency Code";
                         Caption = 'Recog. Profit G/L Amount';
                         ToolTip = 'Specifies the profit amount that is recognized with the general ledger for the project.';
                     }
                     field("Recog. Profit G/L %"; Rec.CalcRecognProfitGLPercentage())
                     {
                         ApplicationArea = Jobs;
+                        AutoFormatType = 0;
                         Caption = 'Recog. Profit G/L %';
                         ToolTip = 'Specifies the profit percentage that is recognized with the general ledger for the project.';
                     }

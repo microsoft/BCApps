@@ -14,6 +14,9 @@ using System.Automation;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Manages batch posting of multiple sales documents with support for parameter configuration and job queue processing.
+/// </summary>
 codeunit 1371 "Sales Batch Post Mgt."
 {
     EventSubscriberInstance = Manual;
@@ -51,6 +54,16 @@ codeunit 1371 "Sales Batch Post Mgt."
         InterCompanyZipFileNamePatternTok: Label 'Sales IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
         ProcessBarMsg: Label 'Processing: @1@@@@@@@', Comment = '1 - overall progress';
 
+    /// <summary>
+    /// Runs batch posting of sales documents with the specified posting parameters.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header records to be batch posted.</param>
+    /// <param name="ReplacePostingDate">Specifies whether to replace the posting date on the documents.</param>
+    /// <param name="PostingDate">Specifies the posting date to use when ReplacePostingDate is true.</param>
+    /// <param name="ReplaceDocumentDate">Specifies whether to replace the document date on the documents.</param>
+    /// <param name="CalcInvoiceDiscount">Specifies whether to calculate invoice discount before posting.</param>
+    /// <param name="Ship">Specifies whether to post shipment for orders.</param>
+    /// <param name="Invoice">Specifies whether to post invoice.</param>
     procedure RunBatch(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; PostingDate: Date; ReplaceDocumentDate: Boolean; CalcInvoiceDiscount: Boolean; Ship: Boolean; Invoice: Boolean)
     var
         TempErrorMessage: Record "Error Message" temporary;
@@ -84,6 +97,12 @@ codeunit 1371 "Sales Batch Post Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Runs batch posting with a confirmation dialog and error handling UI.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header records to be batch posted.</param>
+    /// <param name="TotalCount">Specifies the total number of documents selected for batch posting.</param>
+    /// <param name="Question">Specifies the confirmation question to display to the user.</param>
     procedure RunWithUI(var SalesHeader: Record "Sales Header"; TotalCount: Integer; Question: Text)
     var
         ErrorContextElement: Codeunit "Error Context Element";
@@ -111,16 +130,28 @@ codeunit 1371 "Sales Batch Post Mgt."
             ErrorMessageHandler.ShowErrors();
     end;
 
+    /// <summary>
+    /// Gets the batch processing management codeunit instance used for batch posting.
+    /// </summary>
+    /// <param name="ResultBatchProcessingMgt">Returns the batch processing management codeunit instance.</param>
     procedure GetBatchProcessor(var ResultBatchProcessingMgt: Codeunit "Batch Processing Mgt.")
     begin
         ResultBatchProcessingMgt := BatchProcessingMgt;
     end;
 
+    /// <summary>
+    /// Sets the batch processing management codeunit instance to be used for batch posting.
+    /// </summary>
+    /// <param name="NewBatchProcessingMgt">Specifies the batch processing management codeunit instance to set.</param>
     procedure SetBatchProcessor(NewBatchProcessingMgt: Codeunit "Batch Processing Mgt.")
     begin
         BatchProcessingMgt := NewBatchProcessingMgt;
     end;
 
+    /// <summary>
+    /// Executes the batch posting of sales documents using the configured batch processor.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header records to be batch posted.</param>
     procedure "Code"(var SalesHeader: Record "Sales Header")
     var
         RecRef: RecordRef;
@@ -174,6 +205,10 @@ codeunit 1371 "Sales Batch Post Mgt."
         OnAfterPrepareSalesHeader(SalesHeader, BatchProcessingMgt);
     end;
 
+    /// <summary>
+    /// Sets the codeunit ID to be used for posting each sales document in the batch.
+    /// </summary>
+    /// <param name="NewPostingCodeunitId">Specifies the codeunit ID to use for posting.</param>
     procedure SetPostingCodeunitId(NewPostingCodeunitId: Integer)
     begin
         PostingCodeunitId := NewPostingCodeunitId;
@@ -217,6 +252,11 @@ codeunit 1371 "Sales Batch Post Mgt."
             Error(ApprovalPendingErr, SalesHeader."No.", SalesHeader."Document Type");
     end;
 
+    /// <summary>
+    /// Sets a batch posting parameter value in the batch processor.
+    /// </summary>
+    /// <param name="ParameterId">Specifies the type of batch posting parameter to set.</param>
+    /// <param name="ParameterValue">Specifies the value of the batch posting parameter.</param>
     procedure SetParameter(ParameterId: Enum "Batch Posting Parameter Type"; ParameterValue: Variant)
     var
         ResultBatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -386,46 +426,102 @@ codeunit 1371 "Sales Batch Post Mgt."
         OnAfterHandleOnCustomProcessing(RecRef, SalesHeader, BatchProcessingMgt, Handled, KeepParameters);
     end;
 
+    /// <summary>
+    /// Raised after determining whether a sales document can be posted in the batch.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being checked.</param>
+    /// <param name="BatchProcessingMgt">The batch processing management codeunit instance.</param>
+    /// <param name="Result">The result indicating whether the document can be posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCanPostDocument(var SalesHeader: Record "Sales Header"; var BatchProcessingMgt: Codeunit "Batch Processing Mgt."; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after custom processing is handled for a sales document in the batch.
+    /// </summary>
+    /// <param name="RecRef">The record reference to the sales header.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="BatchProcessingMgt">The batch processing management codeunit instance.</param>
+    /// <param name="Handled">Indicates whether custom processing was handled.</param>
+    /// <param name="KeepParameters">Indicates whether to keep batch parameters for subsequent documents.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHandleOnCustomProcessing(var RecRef: RecordRef; var SalesHeader: Record "Sales Header"; var BatchProcessingMgt: Codeunit "Batch Processing Mgt."; var Handled: Boolean; var KeepParameters: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after preparing the sales header for batch posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was prepared.</param>
+    /// <param name="BatchProcessingMgt">The batch processing management codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPrepareSalesHeader(var SalesHeader: Record "Sales Header"; var BatchProcessingMgt: Codeunit "Batch Processing Mgt.")
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the batch posting process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header records to be batch posted.</param>
+    /// <param name="ReplacePostingDate">Indicates whether to replace the posting date.</param>
+    /// <param name="PostingDate">The posting date to use.</param>
+    /// <param name="ReplaceDocumentDate">Indicates whether to replace the document date.</param>
+    /// <param name="Ship">Indicates whether to post shipment.</param>
+    /// <param name="Invoice">Indicates whether to post invoice.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunBatch(var SalesHeader: Record "Sales Header"; var ReplacePostingDate: Boolean; var PostingDate: Date; var ReplaceDocumentDate: Boolean; var Ship: Boolean; var Invoice: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the deferral date during sales header preparation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being prepared.</param>
+    /// <param name="BatchProcessingMgt">The batch processing management codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrepareSalesHeaderOnAfterBatchConfirmUpdateDeferralDate(var SalesHeader: Record "Sales Header"; var BatchProcessingMgt: Codeunit "Batch Processing Mgt.")
     begin
     end;
 
+    /// <summary>
+    /// Raised after adding batch posting parameters to the batch processor.
+    /// </summary>
+    /// <param name="BatchProcessingMgt">The batch processing management codeunit instance.</param>
+    /// <param name="SalesBatchPostMgt">The sales batch post management codeunit instance.</param>
+    /// <param name="PostingCodeunitId">The codeunit ID used for posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunBatchOnAfterAddParameters(var BatchProcessingMgt: Codeunit "Batch Processing Mgt."; var SalesBatchPostMgt: Codeunit "Sales Batch Post Mgt."; PostingCodeunitId: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised to customize the intercompany batch file name.
+    /// </summary>
+    /// <param name="Result">The file name to use for the intercompany batch.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised before releasing the sales header during batch preparation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be released.</param>
+    /// <param name="Result">Returns the result of the release operation.</param>
+    /// <param name="IsHandled">Set to true to skip the default release logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleaseSalesHeader(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before running the batch posting with user interface.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header records to be batch posted.</param>
+    /// <param name="TotalCount">The total number of documents selected for batch posting.</param>
+    /// <param name="Question">The confirmation question to display.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation and posting logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunWithUI(var SalesHeader: Record "Sales Header"; TotalCount: Integer; Question: Text; var IsHandled: Boolean)
     begin

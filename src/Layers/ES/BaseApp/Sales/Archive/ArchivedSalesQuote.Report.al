@@ -22,6 +22,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable document for an archived sales quote.
+/// </summary>
 report 215 "Archived Sales Quote"
 {
     DefaultLayout = RDLC;

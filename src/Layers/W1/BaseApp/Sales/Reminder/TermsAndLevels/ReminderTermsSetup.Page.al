@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Provides a comprehensive setup interface for reminder terms including levels, fees, and communication settings.
+/// </summary>
 page 838 "Reminder Terms Setup"
 {
     Caption = 'Reminder Terms Setup';
@@ -60,6 +63,8 @@ page 838 "Reminder Terms Setup"
                 }
                 field("Minimum Amount (LCY)"; Rec."Minimum Amount (LCY)")
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Minimum Amount (LCY)';
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the minimum amount for which a reminder will be created.';

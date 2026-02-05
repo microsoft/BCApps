@@ -23,6 +23,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable return order confirmation document to send to customers.
+/// </summary>
 report 6631 "Return Order Confirmation"
 {
     DefaultLayout = RDLC;
@@ -992,11 +995,19 @@ report 6631 "Return Order Confirmation"
         CompanyInfo2: Record "Company Information";
         CompanyInfo3: Record "Company Information";
 
+    /// <summary>
+    /// Initializes the log interaction setting based on interaction template configuration.
+    /// </summary>
     procedure InitLogInteraction()
     begin
         LogInteraction := SegManagement.FindInteractionTemplateCode(Enum::"Interaction Log Entry Document Type"::"Sales Return Order") <> '';
     end;
 
+    /// <summary>
+    /// Initializes the report request with display options.
+    /// </summary>
+    /// <param name="ShowInternalInfoFrom">Whether to show internal information.</param>
+    /// <param name="LogInteractionFrom">Whether to log interaction.</param>
     procedure InitializeRequest(ShowInternalInfoFrom: Boolean; LogInteractionFrom: Boolean)
     begin
         InitLogInteraction();

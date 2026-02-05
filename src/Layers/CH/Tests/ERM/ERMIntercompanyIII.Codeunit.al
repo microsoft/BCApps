@@ -36,6 +36,8 @@ codeunit 134154 "ERM Intercompany III"
         SendAgainQst: Label '%1 %2 has already been sent to intercompany partner %3. Resending it will create a duplicate %1 for them. Do you want to send it again?';
         AcceptAgainQst: Label '%1 %2 has already been received from intercompany partner %3. Accepting it again will create a duplicate %1. Do you want to accept the %1?';
         InsufficientQtyErr: Label 'You have insufficient quantity of Item';
+        DirectUnitCostErr: Label 'Direct Unit Cost should be %1 but is %2';
+        LineAmountErr: Label 'Line Amount should be %1 but is %2';
 
     [Test]
     [HandlerFunctions('ComfirmHandlerNo')]
@@ -3443,6 +3445,96 @@ codeunit 134154 "ERM Intercompany III"
 
         // Cleanup
         CleanupIC(false, true, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ICPurchaseDocWithPricesInclVATAndInvoiceDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ICInboxTransaction: Record "IC Inbox Transaction";
+        ICInboxPurchaseHeader: Record "IC Inbox Purchase Header";
+        ICPartner: Record "IC Partner";
+        ICSetup: Record "IC Setup";
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
+        ICPartnerCode: Code[20];
+        ExpectedDirectUnitCost: Decimal;
+        ExpectedLineAmount: Decimal;
+    begin
+        // [SCENARIO 618631] When creating an IC purchase document from a sales order with "Prices Including VAT" 
+        Initialize();
+
+        // [GIVEN] IC Partner with inbox, linked to both Customer and Vendor
+        ICPartnerCode := CreateICPartnerWithInbox();
+        CreateCustomerWithICPartner(Customer, ICPartnerCode);
+        CreateVendorWithICPartner(Vendor, ICPartnerCode);
+
+        // [GIVEN] Auto Send Transactions is enabled
+        ICSetup.Get();
+        ICSetup."Auto. Send Transactions" := true;
+        ICSetup."IC Partner Code" := ICPartnerCode;
+        ICSetup.Modify();
+
+        ICPartner.Get(ICPartnerCode);
+        ICPartner.Validate("Vendor No.", Vendor."No.");
+        ICPartner.Modify(true);
+
+        // [GIVEN] Sales Order with "Prices Including VAT" = true
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Sell-to IC Partner Code", ICPartnerCode);
+        SalesHeader.Validate("Send IC Document", true);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Ensure Customer has IC Partner Code set
+        Customer.Get(SalesHeader."Sell-to Customer No.");
+        Customer.Validate("IC Partner Code", ICPartnerCode);
+        Customer.Modify(true);
+
+        // [GIVEN] Sales Line with Item, Quantity = 10, Unit Price = 120 (including VAT)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 10);
+        SalesLine.Validate("Unit Price", 120);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Invoice Discount of 10% is applied
+        SalesLine.Find();
+        SalesLine.Validate("Inv. Discount Amount", SalesLine."Line Amount" * 0.1);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Unit price and line Amount of Sales line including VAT
+        ExpectedDirectUnitCost := SalesLine."Unit Price";
+        ExpectedLineAmount := SalesLine."Line Amount";
+
+        // [WHEN] Send Sales Order to IC Outbox and create Purchase Document from IC Inbox
+        ICInboxOutboxMgt.SendSalesDoc(SalesHeader, false);
+        ICInboxTransaction.SetRange("IC Partner Code", ICPartnerCode);
+        ICInboxTransaction.SetRange("IC Source Type", ICInboxTransaction."IC Source Type"::"Purchase Document");
+        ICInboxTransaction.FindFirst();
+        ICInboxPurchaseHeader.Get(
+             ICInboxTransaction."Transaction No.",
+             ICInboxTransaction."IC Partner Code",
+             ICInboxTransaction."Transaction Source");
+        ICInboxOutboxMgt.CreatePurchDocument(ICInboxPurchaseHeader, false, WorkDate());
+
+        // [THEN] Purchase Order is created with correct Direct Unit Cost (original unit price before discounts)
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindFirst();
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.FindFirst();
+
+        // [THEN] Direct Unit Cost should match the original unit price
+        Assert.AreEqual(ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            StrSubstNo(DirectUnitCostErr, ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost"));
+
+        // [THEN] Line Amount should reflect the discount applied
+        Assert.AreEqual(ExpectedLineAmount, PurchaseLine."Line Amount",
+            StrSubstNo(LineAmountErr, ExpectedLineAmount, PurchaseLine."Line Amount"));
     end;
 
     local procedure Initialize()

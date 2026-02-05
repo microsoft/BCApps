@@ -71,23 +71,27 @@ table 169 "Job Ledger Entry"
         }
         field(9; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Direct Unit Cost (LCY)"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost (LCY)';
         }
         field(12; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
             Editable = false;
         }
         field(13; "Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Cost (LCY)';
             Editable = false;
         }
@@ -101,6 +105,7 @@ table 169 "Job Ledger Entry"
         field(15; "Total Price (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Price (LCY)';
             Editable = false;
         }
@@ -174,11 +179,13 @@ table 169 "Job Ledger Entry"
         field(60; "Amt. to Post to G/L"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amt. to Post to G/L';
         }
         field(61; "Amt. Posted to G/L"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amt. Posted to G/L';
         }
         field(64; "Entry Type"; Enum "Job Journal Line Entry Type")
@@ -250,16 +257,19 @@ table 169 "Job Ledger Entry"
         field(88; "Additional-Currency Total Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Additional-Currency Total Cost';
         }
         field(89; "Add.-Currency Total Price"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Add.-Currency Total Price';
         }
         field(94; "Add.-Currency Line Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Add.-Currency Line Amount';
         }
         field(480; "Dimension Set ID"; Integer)
@@ -335,6 +345,7 @@ table 169 "Job Ledger Entry"
         field(1001; "Line Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Amount (LCY)';
             Editable = false;
         }
@@ -377,6 +388,7 @@ table 169 "Job Ledger Entry"
         field(1008; "Line Discount Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Line Discount Amount (LCY)';
             Editable = false;
         }
@@ -387,6 +399,7 @@ table 169 "Job Ledger Entry"
         }
         field(1010; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
         }
         field(1016; "Description 2"; Text[50])
@@ -417,6 +430,7 @@ table 169 "Job Ledger Entry"
         }
         field(1021; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
         }
@@ -427,12 +441,14 @@ table 169 "Job Ledger Entry"
         field(1023; "Original Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Original Unit Cost (LCY)';
             Editable = false;
         }
         field(1024; "Original Total Cost (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Original Total Cost (LCY)';
             Editable = false;
         }
@@ -474,12 +490,14 @@ table 169 "Job Ledger Entry"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5405; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
         }
         field(6515; "Package No."; Code[50])

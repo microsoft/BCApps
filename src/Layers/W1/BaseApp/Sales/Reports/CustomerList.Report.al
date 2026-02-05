@@ -2,7 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.Sales.Reports;
+
+/// <summary>
+/// Lists customers with their basic information including name, address, phone number, and contact details.
+/// </summary>
 
 using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
@@ -10,6 +15,9 @@ using Microsoft.Utilities;
 
 report 101 "Customer - List"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+    ObsoleteTag = '28.0';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer List';
     DefaultRenderingLayout = "CustomerList.rdlc";
@@ -199,4 +207,5 @@ report 101 "Customer - List"
         Customer__Currency_Code_CaptionLbl: Label 'Currency Code';
         Total__LCY_CaptionLbl: Label 'Total (LCY)';
 }
+#endif
 

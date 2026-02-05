@@ -56,6 +56,7 @@ table 9153 "My Account"
         /// </summary>
         field(5; "Account Balance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Account Balance (to be removed)';
             Editable = false;
 #if CLEAN26

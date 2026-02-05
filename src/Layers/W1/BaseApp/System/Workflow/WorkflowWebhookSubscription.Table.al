@@ -327,8 +327,7 @@ table 469 "Workflow Webhook Subscription"
         end;
     end;
 
-    [Scope('OnPrem')]
-    procedure AddEventConditionsWrapper(ConditionsPropertyName: Text; ConditionsObject: DotNet JObject; SourcePageNo: Integer; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer)
+    local procedure AddEventConditionsWrapper(ConditionsPropertyName: Text; ConditionsObject: DotNet JObject; SourcePageNo: Integer; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer)
     var
         ConditionsCollection: DotNet JToken;
     begin

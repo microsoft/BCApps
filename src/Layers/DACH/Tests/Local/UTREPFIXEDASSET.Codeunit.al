@@ -528,6 +528,7 @@ codeunit 142059 "UT REP FIXEDASSET"
         AcqCostAmount := LibraryRandom.RandIntInRange(500, 1000);
         DepreciationAmount := LibraryRandom.RandInt(100);
         AcqCostPercent := LibraryRandom.RandInt(100) / 100;
+        SetDepreciationBook();
         InitalSetupForReportFABookValue03(FANo, FANo2, true, AcqCostAmount, DepreciationAmount, AcqCostPercent);
 
         // Verify: Verify values of Fixed Asset Book Value 03 Report.
@@ -858,6 +859,17 @@ codeunit 142059 "UT REP FIXEDASSET"
         FixedAssetBookValue03.PrintPerFixedAsset.SetValue(PrintPerFixedAsset);
         FixedAssetBookValue03.BudgetReport.SetValue(BudgetReport);
         FixedAssetBookValue03.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    local procedure SetDepreciationBook()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FASetup: Record "FA Setup";
+    begin
+        FASetup.Get();
+        DepreciationBook.Get(FASetup."Default Depr. Book");
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", false);
+        DepreciationBook.Modify();
     end;
 
     [RequestPageHandler]

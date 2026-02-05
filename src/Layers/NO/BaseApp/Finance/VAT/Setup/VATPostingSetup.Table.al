@@ -337,6 +337,7 @@ table 325 "VAT Posting Setup"
         }
         field(10605; "Proportional Deduction VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Proportional Deduction VAT %';
             DecimalPlaces = 0 : 5;
         }

@@ -59,6 +59,7 @@ table 2900 "Forecast Item Variant Loc"
         }
         field(9; "Prod. Forecast Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Production Forecast Entry"."Forecast Quantity (Base)" where("Item No." = field("No."),
                                                                                             "Production Forecast Name" = field("Production Forecast Name"),
                                                                                             "Forecast Date" = field("Date Filter"),

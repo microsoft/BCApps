@@ -13,6 +13,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
 
+/// <summary>
+/// Expands a BOM item on a sales line into its individual component items.
+/// </summary>
 codeunit 63 "Sales-Explode BOM"
 {
     TableNo = "Sales Line";
@@ -126,6 +129,10 @@ codeunit 63 "Sales-Explode BOM"
         Text004: Label '&Copy dimensions from BOM,&Retrieve dimensions from components';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Explodes the BOM component lines for the specified sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line containing the BOM item to explode.</param>
     procedure CallExplodeBOMCompLines(SalesLine: Record "Sales Line")
     begin
         ExplodeBOMCompLines(SalesLine);

@@ -31,6 +31,7 @@ table 958 "Time Sheet Posting Entry"
         }
         field(5; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Editable = false;
         }

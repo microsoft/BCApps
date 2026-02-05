@@ -9005,6 +9005,85 @@
                 ItemChargeCalculatedProportionallyErr, ItemChargeAssignmentPurch.FieldCaption("Amount to Handle")));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    var
+        GLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseHeader2: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchCreditMemo: TestPage "Purchase Credit Memo";
+        GLAccountCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 615866] Verify Qty. to Receive and  Qty. to Invoice are updated for G/L Account lines
+        // after creating a Corrective Credit Memo from the Posted Purchase Invoice.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+
+        // [GIVEN] Create a G/L Account.
+        FindVATPostingSetup(VATPostingSetup);
+        GLAccountCode := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Purchase);
+
+        // [GIVEN] Create Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create Purchase Header.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // [GIVEN] Create Purchase Line with G/L Account and Quantity.
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountCode, Quantity);
+
+        // [GIVEN] Update Direct Unit Cost and Qty. to Receive in Purchase Line.
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 5));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Post partial Purchase order.
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [GIVEN] Create Corrective Credit Memo.
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader2);
+        PurchaseHeader2.Validate("Vendor Cr. Memo No.", PurchaseHeader2."No.");
+        PurchaseHeader2.Modify(true);
+
+        // [WHEN] Post the Corrective Credit Memo.
+        PurchCreditMemo.OpenView();
+        PurchCreditMemo.GotoRecord(PurchaseHeader2);
+        PurchCreditMemo.Post.Invoke();
+
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated in Purchase line.
+        VerifyPurchaseOrderAfterPartialPostCorrectiveCreditMemo(PurchaseHeader."No.", Quantity);
+    end;
+
+    [Test]
+    procedure GetReceiptLinesOnPurchaseInvoiceWithNoError()
+    var
+        InvPurchaseHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 619565] Create Purchase Invoice, and Get Receipt Lines, Verify that lines get generated on Purchase Invoice.
+        Initialize();
+
+        // [GIVEN] Create Currency code
+        CurrencyCode := CreateCurrencyWithDecimalPlaces();
+
+        // [GIVEN] Create Purchase Order and Post.
+        CreatePOAndPost(PurchaseHeader, CurrencyCode);
+
+        // [WHEN] Create a purchase invoice, use "Get Receipt Lines" to add lines from the posted receipt
+        InvoicePostedPurchaseOrder(InvPurchaseHeader, PurchaseHeader);
+
+        // [THEN] Validate Purchase Invoice.
+        VerifyPurchaseDocument(PurchaseHeader."No.", InvPurchaseHeader."No.");
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -12473,6 +12552,40 @@
         ItemChargeAssignmentPurch.SetRange("Document Type", PurchaseHeader."Document Type");
         ItemChargeAssignmentPurch.SetRange("Document No.", PurchaseHeader."No.");
         ItemChargeAssignmentPurch.FindFirst();
+    end;
+
+    local procedure CreatePOAndPost(var PurchaseHeader: Record "Purchase Header"; CurrencyCode: Code[10]): Code[20]
+    var
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(),
+            LibraryRandom.RandIntInRange(10, 20));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInDecimalRange(0.101, 0.501, 3));
+        PurchaseLine.Validate("Line Discount %", LibraryRandom.RandIntInRange(100, 100));
+        PurchaseLine.Modify(true);
+
+        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false));
+    end;
+
+    local procedure CreateCurrencyWithDecimalPlaces(): Code[10]
+    var
+        Currency: Record Currency;
+        CurrencyCode: Code[10];
+    begin
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        Currency.Get(CurrencyCode);
+        Currency.Validate("Amount Decimal Places", '3:3');
+        Currency.Validate("Amount Rounding Precision", 0.001);
+        Currency.Modify(true);
+
+        exit(CurrencyCode);
     end;
 
     [ModalPageHandler]

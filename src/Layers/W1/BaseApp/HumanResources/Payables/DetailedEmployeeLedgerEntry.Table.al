@@ -65,6 +65,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(8; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(9; "Employee No."; Code[20])
@@ -133,12 +134,14 @@ table 5223 "Detailed Employee Ledger Entry"
         field(18; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Debit Amount (LCY)';
         }
         field(19; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Credit Amount (LCY)';
         }

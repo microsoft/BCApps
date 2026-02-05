@@ -99,6 +99,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(13; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 2 : 5;
 
@@ -112,6 +113,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(14; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
             DecimalPlaces = 0 : 0;
 
@@ -125,11 +127,13 @@ table 263 "Intrastat Jnl. Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 0;
         }
         field(16; "Cost Regulation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Regulation %';
             DecimalPlaces = 2 : 2;
             MaxValue = 100;
@@ -143,6 +147,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(17; "Indirect Cost"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost';
             DecimalPlaces = 0 : 0;
 
@@ -154,6 +159,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(18; "Statistical Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Statistical Value';
             DecimalPlaces = 0 : 0;
         }
@@ -171,6 +177,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(22; "Total Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Weight';
             DecimalPlaces = 0 : 0;
             Editable = false;
@@ -225,6 +232,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(11315; "Conversion Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Conversion Factor';
             Editable = false;
 
@@ -240,6 +248,7 @@ table 263 "Intrastat Jnl. Line"
         }
         field(11317; "No. of Supplementary Units"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'No. of Supplementary Units';
             Editable = false;
         }

@@ -33,17 +33,20 @@ table 921 "Item Turnover Buffer"
         }
         field(10; "Purchases (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Purchases (Qty.)';
             DataClassification = SystemMetadata;
         }
         field(11; "Purchases (LCY)"; Decimal)
         {
             Caption = 'Purchases (LCY)';
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             DataClassification = SystemMetadata;
         }
         field(12; "Sales (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Sales (Qty.)';
             DataClassification = SystemMetadata;
         }
@@ -51,6 +54,7 @@ table 921 "Item Turnover Buffer"
         {
             Caption = 'Sales (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             DataClassification = SystemMetadata;
         }
     }

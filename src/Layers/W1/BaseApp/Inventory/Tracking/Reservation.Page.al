@@ -50,6 +50,7 @@ page 498 Reservation
                 }
                 field(QtyToReserveBase; QtyToReserveBase)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     Caption = 'Quantity to Reserve';
                     DecimalPlaces = 0 : 5;
@@ -58,6 +59,7 @@ page 498 Reservation
                 }
                 field(QtyReservedBase; QtyReservedBase)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     Caption = 'Reserved Quantity';
                     DecimalPlaces = 0 : 5;
@@ -66,6 +68,7 @@ page 498 Reservation
                 }
                 field(UnreservedQuantity; QtyToReserveBase - QtyReservedBase)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     Caption = 'Unreserved Quantity';
                     DecimalPlaces = 0 : 5;
@@ -85,6 +88,7 @@ page 498 Reservation
                 }
                 field("Total Quantity"; ReservMgt.FormatQty(Rec."Total Quantity"))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Total Quantity';
@@ -99,6 +103,7 @@ page 498 Reservation
                 }
                 field(TotalReservedQuantity; ReservMgt.FormatQty(Rec."Total Reserved Quantity"))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Total Reserved Quantity';
@@ -113,6 +118,7 @@ page 498 Reservation
                 }
                 field(QtyAllocatedInWarehouse; ReservMgt.FormatQty(Rec."Qty. Alloc. in Warehouse"))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Warehouse;
                     BlankZero = true;
                     Caption = 'Qty. Allocated in Warehouse';
@@ -124,6 +130,7 @@ page 498 Reservation
                 field("ReservMgt.FormatQty(""Res. Qty. on Picks & Shipmts."")"; ReservMgt.FormatQty(Rec."Res. Qty. on Picks & Shipmts."))
 #pragma warning restore AA0100
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Warehouse;
                     BlankZero = true;
                     Caption = 'Reserved Qty. on Picks and Shipments';
@@ -134,6 +141,7 @@ page 498 Reservation
                 }
                 field(TotalAvailableQuantity; ReservMgt.FormatQty(Rec."Total Available Quantity"))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Total Available Quantity';
@@ -150,6 +158,7 @@ page 498 Reservation
                 }
                 field("Current Reserved Quantity"; ReservMgt.FormatQty(ReservedThisLine(Rec)))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Current Reserved Quantity';

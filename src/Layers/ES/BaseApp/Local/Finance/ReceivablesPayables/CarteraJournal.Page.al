@@ -300,7 +300,9 @@ page 7000036 "Cartera Journal"
                         field(AccName; AccName)
                         {
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Account Name';
                             Editable = false;
+                            ToolTip = 'Specifies the name of the account that has been entered on the journal line.';
                         }
                     }
                     group("Bal. Account Name")
@@ -321,6 +323,7 @@ page 7000036 "Cartera Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance on the journal line.';
@@ -334,6 +337,7 @@ page 7000036 "Cartera Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the sum of balances. ';
@@ -558,7 +562,7 @@ page 7000036 "Cartera Journal"
         CarteraJnlForm: Page "Cartera Journal";
     begin
         if ClosingForbidden then begin
-            Message(Text1100000);
+            Message(Text1100000Msg);
             CarteraJnlForm.SetJnlBatchName(Rec."Journal Batch Name");
             CarteraJnlForm.SetTableView(Rec);
             CarteraJnlForm.SetRecord(Rec);
@@ -568,11 +572,10 @@ page 7000036 "Cartera Journal"
     end;
 
     var
-        Text1100000: Label 'Please, post the journal lines. Otherwise, inconsistencies can appear in your data.';
-        GLReconcile: Page Reconciliation;
-        ChangeExchangeRate: Page "Change Exchange Rate";
         GenJnlManagement: Codeunit GenJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
+        GLReconcile: Page Reconciliation;
+        ChangeExchangeRate: Page "Change Exchange Rate";
         CurrentJnlBatchName: Code[10];
         PassedCurrentJnlBatchName: Code[10];
         AccName: Text[100];
@@ -586,6 +589,7 @@ page 7000036 "Cartera Journal"
         OpenedFromBatch: Boolean;
         BalanceVisible: Boolean;
         TotalBalanceVisible: Boolean;
+        Text1100000Msg: Label 'Please, post the journal lines. Otherwise, inconsistencies can appear in your data.';
 
     local procedure UpdateBalance()
     begin

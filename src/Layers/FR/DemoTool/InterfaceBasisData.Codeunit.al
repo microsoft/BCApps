@@ -216,7 +216,9 @@ codeunit 110000 "Interface Basis Data"
         RunCodeunit(CODEUNIT::"Create FA Insurance");
         RunCodeunit(CODEUNIT::"Create FA Main Asset Comp.");
         RunCodeunit(CODEUNIT::"Create FA Journal Setup");
+#if not CLEAN28
         RunCodeunit(CODEUNIT::"Create Payment");
+#endif
         if not DemoDataSetup."Skip sequence of actions" then
             RunCodeunit(CODEUNIT::"Create Purchase Header");
         if not DemoDataSetup."Skip sequence of actions" then

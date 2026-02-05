@@ -9,6 +9,9 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Creates a new sales document by copying data from an existing document or posted document.
+/// </summary>
 report 292 "Copy Sales Document"
 {
     Caption = 'Copy Sales Document';
@@ -232,6 +235,10 @@ report 292 "Copy Sales Document"
         IncludeHeader: Boolean;
         RecalculateLines: Boolean;
 
+    /// <summary>
+    /// Sets the destination sales header for the copy operation.
+    /// </summary>
+    /// <param name="NewSalesHeader">Specifies the sales header to copy the document to.</param>
     procedure SetSalesHeader(var NewSalesHeader: Record "Sales Header")
     begin
         NewSalesHeader.TestField("No.");
@@ -336,6 +343,9 @@ report 292 "Copy Sales Document"
         end;
     end;
 
+    /// <summary>
+    /// Opens a lookup page to select the source document number based on the document type.
+    /// </summary>
     procedure LookupDocNo()
     begin
         OnBeforeLookupDocNo(SalesHeader, FromDocType, FromDocNo);
@@ -483,11 +493,27 @@ report 292 "Copy Sales Document"
         OnAfterValidateIncludeHeaderProcedure(IncludeHeader, RecalculateLines, SalesHeader, FromDocType);
     end;
 
+    /// <summary>
+    /// Sets the parameters for the copy operation.
+    /// </summary>
+    /// <param name="NewFromDocType">Specifies the type of document to copy from.</param>
+    /// <param name="NewFromDocNo">Specifies the document number to copy from.</param>
+    /// <param name="NewIncludeHeader">Specifies whether to include the header information.</param>
+    /// <param name="NewRecalcLines">Specifies whether to recalculate the lines.</param>
     procedure SetParameters(NewFromDocType: Enum "Sales Document Type From"; NewFromDocNo: Code[20]; NewIncludeHeader: Boolean; NewRecalcLines: Boolean)
     begin
         SetParameters(NewFromDocType, NewFromDocNo, 0, 0, NewIncludeHeader, NewRecalcLines);
     end;
 
+    /// <summary>
+    /// Sets the parameters for the copy operation including archive version information.
+    /// </summary>
+    /// <param name="NewFromDocType">Specifies the type of document to copy from.</param>
+    /// <param name="NewFromDocNo">Specifies the document number to copy from.</param>
+    /// <param name="NewFromDocNoOccurrence">Specifies the document number occurrence for archived documents.</param>
+    /// <param name="NewFromDocVersionNo">Specifies the version number for archived documents.</param>
+    /// <param name="NewIncludeHeader">Specifies whether to include the header information.</param>
+    /// <param name="NewRecalcLines">Specifies whether to recalculate the lines.</param>
     procedure SetParameters(NewFromDocType: Enum "Sales Document Type From"; NewFromDocNo: Code[20]; NewFromDocNoOccurrence: Integer; NewFromDocVersionNo: Integer; NewIncludeHeader: Boolean; NewRecalcLines: Boolean)
     begin
         FromDocType := NewFromDocType;

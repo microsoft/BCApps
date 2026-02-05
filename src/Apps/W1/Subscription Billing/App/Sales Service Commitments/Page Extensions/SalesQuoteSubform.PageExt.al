@@ -86,7 +86,7 @@ pageextension 8075 "Sales Quote Subform" extends "Sales Quote Subform"
     local procedure InitializePageVariables()
     begin
         CustomerContractNo := Rec.RetrieveFirstContractNo("Service Partner"::Customer, Enum::Process::"Contract Renewal");
-        VendorContractNo := Rec.RetrieveFirstContractNo("Service Partner"::Customer, Enum::Process::"Contract Renewal");
+        VendorContractNo := Rec.RetrieveFirstContractNo("Service Partner"::Vendor, Enum::Process::"Contract Renewal");
     end;
 
     var

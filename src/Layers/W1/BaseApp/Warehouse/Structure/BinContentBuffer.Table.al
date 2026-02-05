@@ -63,12 +63,14 @@ table 7330 "Bin Content Buffer"
         }
         field(10; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(11; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -81,6 +83,7 @@ table 7330 "Bin Content Buffer"
         }
         field(50; "Qty. to Handle (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Handle (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -88,6 +91,7 @@ table 7330 "Bin Content Buffer"
         }
         field(51; "Qty. Outstanding (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

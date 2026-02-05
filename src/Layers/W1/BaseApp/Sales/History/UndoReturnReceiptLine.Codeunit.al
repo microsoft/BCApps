@@ -18,6 +18,9 @@ using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 
+/// <summary>
+/// Reverses posted sales return receipt lines by creating corrective inventory and ledger entries.
+/// </summary>
 codeunit 5816 "Undo Return Receipt Line"
 {
     Permissions = TableData "Sales Line" = rimd,
@@ -68,6 +71,10 @@ codeunit 5816 "Undo Return Receipt Line"
 #pragma warning restore AA0074
         AlreadyReversedErr: Label 'This return receipt has already been reversed.';
 
+    /// <summary>
+    /// Sets whether the confirmation dialog should be hidden when undoing return receipt lines.
+    /// </summary>
+    /// <param name="NewHideDialog">Specifies whether to hide the confirmation dialog.</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;
@@ -312,6 +319,10 @@ codeunit 5816 "Undo Return Receipt Line"
         InsertItemEntryRelation(TempGlobalItemEntryRelation, NewReturnRcptLine);
     end;
 
+    /// <summary>
+    /// Updates the related sales return order line after undoing a return receipt line.
+    /// </summary>
+    /// <param name="ReturnRcptLine">Specifies the return receipt line that was undone.</param>
     procedure UpdateOrderLine(ReturnRcptLine: Record "Return Receipt Line")
     var
         SalesLine: Record "Sales Line";
@@ -376,96 +387,212 @@ codeunit 5816 "Undo Return Receipt Line"
             ItemsToAdjust.Add(Item2."No.");
     end;
 
+    /// <summary>
+    /// Raised before the undo return receipt line process begins.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line to undo.</param>
+    /// <param name="HideDialog">Indicates whether dialog messages should be hidden.</param>
+    /// <param name="IsHandled">Set to true to skip default undo processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCode(ReturnReceiptLine: Record "Return Receipt Line"; HideDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the undo return receipt line process is completed.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line that was undone.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var ReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying the item journal line from the return receipt during the undo process.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line being created.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line being undone.</param>
+    /// <param name="WhseUndoQty">The warehouse undo quantity codeunit.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
+    /// <param name="TempWhseJnlLine">Temporary warehouse journal line.</param>
+    /// <param name="NextLineNo">The next line number.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header reference.</param>
+    /// <param name="TempGlobalItemLedgEntry">Temporary item ledger entry.</param>
+    /// <param name="TempGlobalItemEntryRelation">Temporary item entry relation.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyItemJnlLineFromReturnRcpt(var ItemJournalLine: Record "Item Journal Line"; ReturnReceiptHeader: Record "Return Receipt Header"; ReturnReceiptLine: Record "Return Receipt Line"; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: Integer; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer; ReturnRcptHeader: Record "Return Receipt Header"; var TempGlobalItemLedgEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a new correction receipt line during the undo process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The original return receipt line.</param>
+    /// <param name="PostedWhseReceiptLine">The posted warehouse receipt line if applicable.</param>
+    /// <param name="PostedWhseRcptLineFound">Indicates whether a posted warehouse receipt line was found.</param>
+    /// <param name="DocLineNo">The correction document line number.</param>
+    /// <param name="IsHandled">Set to true to skip additional processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertNewReceiptLine(var ReturnReceiptLine: Record "Return Receipt Line"; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var PostedWhseRcptLineFound: Boolean; DocLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a new correction return receipt line during the undo process.
+    /// </summary>
+    /// <param name="NewReturnReceiptLine">The newly created correction receipt line.</param>
+    /// <param name="OldReturnReceiptLine">The original receipt line being undone.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterNewReturnRcptLineInsert(var NewReturnReceiptLine: Record "Return Receipt Line"; OldReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after modifying the original return receipt line during the undo process.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The modified return receipt line.</param>
+    /// <param name="TempWhseJnlLine">Temporary warehouse journal line.</param>
+    /// <param name="DocLineNo">The document line number of the correction line.</param>
+    /// <param name="HideDialog">Indicates whether dialog messages are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReturnRcptLineModify(var ReturnRcptLine: Record "Return Receipt Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; DocLineNo: Integer; HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the related sales return order line during the undo process.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line being undone.</param>
+    /// <param name="SalesLine">The updated sales return order line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesLine(var ReturnRcptLine: Record "Return Receipt Line"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating that the return receipt line can be undone.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line to validate.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckReturnRcptLine(var ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the correction line number for the undo receipt line.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line being undone.</param>
+    /// <param name="Result">The correction line number to use.</param>
+    /// <param name="IsHandled">Set to true to skip default line number calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCorrectionLineNo(ReturnRcptLine: Record "Return Receipt Line"; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the undo return receipt line OnRun trigger executes.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line to undo.</param>
+    /// <param name="IsHandled">Set to true to skip default undo processing.</param>
+    /// <param name="SkipTypeCheck">Set to true to skip line type validation.</param>
+    /// <param name="HideDialog">Indicates whether dialog messages should be hidden.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean; var SkipTypeCheck: Boolean; var HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a new correction return receipt line during the undo process.
+    /// </summary>
+    /// <param name="NewReturnReceiptLine">The correction receipt line to be inserted.</param>
+    /// <param name="OldReturnReceiptLine">The original receipt line being undone.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNewReturnRcptLineInsert(var NewReturnReceiptLine: Record "Return Receipt Line"; OldReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the item journal line during the undo return receipt process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line being undone.</param>
+    /// <param name="DocLineNo">The document line number for the correction.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
+    /// <param name="IsHandled">Set to true to skip default item journal posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(var ReturnReceiptLine: Record "Return Receipt Line"; DocLineNo: Integer; var ItemLedgEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the original return receipt line during the undo process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line to be modified.</param>
+    /// <param name="TempWhseJnlLine">Temporary warehouse journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnRcptLineModify(var ReturnReceiptLine: Record "Return Receipt Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales return order line during the undo process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line being undone.</param>
+    /// <param name="IsHandled">Set to true to skip default order line update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOrderLine(var ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales line quantities during the undo process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line being undone.</param>
+    /// <param name="SalesLine">The sales return order line to be updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateOrderLineOnBeforeUpdateSalesLine(var ReturnReceiptLine: Record "Return Receipt Line"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the return quantity received but not invoiced during validation.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default quantity check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckReturnRcptLineOnBeforeCheckReturnQtyRcdNotInvd(var ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before collecting item ledger entries during return receipt line validation.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line being validated.</param>
+    /// <param name="TempItemLedgEntry">Temporary item ledger entries to collect.</param>
+    /// <param name="IsHandled">Set to true to skip default collection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckReturnRcptLineOnBeforeCollectItemLedgEntries(var ReturnRcptLine: Record "Return Receipt Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calling the return receipt line check during the undo process.
+    /// </summary>
+    /// <param name="ReturnReceiptLine">The return receipt line to be checked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeCallCheckReturnRcptLine(var ReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after running the item journal post line during the undo return receipt process.
+    /// </summary>
+    /// <param name="ItemJournalLine">The posted item journal line.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line being undone.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterRunItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; ReturnReceiptLine: Record "Return Receipt Line"; ReturnReceiptHeader: Record "Return Receipt Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin

@@ -39,101 +39,121 @@ table 925 "Item Availability Buffer"
         }
         field(10; "Gross Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Requirement';
             DataClassification = SystemMetadata;
         }
         field(11; "Scheduled Receipt"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Receipt';
             DataClassification = SystemMetadata;
         }
         field(12; "Planned Order Receipt"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Planned Order Receipt';
             DataClassification = SystemMetadata;
         }
         field(13; "Projected Available Balance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Projected Available Balance';
             DataClassification = SystemMetadata;
         }
         field(14; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Inventory';
             DataClassification = SystemMetadata;
         }
         field(15; "Qty. on Purch. Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Purch. Order';
             DataClassification = SystemMetadata;
         }
         field(16; "Qty. on Sales Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Sales Order';
             DataClassification = SystemMetadata;
         }
         field(17; "Qty. on Service Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Service Order';
             DataClassification = SystemMetadata;
         }
         field(18; "Qty. on Job Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Job Order';
             DataClassification = SystemMetadata;
         }
         field(19; "Trans. Ord. Shipment (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Trans. Ord. Shipment (Qty.)';
             DataClassification = SystemMetadata;
         }
         field(20; "Qty. in Transit"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Transit';
             DataClassification = SystemMetadata;
         }
         field(21; "Trans. Ord. Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Trans. Ord. Receipt (Qty.)';
             DataClassification = SystemMetadata;
         }
         field(22; "Qty. on Asm. Comp. Lines"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Asm. Comp. Lines';
             DataClassification = SystemMetadata;
         }
         field(23; "Qty. on Assembly Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Assembly Order';
             DataClassification = SystemMetadata;
         }
         field(24; "Expected Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Expected Inventory';
             DataClassification = SystemMetadata;
         }
         field(25; "Available Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Available Inventory';
             DataClassification = SystemMetadata;
         }
         field(26; "Scheduled Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Receipt (Qty.)';
             DataClassification = SystemMetadata;
         }
         field(27; "Scheduled Issue (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Issue (Qty.)';
             DataClassification = SystemMetadata;
         }
         field(28; "Planned Order Releases"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Planned Order Releases';
             DataClassification = SystemMetadata;
         }
         field(29; "Net Change"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Change';
             DataClassification = SystemMetadata;
         }

@@ -686,6 +686,7 @@ table 5740 "Transfer Header"
         }
         field(10047; "Transit Distance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Transit Distance';
         }
         field(10048; "Insurer Name"; Text[50])
@@ -735,6 +736,7 @@ table 5740 "Transfer Header"
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DecimalPlaces = 0 : 6;
         }
@@ -1078,6 +1080,7 @@ table 5740 "Transfer Header"
                             TransferLine.Validate("Item No.", TempTransferLine."Item No.");
                             TransferLine.Validate("Variant Code", TempTransferLine."Variant Code");
                             TransferLine.Validate("Dimension Set ID", TempTransferLine."Dimension Set ID");
+                            OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(TransferLine, TempTransferLine);
                         end;
                     else
                         OnUpdateTransLines(TransferLine, TransferHeader, FieldID);
@@ -1912,6 +1915,11 @@ table 5740 "Transfer Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateDimOnBeforeUpdateLines(var TransferHeader: Record "Transfer Header"; xTransferHeader: Record "Transfer Header"; CurrentFieldNo: Integer; OldDimSetID: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
     end;
 }

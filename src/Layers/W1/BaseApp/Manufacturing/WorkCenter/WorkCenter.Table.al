@@ -233,6 +233,7 @@ table 99000754 "Work Center"
         field(19; "Direct Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
             MinValue = 0;
 
@@ -243,6 +244,7 @@ table 99000754 "Work Center"
         }
         field(20; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -259,6 +261,7 @@ table 99000754 "Work Center"
         field(21; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             DecimalPlaces = 2 : 5;
             MinValue = 0;
@@ -273,6 +276,7 @@ table 99000754 "Work Center"
         }
         field(22; "Queue Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Queue Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -342,6 +346,7 @@ table 99000754 "Work Center"
         }
         field(31; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -349,6 +354,7 @@ table 99000754 "Work Center"
         }
         field(32; Efficiency; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Efficiency';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
@@ -356,18 +362,21 @@ table 99000754 "Work Center"
         }
         field(33; "Maximum Efficiency"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Maximum Efficiency';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(34; "Minimum Efficiency"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Efficiency';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(35; "Calendar Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Calendar Rounding Precision';
             DecimalPlaces = 0 : 5;
             InitValue = 0.00001;
@@ -403,6 +412,7 @@ table 99000754 "Work Center"
         }
         field(41; "Capacity (Total)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Total)" where("Capacity Type" = const("Work Center"),
                                                                          "No." = field("No."),
                                                                          "Work Shift Code" = field("Work Shift Filter"),
@@ -414,6 +424,7 @@ table 99000754 "Work Center"
         }
         field(42; "Capacity (Effective)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Calendar Entry"."Capacity (Effective)" where("Capacity Type" = const("Work Center"),
                                                                              "No." = field("No."),
                                                                              "Work Shift Code" = field("Work Shift Filter"),
@@ -425,6 +436,7 @@ table 99000754 "Work Center"
         }
         field(44; "Prod. Order Need (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Allocated Time" where("Work Center No." = field("No."),
                                                                                   Status = field("Prod. Order Status Filter"),
                                                                                   Date = field("Date Filter"),
@@ -437,6 +449,7 @@ table 99000754 "Work Center"
         field(45; "Prod. Order Need Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Routing Line"."Expected Operation Cost Amt." where("Work Center No." = field("No."),
                                                                                                Status = field("Prod. Order Status Filter")));
             Caption = 'Prod. Order Need Amount';
@@ -473,7 +486,7 @@ table 99000754 "Work Center"
         }
         field(81; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
 
             trigger OnValidate()
@@ -667,10 +680,10 @@ table 99000754 "Work Center"
         MfgSetup.Get();
         if "No." = '' then begin
             MfgSetup.TestField("Work Center Nos.");
-                "No. Series" := MfgSetup."Work Center Nos.";
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series");
+            "No. Series" := MfgSetup."Work Center Nos.";
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series");
         end;
         DimMgt.UpdateDefaultDim(
           Database::"Work Center", "No.",

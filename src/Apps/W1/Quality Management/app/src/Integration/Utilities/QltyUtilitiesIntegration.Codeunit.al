@@ -5,16 +5,11 @@
 namespace Microsoft.QualityManagement.Integration.Utilities;
 
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
-using System.Integration;
 
 codeunit 20418 "Qlty. Utilities Integration"
 {
     InherentPermissions = X;
-
-    var
-        CaptionTok: Label 'caption', Locked = true;
 
     /// <summary>
     /// To identify the card for custom table, which in turns helps Graphical Scheduler know to use the card with 'Details'
@@ -49,51 +44,5 @@ codeunit 20418 "Qlty. Utilities Integration"
 
         PageID := Page::"Qlty. Inspection List";
         IsHandled := true;
-    end;
-
-    /// <summary>
-    /// This is to help with Microsoft Teams integration.
-    /// This gets called in the context of a web service when Teams is trying to figure out the display summary.
-    /// </summary>
-    /// <param name="PageId"></param>
-    /// <param name="RecId"></param>
-    /// <param name="FieldsJsonArray"></param>
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Summary Provider", 'OnAfterGetPageSummary', '', true, true)]
-    local procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var FieldsJsonArray: JsonArray)
-    begin
-        InternalHandleOnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
-    end;
-
-    internal procedure InternalHandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var FieldsJsonArray: JsonArray)
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        FieldToken: JsonToken;
-        CaptionToken: JsonToken;
-        FieldObject: JsonObject;
-    begin
-        if RecId.TableNo() <> Database::"Qlty. Inspection Header" then
-            exit;
-
-        if not QltyManagementSetup.Get() then
-            exit;
-
-        foreach FieldToken in FieldsJsonArray do
-            if FieldToken.IsObject() then begin
-                FieldObject := FieldToken.AsObject();
-                if FieldObject.Get(CaptionTok, CaptionToken) then
-                    case CaptionToken.AsValue().AsText() of
-                        QltyInspectionHeader.FieldCaption("Brick Bottom Left"):
-                            if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Bottom Left Header") then;
-                        QltyInspectionHeader.FieldCaption("Brick Bottom Right"):
-                            if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Bottom Right Header") then;
-                        QltyInspectionHeader.FieldCaption("Brick Middle Left"):
-                            if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Middle Left Header") then;
-                        QltyInspectionHeader.FieldCaption("Brick Middle Right"):
-                            if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Middle Right Header") then;
-                        QltyInspectionHeader.FieldCaption("Brick Top Left"):
-                            if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Top Left Header") then;
-                    end;
-            end;
     end;
 }

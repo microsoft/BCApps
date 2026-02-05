@@ -19,6 +19,9 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Implements the invoice posting interface to create general ledger entries, customer ledger entries, and deferral schedules for sales invoices.
+/// </summary>
 codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 {
     Permissions = TableData "Invoice Posting Buffer" = rimd;
@@ -51,38 +54,66 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         IncorrectInterfaceErr: Label 'This implementation designed to post Sales Header table only.';
         TotalToDeferErr: Label 'The sum of the deferred amounts must be equal to the amount in the Amount to Defer field.';
 
+    /// <summary>
+    /// Validates that the correct table is being used for invoice posting.
+    /// </summary>
+    /// <param name="TableID">Specifies the table ID to validate.</param>
     procedure Check(TableID: Integer)
     begin
         if TableID <> Database::"Sales Header" then
             error(IncorrectInterfaceErr);
     end;
 
+    /// <summary>
+    /// Sets whether the invoice posting is running in preview mode.
+    /// </summary>
+    /// <param name="NewPreviewMode">Specifies whether preview mode is enabled.</param>
     procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
     end;
 
+    /// <summary>
+    /// Sets whether database commits should be suppressed during invoice posting.
+    /// </summary>
+    /// <param name="NewSuppressCommit">Specifies whether to suppress commits.</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;
     end;
 
+    /// <summary>
+    /// Sets whether the progress window should be hidden during invoice posting.
+    /// </summary>
+    /// <param name="NewHideProgressWindow">Specifies whether to hide the progress window.</param>
     procedure SetHideProgressWindow(NewHideProgressWindow: Boolean)
     begin
         HideProgressWindow := NewHideProgressWindow;
     end;
 
+    /// <summary>
+    /// Sets the invoice posting parameters to be used during posting.
+    /// </summary>
+    /// <param name="NewInvoicePostingParameters">Specifies the invoice posting parameters record.</param>
     procedure SetParameters(NewInvoicePostingParameters: Record "Invoice Posting Parameters")
     begin
         InvoicePostingParameters := NewInvoicePostingParameters;
     end;
 
+    /// <summary>
+    /// Sets the total lines used for posting the customer ledger entry.
+    /// </summary>
+    /// <param name="TotalDocumentLine">Specifies the total sales line amounts in document currency.</param>
+    /// <param name="TotalDocumentLineLCY">Specifies the total sales line amounts in local currency.</param>
     procedure SetTotalLines(TotalDocumentLine: Variant; TotalDocumentLineLCY: Variant)
     begin
         TotalSalesLine := TotalDocumentLine;
         TotalSalesLineLCY := TotalDocumentLineLCY;
     end;
 
+    /// <summary>
+    /// Clears all temporary buffers used for deferral and invoice posting.
+    /// </summary>
     procedure ClearBuffers()
     begin
         TempDeferralHeader.DeleteAll();
@@ -90,6 +121,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBuffer.DeleteAll();
     end;
 
+    /// <summary>
+    /// Prepares a sales line for invoice posting by calculating amounts and creating invoice posting buffer entries.
+    /// </summary>
+    /// <param name="DocumentHeaderVar">Specifies the sales header record.</param>
+    /// <param name="DocumentLineVar">Specifies the sales line record in document currency.</param>
+    /// <param name="DocumentLineACYVar">Specifies the sales line record in additional currency.</param>
     procedure PrepareLine(DocumentHeaderVar: Variant; DocumentLineVar: Variant; DocumentLineACYVar: Variant)
     var
         SalesHeader: Record "Sales Header";
@@ -333,6 +370,11 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         SalesPostInvoiceEvents.RunOnAfterInitTotalAmounts(SalesLine, SalesLineACY, TotalVAT, TotalVATACY, TotalAmount, TotalAmountACY, TotalVATBase, TotalVATBaseACY);
     end;
 
+    /// <summary>
+    /// Initializes the invoice posting buffer with values from the sales line.
+    /// </summary>
+    /// <param name="SalesLine">Specifies the sales line to copy values from.</param>
+    /// <param name="InvoicePostingBuffer">Returns the initialized invoice posting buffer record.</param>
     procedure PrepareInvoicePostingBuffer(var SalesLine: Record "Sales Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
     var
         SalesHeader: Record "Sales Header";
@@ -419,6 +461,13 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             TempInvoicePostingBuffer.Type := TempInvoicePostingBuffer.Type::"Fixed Asset";
     end;
 
+    /// <summary>
+    /// Posts all invoice posting buffer lines to the general ledger.
+    /// </summary>
+    /// <param name="DocumentHeaderVar">Specifies the sales header record.</param>
+    /// <param name="GenJnlPostLine">Specifies the general journal posting codeunit instance.</param>
+    /// <param name="Window">Specifies the progress dialog window.</param>
+    /// <param name="TotalAmount">Returns the total amount posted.</param>
     procedure PostLines(DocumentHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var Window: Dialog; var TotalAmount: Decimal)
     var
         SalesHeader: Record "Sales Header";
@@ -518,6 +567,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             InvoicePostingBuffer."Dimension Set ID", SalesHeader."Reason Code");
     end;
 
+    /// <summary>
+    /// Prepares and posts job-related entries for the sales line.
+    /// </summary>
+    /// <param name="SalesHeaderVar">Specifies the sales header record.</param>
+    /// <param name="SalesLineVar">Specifies the sales line record.</param>
+    /// <param name="SalesLineACYVar">Specifies the sales line record in additional currency.</param>
     procedure PrepareJobLine(SalesHeaderVar: Variant; SalesLineVar: Variant; SalesLineACYVar: Variant)
     var
         SalesHeader: Record "Sales Header";
@@ -551,6 +606,11 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         SalesPostInvoiceEvents.RunOnAfterSetJobLineFilters(JobSalesLine, InvoicePostingBuffer);
     end;
 
+    /// <summary>
+    /// Validates the sales line for credit memo posting. Currently not implemented.
+    /// </summary>
+    /// <param name="SalesHeaderVar">Specifies the sales header record.</param>
+    /// <param name="SalesLineVar">Specifies the sales line record.</param>
     procedure CheckCreditLine(SalesHeaderVar: Variant; SalesLineVar: Variant)
     begin
     end;
@@ -787,6 +847,11 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBufferGST.Update(InvoicePostingBuffer);
     end;
 
+    /// <summary>
+    /// Posts the customer ledger entry for the sales invoice or credit memo.
+    /// </summary>
+    /// <param name="SalesHeaderVar">Specifies the sales header record.</param>
+    /// <param name="GenJnlPostLine">Specifies the general journal posting codeunit instance.</param>
     procedure PostLedgerEntry(SalesHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         SalesHeader: Record "Sales Header";
@@ -862,6 +927,11 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 SalesHeader.GetUseDate(), SalesHeader."Currency Code", -TotalSalesLine."Pmt. Discount Amount", SalesHeader."Currency Factor");
     end;
 
+    /// <summary>
+    /// Posts the balancing entry to apply payment to the customer ledger entry when a balancing account is specified.
+    /// </summary>
+    /// <param name="SalesHeaderVariant">Specifies the sales header record.</param>
+    /// <param name="GenJnlPostLine">Specifies the general journal posting codeunit instance.</param>
     procedure PostBalancingEntry(SalesHeaderVariant: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         SalesHeader: Record "Sales Header";
@@ -1092,6 +1162,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             Error(TotalToDeferErr);
     end;
 
+    /// <summary>
+    /// Calculates the deferral amounts for the sales line based on the quantity being invoiced.
+    /// </summary>
+    /// <param name="SalesHeaderVar">Specifies the sales header record.</param>
+    /// <param name="SalesLineVar">Specifies the sales line record.</param>
+    /// <param name="OriginalDeferralAmount">Specifies the original deferral amount before partial invoicing.</param>
     procedure CalcDeferralAmounts(SalesHeaderVar: Variant; SalesLineVar: Variant; OriginalDeferralAmount: Decimal)
     var
         DeferralHeader: Record "Deferral Header";
@@ -1159,6 +1235,14 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         end;
     end;
 
+    /// <summary>
+    /// Creates the posted deferral schedule from the sales line deferral information.
+    /// </summary>
+    /// <param name="SalesLineVar">Specifies the sales line record containing the deferral code.</param>
+    /// <param name="NewDocumentType">Specifies the posted document type.</param>
+    /// <param name="NewDocumentNo">Specifies the posted document number.</param>
+    /// <param name="NewLineNo">Specifies the posted document line number.</param>
+    /// <param name="PostingDate">Specifies the posting date of the document.</param>
     procedure CreatePostedDeferralSchedule(SalesLineVar: Variant; NewDocumentType: Integer; NewDocumentNo: Code[20]; NewLineNo: Integer; PostingDate: Date)
     var
         PostedDeferralHeader: Record "Posted Deferral Header";

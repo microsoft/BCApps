@@ -34,46 +34,61 @@ table 12136 "Periodic VAT Settlement Entry"
         field(3; "VAT Settlement"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Settlement';
         }
         field(4; "Add-Curr. VAT Settlement"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add-Curr. VAT Settlement';
         }
         field(5; "Prior Period Input VAT"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Prior Period Input VAT';
         }
         field(6; "Prior Period Output VAT"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Prior Period Output VAT';
         }
         field(7; "Add Curr. Prior Per. Inp. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add Curr. Prior Per. Inp. VAT';
         }
         field(8; "Add Curr. Prior Per. Out VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add-Curr. Prior Per. Out VAT';
         }
         field(10; "Paid Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Paid Amount';
         }
         field(11; "Advanced Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Advanced Amount';
         }
         field(12; "Add-Curr. Paid. Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add-Curr. Paid. Amount';
         }
         field(13; "Add-Curr. Advanced Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add-Curr. Advanced Amount';
         }
         field(20; "Bank Code"; Code[20])
@@ -95,63 +110,80 @@ table 12136 "Periodic VAT Settlement Entry"
         }
         field(50; "Prior Year Input VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Prior Year Input VAT';
         }
         field(51; "Prior Year Output VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Prior Year Output VAT';
         }
         field(52; "Add Curr.Prior Year Inp. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add Curr.Prior Year Inp. VAT';
         }
         field(53; "Add Curr.Prior Year Out. VAT"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             Caption = 'Add Curr.Prior Year Out. VAT';
         }
         field(60; "Payable VAT Variation"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Payable VAT Variation';
         }
         field(61; "Deductible VAT Variation"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Deductible VAT Variation';
         }
         field(62; "Tax Debit Variation"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Debit Variation';
         }
         field(63; "Tax Credit Variation"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Credit Variation';
         }
         field(64; "Unpaid VAT Previous Periods"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Unpaid VAT Previous Periods';
         }
         field(65; "Tax Debit Variation Interest"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Tax Debit Variation Interest';
         }
         field(66; "Omit VAT Payable Interest"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Omit VAT Payable Interest';
         }
         field(70; "Credit VAT Compensation"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Credit VAT Compensation';
         }
         field(71; "Special Credit"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Special Credit';
         }
     }
@@ -189,5 +221,12 @@ table 12136 "Periodic VAT Settlement Entry"
         Month: Integer;
         InvalidVATPeriodErr: Label 'The VAT Period must contain seven characters, for example, YYYY/MM.';
         InvalidMonthErr: Label 'Check that the month number is correct.';
+
+    local procedure GetAdditionalCurrencyCode(): Code[10]
+    var
+        GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
+    begin
+        exit(GLSetup."Additional Reporting Currency");
+    end;
 }
 

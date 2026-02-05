@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Counts the number of customer ledger entries per customer, with the ability to filter by open status.
+/// </summary>
 query 1312 "Num CustLedgEntries per Cust"
 {
     Caption = 'Num CustLedgEntries per Cust';

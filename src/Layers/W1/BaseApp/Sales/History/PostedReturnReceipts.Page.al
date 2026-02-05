@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Comment;
 
+/// <summary>
+/// Lists all posted sales return receipts for viewing and navigation.
+/// </summary>
 page 6662 "Posted Return Receipts"
 {
     ApplicationArea = SalesReturnOrder;

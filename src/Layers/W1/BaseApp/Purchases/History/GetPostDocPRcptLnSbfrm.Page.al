@@ -136,6 +136,7 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field(RemainingQty; RemainingQty)
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Remaining Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity from the posted document line that remains in inventory.';
@@ -143,6 +144,7 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field(AppliedQty; GetAppliedQty())
                 {
                     ApplicationArea = SalesReturnOrder;
+                    AutoFormatType = 0;
                     Caption = 'Applied Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item in the line that has been used for outbound transactions.';
@@ -163,6 +165,7 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 {
                     ApplicationArea = SalesReturnOrder;
                     AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Reverse Unit Cost (LCY)';
                     ToolTip = 'Specifies the unit cost that will appear on the new document lines.';
                     Visible = false;

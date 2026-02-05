@@ -77,6 +77,7 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         ChildItemSN3: Label 'ChilSN3';
         ERR_NO_WHSE_WKSH_LINES_CREATED: Label 'There are no Warehouse Worksheet Lines created.';
         ERR_NOTHING_TO_HANDLE: Label 'There is nothing to handle, because the worksheet lines do not contain a value for quantity to handle.';
+        InventoryPickErr: Label 'Inventory Pick should be registered successfully without error.';
 
     [Normal]
     local procedure Initialize()
@@ -2111,6 +2112,104 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         AssemblyHeader.TestField("Bin Code", FromAsmBin.Code);
     end;
 
+    [Test]
+    [HandlerFunctions('AssignLotToAssemblyHeader,MessageHandler')]
+    procedure InvtPickWithLotTrackingOnATOWithOrderTrackingPolicy()
+    var
+        AsmHeader: Record "Assembly Header";
+        AssemblyBin: Record Bin;
+        AssemblyItem: Record Item;
+        AssemblySetup: Record "Assembly Setup";
+        ItemComponent: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
+        StorageBin: Record Bin;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseActivityHeader: Record "Warehouse Activity Header";
+        WhseActivityLine: Record "Warehouse Activity Line";
+        LotNo: array[2] of Code[20];
+    begin
+        // [SCENARIO 614901] Verify "Quantity (Base) must not be -1 in Bin Content" error should not appear
+        // when picking an assembly item with item tracking if Order Tracking Policy is Tracking,
+        Initialize();
+
+        // [GIVEN] Set assembly setup
+        AssemblySetup.Get();
+        AssemblySetup."Create Movements Automatically" := true;
+        AssemblySetup.Modify();
+
+        // [GIVEN] Create Assembly and Component Items with lot tracking.
+        MockItemTrackingCode(ItemTrackingCode, false, true);
+        MockATOItem(AssemblyItem, ItemComponent);
+        AssemblyItem.Validate("Order Tracking Policy", AssemblyItem."Order Tracking Policy"::"Tracking Only");
+        AssemblyItem."Item Tracking Code" := ItemTrackingCode.Code;
+        AssemblyItem.Modify();
+        ItemComponent."Item Tracking Code" := ItemTrackingCode.Code;
+        ItemComponent.Modify();
+
+        // [GIVEN] Create Warehouse Location.
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, false);
+
+        // [GIVEN] Create Bin in Location.
+        MockBin(StorageBin, Location.Code);
+        MockBin(AssemblyBin, Location.Code);
+        Location."Asm. Consump. Whse. Handling" := Location."Asm. Consump. Whse. Handling"::"Inventory Movement";
+        Location."To-Assembly Bin Code" := AssemblyBin.Code;
+        Location.Modify(true);
+
+        // [GIVEN] Create Warehouse Employee with default location
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        // [GIVEN] Add inventory to Component Item.
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        AddItemToInventory(ItemComponent, Location, StorageBin, LibraryRandom.RandInt(50), LotNo[1], '');
+
+        // [GIVEN] Create Sales Order with Bin.
+        MockSalesOrder(SalesLine, AssemblyItem, Location, LibraryRandom.RandInt(1));
+        SalesLine.Validate("Bin Code", StorageBin.Code);
+        SalesLine.Modify();
+
+        // [GIVEN] Get Assembly Header.
+        SalesLine.AsmToOrderExists(AsmHeader);
+
+        // [GIVEN] Assign lot to Assembly Header.
+        LibraryVariableStorage.Enqueue(LotNo[2]);
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
+        AsmHeader.OpenItemTrackingLines();
+
+        // [GIVEN] Create Inventory Pick and Movement.
+        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+
+        // [GIVEN] Register Inventory Movement
+        FindWhseActivityLine(WhseActivityLine, AsmHeader."No.", WhseActivityLine."Activity Type"::"Invt. Movement");
+        if WhseActivityLine.FindSet() then
+            repeat
+                WhseActivityLine.Validate("Lot No.", LotNo[1]);
+                WhseActivityLine.Modify(true);
+            until WhseActivityLine.Next() = 0;
+        WhseActivityHeader.Get(WhseActivityLine."Activity Type", WhseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WhseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WhseActivityHeader);
+
+        // [WHEN] Register Inventory Pick.
+        WhseActivityHeader.Reset();
+        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::"Invt. Pick");
+        WhseActivityHeader.SetRange("Source Type", DATABASE::"Sales Line");
+        WhseActivityHeader.SetRange("Source No.", SalesLine."Document No.");
+        WhseActivityHeader.FindFirst();
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WhseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WhseActivityHeader, false);
+
+        // [THEN] No error should appear and Inventory Pick is registered successfully.
+        asserterror FindWhseActivityLine(WhseActivityLine, SalesLine."Document No.", WhseActivityLine."Activity Type"::"Invt. Pick");
+        Assert.AreEqual(0, WhseActivityLine.Count, InventoryPickErr);
+    end;
+
     local procedure CreateAsmItemWithAsmBOMAndAddInventory(var Item: Record Item; var Location: Record Location)
     var
         ChildItem: Record Item;
@@ -2506,6 +2605,19 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         WhseItemTrackingLines."Serial No.".SetValue(LibraryVariableStorage.DequeueText());
         WhseItemTrackingLines.Quantity.SetValue(1);
         WhseItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignLotToAssemblyHeader(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    var
+        Quantity: Decimal;
+        LotNo: Code[20];
+    begin
+        LotNo := LibraryVariableStorage.DequeueText();
+        Quantity := LibraryVariableStorage.DequeueDecimal();
+        ItemTrackingLines.New();
+        ItemTrackingLines."Lot No.".SetValue(LotNo);
+        ItemTrackingLines."Quantity (Base)".SetValue(Quantity);
     end;
 
     [MessageHandler]

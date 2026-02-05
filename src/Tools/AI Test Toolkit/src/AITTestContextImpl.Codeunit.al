@@ -8,7 +8,7 @@ namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Exposes functions that can be used by the AI tests.
+/// Exposes functions that can be used by the AI evals.
 /// </summary>
 codeunit 149043 "AIT Test Context Impl."
 {
@@ -24,7 +24,7 @@ codeunit 149043 "AIT Test Context Impl."
         IsMultiTurn: Boolean;
         AccuracySetManually: Boolean;
         AccuracyErr: Label 'Accuracy must be between 0 and 1.';
-        OnlySingleTurnErr: Label 'A query-and-response pair cannot be used in multi-turn tests. Use AddMessage instead.';
+        OnlySingleTurnErr: Label 'A query-and-response pair cannot be used in multi-turn evals. Use AddMessage instead.';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -43,7 +43,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>Test Input Json for the current test.</returns>
+    /// <returns>Test Input Json for the current eval.</returns>
     procedure GetInput(): Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
@@ -89,7 +89,7 @@ codeunit 149043 "AIT Test Context Impl."
 
     /// <summary>
     /// Get the Expected Data value as text from the input dataset for the current iteration.
-    /// Expected data is used for internal validation if the test was successful.
+    /// Expected data is used for internal validation if the eval was successful.
     /// </summary>
     /// <returns>Test Input Json for the expected data</returns>
     procedure GetExpectedData(): Codeunit "Test Input Json"
@@ -142,8 +142,8 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Adds a message to the current test iteration.
-    /// This is used for multi-turn tests to add messages to the output.
+    /// Adds a message to the current eval iteration.
+    /// This is used for multi-turn evals to add messages to the output.
     /// </summary>
     /// <param name="Content">The content of the message.</param>
     /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
@@ -215,7 +215,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Sets the accuracy of the test.
+    /// Sets the accuracy of the eval.
     /// </summary>
     /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
     procedure SetAccuracy(Accuracy: Decimal)
@@ -228,7 +228,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the accuracy of the test. Can only be retrieved if the accuracy of the test was already set manually.
+    /// Gets the accuracy of the eval. Can only be retrieved if the accuracy of the eval was already set manually.
     /// </summary>
     /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
     /// <returns>True if it was possible to get the accuracy, false otherwise.</returns>
@@ -243,7 +243,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Sets to next turn for multiturn testing.
+    /// Sets to next turn for multiturn eval.
     /// </summary>
     /// <returns>True if another turn exists, otherwise false.</returns>
     procedure NextTurn(): Boolean
@@ -260,7 +260,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the current turn for multiturn testing. Turns start from turn 1.
+    /// Gets the current turn for multiturn eval. Turns start from turn 1.
     /// </summary>
     /// <returns>The current turn number.</returns>
     procedure GetCurrentTurn(): Integer
@@ -269,7 +269,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the total number of turns for multiturn testing.
+    /// Gets the total number of turns for multiturn eval.
     /// </summary>
     /// <returns>The total number of turns for the line.</returns>
     procedure GetNumberOfTurns(): Integer
@@ -302,8 +302,8 @@ codeunit 149043 "AIT Test Context Impl."
     /// <summary>
     /// This method ends the scope of the Run Procedure scenario.
     /// </summary>
-    /// <param name="TestMethodLine">Record containing the result of the test execution.</param>
-    /// <param name="ExecutionSuccess">Result of the test execution.</param>
+    /// <param name="TestMethodLine">Record containing the result of the eval execution.</param>
+    /// <param name="ExecutionSuccess">Result of the eval execution.</param>
     procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
         AITTestMethodLine: Record "AIT Test Method Line";

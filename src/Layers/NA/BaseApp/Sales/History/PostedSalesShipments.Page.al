@@ -11,6 +11,9 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Reports;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales shipments for viewing and tracking delivery status.
+/// </summary>
 page 142 "Posted Sales Shipments"
 {
     ApplicationArea = Basic, Suite;

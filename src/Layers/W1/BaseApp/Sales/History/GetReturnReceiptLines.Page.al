@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists posted return receipt lines for selection when creating sales credit memos from received returns.
+/// </summary>
 page 6638 "Get Return Receipt Lines"
 {
     Caption = 'Get Return Receipt Lines';
@@ -257,6 +260,10 @@ page 6638 "Get Return Receipt Lines"
         SalesGetReturnReceipts: Codeunit "Sales-Get Return Receipts";
         DocumentNoHideValue: Boolean;
 
+    /// <summary>
+    /// Sets the sales header for filtering return receipt lines.
+    /// </summary>
+    /// <param name="SalesHeader2">The sales header to filter return receipt lines for.</param>
     procedure SetSalesHeader(var SalesHeader2: Record "Sales Header")
     begin
         SalesHeader.Get(SalesHeader2."Document Type", SalesHeader2."No.");

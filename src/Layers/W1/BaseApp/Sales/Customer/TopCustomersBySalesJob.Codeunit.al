@@ -8,6 +8,9 @@ using Microsoft.Sales.Receivables;
 using System.Threading;
 using System.Visualization;
 
+/// <summary>
+/// Updates the top customers by sales buffer table via job queue processing.
+/// </summary>
 codeunit 1328 "Top Customers By Sales Job"
 {
     TableNo = "Job Queue Entry";
@@ -42,6 +45,9 @@ codeunit 1328 "Top Customers By Sales Job"
         Result := true;
     end;
 
+    /// <summary>
+    /// Updates the top customers by sales buffer table with the latest sales data from customer ledger entries.
+    /// </summary>
     [Scope('OnPrem')]
     procedure UpdateCustomerTopList()
     var

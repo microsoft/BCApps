@@ -183,6 +183,7 @@ page 9077 "Account Receivables"
             }
             group(Reports)
             {
+#if not CLEAN28
                 action("C&ustomer - List")
                 {
                     ApplicationArea = All;
@@ -190,7 +191,11 @@ page 9077 "Account Receivables"
                     Image = "Report";
                     RunObject = Report "Customer - List";
                     ToolTip = 'View various information for customers, such as customer posting group, discount group, finance charge and payment information, salesperson, the customer''s default currency and credit limit (in LCY), and the customer''s current balance (in LCY).';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Customer - &Balance to Date")
                 {
                     ApplicationArea = All;

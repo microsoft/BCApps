@@ -17,13 +17,13 @@ codeunit 99000890 "Mfg. Purch.-Post"
         PurchPost: Codeunit "Purch.-Post";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckPurchRcptLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckPurchRcptLine', '', true, false)]
     local procedure OnAfterCheckPurchRcptLine(PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line")
     begin
         PurchRcptLine.TestField("Prod. Order No.", PurchaseLine."Prod. Order No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemJnlLineOnCopyProdOrder', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemJnlLineOnCopyProdOrder', '', true, false)]
     local procedure OnPostItemJnlLineOnCopyProdOrder(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; SuppressCommit: Boolean)
     begin
         if PurchaseLine.IsProdOrder() then
@@ -85,7 +85,7 @@ codeunit 99000890 "Mfg. Purch.-Post"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckFieldsOnReturnShipmentLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckFieldsOnReturnShipmentLine', '', true, false)]
     local procedure OnAfterCheckFieldsOnReturnShipmentLine(ReturnShipmentLine: Record "Return Shipment Line"; PurchaseLine: Record "Purchase Line")
     begin
         ReturnShipmentLine.TestField("Prod. Order No.", PurchaseLine."Prod. Order No.");

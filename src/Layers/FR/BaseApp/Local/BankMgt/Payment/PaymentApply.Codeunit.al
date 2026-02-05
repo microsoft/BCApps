@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +19,9 @@ codeunit 10861 "Payment-Apply"
     Permissions = TableData "Cust. Ledger Entry" = rm,
                   TableData "Vendor Ledger Entry" = rm;
     TableNo = "Payment Line";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -451,4 +455,4 @@ codeunit 10861 "Payment-Apply"
     begin
     end;
 }
-
+#endif

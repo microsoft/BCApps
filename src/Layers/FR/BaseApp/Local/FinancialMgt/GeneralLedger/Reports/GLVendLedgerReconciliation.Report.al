@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +18,9 @@ report 10863 "GL/Vend. Ledger Reconciliation"
     Caption = 'GL/Vend. Ledger Reconciliation';
     Permissions = TableData "G/L Account Net Change" = rimd;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -262,4 +266,4 @@ report 10863 "GL/Vend. Ledger Reconciliation"
         Total_amount_for_the_general_ledgerCaptionLbl: Label 'Total amount for the general ledger';
         General_amount_for_the_general_ledgerCaptionLbl: Label 'General amount for the general ledger';
 }
-
+#endif

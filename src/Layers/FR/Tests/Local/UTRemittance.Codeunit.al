@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144057 "UT Remittance"
 {
     // 1. Purpose of the test is to validate OnAfterGetRecord - Bank Account Code On report 10843 - Recapitulation Form.
@@ -16,6 +17,9 @@ codeunit 144057 "UT Remittance"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -208,4 +212,4 @@ codeunit 144057 "UT Remittance"
         RecapitulationForm.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif

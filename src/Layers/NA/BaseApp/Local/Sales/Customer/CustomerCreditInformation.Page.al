@@ -61,6 +61,8 @@ page 10007 "Customer Credit Information"
                 field("""Credit Limit (LCY)"" - ""Balance (LCY)"""; Rec."Credit Limit (LCY)" - Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Difference';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the credit limit and the balance for the customer. The formula is credit limit minus balance.';
@@ -151,6 +153,8 @@ page 10007 "Customer Credit Information"
             field("-LatestCustLedgerEntry.""Amount (LCY)"""; -LatestCustLedgerEntry."Amount (LCY)")
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Latest Payment Amount';
                 Editable = false;
                 ToolTip = 'Specifies the last payment amount that was made.';

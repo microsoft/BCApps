@@ -27,6 +27,8 @@ table 1018 "Job WIP Buffer"
         }
         field(3; "WIP Entry Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'WIP Entry Amount';
             DataClassification = SystemMetadata;
         }

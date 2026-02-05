@@ -44,6 +44,7 @@ table 7351 "Lot Bin Buffer"
         }
         field(7; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

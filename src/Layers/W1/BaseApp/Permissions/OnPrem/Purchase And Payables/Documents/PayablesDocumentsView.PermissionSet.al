@@ -18,9 +18,12 @@ permissionset 5951 "Payables Documents - View"
     Assignable = false;
     Caption = 'Read posted receipts etc.';
 
-    Permissions = tabledata "General Posting Setup" = r,
+    Permissions = tabledata "Detailed Matched Order Line" = R,
+                  tabledata "General Posting Setup" = r,
                   tabledata "Item Reference" = R,
                   tabledata "Item Tracking Code" = R,
+                  tabledata "Matched Order Line" = R,
+                  tabledata "Posted Matched Order Line" = R,
                   tabledata "Purch. Comment Line" = RIMD,
                   tabledata "Purch. Cr. Memo Hdr." = Rm,
                   tabledata "Purch. Cr. Memo Line" = R,

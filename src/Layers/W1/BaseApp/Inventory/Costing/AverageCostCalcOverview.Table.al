@@ -94,6 +94,7 @@ table 5847 "Average Cost Calc. Overview"
         }
         field(31; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -103,10 +104,14 @@ table 5847 "Average Cost Calc. Overview"
         }
         field(33; "Cost Amount (Expected)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Expected)';
         }
         field(34; "Cost Amount (Actual)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount (Actual)';
         }
     }

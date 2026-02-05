@@ -38,6 +38,7 @@ table 10143 "Posted Deposit Header"
         }
         field(4; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;

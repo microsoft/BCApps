@@ -115,6 +115,7 @@ table 187 "VAT Posting Parameters"
         }
         field(11620; "VAT Base ACY"; Decimal)
         {
+            AutoFormatType = 0;
             DataClassification = SystemMetadata;
         }
     }

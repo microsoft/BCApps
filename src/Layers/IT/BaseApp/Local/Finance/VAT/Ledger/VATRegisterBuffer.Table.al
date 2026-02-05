@@ -44,47 +44,49 @@ table 12148 "VAT Register - Buffer"
         }
         field(12; "VAT Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Deductible %';
             DataClassification = SystemMetadata;
         }
         field(13; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DataClassification = SystemMetadata;
         }
         field(14; Base; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Base';
             DataClassification = SystemMetadata;
         }
         field(15; Amount; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(16; "Nondeductible Base"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Nondeductible Base';
             DataClassification = SystemMetadata;
         }
         field(17; "Nondeductible Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Nondeductible Amount';
             DataClassification = SystemMetadata;
         }
         field(20; "Unrealized Base"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Unrealized Base';
             DataClassification = SystemMetadata;
         }
         field(21; "Unrealized Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Unrealized Amount';
             DataClassification = SystemMetadata;
         }

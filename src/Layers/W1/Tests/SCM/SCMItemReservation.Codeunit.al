@@ -87,6 +87,7 @@ codeunit 137406 "SCM Item Reservation"
     var
         ItemJournalLine: Record "Item Journal Line";
         ProductionBOMLine: Record "Production BOM Line";
+        Library_ERMCountryData: Codeunit "Library - ERM Country Data";
         ProductionOrderNo: Code[20];
         ItemNo: Code[20];
         Quantity: Decimal;
@@ -105,6 +106,7 @@ codeunit 137406 "SCM Item Reservation"
         CalculateAndPostConsumption(ProductionOrderNo);
 
         // [WHEN] Run Adjust Cost Item Entries and Post Inventory Cost to General Ledger.
+        Library_ERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryCosting.AdjustCostItemEntries(ItemNo, '');
         LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
 

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates a trial balance report showing customer balances grouped by customer posting group with debit and credit totals.
+/// </summary>
+
 using Microsoft.Foundation.Period;
 using Microsoft.Sales.Customer;
 

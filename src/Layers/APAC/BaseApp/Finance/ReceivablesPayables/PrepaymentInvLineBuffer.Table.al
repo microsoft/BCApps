@@ -321,11 +321,14 @@ table 461 "Prepayment Inv. Line Buffer"
         }
         field(28002; "Invoice Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoice Discount Amount';
             DataClassification = SystemMetadata;
         }
         field(28004; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DataClassification = SystemMetadata;
         }

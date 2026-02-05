@@ -55,6 +55,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The item number of the sales transaction line, %2=The Deferral Template Code';
         IncorrectInterfaceErr: Label 'This implementation designed to post Purchase Header table only.';
         TotalToDeferErr: Label 'The sum of the deferred amounts must be equal to the amount in the Amount to Defer field.';
+        PostingPreviewFANoTok: Label 'Preview-', Locked = true;
 
     procedure Check(TableID: Integer)
     begin
@@ -781,6 +782,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Orig. Pmt. Disc. Possible(LCY)" :=
             CurrExchRate.ExchangeAmtFCYToLCY(
                 PurchHeader.GetUseDate(), PurchHeader."Currency Code", -TotalPurchLine."Pmt. Discount Amount", PurchHeader."Currency Factor");
+
+        PurchPostInvoiceEvents.RunOnAfterInitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY);
     end;
 
     procedure PostBalancingEntry(PurchHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
@@ -1253,7 +1256,10 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         TempFA: Record "Fixed Asset" temporary;
         I: Integer;
     begin
-        CreateTempFA(GenJnlLine, SplitNo, TempFA);
+        if PreviewMode then
+            CreateTempFAPreview(GenJnlLine, SplitNo, TempFA)
+        else
+            CreateTempFA(GenJnlLine, SplitNo, TempFA);
         TotalGenJnlLine := GenJnlLine;
         Clear(GenJnlLine2);
         Clear(TempFA);
@@ -1358,5 +1364,42 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         else
             Amount := TotalAmount - Amount2;
         Amount2 += Amount;
+    end;
+
+    local procedure CreateTempFAPreview(GenJnlLine: Record "Gen. Journal Line"; SplitNo: Integer; var TempFA: Record "Fixed Asset" temporary): Boolean
+    var
+        FASetup: Record "FA Setup";
+        FA: Record "Fixed Asset";
+        FA2: Record "Fixed Asset";
+        FADeprBook: Record "FA Depreciation Book";
+        FADeprBook2: Record "FA Depreciation Book";
+        i: Integer;
+    begin
+        FASetup.Get();
+        FASetup.TestField("Fixed Asset Nos.");
+        TempFA.DeleteAll();
+        FA.Get(GenJnlLine."Account No.");
+        TempFA := FA;
+        TempFA.Insert();
+        SplitNo := SplitNo - 1;
+        for i := 1 to SplitNo do begin
+            FA2 := FA;
+            FA2."No." := '';
+            FA2."No." := PostingPreviewFANoTok + Format(i);
+            FA2.Insert(false);
+
+            AddDefaultDimensionsToFA(FA, FA2);
+
+            TempFA := FA2;
+            TempFA.Insert();
+            Clear(FADeprBook);
+            FADeprBook.SetRange("FA No.", FA."No.");
+            if FADeprBook.FindSet() then
+                repeat
+                    FADeprBook2 := FADeprBook;
+                    FADeprBook2."FA No." := FA2."No.";
+                    FADeprBook2.Insert(true);
+                until FADeprBook.Next() = 0;
+        end;
     end;
 }

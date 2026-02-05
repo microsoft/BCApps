@@ -39,6 +39,7 @@ table 1034 "Job Planning Line - Calendar"
         }
         field(7; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
         }
         field(8; Description; Text[100])

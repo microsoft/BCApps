@@ -12,6 +12,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Remittance;
@@ -942,6 +943,21 @@ page 138 "Posted Purchase Invoice"
                         DocumentAttachmentDetails.RunModal();
                     end;
                 }
+                action(MatchedOrderLines)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Matched Order Lines';
+                    Image = TransferToLines;
+                    ToolTip = 'View order lines matched to this purchase invoice.';
+
+                    trigger OnAction()
+                    var
+                        MatchedOrderLines: Page "Matched Order Lines";
+                    begin
+                        MatchedOrderLines.InitializePage("Matched Order Line Source"::"Posted Purchase Invoice", true, Rec.SystemId);
+                        MatchedOrderLines.RunModal();
+                    end;
+                }
             }
             action("&Navigate")
             {
@@ -1087,12 +1103,13 @@ page 138 "Posted Purchase Invoice"
                 actionref("Co&mments_Promoted"; "Co&mments")
                 {
                 }
-
                 separator(Navigate_Separator)
                 {
                 }
-
                 actionref(Vendor_Promoted; Vendor)
+                {
+                }
+                actionref(MatchedOrderLines_Promoted; MatchedOrderLines)
                 {
                 }
             }

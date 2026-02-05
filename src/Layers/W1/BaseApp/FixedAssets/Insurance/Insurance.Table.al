@@ -51,6 +51,7 @@ table 5628 Insurance
         field(6; "Annual Premium"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Annual Premium';
             MinValue = 0;
@@ -58,6 +59,7 @@ table 5628 Insurance
         field(7; "Policy Coverage"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Policy Coverage';
             MinValue = 0;
@@ -65,6 +67,7 @@ table 5628 Insurance
         field(10; "Total Value Insured"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Ins. Coverage Ledger Entry".Amount where("Insurance No." = field("No."),
                                                                          "Disposed FA" = const(false),
@@ -204,10 +207,10 @@ table 5628 Insurance
         if "No." = '' then begin
             FASetup.Get();
             FASetup.TestField("Insurance Nos.");
-			if NoSeries.AreRelated(FASetup."Insurance Nos.", xRec."No. Series") then
-				"No. Series" := xRec."No. Series"
-			else
-				"No. Series" := FASetup."Insurance Nos.";
+            if NoSeries.AreRelated(FASetup."Insurance Nos.", xRec."No. Series") then
+                "No. Series" := xRec."No. Series"
+            else
+                "No. Series" := FASetup."Insurance Nos.";
             "No." := NoSeries.GetNextNo("No. Series");
         end;
 

@@ -69,6 +69,7 @@ page 5847 "Average Cost Calc. Overview"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Unit Cost';
                     Editable = false;
                     StyleExpr = 'Strong';

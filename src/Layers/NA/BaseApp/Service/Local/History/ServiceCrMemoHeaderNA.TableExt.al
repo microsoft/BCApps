@@ -145,6 +145,7 @@ tableextension 10012 "Service Cr.Memo Header NA" extends "Service Cr.Memo Header
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 6;

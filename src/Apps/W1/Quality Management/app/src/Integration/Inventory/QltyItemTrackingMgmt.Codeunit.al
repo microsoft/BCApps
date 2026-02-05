@@ -203,14 +203,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
 
         case ItemJnlTemplate.GetRangeMin("Page ID") of
             Page::"Item Reclass. Journal":
-                if QltyManagementSetup."Bin Move Batch Name" <> '' then begin
+                if QltyManagementSetup."Item Reclass. Batch Name" <> '' then begin
                     SearchItemJournalTemplate.CopyFilters(ItemJnlTemplate);
                     SearchItemJournalTemplate.SetLoadFields(Name, Type);
                     if SearchItemJournalTemplate.FindSet() then
                         repeat
                             ItemJournalBatch.SetRange("Journal Template Name", SearchItemJournalTemplate.Name);
                             ItemJournalBatch.SetRange("Template Type", SearchItemJournalTemplate.Type);
-                            ItemJournalBatch.SetRange(Name, QltyManagementSetup."Bin Move Batch Name");
+                            ItemJournalBatch.SetRange(Name, QltyManagementSetup."Item Reclass. Batch Name");
                             if ItemJournalBatch.Count() = 1 then begin
                                 ItemJnlTemplate.SetRange(Name, SearchItemJournalTemplate.Name);
                                 exit;
@@ -219,14 +219,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
                     SearchItemJournalTemplate.SetView(ItemJnlTemplate.GetView());
                 end;
             Page::"Item Journal":
-                if QltyManagementSetup."Adjustment Batch Name" <> '' then begin
+                if QltyManagementSetup."Item Journal Batch Name" <> '' then begin
                     SearchItemJournalTemplate.CopyFilters(ItemJnlTemplate);
                     SearchItemJournalTemplate.SetLoadFields(Name, Type);
                     if SearchItemJournalTemplate.FindSet() then
                         repeat
                             ItemJournalBatch.SetRange("Journal Template Name", SearchItemJournalTemplate.Name);
                             ItemJournalBatch.SetRange("Template Type", SearchItemJournalTemplate.Type);
-                            ItemJournalBatch.SetRange(Name, QltyManagementSetup."Adjustment Batch Name");
+                            ItemJournalBatch.SetRange(Name, QltyManagementSetup."Item Journal Batch Name");
                             if ItemJournalBatch.Count() = 1 then begin
                                 ItemJnlTemplate.SetRange(Name, SearchItemJournalTemplate.Name);
                                 exit;
@@ -261,14 +261,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
 
         case WhseJnlTemplate.GetRangeMin("Page ID") of
             Page::"Whse. Reclassification Journal":
-                if QltyManagementSetup."Bin Whse. Move Batch Name" <> '' then begin
+                if QltyManagementSetup."Whse. Reclass. Batch Name" <> '' then begin
                     SearchWarehouseJournalTemplate.CopyFilters(WhseJnlTemplate);
                     SearchWarehouseJournalTemplate.SetLoadFields(Name, Type);
                     if SearchWarehouseJournalTemplate.FindSet() then
                         repeat
                             WarehouseJournalBatch.SetRange("Journal Template Name", SearchWarehouseJournalTemplate.Name);
                             WarehouseJournalBatch.SetRange("Template Type", SearchWarehouseJournalTemplate.Type);
-                            WarehouseJournalBatch.SetRange(Name, QltyManagementSetup."Bin Whse. Move Batch Name");
+                            WarehouseJournalBatch.SetRange(Name, QltyManagementSetup."Whse. Reclass. Batch Name");
                             if WarehouseJournalBatch.Count() = 1 then begin
                                 WhseJnlTemplate.SetRange(Name, SearchWarehouseJournalTemplate.Name);
                                 exit;
@@ -277,14 +277,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
                     SearchWarehouseJournalTemplate.SetView(WhseJnlTemplate.GetView());
                 end;
             Page::"Whse. Item Journal":
-                if QltyManagementSetup."Whse. Adjustment Batch Name" <> '' then begin
+                if QltyManagementSetup."Whse. Item Journal Batch Name" <> '' then begin
                     SearchWarehouseJournalTemplate.CopyFilters(WhseJnlTemplate);
                     SearchWarehouseJournalTemplate.SetLoadFields(Name, Type);
                     if SearchWarehouseJournalTemplate.FindSet() then
                         repeat
                             WarehouseJournalBatch.SetRange("Journal Template Name", SearchWarehouseJournalTemplate.Name);
                             WarehouseJournalBatch.SetRange("Template Type", SearchWarehouseJournalTemplate.Type);
-                            WarehouseJournalBatch.SetRange(Name, QltyManagementSetup."Whse. Adjustment Batch Name");
+                            WarehouseJournalBatch.SetRange(Name, QltyManagementSetup."Whse. Item Journal Batch Name");
                             if WarehouseJournalBatch.Count() = 1 then begin
                                 WhseJnlTemplate.SetRange(Name, SearchWarehouseJournalTemplate.Name);
                                 exit;

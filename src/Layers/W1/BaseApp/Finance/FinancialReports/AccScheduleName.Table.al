@@ -102,7 +102,13 @@ table 84 "Acc. Schedule Name"
         /// <summary>
         /// Extended internal description for detailed documentation of the account schedule row definition purpose and usage.
         /// </summary>
-        field(5; "Internal Description"; Text[250])
+#if not CLEAN28
+#pragma warning disable AS0086
+#endif
+        field(5; "Internal Description"; Text[500])
+#if not CLEAN28
+#pragma warning restore AS0086
+#endif
         {
             Caption = 'Internal Description';
             ToolTip = 'Specifies the internal description of row definition. The internal description is not shown on the final report but is used to provide more context when using the definition.';

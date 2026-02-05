@@ -109,6 +109,7 @@ report 1191 "Suggest Res. Price Chg. (Res.)"
                     }
                     field(PriceLowerLimit; PriceLowerLimit)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Jobs;
                         Caption = 'Only Amounts Above';
                         DecimalPlaces = 2 : 5;
@@ -116,6 +117,7 @@ report 1191 "Suggest Res. Price Chg. (Res.)"
                     }
                     field(UnitPriceFactor; UnitPriceFactor)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Jobs;
                         Caption = 'Adjustment Factor';
                         DecimalPlaces = 0 : 5;

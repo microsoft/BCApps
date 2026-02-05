@@ -200,6 +200,7 @@ table 6402 "FS Work Order Product"
         }
         field(35; AdditionalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_additionalcost';
             ExternalType = 'Money';
             Description = 'Enter any additional costs associated with this product. The values are manually entered. Note: additional cost is not unit dependent.';
@@ -217,6 +218,7 @@ table 6402 "FS Work Order Product"
         }
         field(38; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'exchangerate';
             ExternalType = 'Decimal';
             ExternalAccess = Read;
@@ -226,6 +228,7 @@ table 6402 "FS Work Order Product"
         }
         field(39; additionalcost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_additionalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -251,6 +254,7 @@ table 6402 "FS Work Order Product"
         }
         field(44; CommissionCosts; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_commissioncosts';
             ExternalType = 'Money';
             Description = 'Enter the commission costs associated with this product. The value is manually specified and isn''t automatically calculated.';
@@ -259,6 +263,7 @@ table 6402 "FS Work Order Product"
         }
         field(45; commissioncosts_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_commissioncosts_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -294,6 +299,7 @@ table 6402 "FS Work Order Product"
         }
         field(50; DiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountamount';
             ExternalType = 'Money';
             Description = 'Specify any discount amount on this product. Note: If you enter a discount amount you cannot enter a discount %';
@@ -302,6 +308,7 @@ table 6402 "FS Work Order Product"
         }
         field(51; DiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -311,6 +318,7 @@ table 6402 "FS Work Order Product"
         }
         field(52; DiscountPercent; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountpercent';
             ExternalType = 'Float';
             Description = 'Specify any discount % on this product. Note: If you enter a discount % it will overwrite the discount $';
@@ -319,6 +327,7 @@ table 6402 "FS Work Order Product"
         }
         field(54; EstimateDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountamount';
             ExternalType = 'Money';
             Description = 'Enter a discount amount on the subtotal amount. Note: If you enter a discount amount you cannot enter a discount %';
@@ -327,6 +336,7 @@ table 6402 "FS Work Order Product"
         }
         field(55; EstimateDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -336,6 +346,7 @@ table 6402 "FS Work Order Product"
         }
         field(56; EstimateDiscountPercent; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountpercent';
             ExternalType = 'Float';
             Description = 'Enter a discount % on the subtotal amount. Note: If you enter a discount % it will overwrite the discount $';
@@ -344,6 +355,7 @@ table 6402 "FS Work Order Product"
         }
         field(57; EstimateQuantity; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatequantity';
             ExternalType = 'Float';
             Description = 'Enter the estimated required quantity of this product.';
@@ -352,6 +364,7 @@ table 6402 "FS Work Order Product"
         }
         field(58; EstimateSubtotal; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotal';
             ExternalType = 'Money';
             Description = 'Shows the total amount for this product, excluding discounts.';
@@ -360,6 +373,7 @@ table 6402 "FS Work Order Product"
         }
         field(59; EstimateSubtotal_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotal_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -369,6 +383,7 @@ table 6402 "FS Work Order Product"
         }
         field(60; EstimateTotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalamount';
             ExternalType = 'Money';
             Description = 'Shows the estimated total amount of this product, including discounts.';
@@ -377,6 +392,7 @@ table 6402 "FS Work Order Product"
         }
         field(61; EstimateTotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -386,6 +402,7 @@ table 6402 "FS Work Order Product"
         }
         field(62; EstimateTotalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalcost';
             ExternalType = 'Money';
             Description = 'Shows the estimated total cost of this product.';
@@ -394,6 +411,7 @@ table 6402 "FS Work Order Product"
         }
         field(63; EtimateTotalCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -403,6 +421,7 @@ table 6402 "FS Work Order Product"
         }
         field(64; EstimateUnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitamount';
             ExternalType = 'Money';
             Description = 'Shows the estimated sale amount per unit.';
@@ -411,6 +430,7 @@ table 6402 "FS Work Order Product"
         }
         field(65; EstimateUnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -420,6 +440,7 @@ table 6402 "FS Work Order Product"
         }
         field(66; EstimateUnitCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitcost';
             ExternalType = 'Money';
             Description = 'Shows the estimated cost amount per unit.';
@@ -428,6 +449,7 @@ table 6402 "FS Work Order Product"
         }
         field(67; EstimateUnitCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -492,6 +514,7 @@ table 6402 "FS Work Order Product"
         }
         field(76; QtyToBill; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_qtytobill';
             ExternalType = 'Float';
             Description = 'Enter the quantity you wish to bill the customer for. By default, this will default to the same value as "Quantity."';
@@ -500,6 +523,7 @@ table 6402 "FS Work Order Product"
         }
         field(77; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_quantity';
             ExternalType = 'Float';
             Description = 'Shows the actual quantity of the product.';
@@ -508,6 +532,7 @@ table 6402 "FS Work Order Product"
         }
         field(78; Subtotal; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotal';
             ExternalType = 'Money';
             Description = 'Enter the total amount excluding discounts.';
@@ -516,6 +541,7 @@ table 6402 "FS Work Order Product"
         }
         field(79; Subtotal_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotal_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -533,6 +559,7 @@ table 6402 "FS Work Order Product"
         }
         field(82; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount';
             ExternalType = 'Money';
             Description = 'Enter the total amount charged to the customer.';
@@ -541,6 +568,7 @@ table 6402 "FS Work Order Product"
         }
         field(83; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -550,6 +578,7 @@ table 6402 "FS Work Order Product"
         }
         field(84; TotalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalcost';
             ExternalType = 'Money';
             Description = 'Shows the total cost of this product. This is calculated by (Unit Cost * Units) + Additional Cost + Commission Costs.';
@@ -558,6 +587,7 @@ table 6402 "FS Work Order Product"
         }
         field(85; TotalCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -576,6 +606,7 @@ table 6402 "FS Work Order Product"
         }
         field(87; UnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitamount';
             ExternalType = 'Money';
             Description = 'Enter the amount you want to charge the customer per unit. By default, this is calculated based on the selected price list. The amount can be changed.';
@@ -584,6 +615,7 @@ table 6402 "FS Work Order Product"
         }
         field(88; UnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -593,6 +625,7 @@ table 6402 "FS Work Order Product"
         }
         field(89; UnitCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitcost';
             ExternalType = 'Money';
             Description = 'Shows the actual cost per unit.';
@@ -601,6 +634,7 @@ table 6402 "FS Work Order Product"
         }
         field(90; UnitCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -689,6 +723,7 @@ table 6402 "FS Work Order Product"
         }
         field(111; QuantityConsumed; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'bcbi_quantityconsumed';
             ExternalType = 'Float';
             Description = 'Quantity consumed in Dynamics 365 Business Central';
@@ -696,6 +731,7 @@ table 6402 "FS Work Order Product"
         }
         field(112; QuantityInvoiced; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'bcbi_quantityinvoiced';
             ExternalType = 'Float';
             Description = 'Quantity invoiced in Dynamics 365 Business Central. When this value is different than 0, you can no longer edit the work order product.';
@@ -718,5 +754,5 @@ table 6402 "FS Work Order Product"
         {
         }
     }
-} 
+}
 #endif

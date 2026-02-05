@@ -188,6 +188,8 @@ table 11000003 "Detail Line"
         }
         field(10; Amount; Decimal)
         {
+            AutoFormatExpression = "Currency Code (Entry)";
+            AutoFormatType = 1;
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -514,7 +516,8 @@ table 11000003 "Detail Line"
 
                     Prop.Get("Our Bank", "Connect Lines");
                     Prop.Validate(Amount, "Detail line".Amount + Amount);
-                    Prop.Validate("Foreign Amount", GetAmountInDocumentCurrency(Prop));
+                    if Prop."Foreign Currency" <> '' then
+                        Prop.Validate("Foreign Amount", GetAmountInDocumentCurrency(Prop));
                     if "Detail line".FindFirst() then begin
                         if (Date < "Detail line".Date) and (Date <> 0D) then
                             Prop."Transaction Date" := Date

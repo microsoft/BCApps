@@ -13,6 +13,9 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 
+/// <summary>
+/// Displays planning information for sales order lines including availability and supply options.
+/// </summary>
 page 99000883 "Sales Order Planning"
 {
     Caption = 'Sales Order Planning';
@@ -323,11 +326,18 @@ page 99000883 "Sales Order Planning"
         Text000: Label 'All Lines to last Shipment Date,Each line own Shipment Date';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Sets the sales order to display planning information for.
+    /// </summary>
+    /// <param name="SalesOrderNo">The sales order number to retrieve.</param>
     procedure SetSalesOrder(SalesOrderNo: Code[20])
     begin
         SalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
     end;
 
+    /// <summary>
+    /// Builds the planning form by creating lines for all items in the sales order.
+    /// </summary>
     procedure BuildForm()
     begin
         Rec.Reset();
@@ -446,6 +456,10 @@ page 99000883 "Sales Order Planning"
                 CalcDate(Item."Lead Time Calculation", NextPlanningDate))
     end;
 
+    /// <summary>
+    /// Returns the caption text for the page showing the sales order number and customer name.
+    /// </summary>
+    /// <returns>Returns the page caption combining sales order number and bill-to name.</returns>
     procedure Caption(): Text
     begin
         exit(StrSubstNo('%1 %2', SalesHeader."No.", SalesHeader."Bill-to Name"));

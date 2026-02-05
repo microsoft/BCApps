@@ -31,12 +31,14 @@ table 11303 "VAT Summary Buffer"
         field(3; "Base Invoices"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base Invoices';
             DataClassification = SystemMetadata;
         }
         field(4; "VAT Amount Invoices"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount Invoices';
             DataClassification = SystemMetadata;
         }
@@ -58,12 +60,14 @@ table 11303 "VAT Summary Buffer"
         field(7; "Base CM"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base CM';
             DataClassification = SystemMetadata;
         }
         field(8; "VAT Amount CM"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount CM';
             DataClassification = SystemMetadata;
         }

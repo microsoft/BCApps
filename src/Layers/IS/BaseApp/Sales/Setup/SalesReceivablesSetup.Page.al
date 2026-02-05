@@ -17,6 +17,9 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides the user interface for configuring sales and receivables settings, including general options, pricing, number series, background posting, and archiving preferences.
+/// </summary>
 page 459 "Sales & Receivables Setup"
 {
     ApplicationArea = Basic, Suite;

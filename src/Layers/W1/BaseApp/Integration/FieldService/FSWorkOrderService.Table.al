@@ -200,6 +200,7 @@ table 6406 "FS Work Order Service"
         }
         field(35; AdditionalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_additionalcost';
             ExternalType = 'Money';
             Description = 'Enter any additional costs associated with this service. The values are manually entered. Note: additional cost is not unit dependent.';
@@ -217,6 +218,7 @@ table 6406 "FS Work Order Service"
         }
         field(38; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'exchangerate';
             ExternalType = 'Decimal';
             ExternalAccess = Read;
@@ -226,6 +228,7 @@ table 6406 "FS Work Order Service"
         }
         field(39; AdditionalCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_additionalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -244,6 +247,7 @@ table 6406 "FS Work Order Service"
         }
         field(42; CalculatedUnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_calculatedunitamount';
             ExternalType = 'Money';
             Description = 'Shows the sale amount per unit calculated by the system considering the minimum charge, if applicable.';
@@ -252,6 +256,7 @@ table 6406 "FS Work Order Service"
         }
         field(43; CalculatedUnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_calculatedunitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -261,6 +266,7 @@ table 6406 "FS Work Order Service"
         }
         field(44; CommissionCosts; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_commissioncosts';
             ExternalType = 'Money';
             Description = 'Enter the commission costs associated with this service. The value is manually specified and isn''t automatically calculated.';
@@ -269,6 +275,7 @@ table 6406 "FS Work Order Service"
         }
         field(45; CommissionCosts_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_commissioncosts_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -304,6 +311,7 @@ table 6406 "FS Work Order Service"
         }
         field(50; DiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountamount';
             ExternalType = 'Money';
             Description = 'Specify any discount amount on this service. Note: If you enter a discount amount you cannot enter a discount %';
@@ -312,6 +320,7 @@ table 6406 "FS Work Order Service"
         }
         field(51; DiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -321,6 +330,7 @@ table 6406 "FS Work Order Service"
         }
         field(52; DiscountPercent; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_discountpercent';
             ExternalType = 'Float';
             Description = 'Specify any discount % on this service. Note: If you enter a discount % it will overwrite the discount $';
@@ -345,6 +355,7 @@ table 6406 "FS Work Order Service"
         }
         field(56; EstimateCalculatedUnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatecalculatedunitamount';
             ExternalType = 'Money';
             Description = 'Shows the estimated sale amount per unit calculated by the system considering the initial charge (if applicable).';
@@ -353,6 +364,7 @@ table 6406 "FS Work Order Service"
         }
         field(57; EstimateCalculatedUnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatecalculatedunitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -362,6 +374,7 @@ table 6406 "FS Work Order Service"
         }
         field(58; EstimateDiscountAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountamount';
             ExternalType = 'Money';
             Description = 'Enter a discount amount on the subtotal amount. Note: If you enter a discount amount you cannot enter a discount %';
@@ -370,6 +383,7 @@ table 6406 "FS Work Order Service"
         }
         field(59; EstimateDiscountAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -379,6 +393,7 @@ table 6406 "FS Work Order Service"
         }
         field(60; EstimateDiscountPercent; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatediscountpercent';
             ExternalType = 'Float';
             Description = 'Enter a discount % on the subtotal amount. Note: If you enter a discount % it will overwrite the discount $';
@@ -395,6 +410,7 @@ table 6406 "FS Work Order Service"
         }
         field(62; EstimateSubtotal; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotal';
             ExternalType = 'Money';
             Description = 'Shows the total amount for this service, excluding discounts.';
@@ -403,6 +419,7 @@ table 6406 "FS Work Order Service"
         }
         field(63; EstimateSubtotal_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatesubtotal_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -412,6 +429,7 @@ table 6406 "FS Work Order Service"
         }
         field(64; EstimateTotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalamount';
             ExternalType = 'Money';
             Description = 'Shows the estimated total amount of this service, including discounts.';
@@ -420,6 +438,7 @@ table 6406 "FS Work Order Service"
         }
         field(65; EstimateTotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -429,6 +448,7 @@ table 6406 "FS Work Order Service"
         }
         field(66; EstimateTotalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalcost';
             ExternalType = 'Money';
             Description = 'Shows the estimated total cost of this service.';
@@ -437,6 +457,7 @@ table 6406 "FS Work Order Service"
         }
         field(67; EstimateTotalCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimatetotalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -446,6 +467,7 @@ table 6406 "FS Work Order Service"
         }
         field(68; EstimateUnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitamount';
             ExternalType = 'Money';
             Description = 'Shows the estimated sale amount per unit.';
@@ -454,6 +476,7 @@ table 6406 "FS Work Order Service"
         }
         field(69; EtimateUnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -463,6 +486,7 @@ table 6406 "FS Work Order Service"
         }
         field(70; EstimateUnitCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitcost';
             ExternalType = 'Money';
             Description = 'Shows the estimated cost amount per unit.';
@@ -471,6 +495,7 @@ table 6406 "FS Work Order Service"
         }
         field(71; EstimateUnitCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_estimateunitcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -516,6 +541,7 @@ table 6406 "FS Work Order Service"
         }
         field(77; MinimumChargeAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_minimumchargeamount';
             ExternalType = 'Money';
             Description = 'Enter the amount charged as a minimum charge.';
@@ -524,6 +550,7 @@ table 6406 "FS Work Order Service"
         }
         field(78; MinimumChargeAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_minimumchargeamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -559,6 +586,7 @@ table 6406 "FS Work Order Service"
         }
         field(82; Subtotal; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotal';
             ExternalType = 'Money';
             Description = 'Enter the total amount excluding discounts.';
@@ -567,6 +595,7 @@ table 6406 "FS Work Order Service"
         }
         field(83; Subtotal_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_subtotal_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -584,6 +613,7 @@ table 6406 "FS Work Order Service"
         }
         field(86; TotalAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount';
             ExternalType = 'Money';
             Caption = 'Total Amount';
@@ -591,6 +621,7 @@ table 6406 "FS Work Order Service"
         }
         field(87; TotalAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -600,6 +631,7 @@ table 6406 "FS Work Order Service"
         }
         field(88; TotalCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalcost';
             ExternalType = 'Money';
             Description = 'Shows the total cost of this service. This is calculated by (Unit Cost * Units) + Additional Cost + Commission Costs.';
@@ -608,6 +640,7 @@ table 6406 "FS Work Order Service"
         }
         field(89; TotalCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_totalcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -626,6 +659,7 @@ table 6406 "FS Work Order Service"
         }
         field(91; UnitAmount; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitamount';
             ExternalType = 'Money';
             Description = 'Enter the amount you want to charge the customer per unit. By default, this is calculated based on the selected price list. The amount can be changed.';
@@ -634,6 +668,7 @@ table 6406 "FS Work Order Service"
         }
         field(92; UnitAmount_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitamount_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -643,6 +678,7 @@ table 6406 "FS Work Order Service"
         }
         field(93; UnitCost; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitcost';
             ExternalType = 'Money';
             Description = 'Shows the actual cost per unit.';
@@ -651,6 +687,7 @@ table 6406 "FS Work Order Service"
         }
         field(94; UnitCost_Base; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_unitcost_base';
             ExternalType = 'Money';
             ExternalAccess = Read;
@@ -768,5 +805,5 @@ table 6406 "FS Work Order Service"
         {
         }
     }
-} 
+}
 #endif

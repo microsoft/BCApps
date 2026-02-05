@@ -511,6 +511,7 @@ page 510 "Blanket Purchase Order Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 2;
                         Editable = InvDiscAmountEditable;

@@ -38,6 +38,7 @@ table 5887 "Pstd. Exp. Phys. Invt. Track"
         }
         field(30; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }

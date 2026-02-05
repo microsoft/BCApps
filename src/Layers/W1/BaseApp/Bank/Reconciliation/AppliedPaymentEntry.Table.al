@@ -197,6 +197,8 @@ table 1294 "Applied Payment Entry"
         /// </summary>
         field(24; "Applied Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Caption = 'Applied Amount';
 
             trigger OnValidate()

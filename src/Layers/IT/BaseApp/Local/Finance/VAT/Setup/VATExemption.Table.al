@@ -108,6 +108,7 @@ table 12186 "VAT Exemption"
         field(12; "Declared Operations Up To Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Declared Operations Up To Amt.';
             MinValue = 0;
 

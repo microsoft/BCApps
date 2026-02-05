@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Displays the line items subform for a standard sales code template.
+/// </summary>
 page 171 "Standard Sales Code Subform"
 {
     AutoSplitKey = true;
@@ -307,6 +310,9 @@ page 171 "Standard Sales Code Subform"
         Clear(ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Updates the display text for the Type field based on the current record value.
+    /// </summary>
     procedure UpdateTypeText()
     var
         RecRef: RecordRef;

@@ -350,6 +350,7 @@ table 325 "VAT Posting Setup"
         }
         field(10700; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -363,6 +364,7 @@ table 325 "VAT Posting Setup"
         }
         field(10701; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

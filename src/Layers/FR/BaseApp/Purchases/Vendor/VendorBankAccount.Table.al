@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+#if not CLEAN28
 using Microsoft.Bank.BankAccount;
+#endif
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
@@ -120,7 +122,9 @@ table 288 "Vendor Bank Account"
 
             trigger OnValidate()
             begin
+#if not CLEAN28
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif
                 OnValidateBankAccount(Rec, 'Bank Branch No.');
             end;
         }
@@ -130,7 +134,9 @@ table 288 "Vendor Bank Account"
 
             trigger OnValidate()
             begin
+#if not CLEAN28
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
+#endif
                 OnValidateBankAccount(Rec, 'Bank Account No.');
             end;
         }
@@ -226,10 +232,19 @@ table 288 "Vendor Bank Account"
             Caption = 'Bank Clearing Standard';
             TableRelation = "Bank Clearing Standard";
         }
+#if not CLEANSCHEMA31
         field(10851; "Agency Code"; Text[5])
         {
             Caption = 'Agency Code';
             InitValue = '00000';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
 
             trigger OnValidate()
             begin
@@ -237,21 +252,41 @@ table 288 "Vendor Bank Account"
                     "Agency Code" := PadStr('', 5 - StrLen("Agency Code"), '0') + "Agency Code";
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(10852; "RIB Key"; Integer)
         {
             Caption = 'RIB Key';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
 
             trigger OnValidate()
             begin
                 "RIB Checked" := RIBKey.Check("Bank Branch No.", "Agency Code", "Bank Account No.", "RIB Key");
             end;
+#endif
         }
         field(10853; "RIB Checked"; Boolean)
         {
             Caption = 'RIB Checked';
             Editable = false;
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#endif
         }
+#endif
     }
 
     keys
@@ -298,7 +333,9 @@ table 288 "Vendor Bank Account"
 
     var
         PostCode: Record "Post Code";
+#if not CLEAN28
         RIBKey: Codeunit "RIB Key";
+#endif
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
 

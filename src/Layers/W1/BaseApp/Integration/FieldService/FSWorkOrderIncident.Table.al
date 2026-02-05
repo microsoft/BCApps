@@ -265,6 +265,7 @@ table 6403 "FS Work Order Incident"
         }
         field(50; TasksPercentCompleted; Decimal)
         {
+            AutoFormatType = 0;
             ExternalName = 'msdyn_taskspercentcompleted';
             ExternalType = 'Double';
             Description = 'Shows the percent completed on associated tasks. This indicates the total of completed tasks, but not if the incident was resolved.';
@@ -313,5 +314,5 @@ table 6403 "FS Work Order Incident"
         {
         }
     }
-} 
+}
 #endif

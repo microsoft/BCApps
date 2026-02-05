@@ -63,6 +63,7 @@ table 12144 "GL Book Entry"
         field(17; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("G/L Entry".Amount where("Transaction No." = field("Transaction No."),
                                                         "G/L Account No." = field("G/L Account No."),
                                                         "Document No." = field("Document No."),
@@ -82,6 +83,7 @@ table 12144 "GL Book Entry"
         field(53; "Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("G/L Entry"."Debit Amount" where("Transaction No." = field("Transaction No."),
                                                                 "G/L Account No." = field("G/L Account No."),
@@ -97,6 +99,7 @@ table 12144 "GL Book Entry"
         field(54; "Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("G/L Entry"."Credit Amount" where("Transaction No." = field("Transaction No."),
                                                                  "G/L Account No." = field("G/L Account No."),
@@ -141,6 +144,8 @@ table 12144 "GL Book Entry"
         }
         field(60; "Additional-Currency Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalCurrencyCode();
             CalcFormula = sum("G/L Entry"."Additional-Currency Amount" where("Transaction No." = field("Transaction No."),
                                                                               "G/L Account No." = field("G/L Account No."),
                                                                               "Document No." = field("Document No."),
@@ -200,5 +205,12 @@ table 12144 "GL Book Entry"
     fieldgroups
     {
     }
+
+    local procedure GetAdditionalCurrencyCode(): Code[10]
+    var
+        GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
+    begin
+        exit(GLSetup."Additional Reporting Currency");
+    end;
 }
 

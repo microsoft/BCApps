@@ -217,6 +217,8 @@ page 521 "Application Worksheet"
                 field(GetUnitCostLCY; Rec.GetUnitCostLCY())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Unit Cost(LCY)';
                     ToolTip = 'Specifies the cost of one unit of the item. ';
                     Visible = false;

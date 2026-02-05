@@ -125,6 +125,7 @@ table 5621 "FA Journal Line"
         field(14; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -148,6 +149,7 @@ table 5621 "FA Journal Line"
         field(15; "Debit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Debit Amount';
 
             trigger OnValidate()
@@ -160,6 +162,7 @@ table 5621 "FA Journal Line"
         field(16; "Credit Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Credit Amount';
 
             trigger OnValidate()
@@ -172,10 +175,12 @@ table 5621 "FA Journal Line"
         field(17; "Salvage Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Salvage Value';
         }
         field(18; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }

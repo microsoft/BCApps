@@ -25,6 +25,7 @@ table 5220 "Human Resource Unit of Measure"
         }
         field(2; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             ToolTip = 'Specifies the quantity, per unit of measure.';
             DecimalPlaces = 0 : 5;

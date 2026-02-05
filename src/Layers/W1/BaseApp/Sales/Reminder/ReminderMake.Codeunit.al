@@ -12,6 +12,9 @@ using System.Globalization;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Creates reminder documents for customers by analyzing overdue ledger entries and applying reminder terms.
+/// </summary>
 codeunit 392 "Reminder-Make"
 {
 
@@ -39,6 +42,10 @@ codeunit 392 "Reminder-Make"
         OpenEntriesOnHoldLbl: Label 'Open Entries On Hold';
         CustLedgEntryLastIssuedReminderLevelFilter: Text;
 
+    /// <summary>
+    /// Executes the reminder creation process for the configured customer and ledger entry filters.
+    /// </summary>
+    /// <returns>True if at least one reminder was created successfully; otherwise, false.</returns>
     procedure "Code"() RetVal: Boolean
     var
         ReminderLine: Record "Reminder Line";
@@ -116,6 +123,15 @@ codeunit 392 "Reminder-Make"
             GlobalReminderTerms.Get(GlobalReminderHeader."Reminder Terms Code")
     end;
 
+    /// <summary>
+    /// Initializes the reminder creation parameters for batch processing of customer reminders.
+    /// </summary>
+    /// <param name="Cust2">Specifies the customer to create reminders for.</param>
+    /// <param name="CustLedgEntry2">Specifies the customer ledger entries filter to include.</param>
+    /// <param name="ReminderHeaderReq2">Specifies the reminder header settings to use as a template.</param>
+    /// <param name="OverdueEntriesOnly2">Specifies whether to include only overdue entries.</param>
+    /// <param name="IncludeEntriesOnHold2">Specifies whether to include entries that are on hold.</param>
+    /// <param name="CustLedgEntryLinefeeOn">Specifies the customer ledger entries filter for line fee calculation.</param>
     procedure Set(Cust2: Record Customer; var CustLedgEntry2: Record "Cust. Ledger Entry"; ReminderHeaderReq2: Record "Reminder Header"; OverdueEntriesOnly2: Boolean; IncludeEntriesOnHold2: Boolean; var CustLedgEntryLinefeeOn: Record "Cust. Ledger Entry")
     begin
         GlobalCustomer := Cust2;
@@ -128,6 +144,14 @@ codeunit 392 "Reminder-Make"
         OnAfterSet(GlobalCustomer, GlobalCustLedgEntry, GlobalReminderHeaderReq, OverdueEntriesOnly, IncludeEntriesOnHold, CustLedgEntryLinefeeOn);
     end;
 
+    /// <summary>
+    /// Suggests reminder lines for an existing reminder header based on overdue customer ledger entries.
+    /// </summary>
+    /// <param name="ReminderHeader2">Specifies the reminder header to add suggested lines to.</param>
+    /// <param name="CustLedgEntry2">Specifies the customer ledger entries filter to include.</param>
+    /// <param name="OverdueEntriesOnly2">Specifies whether to include only overdue entries.</param>
+    /// <param name="IncludeEntriesOnHold2">Specifies whether to include entries that are on hold.</param>
+    /// <param name="CustLedgEntryLinefeeOn">Specifies the customer ledger entries filter for line fee calculation.</param>
     procedure SuggestLines(ReminderHeader2: Record "Reminder Header"; var CustLedgEntry2: Record "Cust. Ledger Entry"; OverdueEntriesOnly2: Boolean; IncludeEntriesOnHold2: Boolean; var CustLedgEntryLinefeeOn: Record "Cust. Ledger Entry")
     begin
         GlobalReminderHeader := ReminderHeader2;
@@ -446,6 +470,10 @@ codeunit 392 "Reminder-Make"
         exit(Amount);
     end;
 
+    /// <summary>
+    /// Applies filters to customer ledger entries based on the specified reminder level.
+    /// </summary>
+    /// <param name="ReminderLevel2">Specifies the reminder level to filter customer ledger entries by.</param>
     procedure FilterCustLedgEntries(var ReminderLevel2: Record "Reminder Level")
     var
         ReminderLevel3: Record "Reminder Level";
@@ -505,6 +533,11 @@ codeunit 392 "Reminder-Make"
         OnAfterFilterCustLedgEntryReminderLevel(CustLedgEntry, ReminderLevel, GlobalReminderTerms, GlobalCustomer, GlobalReminderHeaderReq, GlobalReminderHeader);
     end;
 
+    /// <summary>
+    /// Calculates the reminder level and due date for a customer ledger entry based on previous reminder history.
+    /// </summary>
+    /// <param name="LineLevel2">Returns the calculated reminder level for the entry.</param>
+    /// <param name="ReminderDueDate2">Returns the due date for the reminder entry.</param>
     procedure SetReminderLine(var LineLevel2: Integer; var ReminderDueDate2: Date)
     var
         IsHandled: Boolean;
@@ -533,6 +566,12 @@ codeunit 392 "Reminder-Make"
         OnAfterSetReminderLine(GlobalCustLedgEntry, LineLevel2, ReminderDueDate2);
     end;
 
+    /// <summary>
+    /// Adds a line fee for a customer ledger entry if applicable based on reminder level settings.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry to add a line fee for.</param>
+    /// <param name="ReminderLevel">Specifies the reminder level containing the line fee settings.</param>
+    /// <param name="NextLineNo">Specifies the next line number to use for the reminder line.</param>
     procedure AddLineFeeForCustLedgEntry(var CustLedgEntry: Record "Cust. Ledger Entry"; var ReminderLevel: Record "Reminder Level"; NextLineNo: Integer)
     var
         TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
@@ -665,216 +704,542 @@ codeunit 392 "Reminder-Make"
         exit(CalcDate(GracePeriod, DueDate) < ReminderDocumentDate);
     end;
 
+    /// <summary>
+    /// Raised after the reminder creation process completes.
+    /// </summary>
+    /// <param name="RetVal">Indicates whether at least one reminder was created successfully.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var RetVal: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters are applied to customer ledger entries based on reminder level.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record being filtered.</param>
+    /// <param name="ReminderLevel">The reminder level used for filtering.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="Customer">The customer record for the reminder.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterCustLedgEntryReminderLevel(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderLevel: Record "Reminder Level"; ReminderTerms: Record "Reminder Terms"; Customer: Record Customer; ReminderHeaderReq: Record "Reminder Header"; ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after a reminder line is initialized with default values.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header for the line.</param>
+    /// <param name="ReminderLine">The initialized reminder line.</param>
+    /// <param name="LineType">The type of the reminder line.</param>
+    /// <param name="Description">The description for the reminder line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitReminderLine(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; LineType: Enum "Reminder Line Type"; Description: Text)
     begin
     end;
 
+    /// <summary>
+    /// Raised after a reminder document is created with all its lines.
+    /// </summary>
+    /// <param name="ReminderHeader">The completed reminder header.</param>
+    /// <param name="ReminderLine">The last reminder line processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterMakeReminder(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the reminder creation parameters are set.
+    /// </summary>
+    /// <param name="Cust">The customer for reminder creation.</param>
+    /// <param name="CustLedgEntry">The customer ledger entries filter.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold">Indicates whether entries on hold are included.</param>
+    /// <param name="CustLedgEntryLinefeeOn">The customer ledger entries filter for line fees.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSet(var Cust: Record Customer; var CustLedgEntry: Record "Cust. Ledger Entry"; var ReminderHeaderReq: Record "Reminder Header"; var OverdueEntriesOnly: Boolean; var IncludeEntriesOnHold: Boolean; var CustLedgEntryLinefeeOn: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the reminder level and due date are calculated for a customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry being processed.</param>
+    /// <param name="LineLevel2">The calculated reminder level for the entry.</param>
+    /// <param name="ReminderDueDate2">The calculated due date for the reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReminderLine(CustLedgEntry: Record "Cust. Ledger Entry"; var LineLevel2: Integer; var ReminderDueDate2: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the suggest lines parameters are set for an existing reminder.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to add lines to.</param>
+    /// <param name="CustLedgEntry2">The customer ledger entries filter.</param>
+    /// <param name="OverdueEntriesOnly2">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold2">Indicates whether entries on hold are included.</param>
+    /// <param name="CustLedgEntryLinefeeOn">The customer ledger entries filter for line fees.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSuggestLines(ReminderHeader: Record "Reminder Header"; var CustLedgEntry2: Record "Cust. Ledger Entry"; OverdueEntriesOnly2: Boolean; IncludeEntriesOnHold2: Boolean; var CustLedgEntryLinefeeOn: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the remaining amount is calculated for a customer ledger entry when adding line fees.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with calculated remaining amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddLineFeeForCustLedgEntryOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a line fee reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The line fee reminder line to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddLineFeeForCustLedgEntryOnReminderLineInsert(var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if the amounts not due line has been inserted.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being processed.</param>
+    /// <param name="ReminderLine">The current reminder line.</param>
+    /// <param name="AmountsNotDueLineInserted">Indicates whether the amounts not due line has been inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddRemiderLinesFromCustLedgEntryWithNoReminderLevelFilterOnBeforeCheckAmountsNotDueLineInserted(ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; var AmountsNotDueLineInserted: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before adding reminder lines from customer ledger entries with no reminder level filter.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry to add.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ReminderLine">The reminder line being created.</param>
+    /// <param name="NextLineNo">The next line number to use.</param>
+    /// <param name="StartLineInserted">Indicates whether a start line was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddRemiderLinesFromCustLedgEntryWithNoReminderLevelFilter(var CustLedgEntry: Record "Cust. Ledger Entry"; ReminderHeaderReq: Record "Reminder Header"; ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean; var ReminderLine: Record "Reminder Line"; var NextLineNo: Integer; var StartLineInserted: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding customer ledger entries for reminder creation.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record to search.</param>
+    /// <param name="ReminderHeader">The reminder header request parameters.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCustLedgerEntryFind(var CustLedgerEntry: Record "Cust. Ledger Entry"; ReminderHeader: Record "Reminder Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving the reminder terms for a customer.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being processed.</param>
+    /// <param name="ReminderTerms">The reminder terms to retrieve.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetReminderTerms(var ReminderHeader: Record "Reminder Header"; var ReminderTerms: Record "Reminder Terms"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding and marking customer ledger entries as reminder candidates.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level configuration.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="ReminderEntry">The reminder entry record for history lookup.</param>
+    /// <param name="CustLedgEntry">The customer ledger entries to process.</param>
+    /// <param name="TempCustLedgEntryOnHold">Temporary table for entries on hold.</param>
+    /// <param name="CustLedgEntryLastIssuedReminderLevelFilter">Filter for last issued reminder level.</param>
+    /// <param name="CustAmount">The cumulative customer amount.</param>
+    /// <param name="MakeDoc">Indicates whether to create a reminder document.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level found.</param>
+    /// <param name="MaxLineLevel">The maximum line level found.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold">Indicates whether entries on hold are included.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="Result">Returns the result when handling is skipped.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindAndMarkReminderCandidates(var ReminderLevel: Record "Reminder Level"; ReminderHeaderReq: Record "Reminder Header"; ReminderTerms: Record "Reminder Terms"; var ReminderEntry: Record "Reminder/Fin. Charge Entry"; var CustLedgEntry: Record "Cust. Ledger Entry"; var TempCustLedgEntryOnHold: Record "Cust. Ledger Entry" temporary; var CustLedgEntryLastIssuedReminderLevelFilter: Text; var CustAmount: Decimal; var MakeDoc: Boolean; var MaxReminderLevel: Integer; var MaxLineLevel: Integer; OverdueEntriesOnly: Boolean; IncludeEntriesOnHold: Boolean; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line.
+    /// </summary>
+    /// <param name="ReminderNo">The reminder document number.</param>
+    /// <param name="LineType">The type of the reminder line.</param>
+    /// <param name="Description">The description for the line.</param>
+    /// <param name="NextLineNo">The next line number to use.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReminderLine(ReminderNo: Code[20]; LineType: Enum "Reminder Line Type"; Description: Text[100]; var NextLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating a reminder for a specific currency.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to create.</param>
+    /// <param name="CurrencyCode">The currency code for the reminder.</param>
+    /// <param name="RetVal">Returns the result when handling is skipped.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold">Indicates whether entries on hold are included.</param>
+    /// <param name="HeaderExists">Indicates whether a reminder header already exists.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMakeReminder(var ReminderHeader: Record "Reminder Header"; CurrencyCode: Code[10]; var RetVal: Boolean; var IsHandled: Boolean; ReminderHeaderReq: Record "Reminder Header"; OverdueEntriesOnly: Boolean; IncludeEntriesOnHold: Boolean; HeaderExists: Boolean; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before marking a customer ledger entry as a reminder candidate.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry to evaluate.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMarkReminderCandidate(var CustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before removing lines from a reminder with negative total amount.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to evaluate.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRemoveLinesOfNegativeReminder(var ReminderHeader: Record "Reminder Header"; ReminderHeaderReq: Record "Reminder Header"; Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding an existing reminder header for the customer and currency.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record to search.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderHeaderFind(var ReminderHeader: Record "Reminder Header"; ReminderHeaderReq: Record "Reminder Header"; ReminderTerms: Record "Reminder Terms"; Customer: Record Customer; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a new reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to insert.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderHeaderInsert(var ReminderHeader: Record "Reminder Header"; ReminderHeaderReq: Record "Reminder Header"; ReminderTerms: Record "Reminder Terms"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the reminder header with reminder level and other settings.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to modify.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="HeaderExists">Indicates whether the header already existed.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="ReminderLevel">The reminder level being applied.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entries being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderHeaderModify(var ReminderHeader: Record "Reminder Header"; var ReminderHeaderReq: Record "Reminder Header"; HeaderExists: Boolean; ReminderTerms: Record "Reminder Terms"; Customer: Record Customer; ReminderLevel: Record "Reminder Level"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line for a customer ledger entry.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="ReminderHeader">The reminder header for the line.</param>
+    /// <param name="ReminderLevel">The reminder level for the line.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry for the line.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReminderLineInsert(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header"; ReminderLevel: Record "Reminder Level"; CustLedgerEntry: Record "Cust. Ledger Entry"; ReminderHeaderReq: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing reminders for each currency.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entries to process.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
+    /// <param name="IncludeEntriesOnHold">Indicates whether entries on hold are included.</param>
+    /// <param name="HeaderExists">Indicates whether a reminder header already exists.</param>
+    /// <param name="CustLedgEntryLastIssuedReminderLevelFilter">Filter for last issued reminder level.</param>
+    /// <param name="TempCurrency">Temporary table of currencies to process.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="CustLedgEntryLineFeeFilters">The customer ledger entries filter for line fees.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeCurrencyLoop(CustLedgEntry: Record "Cust. Ledger Entry"; ReminderHeaderReq: Record "Reminder Header"; ReminderTerms: Record "Reminder Terms"; OverdueEntriesOnly: Boolean; IncludeEntriesOnHold: Boolean; HeaderExists: Boolean; CustLedgEntryLastIssuedReminderLevelFilter: Text; var TempCurrency: Record Currency temporary; Customer: Record Customer; var CustLedgEntryLineFeeFilters: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving reminder terms for processing.
+    /// </summary>
+    /// <param name="Customer">The customer to get reminder terms for.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entries being processed.</param>
+    /// <param name="CustLedgEntryLastIssuedReminderLevelFilter">Filter for last issued reminder level.</param>
+    /// <param name="ReminderHeader">The reminder header being processed.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ReturnValue">Returns the result when handling is skipped.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeGetReminderTerms(var Customer: Record Customer; var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgEntryLastIssuedReminderLevelFilter: Text; var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean; var ReturnValue: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing each customer ledger entry in the reminder candidate loop.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry being processed.</param>
+    /// <param name="ReminderHeader">The reminder header request parameters.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindAndMarkReminderCandidatesOnBeforeCustLedgEntryLoop(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding and marking reminder candidates from customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entries processed.</param>
+    /// <param name="ReminderLevel">The reminder level configuration.</param>
+    /// <param name="CustAmount">The cumulative customer amount.</param>
+    /// <param name="MakeDoc">Indicates whether to create a reminder document.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level found.</param>
+    /// <param name="MaxLineLevel">The maximum line level found.</param>
+    /// <param name="IsHandled">Set to true to skip default result.</param>
+    /// <param name="Result">Returns the result when handling is skipped.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindAndMarkReminderCandidates(CustLedgEntry: Record "Cust. Ledger Entry"; ReminderLevel: Record "Reminder Level"; var CustAmount: Decimal; MakeDoc: Boolean; MaxReminderLevel: Integer; MaxLineLevel: Integer; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether a reminder document should be created.
+    /// </summary>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="ShouldMakeDoc">Indicates whether a reminder document should be created.</param>
+    /// <param name="MakeDoc">The original make document flag.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entries being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnAfterCalcShouldMakeDoc(ReminderHeaderReq: Record "Reminder Header"; ReminderHeader: Record "Reminder Header"; Customer: Record Customer; var ShouldMakeDoc: Boolean; MakeDoc: Boolean; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after adding reminder lines from customer ledger entries with no reminder level filter.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entries processed.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries are included.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnAfterAddRemiderLinesFromCustLedgEntriesWithNoReminderLevelFilter(var CustLedgerEntry: Record "Cust. Ledger Entry"; Customer: Record Customer; ReminderHeader: Record "Reminder Header"; MaxReminderLevel: Integer; var OverdueEntriesOnly: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after processing each reminder level in the reminder creation loop.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level processed.</param>
+    /// <param name="NextLineNo">The next line number available.</param>
+    /// <param name="StartLineInserted">Indicates whether a start line was inserted.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="Customer">The customer for the reminder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnAfterReminderLevelLoop(var ReminderLevel: Record "Reminder Level"; var NextLineNo: Integer; StartLineInserted: Boolean; ReminderHeaderReq: Record "Reminder Header"; ReminderHeader: Record "Reminder Header"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether the grace period has expired for an overdue entry.
+    /// </summary>
+    /// <param name="ReminderDueDate">The due date of the reminder entry.</param>
+    /// <param name="ReminderHeader">The reminder header request parameters.</param>
+    /// <param name="IsGracePeriodExpired">Indicates whether the grace period has expired.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnAfterCalcIsGracePeriodExpired(var ReminderDueDate: Date; var ReminderHeader: Record "Reminder Header"; var IsGracePeriodExpired: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding customer ledger entries for processing in the reminder creation.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry record to search.</param>
+    /// <param name="Cust">The customer for the reminder.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level.</param>
+    /// <param name="OverDueEntriesOnly">Indicates whether only overdue entries are included.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnBeforeCustLedgEntryFindSet(var CustLedgEntry: Record "Cust. Ledger Entry"; Cust: Record Customer; ReminderHeader: Record "Reminder Header"; MaxReminderLevel: Integer; var OverDueEntriesOnly: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line for an on-hold customer ledger entry.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="ReminderHeader">The reminder header for the line.</param>
+    /// <param name="ReminderLevel">The reminder level configuration.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entries being processed.</param>
+    /// <param name="CustLedgEntryOnHoldTEMP">Temporary table of entries on hold.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnBeforeOnHoldReminderLineInsert(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header"; ReminderLevel: Record "Reminder Level"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgEntryOnHoldTEMP: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the reminder header after all lines are processed.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header to modify.</param>
+    /// <param name="ReminderLine">The last reminder line processed.</param>
+    /// <param name="NextLineNo">The next line number available.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnBeforeReminderHeaderModify(var ReminderHeader: Record "Reminder Header"; var ReminderLine: Record "Reminder Line"; var NextLineNo: Integer; MaxReminderLevel: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether the grace period has expired when marking reminder candidates.
+    /// </summary>
+    /// <param name="ReminderLevel">The reminder level configuration.</param>
+    /// <param name="ReminderDueDate">The due date of the reminder entry.</param>
+    /// <param name="ReminderHeaderReq">The reminder header request parameters.</param>
+    /// <param name="ReminderTerms">The reminder terms configuration.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being evaluated.</param>
+    /// <param name="ReminderHeader">The reminder header being created.</param>
+    /// <param name="LineLevel">The calculated line level.</param>
+    /// <param name="IsGracePeriodExpired">Indicates whether the grace period has expired.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMarkReminderCandidateOnAfterCalcIsGracePeriodExpired(var ReminderLevel: Record "Reminder Level"; var ReminderDueDate: Date; var ReminderHeaderReq: Record "Reminder Header"; var ReminderTerms: Record "Reminder Terms"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderHeader: Record "Reminder Header"; var LineLevel: Integer; var IsGracePeriodExpired: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on the reminder entry record when calculating reminder level.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">The reminder entry record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetReminderLineOnAfterSetFilters(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding the next line level from the reminder entry history.
+    /// </summary>
+    /// <param name="ReminderEntry">The reminder entry record found.</param>
+    /// <param name="LineLevel2">The calculated next line level.</param>
+    /// <param name="ReminderDueDate2">The due date from the reminder entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetReminderLineOnAfterFindNextLineLevel(ReminderEntry: Record "Reminder/Fin. Charge Entry"; var LineLevel2: Integer; var ReminderDueDate2: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a reminder line for entries not due with no reminder level filter.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line to insert.</param>
+    /// <param name="ReminderHeader">The reminder header for the line.</param>
+    /// <param name="ReminderLevel">The reminder level configuration.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry for the line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddRemiderLinesFromCustLedgEntryWithNoReminderLevelFilterOnBeforeReminderLineInsert(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header"; ReminderLevel: Record "Reminder Level"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if a customer is blocked.
+    /// </summary>
+    /// <param name="Customer">The customer record that was checked.</param>
+    /// <param name="Result">Returns whether the customer is blocked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckCustomerIsBlocked(Customer: Record Customer; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after filtering customer ledger entries in the make reminder process.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnAfterFilterCustLedgEntries(var ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the reminder header inserts its standard lines.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header about to insert lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMakeReminderOnBeforeReminderHeaderInsertLines(var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the reminder line level and due date.
+    /// </summary>
+    /// <param name="LineLevel2">The line level to be set.</param>
+    /// <param name="ReminderDueDate2">The reminder due date to be set.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry being processed.</param>
+    /// <param name="ReminderFinChargeEntry">The reminder entry record for history lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetReminderLine(var LineLevel2: Integer; var ReminderDueDate2: Date; var IsHandled: Boolean; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting all reminder lines in the loop.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header with inserted lines.</param>
+    /// <param name="CurrencyCode">The currency code for the reminder.</param>
+    /// <param name="NextLineNo">The next available line number.</param>
+    /// <param name="MaxReminderLevel">The maximum reminder level applied.</param>
+    /// <param name="OverdueEntriesOnly">Indicates whether only overdue entries were included.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReminderLinesInsertLoop(var ReminderHeader: Record "Reminder Header"; CurrencyCode: Code[10]; var NextLineNo: Integer; var MaxReminderLevel: Integer; OverdueEntriesOnly: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving the customer for an existing reminder header.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header being processed.</param>
+    /// <param name="Customer">The customer retrieved for the reminder.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
+    /// <param name="ReturnValue">Returns the result when handling is skipped.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterGlobalReminderGetGlobalCustomer(var ReminderHeader: Record "Reminder Header"; var Customer: Record Customer; var IsHandled: Boolean; var ReturnValue: Boolean)
     begin

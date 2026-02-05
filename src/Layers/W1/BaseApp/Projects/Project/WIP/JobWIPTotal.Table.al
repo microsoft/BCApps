@@ -68,71 +68,83 @@ table 1021 "Job WIP Total"
         field(10; "Schedule (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Budget (Total Cost)';
             Editable = false;
         }
         field(11; "Schedule (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Budget (Total Price)';
             Editable = false;
         }
         field(12; "Usage (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Usage (Total Cost)';
             Editable = false;
         }
         field(13; "Usage (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Usage (Total Price)';
             Editable = false;
         }
         field(14; "Contract (Total Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Billable (Total Cost)';
             Editable = false;
         }
         field(15; "Contract (Total Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Billable (Total Price)';
             Editable = false;
         }
         field(16; "Contract (Invoiced Price)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Billable (Invoiced Price)';
             Editable = false;
         }
         field(17; "Contract (Invoiced Cost)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Billable (Invoiced Cost)';
             Editable = false;
         }
         field(20; "Calc. Recog. Sales Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Calc. Recog. Sales Amount';
             Editable = false;
         }
         field(21; "Calc. Recog. Costs Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Calc. Recog. Costs Amount';
             Editable = false;
         }
         field(30; "Cost Completion %"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Cost Completion %';
             Editable = false;
         }
         field(31; "Invoiced %"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Invoiced %';
             Editable = false;

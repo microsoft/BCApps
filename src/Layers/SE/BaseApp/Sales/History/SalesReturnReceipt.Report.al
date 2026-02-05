@@ -19,6 +19,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable document for posted sales return receipts showing items received from customers.
+/// </summary>
 report 6646 "Sales - Return Receipt"
 {
     Caption = 'Sales - Return Receipt';
@@ -620,6 +623,9 @@ report 6646 "Sales - Return Receipt"
         CompanyInfo2: Record "Company Information";
         CompanyInfo3: Record "Company Information";
 
+    /// <summary>
+    /// Initializes the log interaction setting based on interaction template configuration.
+    /// </summary>
     procedure InitLogInteraction()
     begin
         LogInteraction := SegManagement.FindInteractionTemplateCode(Enum::"Interaction Log Entry Document Type"::"Sales Return Receipt") <> '';

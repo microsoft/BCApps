@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 codeunit 99000821 "Mfg. CalcItemPlanPlanWksh"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Plan - Plan Wksh.", 'OnAfterReqLineExternDelete', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Plan - Plan Wksh.", 'OnAfterReqLineExternDelete', '', true, false)]
     local procedure OnAfterReqLineExternDelete(var Item: Record Item)
     var
         PlannedProdOrderLine: Record "Prod. Order Line";
@@ -34,7 +34,7 @@ codeunit 99000821 "Mfg. CalcItemPlanPlanWksh"
             until PlannedProdOrderLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Plan - Plan Wksh.", 'OnProdOrderLineIsEmpty', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Plan - Plan Wksh.", 'OnProdOrderLineIsEmpty', '', true, false)]
     local procedure OnProdOrderLineIsEmpty(var Item: Record Item; var Result: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";

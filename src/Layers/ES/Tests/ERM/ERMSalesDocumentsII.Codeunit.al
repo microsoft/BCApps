@@ -4701,6 +4701,53 @@ codeunit 134386 "ERM Sales Documents II"
         Assert.AreEqual(ShipToAdd."E-Mail", Customer."E-Mail", '');
     end;
 
+    [Test]
+    [HandlerFunctions('SalesStatisticsPageHandler2')]
+    procedure ManualInvoiceDiscountPreservedOnReleaseSalesInvoice()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesSetup: Record "Sales & Receivables Setup";
+        ReleaseSalesDocument: Codeunit "Release Sales Document";
+        SalesInvoicePage: TestPage "Sales Invoice";
+        InvoiceDiscountValue, LineAmount : Decimal;
+    begin
+        // [SCENARIO 617278] Manual invoice discount entered via Statistics is preserved when releasing sales invoice in ES localization
+        Initialize();
+
+        // [GIVEN] Sales & Receivables Setup has "Calc. Inv. Discount" enabled
+        SalesSetup.Get();
+        SalesSetup.Validate("Calc. Inv. Discount", true);
+        SalesSetup.Modify(true);
+
+        // [GIVEN] Create anew Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a new Sales Invoice.
+        LineAmount := CreateSalesInvoice(SalesHeader, Customer."No.");
+
+        // [GIVEN] Manual invoice discount amount set on header
+        InvoiceDiscountValue := Round(LineAmount / LibraryRandom.RandIntInRange(20, 30), 0.01);
+        LibraryVariableStorage.Enqueue(InvoiceDiscountValue);
+
+        // [GIVEN] Open Sales Invoice page and set Invoice Discount Value via Sales Statistics.
+        SalesInvoicePage.OpenEdit();
+        SalesInvoicePage.GoToRecord(SalesHeader);
+        Commit();
+        SalesInvoicePage.SalesStatistics.Invoke();
+
+        // [WHEN] Sales Invoice is released
+        ReleaseSalesDocument.Run(SalesHeader);
+
+        // [THEN] Invoice discount value is preserved
+        SalesHeader.Find();
+        Assert.AreEqual(
+            InvoiceDiscountValue,
+            SalesHeader."Invoice Discount Value",
+            StrSubstNo(
+                InvoiceDiscountErr, InvoiceDiscountValue, SalesHeader.TableCaption()));
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
@@ -6525,6 +6572,20 @@ codeunit 134386 "ERM Sales Documents II"
         StandardVendorPurchaseCode.Insert(true);
     end;
 
+    local procedure CreateSalesInvoice(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]): Decimal
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 1000, 2));
+        SalesLine.Modify(true);
+
+        exit(SalesLine."Line Amount");
+    end;
+
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
     [ModalPageHandler]
@@ -6827,5 +6888,12 @@ codeunit 134386 "ERM Sales Documents II"
     procedure ShipToAddressListModalPageHandler(var ShipToAddList: TestPage "Ship-to Address List")
     begin
         ShipToAddList.New();
+    end;
+
+    [PageHandler]
+    procedure SalesStatisticsPageHandler2(var SalesStatistics: TestPage "Sales Statistics")
+    begin
+        SalesStatistics.InvDiscountAmount.SetValue(LibraryVariableStorage.DequeueDecimal());
+        SalesStatistics.Close();
     end;
 }

@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists posted sales shipment lines for selection when creating sales invoices from shipped orders.
+/// </summary>
 page 5708 "Get Shipment Lines"
 {
     Caption = 'Get Shipment Lines';
@@ -283,6 +286,10 @@ page 5708 "Get Shipment Lines"
         YourReference: Text[35];
         ExternalDocumentNo: Text[35];
 
+    /// <summary>
+    /// Sets the sales header for filtering shipment lines.
+    /// </summary>
+    /// <param name="SalesHeader2">The sales header to filter shipment lines for.</param>
     procedure SetSalesHeader(var SalesHeader2: Record "Sales Header")
     var
         IsHandled: Boolean;
@@ -322,6 +329,9 @@ page 5708 "Get Shipment Lines"
             exit(true);
     end;
 
+    /// <summary>
+    /// Creates invoice lines from the selected shipment lines.
+    /// </summary>
     procedure CreateLines()
     begin
         CurrPage.SetSelectionFilter(Rec);

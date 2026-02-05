@@ -29,6 +29,9 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates a sales quote document to send to customers as a proposal.
+/// </summary>
 report 1304 "Standard Sales - Quote"
 {
     Caption = 'Sales - Quote';
@@ -1188,6 +1191,10 @@ report 1304 "Standard Sales - Quote"
         exit(SalesConfirmationLbl);
     end;
 
+    /// <summary>
+    /// Initializes the request parameters for the sales quote report.
+    /// </summary>
+    /// <param name="NewLogInteraction">Specifies whether to log interaction.</param>
     procedure InitializeRequest(NewLogInteraction: Boolean)
     begin
         LogInteraction := NewLogInteraction;

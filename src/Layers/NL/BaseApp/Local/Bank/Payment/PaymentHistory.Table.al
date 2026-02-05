@@ -88,6 +88,7 @@ table 11000001 "Payment History"
         }
         field(13; "Remaining Amount"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Payment History Line".Amount where("Run No." = field("Run No."),
                                                                    Order = field("Order Filter"),
                                                                    Date = field("Date Filter"),

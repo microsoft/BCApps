@@ -66,6 +66,7 @@ table 7000003 "Posted Cartera Doc."
         field(10; "Amt. for Collection (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amt. for Collection (LCY)';
         }
         field(11; "Due Date"; Date)
@@ -161,6 +162,7 @@ table 7000003 "Posted Cartera Doc."
         field(27; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Amt. (LCY)';
         }
         field(28; Redrawn; Boolean)
@@ -177,6 +179,7 @@ table 7000003 "Posted Cartera Doc."
         field(30; "Original Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Original Amt. (LCY)';
             Editable = false;
         }
@@ -202,6 +205,8 @@ table 7000003 "Posted Cartera Doc."
         }
         field(48; "Adjusted Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Adjusted Amount';
         }
         field(49; "From Journal"; Boolean)

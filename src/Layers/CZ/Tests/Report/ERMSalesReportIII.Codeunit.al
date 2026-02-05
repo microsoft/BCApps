@@ -2320,6 +2320,32 @@ codeunit 134984 "ERM Sales Report III"
         VerifyTotalOnCustBalanceToDateWithLCY(DetailedCustLedgEntryAmount(Customer."No.", GenJournalLine."Posting Date"));
     end;
 
+    [Test]
+    [HandlerFunctions('StandardStatementRequestPageHandler')]
+    procedure VerifyCustomerStatementReportwhenCustomerNohasSpecialCharacters()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 614170] Verify Customer Statement Report when Customer No has Special Characters
+        Initialize();
+
+        // [GIVEN] Create Customer with special characters in No.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Rename('Ø' + Customer."No.");
+
+        // [GIVEN] Create and post Sales Order for the Customer
+        LibrarySales.CreateSalesOrderForCustomerNo(SalesHeader, Customer."No.");
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Run Customer Statement Report
+        RunStandardStatementReport(Customer."No.");
+
+        // [THEN] Dataset contains data for the Customer
+        LibraryReportDataset.LoadDataSetFile();
+        Assert.AreNotEqual(0, LibraryReportDataset.RowCount(), '');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -14,6 +14,9 @@ table 7015 "Sales Price Access"
 
     fields
     {
+        /// <summary>
+        /// Specifies the access code used for permission checking on sales price functionality.
+        /// </summary>
         field(1; Code; Code[20])
         {
             DataClassification = SystemMetadata;

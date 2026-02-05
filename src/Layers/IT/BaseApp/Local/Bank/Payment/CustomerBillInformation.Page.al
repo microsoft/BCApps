@@ -20,6 +20,8 @@ page 35480 "Customer Bill Information"
             field(TotalPayments; TotalPayments)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Total Payments';
                 Editable = false;
                 ToolTip = 'Specifies the total payments.';
@@ -27,6 +29,8 @@ page 35480 "Customer Bill Information"
             field(Balance; Balance)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Bank Balance';
                 Editable = false;
                 ToolTip = 'Specifies the bank balance.';
@@ -34,6 +38,8 @@ page 35480 "Customer Bill Information"
             field(NewBalance; NewBalance)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'New Bank Balance';
                 Editable = false;
                 ToolTip = 'Specifies if this is a new bank balance.';
@@ -41,6 +47,8 @@ page 35480 "Customer Bill Information"
             field(CreditLimit; CreditLimit)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
                 Caption = 'Bank Credit Limit';
                 Editable = false;
                 ToolTip = 'Specifies the bank credit limit.';

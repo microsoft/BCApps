@@ -104,12 +104,12 @@ page 740 "VAT Report"
                 field(Notice; Rec.Notice)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to include notice in the VAT report.';
+                    ToolTip = 'Specifies that this is a nil report (Anzeige), indicating there are no EU transactions to report for this period.';
                 }
                 field(Revocation; Rec.Revocation)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Indicates whether the report has been revoked .';
+                    ToolTip = 'Specifies that this report revokes a previously submitted VIES report for the same period (Widerruf).';
                 }
                 field("Total Base"; Rec."Total Base")
                 {
@@ -294,6 +294,24 @@ page 740 "VAT Report"
                         VATReportMediator.Export(Rec);
                     end;
                 }
+#if not CLEAN28
+                action(ExportLegacy)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Export (Legacy)';
+                    Image = Export;
+                    ToolTip = 'Export the Tax report using the legacy report format.';
+                    Visible = false;
+                    ObsoleteReason = 'This action is used to run legacy report 11008 "Export VIES Report".';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
+
+                    trigger OnAction()
+                    begin
+                        VATReportMediator.ExportLegacy(Rec);
+                    end;
+                }
+#endif
             }
         }
         area(Promoted)

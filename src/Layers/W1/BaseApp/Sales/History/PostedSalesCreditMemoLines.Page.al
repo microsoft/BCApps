@@ -7,6 +7,9 @@ namespace Microsoft.Sales.History;
 using Microsoft.Finance.Dimension;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Lists all posted sales credit memo lines across documents for analysis and reporting.
+/// </summary>
 page 527 "Posted Sales Credit Memo Lines"
 {
     ApplicationArea = Basic, Suite;

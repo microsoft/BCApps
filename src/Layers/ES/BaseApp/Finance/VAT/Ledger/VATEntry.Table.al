@@ -847,10 +847,12 @@ table 254 "VAT Entry"
         }
         field(10700; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(10701; "EC %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'EC %';
         }
         field(10702; "Generated Autodocument"; Boolean)

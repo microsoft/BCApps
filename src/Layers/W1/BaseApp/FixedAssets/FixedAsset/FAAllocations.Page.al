@@ -50,6 +50,7 @@ page 5623 "FA Allocations"
                 field(AllocationPct; AllocationPct + Rec."Allocation %" - xRec."Allocation %")
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Allocation %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
@@ -59,6 +60,7 @@ page 5623 "FA Allocations"
                 field(TotalAllocationPct; TotalAllocationPct + Rec."Allocation %" - xRec."Allocation %")
                 {
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                     Caption = 'Total Alloc. %';
                     DecimalPlaces = 1 : 1;
                     Editable = false;

@@ -61,6 +61,7 @@ table 7000002 "Cartera Doc."
         field(10; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Remaining Amt. (LCY)';
         }
         field(11; "Due Date"; Date)
@@ -166,6 +167,7 @@ table 7000002 "Cartera Doc."
         field(30; "Original Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Original Amount (LCY)';
         }
         field(40; "Document Type"; Enum "Cartera Document Doc. Type")
@@ -186,6 +188,8 @@ table 7000002 "Cartera Doc."
         }
         field(48; "Adjusted Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Adjusted Amount';
         }
         field(49; "From Journal"; Boolean)

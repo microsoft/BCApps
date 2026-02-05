@@ -202,6 +202,7 @@ page 7336 "Whse. Shipment Subform"
                 field(QtyCrossDockedUOM; QtyCrossDockedUOM)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock Bin';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -216,6 +217,7 @@ page 7336 "Whse. Shipment Subform"
                 field(QtyCrossDockedUOMBase; QtyCrossDockedUOMBase)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock Bin (Base)';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -230,6 +232,7 @@ page 7336 "Whse. Shipment Subform"
                 field(QtyCrossDockedAllUOMBase; QtyCrossDockedAllUOMBase)
                 {
                     ApplicationArea = Warehouse;
+                    AutoFormatType = 0;
                     Caption = 'Qty. on Cross-Dock Bin (Base all UOM)';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

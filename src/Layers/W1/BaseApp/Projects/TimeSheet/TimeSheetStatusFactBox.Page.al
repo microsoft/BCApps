@@ -22,6 +22,7 @@ page 957 "Time Sheet Status FactBox"
             field(OpenQty; OpenQty)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Open';
                 DecimalPlaces = 2 : 2;
                 Editable = false;
@@ -30,6 +31,7 @@ page 957 "Time Sheet Status FactBox"
             field(SubmittedQty; SubmittedQty)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Submitted';
                 DecimalPlaces = 2 : 2;
                 Editable = false;
@@ -38,6 +40,7 @@ page 957 "Time Sheet Status FactBox"
             field(RejectedQty; RejectedQty)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Rejected';
                 DecimalPlaces = 2 : 2;
                 Editable = false;
@@ -46,6 +49,7 @@ page 957 "Time Sheet Status FactBox"
             field(ApprovedQty; ApprovedQty)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Approved';
                 DecimalPlaces = 2 : 2;
                 Editable = false;
@@ -54,6 +58,7 @@ page 957 "Time Sheet Status FactBox"
             field(TotalQuantity; TotalQuantity)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Total';
                 DecimalPlaces = 2 : 2;
                 Editable = false;
@@ -64,6 +69,7 @@ page 957 "Time Sheet Status FactBox"
             field(PostedQty; PostedQty)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Posted';
                 DecimalPlaces = 2 : 2;
                 Editable = false;

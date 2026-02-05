@@ -1586,9 +1586,8 @@ codeunit 136905 "Service Reports - II"
         LibraryReportDataset.LoadDataSetFile();
         FindServiceLedgerEntryConsume(ServiceLedgerEntry, ServiceHeaderNo);
         repeat
-            LibraryReportDataset.GetNextRow();
-            LibraryReportDataset.AssertCurrentRowValueEquals('EntryNo_ServLedgEntryNo', ServiceLedgerEntry."No.");
-            LibraryReportDataset.GetNextRow();
+            LibraryReportDataset.SetRange('EntryNo_ServLedgEntry', ServiceLedgerEntry."Entry No.");
+            Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo('Cound not find the EntryNo_ServLedgEntry row for %1 Service Ledger entry', ServiceLedgerEntry."Entry No."));
             LibraryReportDataset.AssertCurrentRowValueEquals('Quantity', -ServiceLedgerEntry.Quantity);
             LibraryReportDataset.AssertCurrentRowValueEquals('CostAmount', -ServiceLedgerEntry."Cost Amount");
         until ServiceLedgerEntry.Next() = 0;

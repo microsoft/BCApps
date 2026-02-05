@@ -1,18 +1,32 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#pragma warning disable AS0002
 namespace Microsoft.Bank.Payment;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+#if not CLEAN28    
 using System.Reflection;
+#endif
 
 table 10862 "Payment Step"
 {
     Caption = 'Payment Step';
+#if not CLEAN28    
     LookupPageID = "Payment Steps List";
+#endif    
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -39,23 +53,38 @@ table 10862 "Payment Step"
             Caption = 'Next Status';
             TableRelation = "Payment Status".Line where("Payment Class" = field("Payment Class"));
         }
+#if not CLEAN28
         field(6; "Action Type"; Enum "Payment Step Action Type")
         {
             Caption = 'Action Type';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#endif
         }
+#endif
         field(7; "Report No."; Integer)
         {
             Caption = 'Report No.';
+#if not CLEAN28
             TableRelation = if ("Action Type" = const(Report)) AllObj."Object ID" where("Object Type" = const(Report));
+#endif
         }
         field(8; "Export No."; Integer)
         {
             Caption = 'Export No.';
+#if not CLEAN28
             TableRelation = if ("Action Type" = const(File),
                                 "Export Type" = const(Report)) AllObj."Object ID" where("Object Type" = const(Report))
             else
             if ("Action Type" = const(File),
                                          "Export Type" = const(XMLport)) AllObj."Object ID" where("Object Type" = const(XMLport));
+#endif
         }
         field(9; "Previous Status Name"; Text[50])
         {
@@ -159,4 +188,5 @@ table 10862 "Payment Step"
         Text000: Label 'Deleting the default report is not allowed.';
         Text001: Label 'You cannot assign a number series with numbers longer than 10 characters.';
 }
-
+#endif
+#pragma warning restore AS0002

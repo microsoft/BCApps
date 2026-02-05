@@ -22,10 +22,12 @@ table 12109 "Contribution Bracket Line"
         field(2; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(3; "Taxable Base %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Taxable Base %';
             DecimalPlaces = 0 : 2;
         }

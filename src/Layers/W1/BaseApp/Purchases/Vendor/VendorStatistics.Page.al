@@ -103,11 +103,14 @@ page 152 "Vendor Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Total (LCY)';
                     ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases plus purchases that are still ongoing.';
                 }
                 field("Balance Due (LCY)"; Rec.CalcOverDueBalance())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     CaptionClass = Format(StrSubstNo(OverdueAmountsLCYTxt, Format(CurrentDate)));
                     ToolTip = 'Specifies the total amount (in LCY) that you owe the vendor for overdue invoices.';
@@ -126,6 +129,8 @@ page 152 "Vendor Statistics"
                 }
                 field(GetInvoicedPrepmtAmountLCY; Rec.GetInvoicedPrepmtAmountLCY())
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Prepayments;
                     Caption = 'Invoiced Prepayment Amount (LCY)';
                     ToolTip = 'Specifies your payments to the vendor based on invoiced prepayments.';
@@ -149,6 +154,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Purchase (LCY)';
                             ToolTip = 'Specifies your total purchases.';
                         }
@@ -156,6 +162,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Discount (LCY)';
                             ToolTip = 'specifies the sum of invoice discounts that the vendor has granted to you.';
                         }
@@ -163,6 +170,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that have been invoiced to the vendor.';
                         }
@@ -170,6 +178,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Reminder Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts the vendor has reminded you of.';
                         }
@@ -177,6 +186,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Fin. Charges (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has charged on finance charge memos.';
                         }
@@ -184,6 +194,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cr. Memo Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has refunded you.';
                         }
@@ -191,6 +202,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Payments (LCY)';
                             ToolTip = 'Specifies the sum of payments made to the vendor in the current fiscal year.';
                         }
@@ -198,13 +210,14 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
-                            Caption = 'Refunds (LCY)';
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the sum of refunds received from the vendor.';
                         }
                         field("VendOtherAmountsLCY[1]"; VendOtherAmountsLCY[1])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Other Amounts (LCY)';
                             ToolTip = 'Specifies the sum of other amounts for the vendor';
                         }
@@ -212,6 +225,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Discounts (LCY)';
                             ToolTip = 'Specifies the sum of payment discounts the vendor has granted to you.';
                         }
@@ -219,6 +233,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Tol. (LCY)';
                             ToolTip = 'Specifies the sum of payment discount tolerance from the vendor.';
                         }
@@ -226,6 +241,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Tolerances (LCY)';
                             ToolTip = 'Specifies the sum of payment tolerance from the vendor.';
                         }
@@ -255,6 +271,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Purchase (LCY)';
                             ToolTip = 'Specifies your total purchases.';
                         }
@@ -262,6 +279,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Discount (LCY)';
                             ToolTip = 'specifies the sum of invoice discounts that the vendor has granted to you.';
                         }
@@ -269,6 +287,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that have been invoiced to the vendor.';
                         }
@@ -276,6 +295,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Reminder Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts the vendor has reminded you of.';
                         }
@@ -283,6 +303,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Fin. Charges (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has charged on finance charge memos.';
                         }
@@ -290,6 +311,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cr. Memo Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has refunded you.';
                         }
@@ -297,6 +319,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Payments (LCY)';
                             ToolTip = 'Specifies the sum of payments made to the vendor in the current fiscal year.';
                         }
@@ -304,6 +327,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Refunds (LCY)';
                             ToolTip = 'Specifies the sum of refunds received from the vendor.';
                         }
@@ -311,6 +335,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Other Amounts (LCY)';
                             ToolTip = 'Specifies the sum of other amounts for the vendor';
                         }
@@ -318,6 +343,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Discounts (LCY)';
                             ToolTip = 'Specifies the sum of payment discounts the vendor has granted to you.';
                         }
@@ -325,6 +351,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Tol. (LCY)';
                             ToolTip = 'Specifies the sum of payment discount tolerance from the vendor.';
                         }
@@ -332,6 +359,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Tolerances (LCY)';
                             ToolTip = 'Specifies the sum of payment tolerance from the vendor.';
                         }
@@ -361,6 +389,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Purchase (LCY)';
                             ToolTip = 'Specifies your total purchases.';
                         }
@@ -368,6 +397,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Discount (LCY)';
                             ToolTip = 'specifies the sum of invoice discounts that the vendor has granted to you.';
                         }
@@ -375,6 +405,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that have been invoiced to the vendor.';
                         }
@@ -382,6 +413,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Reminder Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts the vendor has reminded you of.';
                         }
@@ -389,6 +421,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Fin. Charges (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has charged on finance charge memos.';
                         }
@@ -396,6 +429,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cr. Memo Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has refunded you.';
                         }
@@ -403,6 +437,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Payments (LCY)';
                             ToolTip = 'Specifies the sum of payments made to the vendor in the current fiscal year.';
                         }
@@ -410,6 +445,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Refunds (LCY)';
                             ToolTip = 'Specifies the sum of refunds received from the vendor.';
                         }
@@ -417,6 +453,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Other Amounts (LCY)';
                             ToolTip = 'Specifies the sum of other amounts for the vendor';
                         }
@@ -424,6 +461,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Discounts (LCY)';
                             ToolTip = 'Specifies the sum of payment discounts the vendor has granted to you.';
                         }
@@ -431,6 +469,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Tol. (LCY)';
                             ToolTip = 'Specifies the sum of payment discount tolerance from the vendor.';
                         }
@@ -438,7 +477,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
-                            Caption = 'Pmt. Tolerances (LCY)';
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the sum of payment tolerance from the vendor.';
                         }
                         field(NumberOfPurchaseDocs3; NumberOfPurchaseDocs[3])
@@ -466,6 +505,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Purchase (LCY)';
                             ToolTip = 'Specifies your total purchases.';
                         }
@@ -473,6 +513,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Discount (LCY)';
                             ToolTip = 'specifies the sum of invoice discounts that the vendor has granted to you.';
                         }
@@ -480,6 +521,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Inv. Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that have been invoiced to the vendor.';
                         }
@@ -487,6 +529,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Reminder Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts the vendor has reminded you of.';
                         }
@@ -494,13 +537,14 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Suite;
                             AutoFormatType = 1;
-                            Caption = 'Fin. Charges (LCY)';
+                            AutoFormatExpression = '';
                             ToolTip = 'Specifies the sum of amounts that the vendor has charged on finance charge memos.';
                         }
                         field("VendCrMemoAmountsLCY[4]"; VendCrMemoAmountsLCY[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Cr. Memo Amounts (LCY)';
                             ToolTip = 'Specifies the sum of amounts that the vendor has refunded you.';
                         }
@@ -508,6 +552,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Payments (LCY)';
                             ToolTip = 'Specifies the sum of payments made to the vendor in the current fiscal year.';
                         }
@@ -515,6 +560,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Refunds (LCY)';
                             ToolTip = 'Specifies the sum of refunds received from the vendor.';
                         }
@@ -522,6 +568,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Other Amounts (LCY)';
                             ToolTip = 'Specifies the sum of other amounts for the vendor';
                         }
@@ -529,6 +576,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Discounts (LCY)';
                             ToolTip = 'Specifies the sum of payment discounts the vendor has granted to you.';
                         }
@@ -536,6 +584,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Disc. Tol. (LCY)';
                             ToolTip = 'Specifies the sum of payment discount tolerance from the vendor.';
                         }
@@ -543,6 +592,7 @@ page 152 "Vendor Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Pmt. Tolerances (LCY)';
                             ToolTip = 'Specifies the sum of payment tolerance from the vendor.';
                         }

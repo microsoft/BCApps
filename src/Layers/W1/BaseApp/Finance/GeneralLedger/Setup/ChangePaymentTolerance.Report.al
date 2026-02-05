@@ -104,6 +104,7 @@ report 34 "Change Payment Tolerance"
                     field(PaymentTolerancePct; PaymentTolerancePct)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Payment Tolerance %';
                         DecimalPlaces = 0 : 5;
                         Enabled = true;
@@ -112,6 +113,8 @@ report 34 "Change Payment Tolerance"
                     field("Max. Pmt. Tolerance Amount"; MaxPmtToleranceAmount)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Max. Pmt. Tolerance Amount';
                         DecimalPlaces = 0 : 5;
                         Enabled = true;

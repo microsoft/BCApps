@@ -33,6 +33,7 @@ table 11403 "Reporting ICP"
         field(20; Base; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base';
         }
     }

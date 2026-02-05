@@ -18,6 +18,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Automation;
 
+/// <summary>
+/// Displays a single posted sales credit memo document with header and line details.
+/// </summary>
 page 134 "Posted Sales Credit Memo"
 {
     Caption = 'Posted Sales Credit Memo';

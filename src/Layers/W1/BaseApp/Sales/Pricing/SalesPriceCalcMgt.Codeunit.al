@@ -20,6 +20,9 @@ using Microsoft.Projects.Resources.Pricing;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Provides sales price calculation logic including best price determination, discount calculation, and VAT handling.
+/// </summary>
 codeunit 7000 "Sales Price Calc. Mgt."
 {
 
@@ -62,6 +65,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #pragma warning restore AA0074
         TempTableErr: Label 'The table passed as a parameter must be temporary.';
 
+    /// <summary>
+    /// Finds and applies the best price for a sales line based on customer, item, and pricing agreements.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer and currency information.</param>
+    /// <param name="SalesLine">Specifies the sales line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
     procedure FindSalesLinePrice(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CalledByFieldNo: Integer)
     var
         IsHandled: Boolean;
@@ -117,6 +126,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterFindSalesLinePrice(SalesLine, SalesHeader, TempSalesPrice, ResPrice, CalledByFieldNo, FoundSalesPrice);
     end;
 
+    /// <summary>
+    /// Finds and applies the best sales price for an item journal line.
+    /// </summary>
+    /// <param name="ItemJnlLine">Specifies the item journal line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
     procedure FindItemJnlLinePrice(var ItemJnlLine: Record "Item Journal Line"; CalledByFieldNo: Integer)
     var
         IsHandled: Boolean;
@@ -145,6 +159,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Finds and applies the best sales price for a service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">The field number that triggered the price calculation.</param>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure FindServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; CalledByFieldNo: Integer)
     begin
@@ -152,6 +172,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 #endif
 
+    /// <summary>
+    /// Finds and applies the best line discount for a sales line based on customer and item discount groups.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer information.</param>
+    /// <param name="SalesLine">Specifies the sales line to calculate the discount for.</param>
     procedure FindSalesLineLineDisc(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -179,6 +204,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Finds and applies the best line discount for a service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to calculate the discount for.</param>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure FindServLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
     begin
@@ -186,6 +216,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 #endif
 
+    /// <summary>
+    /// Finds and applies the best sales price for a standard item journal line.
+    /// </summary>
+    /// <param name="StdItemJnlLine">Specifies the standard item journal line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
     procedure FindStdItemJnlLinePrice(var StdItemJnlLine: Record "Standard Item Journal Line"; CalledByFieldNo: Integer)
     var
         IsHandled: Boolean;
@@ -213,6 +248,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterFindStdItemJnlLinePrice(StdItemJnlLine, TempSalesPrice, CalledByFieldNo);
     end;
 
+    /// <summary>
+    /// Finds the best sales price for an item to be used in analysis reports.
+    /// </summary>
+    /// <param name="ItemNo">Specifies the item number to find the price for.</param>
+    /// <param name="Date">Specifies the date for the price lookup.</param>
+    /// <returns>The unit price for the item, or the item's default unit price if no sales price is found.</returns>
     procedure FindAnalysisReportPrice(ItemNo: Code[20]; Date: Date): Decimal
     var
         UnitPrice: Decimal;
@@ -235,6 +276,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(Item."Unit Price");
     end;
 
+    /// <summary>
+    /// Calculates the best unit price from a set of sales prices, considering currency, variant, and minimum quantity requirements.
+    /// </summary>
+    /// <param name="SalesPrice">Specifies the sales price record set to evaluate. Returns the best price found.</param>
     procedure CalcBestUnitPrice(var SalesPrice: Record "Sales Price")
     var
         BestSalesPrice: Record "Sales Price";
@@ -309,6 +354,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         ConvertPriceLCYToFCY(SalesPrice."Currency Code", SalesPrice."Unit Price");
     end;
 
+    /// <summary>
+    /// Calculates the best line discount from a set of sales line discounts, considering currency, variant, and minimum quantity requirements.
+    /// </summary>
+    /// <param name="SalesLineDisc">Specifies the sales line discount record set to evaluate. Returns the best discount found.</param>
     procedure CalcBestLineDisc(var SalesLineDisc: Record "Sales Line Discount")
     var
         BestSalesLineDisc: Record "Sales Line Discount";
@@ -336,6 +385,20 @@ codeunit 7000 "Sales Price Calc. Mgt."
         SalesLineDisc := BestSalesLineDisc;
     end;
 
+    /// <summary>
+    /// Finds all applicable sales prices for an item based on customer, contact, price group, and campaign criteria.
+    /// </summary>
+    /// <param name="ToSalesPrice">Returns the temporary sales price records found.</param>
+    /// <param name="CustNo">Specifies the customer number to search prices for.</param>
+    /// <param name="ContNo">Specifies the contact number to search prices for.</param>
+    /// <param name="CustPriceGrCode">Specifies the customer price group code to search prices for.</param>
+    /// <param name="CampaignNo">Specifies the campaign number to search prices for.</param>
+    /// <param name="ItemNo">Specifies the item number to find prices for.</param>
+    /// <param name="VariantCode">Specifies the item variant code to filter prices by.</param>
+    /// <param name="UOM">Specifies the unit of measure code to filter prices by.</param>
+    /// <param name="CurrencyCode">Specifies the currency code to filter prices by.</param>
+    /// <param name="StartingDate">Specifies the date to filter valid prices by.</param>
+    /// <param name="ShowAll">Specifies whether to show all prices or only applicable ones.</param>
     procedure FindSalesPrice(var ToSalesPrice: Record "Sales Price"; CustNo: Code[20]; ContNo: Code[20]; CustPriceGrCode: Code[10]; CampaignNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
     var
         FromSalesPrice: Record "Sales Price";
@@ -391,6 +454,21 @@ codeunit 7000 "Sales Price Calc. Mgt."
           ItemNo, VariantCode, UOM, CurrencyCode, StartingDate, ShowAll);
     end;
 
+    /// <summary>
+    /// Finds all applicable sales line discounts for an item based on customer, contact, discount group, and campaign criteria.
+    /// </summary>
+    /// <param name="ToSalesLineDisc">Returns the temporary sales line discount records found.</param>
+    /// <param name="CustNo">Specifies the customer number to search discounts for.</param>
+    /// <param name="ContNo">Specifies the contact number to search discounts for.</param>
+    /// <param name="CustDiscGrCode">Specifies the customer discount group code to search discounts for.</param>
+    /// <param name="CampaignNo">Specifies the campaign number to search discounts for.</param>
+    /// <param name="ItemNo">Specifies the item number to find discounts for.</param>
+    /// <param name="ItemDiscGrCode">Specifies the item discount group code to search discounts for.</param>
+    /// <param name="VariantCode">Specifies the item variant code to filter discounts by.</param>
+    /// <param name="UOM">Specifies the unit of measure code to filter discounts by.</param>
+    /// <param name="CurrencyCode">Specifies the currency code to filter discounts by.</param>
+    /// <param name="StartingDate">Specifies the date to filter valid discounts by.</param>
+    /// <param name="ShowAll">Specifies whether to show all discounts or only applicable ones.</param>
     procedure FindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; CustNo: Code[20]; ContNo: Code[20]; CustDiscGrCode: Code[20]; CampaignNo: Code[20]; ItemNo: Code[20]; ItemDiscGrCode: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
     var
         FromSalesLineDisc: Record "Sales Line Discount";
@@ -460,6 +538,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
           CurrencyCode, StartingDate, ShowAll);
     end;
 
+    /// <summary>
+    /// Copies the temporary sales prices to the specified sales price record.
+    /// </summary>
+    /// <param name="SalesPrice">Specifies the sales price record to copy prices to.</param>
     procedure CopySalesPrice(var SalesPrice: Record "Sales Price")
     begin
         SalesPrice.DeleteAll();
@@ -491,11 +573,21 @@ codeunit 7000 "Sales Price Calc. Mgt."
             until FromSalesLineDisc.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets the item record used for price calculations.
+    /// </summary>
+    /// <param name="ItemNo">Specifies the item number to load.</param>
     procedure SetItem(ItemNo: Code[20])
     begin
         Item.Get(ItemNo);
     end;
 
+    /// <summary>
+    /// Initializes the resource price record with the specified resource code, work type, and currency.
+    /// </summary>
+    /// <param name="Code2">Specifies the resource code.</param>
+    /// <param name="WorkTypeCode">Specifies the work type code.</param>
+    /// <param name="CurrencyCode">Specifies the currency code.</param>
     procedure SetResPrice(Code2: Code[20]; WorkTypeCode: Code[10]; CurrencyCode: Code[10])
     begin
         ResPrice.Init();
@@ -505,6 +597,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
         ResPrice."Currency Code" := CurrencyCode;
     end;
 
+    /// <summary>
+    /// Sets the currency parameters for price conversion calculations.
+    /// </summary>
+    /// <param name="CurrencyCode2">Specifies the currency code. Empty string indicates local currency.</param>
+    /// <param name="CurrencyFactor2">Specifies the currency exchange factor.</param>
+    /// <param name="ExchRateDate2">Specifies the date for the exchange rate.</param>
     procedure SetCurrency(CurrencyCode2: Code[10]; CurrencyFactor2: Decimal; ExchRateDate2: Date)
     begin
         PricesInCurrency := CurrencyCode2 <> '';
@@ -517,6 +615,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
             GLSetup.Get();
     end;
 
+    /// <summary>
+    /// Sets the VAT parameters for price calculations.
+    /// </summary>
+    /// <param name="PriceInclVAT2">Specifies whether prices include VAT.</param>
+    /// <param name="VATPerCent2">Specifies the VAT percentage.</param>
+    /// <param name="VATCalcType2">Specifies the VAT calculation type.</param>
+    /// <param name="VATBusPostingGr2">Specifies the VAT business posting group code.</param>
     procedure SetVAT(PriceInclVAT2: Boolean; VATPerCent2: Decimal; VATCalcType2: Option; VATBusPostingGr2: Code[20])
     begin
         PricesInclVAT := PriceInclVAT2;
@@ -525,12 +630,23 @@ codeunit 7000 "Sales Price Calc. Mgt."
         VATBusPostingGr := VATBusPostingGr2;
     end;
 
+    /// <summary>
+    /// Sets the quantity and unit of measure parameters for price calculations.
+    /// </summary>
+    /// <param name="Qty2">Specifies the quantity.</param>
+    /// <param name="QtyPerUoM2">Specifies the quantity per unit of measure.</param>
     procedure SetUoM(Qty2: Decimal; QtyPerUoM2: Decimal)
     begin
         Qty := Qty2;
         QtyPerUOM := QtyPerUoM2;
     end;
 
+    /// <summary>
+    /// Sets the line discount parameters for price calculations.
+    /// </summary>
+    /// <param name="LineDiscPerCent2">Specifies the line discount percentage.</param>
+    /// <param name="AllowLineDisc2">Specifies whether line discount is allowed.</param>
+    /// <param name="AllowInvDisc2">Specifies whether invoice discount is allowed.</param>
     procedure SetLineDisc(LineDiscPerCent2: Decimal; AllowLineDisc2: Boolean; AllowInvDisc2: Boolean)
     begin
         LineDiscPerCent := LineDiscPerCent2;
@@ -562,6 +678,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(MinQty <= Qty);
     end;
 
+    /// <summary>
+    /// Converts a unit price between VAT-inclusive and VAT-exclusive amounts based on the VAT posting setup.
+    /// </summary>
+    /// <param name="FromPricesInclVAT">Specifies whether the source price includes VAT.</param>
+    /// <param name="FromVATProdPostingGr">Specifies the source VAT product posting group.</param>
+    /// <param name="FromVATBusPostingGr">Specifies the source VAT business posting group.</param>
+    /// <param name="UnitPrice">Specifies the unit price to convert. Returns the converted price.</param>
     procedure ConvertPriceToVAT(FromPricesInclVAT: Boolean; FromVATProdPostingGr: Code[20]; FromVATBusPostingGr: Code[20]; var UnitPrice: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -607,6 +730,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
             UnitPrice := UnitPrice * QtyPerUOM;
     end;
 
+    /// <summary>
+    /// Converts a unit price from local currency to foreign currency if applicable, applying proper rounding.
+    /// </summary>
+    /// <param name="CurrencyCode">Specifies the currency code of the source price.</param>
+    /// <param name="UnitPrice">Specifies the unit price to convert. Returns the converted and rounded price.</param>
     procedure ConvertPriceLCYToFCY(CurrencyCode: Code[10]; var UnitPrice: Decimal)
     var
         CurrExchRate: Record "Currency Exchange Rate";
@@ -629,6 +757,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterCalcLineAmount(SalesPrice, LineAmount, LineDiscPerCent);
     end;
 
+    /// <summary>
+    /// Opens a lookup page to allow the user to select a sales price for the sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer and currency information.</param>
+    /// <param name="SalesLine">Specifies the sales line to apply the selected price to.</param>
     procedure GetSalesLinePrice(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -689,6 +822,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterGetSalesLinePrice(SalesHeader, SalesLine, TempSalesPrice);
     end;
 
+    /// <summary>
+    /// Opens a lookup page to allow the user to select a line discount for the sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer information.</param>
+    /// <param name="SalesLine">Specifies the sales line to apply the selected discount to.</param>
     procedure GetSalesLineLineDisc(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -748,6 +886,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
         SalesLine.Validate("Line Discount %", TempSalesLineDisc."Line Discount %");
     end;
 
+    /// <summary>
+    /// Checks whether any sales prices exist for the specified sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer and currency information.</param>
+    /// <param name="SalesLine">Specifies the sales line to check prices for.</param>
+    /// <param name="ShowAll">Specifies whether to show all prices or only applicable ones.</param>
+    /// <returns>True if any sales prices exist; otherwise, false.</returns>
     procedure SalesLinePriceExists(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ShowAll: Boolean) Result: Boolean
     var
         IsHandled: Boolean;
@@ -776,6 +921,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterSalesLinePriceExistsProcedure(SalesHeader, SalesLine, Res, DateCaption, ShowAll, Result);
     end;
 
+    /// <summary>
+    /// Checks whether any sales line discounts exist for the specified sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer information.</param>
+    /// <param name="SalesLine">Specifies the sales line to check discounts for.</param>
+    /// <param name="ShowAll">Specifies whether to show all discounts or only applicable ones.</param>
+    /// <returns>True if any sales line discounts exist; otherwise, false.</returns>
     procedure SalesLineLineDiscExists(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ShowAll: Boolean): Boolean
     var
         IsHandled: Boolean;
@@ -798,6 +950,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Gets the sales price for a service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to get the price for.</param>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure GetServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
     begin
@@ -806,6 +963,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #endif
 
 #if not CLEAN28
+    /// <summary>
+    /// Gets the line discount for a service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to get the discount for.</param>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure GetServLineLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
     begin
@@ -823,6 +985,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Checks whether any sales prices exist for the service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to check prices for.</param>
+    /// <param name="ShowAll">Specifies whether to show all prices or only the best price.</param>
+    /// <returns>True if sales prices exist for the service line, otherwise false.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [Scope('OnPrem')]
     procedure ServLinePriceExists(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean): Boolean
@@ -834,6 +1003,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #endif
 
 #if not CLEAN28
+    /// <summary>
+    /// Checks whether any line discounts exist for the service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to check discounts for.</param>
+    /// <param name="ShowAll">Specifies whether to show all discounts or only the best discount.</param>
+    /// <returns>True if line discounts exist for the service line, otherwise false.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [Scope('OnPrem')]
     procedure ServLineLineDiscExists(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean): Boolean
@@ -842,6 +1018,14 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 #endif
 
+    /// <summary>
+    /// Checks whether any activated campaigns exist for the specified customer, contact, or campaign number.
+    /// </summary>
+    /// <param name="ToCampaignTargetGr">Returns the temporary campaign target group records found.</param>
+    /// <param name="CustNo">Specifies the customer number to search campaigns for.</param>
+    /// <param name="ContNo">Specifies the contact number to search campaigns for.</param>
+    /// <param name="CampaignNo">Specifies the campaign number to search for.</param>
+    /// <returns>True if any activated campaigns exist; otherwise, false.</returns>
     procedure ActivatedCampaignExists(var ToCampaignTargetGr: Record "Campaign Target Group"; CustNo: Code[20]; ContNo: Code[20]; CampaignNo: Code[20]): Boolean
     var
         FromCampaignTargetGr: Record "Campaign Target Group";
@@ -884,6 +1068,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(ToCampaignTargetGr.FindFirst())
     end;
 
+    /// <summary>
+    /// Returns the exchange rate date to use for currency conversion based on the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to get the exchange date from.</param>
+    /// <returns>The posting date if specified; otherwise, the work date.</returns>
     procedure SalesHeaderExchDate(SalesHeader: Record "Sales Header"): Date
     begin
         if SalesHeader."Posting Date" <> 0D then
@@ -891,6 +1080,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(WorkDate());
     end;
 
+    /// <summary>
+    /// Returns the starting date to use for price lookups based on the sales header document type.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header to get the start date from.</param>
+    /// <param name="DateCaption">Returns the caption of the date field used.</param>
+    /// <returns>The posting date for invoices and credit memos; the order date for other document types.</returns>
     procedure SalesHeaderStartDate(var SalesHeader: Record "Sales Header"; var DateCaption: Text[30]): Date
     var
         StartDate: Date;
@@ -911,6 +1106,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Returns the exchange rate date to use for currency conversion based on the service header.
+    /// </summary>
+    /// <param name="ServHeader">The service header to get the exchange date from.</param>
+    /// <returns>The posting date if specified, otherwise the work date.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure ServHeaderExchDate(ServHeader: Record Microsoft.Service.Document."Service Header"): Date
     begin
@@ -919,6 +1119,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #endif
 
 #if not CLEAN28
+    /// <summary>
+    /// Returns the starting date to use for price lookups based on the service header.
+    /// </summary>
+    /// <param name="ServHeader">The service header to get the start date from.</param>
+    /// <param name="DateCaption">Returns the caption of the date field used.</param>
+    /// <returns>The appropriate date for price calculations.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure ServHeaderStartDate(ServHeader: Record Microsoft.Service.Document."Service Header"; var DateCaption: Text[30]): Date
     begin
@@ -926,6 +1132,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 #endif
 
+    /// <summary>
+    /// Returns the number of sales prices available for the specified sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer and currency information.</param>
+    /// <param name="SalesLine">Specifies the sales line to count prices for.</param>
+    /// <param name="ShowAll">Specifies whether to count all prices or only applicable ones.</param>
+    /// <returns>The number of available sales prices.</returns>
     procedure NoOfSalesLinePrice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ShowAll: Boolean) Result: Integer
     var
         IsHandled: Boolean;
@@ -939,6 +1152,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
             exit(TempSalesPrice.Count);
     end;
 
+    /// <summary>
+    /// Returns the number of sales line discounts available for the specified sales line.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header containing customer information.</param>
+    /// <param name="SalesLine">Specifies the sales line to count discounts for.</param>
+    /// <param name="ShowAll">Specifies whether to count all discounts or only applicable ones.</param>
+    /// <returns>The number of available sales line discounts.</returns>
     procedure NoOfSalesLineLineDisc(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ShowAll: Boolean) Result: Integer
     var
         IsHandled: Boolean;
@@ -953,6 +1173,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
 #if not CLEAN28
+    /// <summary>
+    /// Returns the number of sales prices available for the specified service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer and currency information.</param>
+    /// <param name="ServLine">The service line to count prices for.</param>
+    /// <param name="ShowAll">Specifies whether to count all prices or only applicable ones.</param>
+    /// <returns>The number of available sales prices.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure NoOfServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean) Result: Integer
     begin
@@ -961,6 +1188,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #endif
 
 #if not CLEAN28
+    /// <summary>
+    /// Returns the number of sales line discounts available for the specified service line.
+    /// </summary>
+    /// <param name="ServHeader">The service header containing customer information.</param>
+    /// <param name="ServLine">The service line to count discounts for.</param>
+    /// <param name="ShowAll">Specifies whether to count all discounts or only applicable ones.</param>
+    /// <returns>The number of available sales line discounts.</returns>
     [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure NoOfServLineLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean) Result: Integer
     begin
@@ -968,6 +1202,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 #endif
 
+    /// <summary>
+    /// Finds and applies the best price for a job planning line based on customer, item, and resource pricing.
+    /// </summary>
+    /// <param name="JobPlanningLine">Specifies the job planning line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
     procedure FindJobPlanningLinePrice(var JobPlanningLine: Record "Job Planning Line"; CalledByFieldNo: Integer)
     var
         Job: Record Job;
@@ -1022,6 +1261,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         JobPlanningLineFindJTPrice(JobPlanningLine);
     end;
 
+    /// <summary>
+    /// Finds and applies job-specific prices for a job planning line based on job item prices, resource prices, or G/L account prices.
+    /// </summary>
+    /// <param name="JobPlanningLine">Specifies the job planning line to find job-specific prices for.</param>
     procedure JobPlanningLineFindJTPrice(var JobPlanningLine: Record "Job Planning Line")
     var
         JobItemPrice: Record "Job Item Price";
@@ -1160,6 +1403,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
         JobPlanningLine."Line Discount %" := JobGLAccPrice."Line Discount %";
     end;
 
+    /// <summary>
+    /// Finds and applies the best price for a job journal line based on customer, item, and resource pricing.
+    /// </summary>
+    /// <param name="JobJnlLine">Specifies the job journal line to calculate the price for.</param>
+    /// <param name="CalledByFieldNo">Specifies the field number that triggered the price calculation.</param>
     procedure FindJobJnlLinePrice(var JobJnlLine: Record "Job Journal Line"; CalledByFieldNo: Integer)
     var
         Job: Record Job;
@@ -1258,6 +1506,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         JobJnlLine."Line Discount %" := JobGLAccPrice."Line Discount %";
     end;
 
+    /// <summary>
+    /// Finds and applies job-specific prices for a job journal line based on job item prices, resource prices, or G/L account prices.
+    /// </summary>
+    /// <param name="JobJnlLine">Specifies the job journal line to find job-specific prices for.</param>
     procedure JobJnlLineFindJTPrice(var JobJnlLine: Record "Job Journal Line")
     var
         JobItemPrice: Record "Job Item Price";
@@ -1433,6 +1685,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(JobResPrice.FindFirst())
     end;
 
+    /// <summary>
+    /// Finds and applies the resource price for a resource journal line.
+    /// </summary>
+    /// <param name="ResJournalLine">Specifies the resource journal line to find and apply the price for.</param>
     procedure FindResPrice(var ResJournalLine: Record "Res. Journal Line")
     begin
         GLSetup.Get();

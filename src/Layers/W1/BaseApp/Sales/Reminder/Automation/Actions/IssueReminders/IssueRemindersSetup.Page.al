@@ -8,6 +8,9 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 
+/// <summary>
+/// Configures the parameters for the automated issue reminders action including posting options and filters.
+/// </summary>
 page 6761 "Issue Reminders Setup"
 {
     PageType = Card;

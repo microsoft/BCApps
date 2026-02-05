@@ -113,6 +113,7 @@ table 5700 "Stockkeeping Unit"
         field(22; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             MinValue = 0;
 
@@ -132,6 +133,7 @@ table 5700 "Stockkeeping Unit"
         field(24; "Standard Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Standard Cost';
             MinValue = 0;
 
@@ -163,6 +165,7 @@ table 5700 "Stockkeeping Unit"
         field(25; "Last Direct Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Last Direct Cost';
             MinValue = 0;
         }
@@ -196,17 +199,20 @@ table 5700 "Stockkeeping Unit"
         }
         field(34; "Reorder Point"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reorder Point';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Maximum Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Inventory';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Reorder Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reorder Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -243,6 +249,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(68; Inventory; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item No."),
                                                                   "Location Code" = field("Location Code"),
                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -256,6 +263,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(84; "Qty. on Purch. Order"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             CalcFormula = sum("Purchase Line"."Outstanding Qty. (Base)" where("Document Type" = const(Order),
                                                                                Type = const(Item),
@@ -273,6 +281,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(85; "Qty. on Sales Order"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Sales Shipment Header" = R;
             CalcFormula = sum("Sales Line"."Outstanding Qty. (Base)" where("Document Type" = const(Order),
                                                                             Type = const(Item),
@@ -306,6 +315,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(977; "Qty. on Assembly Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Assembly Header"."Remaining Quantity (Base)" where("Document Type" = const(Order),
                                                                                    "Item No." = field("Item No."),
                                                                                    "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -320,6 +330,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(978; "Qty. on Asm. Component"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Assembly Line"."Remaining Quantity (Base)" where("Document Type" = const(Order),
                                                                                  Type = const(Item),
                                                                                  "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -335,6 +346,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(1001; "Qty. on Job Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Job Planning Line"."Remaining Qty. (Base)" where(Status = const(Order),
                                                                                  Type = const(Item),
                                                                                  "No." = field("Item No."),
@@ -353,6 +365,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5401; "Lot Size"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Lot Size';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -364,12 +377,14 @@ table 5700 "Stockkeeping Unit"
         }
         field(5411; "Minimum Order Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Order Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(5412; "Maximum Order Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Order Quantity';
             DecimalPlaces = 0 : 5;
@@ -377,6 +392,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5413; "Safety Stock Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Stock Quantity';
             DecimalPlaces = 0 : 5;
@@ -384,6 +400,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5414; "Order Multiple"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Order Multiple';
             DecimalPlaces = 0 : 5;
@@ -506,12 +523,14 @@ table 5700 "Stockkeeping Unit"
         }
         field(5446; "Dampener Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Dampener Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(5447; "Overflow Level"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overflow Level';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -548,6 +567,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5701; "Qty. in Transit"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Qty. in Transit (Base)" where("Derived From Line No." = const(0),
                                                                               "Item No." = field("Item No."),
                                                                               "Transfer-to Code" = field("Location Code"),
@@ -562,6 +582,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5702; "Trans. Ord. Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Outstanding Qty. (Base)" where("Derived From Line No." = const(0),
                                                                                "Item No." = field("Item No."),
                                                                                "Transfer-to Code" = field("Location Code"),
@@ -576,6 +597,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(5703; "Trans. Ord. Shipment (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Outstanding Qty. (Base)" where("Derived From Line No." = const(0),
                                                                                "Item No." = field("Item No."),
                                                                                "Transfer-from Code" = field("Location Code"),
@@ -711,6 +733,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(99000770; "Purch. Req. Receipt (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Requisition Line"."Quantity (Base)" where(Type = const(Item),
                                                                           "No." = field("Item No."),
                                                                           "Location Code" = field("Location Code"),
@@ -724,6 +747,7 @@ table 5700 "Stockkeeping Unit"
         }
         field(99000771; "Purch. Req. Release (Qty.)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Requisition Line"."Quantity (Base)" where(Type = const(Item),
                                                                           "No." = field("Item No."),
                                                                           "Location Code" = field("Location Code"),
@@ -738,6 +762,7 @@ table 5700 "Stockkeeping Unit"
         field(5404; "Rolled-up Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Cost';
             DecimalPlaces = 2 : 5;
             Editable = false;
@@ -745,12 +770,14 @@ table 5700 "Stockkeeping Unit"
         field(5405; "Rolled-up Capacity Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Capacity Cost';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
         field(5407; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 2;
             MaxValue = 100;
@@ -759,6 +786,7 @@ table 5700 "Stockkeeping Unit"
         field(5408; "Rolled-up Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Non-Inventory Cost';
             DecimalPlaces = 2 : 5;
             Editable = false;
@@ -766,54 +794,63 @@ table 5700 "Stockkeeping Unit"
         field(99000752; "Single-Level Material Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Cost';
             Editable = false;
         }
         field(99000753; "Single-Level Capacity Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Capacity Cost';
             Editable = false;
         }
         field(99000754; "Single-Level Subcontrd. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Subcontrd. Cost';
             Editable = false;
         }
         field(99000755; "Single-Level Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Cap. Ovhd Cost';
             Editable = false;
         }
         field(99000756; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
             Editable = false;
         }
         field(99000758; "Rolled-up Subcontracted Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Subcontracted Cost';
             Editable = false;
         }
         field(99000759; "Rolled-up Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Mfg. Ovhd Cost';
             Editable = false;
         }
         field(99000760; "Rolled-up Cap. Overhead Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Overhead Cost';
             Editable = false;
         }
         field(99000779; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Non-Inventory Cost';
             Editable = false;
         }

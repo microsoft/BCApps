@@ -31,6 +31,9 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates a sales order confirmation document to send to customers.
+/// </summary>
 report 1305 "Standard Sales - Order Conf."
 {
     Caption = 'Sales - Confirmation';
@@ -1272,6 +1275,11 @@ report 1305 "Standard Sales - Order Conf."
         OnAfterDocumentCaption(Header, DocCaption);
     end;
 
+    /// <summary>
+    /// Initializes the request parameters for the sales order confirmation report.
+    /// </summary>
+    /// <param name="NewLogInteraction">Specifies whether to log interaction.</param>
+    /// <param name="DisplayAsmInfo">Specifies whether to display assembly information.</param>
     procedure InitializeRequest(NewLogInteraction: Boolean; DisplayAsmInfo: Boolean)
     begin
         LogInteraction := NewLogInteraction;

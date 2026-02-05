@@ -51,7 +51,7 @@ table 929 "Bank Account Balance Buffer"
         /// </summary>
         field(10; "Net Change"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Net Change';
         }
         /// <summary>

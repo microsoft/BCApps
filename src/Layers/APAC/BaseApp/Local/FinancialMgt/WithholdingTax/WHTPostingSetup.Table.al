@@ -27,6 +27,7 @@ table 28043 "WHT Posting Setup"
         }
         field(3; "WHT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'WHT %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -106,6 +107,8 @@ table 28043 "WHT Posting Setup"
         }
         field(24; "WHT Minimum Invoice Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'WHT Minimum Invoice Amount';
         }
         field(25; "WHT Calculation Rule"; Option)

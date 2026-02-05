@@ -136,6 +136,7 @@ table 1382 "Item Templ."
         field(18; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
             MinValue = 0;
 
@@ -155,6 +156,7 @@ table 1382 "Item Templ."
         }
         field(20; "Profit %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Profit %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -176,6 +178,7 @@ table 1382 "Item Templ."
         field(22; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             MinValue = 0;
 
@@ -187,6 +190,7 @@ table 1382 "Item Templ."
         field(24; "Standard Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Standard Cost';
             MinValue = 0;
 
@@ -199,7 +203,7 @@ table 1382 "Item Templ."
         {
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
-            MinValue = 0;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -238,6 +242,7 @@ table 1382 "Item Templ."
         }
         field(34; "Reorder Point"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Reorder Point';
             DecimalPlaces = 0 : 5;
@@ -249,6 +254,7 @@ table 1382 "Item Templ."
         }
         field(35; "Maximum Inventory"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Inventory';
             DecimalPlaces = 0 : 5;
@@ -260,6 +266,7 @@ table 1382 "Item Templ."
         }
         field(36; "Reorder Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Reorder Quantity';
             DecimalPlaces = 0 : 5;
@@ -282,6 +289,7 @@ table 1382 "Item Templ."
         field(38; "Unit List Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit List Price';
             MinValue = 0;
 
@@ -292,6 +300,7 @@ table 1382 "Item Templ."
         }
         field(39; "Duty Due %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Duty Due %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -313,6 +322,7 @@ table 1382 "Item Templ."
         }
         field(41; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -324,6 +334,7 @@ table 1382 "Item Templ."
         }
         field(42; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -335,6 +346,7 @@ table 1382 "Item Templ."
         }
         field(43; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -346,6 +358,7 @@ table 1382 "Item Templ."
         }
         field(44; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -386,6 +399,7 @@ table 1382 "Item Templ."
         }
         field(48; "Duty Unit Conversion"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Duty Unit Conversion';
             DecimalPlaces = 0 : 5;
 
@@ -406,6 +420,7 @@ table 1382 "Item Templ."
         }
         field(50; "Budget Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Budget Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -417,6 +432,7 @@ table 1382 "Item Templ."
         field(51; "Budgeted Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Budgeted Amount';
 
             trigger OnValidate()
@@ -427,6 +443,7 @@ table 1382 "Item Templ."
         field(52; "Budget Profit"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Budget Profit';
 
             trigger OnValidate()
@@ -625,6 +642,7 @@ table 1382 "Item Templ."
         }
         field(5401; "Lot Size"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Lot Size';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -646,6 +664,7 @@ table 1382 "Item Templ."
         }
         field(5407; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 2;
             MaxValue = 100;
@@ -659,6 +678,7 @@ table 1382 "Item Templ."
         field(5408; "Rolled-up Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Non-Inventory Cost';
             DataClassification = CustomerContent;
             DecimalPlaces = 2 : 5;
@@ -689,6 +709,7 @@ table 1382 "Item Templ."
         }
         field(5411; "Minimum Order Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Minimum Order Quantity';
             DecimalPlaces = 0 : 5;
@@ -701,6 +722,7 @@ table 1382 "Item Templ."
         }
         field(5412; "Maximum Order Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Order Quantity';
             DecimalPlaces = 0 : 5;
@@ -713,6 +735,7 @@ table 1382 "Item Templ."
         }
         field(5413; "Safety Stock Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Stock Quantity';
             DecimalPlaces = 0 : 5;
@@ -725,6 +748,7 @@ table 1382 "Item Templ."
         }
         field(5414; "Order Multiple"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Order Multiple';
             DecimalPlaces = 0 : 5;
@@ -766,6 +790,7 @@ table 1382 "Item Templ."
         }
         field(5422; "Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rounding Precision';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -847,6 +872,7 @@ table 1382 "Item Templ."
         }
         field(5446; "Dampener Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Dampener Quantity';
             DecimalPlaces = 0 : 5;
@@ -859,6 +885,7 @@ table 1382 "Item Templ."
         }
         field(5447; "Overflow Level"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Overflow Level';
             DecimalPlaces = 0 : 5;
@@ -1019,6 +1046,7 @@ table 1382 "Item Templ."
         }
         field(10700; "Cost Regulation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Regulation %';
             DecimalPlaces = 2 : 2;
             MaxValue = 100;
@@ -1031,7 +1059,7 @@ table 1382 "Item Templ."
         }
         field(99000757; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
 
             trigger OnValidate()

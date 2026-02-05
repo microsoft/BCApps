@@ -89,10 +89,14 @@ table 11400 "CBG Statement"
         }
         field(12; "Opening Balance"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Currency;
             Caption = 'Opening Balance';
         }
         field(13; "Closing Balance"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Currency;
             Caption = 'Closing Balance';
         }
         field(14; "No. Series"; Code[20])
@@ -101,6 +105,8 @@ table 11400 "CBG Statement"
         }
         field(15; "Net Change Debit"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Currency;
             CalcFormula = sum("CBG Statement Line"."Debit Incl. VAT" where("Journal Template Name" = field("Journal Template Name"),
                                                                             "No." = field("No.")));
             Caption = 'Net Change Debit';
@@ -109,6 +115,8 @@ table 11400 "CBG Statement"
         }
         field(16; "Net Change Credit"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Currency;
             CalcFormula = sum("CBG Statement Line"."Credit Incl. VAT" where("Journal Template Name" = field("Journal Template Name"),
                                                                              "No." = field("No.")));
             Caption = 'Net Change Credit';
@@ -290,14 +298,14 @@ table 11400 "CBG Statement"
         JournalTemplate.Get("Journal Template Name");
         if (JournalTemplate.Type = JournalTemplate.Type::Bank) and (("Document No." = '') or (IncreaseNoSeries)) then begin
             JournalTemplate.TestField("No. Series");
-                "No. Series" := JournalTemplate."No. Series";
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
+            "No. Series" := JournalTemplate."No. Series";
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
 
-                if IncreaseNoSeries then
-                    "Document No." := NoSeries.GetNextNo("No. Series", Date)
-                else
-                    "Document No." := NoSeries.PeekNextNo("No. Series", Date);
+            if IncreaseNoSeries then
+                "Document No." := NoSeries.GetNextNo("No. Series", Date)
+            else
+                "Document No." := NoSeries.PeekNextNo("No. Series", Date);
         end;
     end;
 

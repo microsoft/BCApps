@@ -28,6 +28,9 @@ using System.Privacy;
 using System.Security.User;
 using System.Threading;
 
+/// <summary>
+/// Displays and manages a single sales credit memo document for processing customer refunds.
+/// </summary>
 page 44 "Sales Credit Memo"
 {
     Caption = 'Sales Credit Memo';
@@ -1679,6 +1682,10 @@ page 44 "Sales Credit Memo"
         IsSalesLinesEditable := Rec.SalesLinesEditable();
     end;
 
+    /// <summary>
+    /// Calls the document posting procedure with the specified posting codeunit.
+    /// </summary>
+    /// <param name="PostingCodeunitID">The ID of the posting codeunit to execute.</param>
     procedure CallPostDocument(PostingCodeunitID: Integer)
     begin
         PostDocument(PostingCodeunitID);
@@ -1784,6 +1791,9 @@ page 44 "Sales Credit Memo"
         ExternalDocNoMandatory := SalesSetup."Ext. Doc. No. Mandatory";
     end;
 
+    /// <summary>
+    /// Shows a preview of the posting result without actually posting the document.
+    /// </summary>
     procedure ShowPreview()
     var
         SalesPostYesNo: Codeunit "Sales-Post (Yes/No)";
@@ -1814,6 +1824,9 @@ page 44 "Sales Credit Memo"
         OnAfterSetControlAppearance(Rec);
     end;
 
+    /// <summary>
+    /// Runs a background check for document errors.
+    /// </summary>
     procedure RunBackgroundCheck()
     begin
         CurrPage.SalesDocCheckFactbox.Page.CheckErrorsInBackground(Rec);
@@ -1853,6 +1866,9 @@ page 44 "Sales Credit Memo"
             end;
     end;
 
+    /// <summary>
+    /// Sets whether the posting group field should be editable based on customer settings.
+    /// </summary>
     procedure SetPostingGroupEditable()
     var
         BillToCustomer: Record Customer;

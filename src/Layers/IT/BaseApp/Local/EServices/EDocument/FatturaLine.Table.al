@@ -43,10 +43,13 @@ table 12204 "Fattura Line"
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
         }
         field(13; "Unit Price"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Price';
         }
         field(14; "Unit of Measure"; Text[50])
@@ -55,18 +58,24 @@ table 12204 "Fattura Line"
         }
         field(15; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(20; "Discount Percent"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount Percent';
         }
         field(21; "Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Discount Amount';
         }
         field(30; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
         }
         field(31; "VAT Transaction Nature"; Code[4])
@@ -76,10 +85,14 @@ table 12204 "Fattura Line"
         }
         field(32; "VAT Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Base';
         }
         field(33; "VAT Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'VAT Amount';
         }
         field(34; "VAT Nature Description"; Text[100])

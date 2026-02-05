@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Globalization;
 
+/// <summary>
+/// Configures email and attachment text settings for a reminder term by language.
+/// </summary>
 page 1897 "Reminder Term Communication"
 {
     PageType = Card;

@@ -32,6 +32,7 @@ page 5088 "Campaign Statistics"
                 field(ResponseRate; ResponseRate)
                 {
                     ApplicationArea = RelationshipMgmt;
+                    AutoFormatType = 0;
                     Caption = 'Response Rate %';
                     DecimalPlaces = 1 : 1;
                     ToolTip = 'Specifies how many participated in the campaign, represented as a percentage of the number of target contacts contacted.';
@@ -45,6 +46,7 @@ page 5088 "Campaign Statistics"
                 {
                     ApplicationArea = RelationshipMgmt;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Avg. Cost per Response';
                     ToolTip = 'Specifies the cost of the campaign per response.';
                 }
@@ -57,6 +59,7 @@ page 5088 "Campaign Statistics"
                 field(AvgDurationPerResp; AvgDurationPerResp)
                 {
                     ApplicationArea = RelationshipMgmt;
+                    AutoFormatType = 0;
                     Caption = 'Avg. Duration per Response';
                     DecimalPlaces = 0 : 0;
                     ToolTip = 'Specifies how long the campaign took per response.';

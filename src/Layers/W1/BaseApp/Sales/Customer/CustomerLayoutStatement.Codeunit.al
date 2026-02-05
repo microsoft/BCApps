@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Foundation.Reporting;
 using System.Threading;
 
+/// <summary>
+/// Manages customer statement report execution using custom layouts and job queue scheduling.
+/// </summary>
 codeunit 8810 "Customer Layout - Statement"
 {
 
@@ -21,6 +24,9 @@ codeunit 8810 "Customer Layout - Statement"
         DuplicateJobQueueRecordErr: Label 'Customer statements are already scheduled to run in the job queue.';
         ConfirmRunRepInBackgroundQst: Label 'Do you want to set the job queue entry up to run immediately?';
 
+    /// <summary>
+    /// Runs the customer statement report with the standard request page for user input.
+    /// </summary>
     procedure RunReport()
     var
         Customer: Record Customer;
@@ -34,6 +40,10 @@ codeunit 8810 "Customer Layout - Statement"
           ReportSelections.Usage::"C.Statement", RecRef, Customer.FieldName("No."), DATABASE::Customer, Customer.FieldName("No."), true);
     end;
 
+    /// <summary>
+    /// Runs the customer statement report with predefined request parameters.
+    /// </summary>
+    /// <param name="Parameters">Specifies the XML request parameters for the report.</param>
     procedure RunReportWithParameters(Parameters: Text)
     var
         Customer: Record Customer;
@@ -48,6 +58,9 @@ codeunit 8810 "Customer Layout - Statement"
           ReportSelections.Usage::"C.Statement", RecRef, Customer.FieldName("No."), DATABASE::Customer, Customer.FieldName("No."), true);
     end;
 
+    /// <summary>
+    /// Runs the customer statement report without displaying the request page.
+    /// </summary>
     procedure RunReportWithoutRequestPage()
     var
         Customer: Record Customer;
@@ -62,6 +75,9 @@ codeunit 8810 "Customer Layout - Statement"
           ReportSelections.Usage::"C.Statement", RecRef, Customer.FieldName("No."), DATABASE::Customer, Customer.FieldName("No."), true);
     end;
 
+    /// <summary>
+    /// Schedules the customer statement report to run via the job queue with user-specified parameters.
+    /// </summary>
     procedure EnqueueReport()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -95,6 +111,9 @@ codeunit 8810 "Customer Layout - Statement"
             JobQueueEntry.SetStatus(JobQueueEntry.Status::Ready);
     end;
 
+    /// <summary>
+    /// Checks if the customer statement report is already scheduled in the job queue and raises an error if so.
+    /// </summary>
     procedure CheckReportRunningInBackground()
     var
         JobQueueEntry: Record "Job Queue Entry";

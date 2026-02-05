@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +10,9 @@ report 10860 "Payment List"
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/PaymentList.rdlc';
     Caption = 'Payment List';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -101,4 +105,4 @@ report 10860 "Payment List"
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         Payment_Line__Due_Date_CaptionLbl: Label 'Due Date';
 }
-
+#endif

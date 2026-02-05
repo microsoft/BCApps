@@ -55,6 +55,7 @@ page 1327 "Adjust Inventory"
                 field(QtyToAdjustNoLocation; TempItemJournalLine.Quantity - TempItemJournalLine."Qty. (Calculated)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Qty. to Adjust';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -100,6 +101,7 @@ page 1327 "Adjust Inventory"
                 field(QtyToAdjust; TempItemJournalLine.Quantity - TempItemJournalLine."Qty. (Calculated)")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Qty. to Adjust';
                     DecimalPlaces = 0 : 5;
                     Editable = false;

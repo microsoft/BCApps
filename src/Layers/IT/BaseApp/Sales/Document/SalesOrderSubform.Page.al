@@ -31,6 +31,9 @@ using System.Environment.Configuration;
 using System.Integration.Excel;
 using System.Utilities;
 
+/// <summary>
+/// Displays the line items subform for a sales order document.
+/// </summary>
 page 46 "Sales Order Subform"
 {
     AutoSplitKey = true;
@@ -624,6 +627,7 @@ page 46 "Sales Order Subform"
                     trigger OnValidate()
                     begin
                         SetItemChargeFieldsStyle();
+                        CurrPage.Update();
                     end;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
@@ -1065,6 +1069,7 @@ page 46 "Sales Order Subform"
                     }
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
@@ -1911,6 +1916,9 @@ page 46 "Sales Order Subform"
             SalesSetup."Auto Post Non-Invt. via Whse." = SalesSetup."Auto Post Non-Invt. via Whse."::"Attached/Assigned";
     end;
 
+    /// <summary>
+    /// Approves and calculates the invoice discount for the current line.
+    /// </summary>
     procedure ApproveCalcInvDisc()
     begin
         CODEUNIT.Run(CODEUNIT::"Sales-Disc. (Yes/No)", Rec);
@@ -1937,6 +1945,9 @@ page 46 "Sales Order Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Calculates the invoice discount for the current line.
+    /// </summary>
     procedure CalcInvDisc()
     var
         SalesCalcDiscount: Codeunit "Sales-Calc. Discount";
@@ -1945,6 +1956,9 @@ page 46 "Sales Order Subform"
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Explodes the bill of materials for the current item line.
+    /// </summary>
     procedure ExplodeBOM()
     begin
         if Rec."Prepmt. Amt. Inv." <> 0 then
@@ -1953,6 +1967,9 @@ page 46 "Sales Order Subform"
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Opens the related purchase order form for drop shipment orders.
+    /// </summary>
     procedure OpenPurchOrderForm()
     var
         PurchHeader: Record "Purchase Header";
@@ -1972,6 +1989,9 @@ page 46 "Sales Order Subform"
         PurchOrder.Run();
     end;
 
+    /// <summary>
+    /// Opens the related special order purchase order or posted receipt.
+    /// </summary>
     procedure OpenSpecialPurchOrderForm()
     var
         PurchHeader: Record "Purchase Header";
@@ -2000,6 +2020,10 @@ page 46 "Sales Order Subform"
         end;
     end;
 
+    /// <summary>
+    /// Inserts extended text for the current line if available.
+    /// </summary>
+    /// <param name="Unconditionally">Whether to insert text without conditions.</param>
     procedure InsertExtendedText(Unconditionally: Boolean)
     begin
         OnBeforeInsertExtendedText(Rec);
@@ -2014,37 +2038,59 @@ page 46 "Sales Order Subform"
             UpdateForm(true);
     end;
 
+    /// <summary>
+    /// Shows the nonstock items page for the current line.
+    /// </summary>
     procedure ShowNonstockItems()
     begin
         Rec.ShowNonstock();
     end;
 
+    /// <summary>
+    /// Shows the order tracking page for the current line.
+    /// </summary>
     procedure ShowTracking()
     begin
         Rec.ShowOrderTracking();
     end;
 
+    /// <summary>
+    /// Shows the item charge assignment page for the current line.
+    /// </summary>
     procedure ItemChargeAssgnt()
     begin
         Rec.ShowItemChargeAssgnt();
     end;
 
+    /// <summary>
+    /// Updates the current page with optional record save.
+    /// </summary>
+    /// <param name="SetSaveRecord">Whether to save the record before updating.</param>
     procedure UpdateForm(SetSaveRecord: Boolean)
     begin
         CurrPage.Update(SetSaveRecord);
     end;
 
+    /// <summary>
+    /// Shows available prices for the current line item.
+    /// </summary>
     procedure ShowPrices()
     begin
         Rec.PickPrice();
         UpdateForm(true);
     end;
 
+    /// <summary>
+    /// Shows available line discounts for the current line item.
+    /// </summary>
     procedure ShowLineDisc()
     begin
         Rec.PickDiscount();
     end;
 
+    /// <summary>
+    /// Opens the order promising lines page for the current line.
+    /// </summary>
     procedure OrderPromisingLine()
     var
         OrderPromisingLine: Record "Order Promising Line" temporary;
@@ -2059,6 +2105,9 @@ page 46 "Sales Order Subform"
         OrderPromisingLines.RunModal();
     end;
 
+    /// <summary>
+    /// Handles post-validation logic after the No. field is validated.
+    /// </summary>
     procedure NoOnAfterValidate()
     begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
@@ -2092,6 +2141,9 @@ page 46 "Sales Order Subform"
         SaveAndAutoAsmToOrder();
     end;
 
+    /// <summary>
+    /// Handles post-validation logic after the Location Code field is validated.
+    /// </summary>
     procedure LocationCodeOnAfterValidate()
     begin
         SaveAndAutoAsmToOrder();
@@ -2182,6 +2234,9 @@ page 46 "Sales Order Subform"
         end;
     end;
 
+    /// <summary>
+    /// Shows the document line tracking page for the current line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";
@@ -2204,11 +2259,17 @@ page 46 "Sales Order Subform"
         DocumentTotals.GetTotalSalesHeaderAndCurrency(Rec, TotalSalesHeader, Currency);
     end;
 
+    /// <summary>
+    /// Clears the total sales header variable.
+    /// </summary>
     procedure ClearTotalSalesHeader();
     begin
         Clear(TotalSalesHeader);
     end;
 
+    /// <summary>
+    /// Calculates the document totals for all sales lines.
+    /// </summary>
     procedure CalculateTotals()
     var
         IsHandled: Boolean;
@@ -2226,6 +2287,9 @@ page 46 "Sales Order Subform"
         DocumentTotals.RefreshSalesLine(Rec);
     end;
 
+    /// <summary>
+    /// Performs an incremental update of document totals based on line changes.
+    /// </summary>
     procedure DeltaUpdateTotals()
     var
         IsHandled: Boolean;
@@ -2243,11 +2307,17 @@ page 46 "Sales Order Subform"
             Rec.SendLineInvoiceDiscountResetNotification();
     end;
 
+    /// <summary>
+    /// Forces a recalculation of document totals on the next update.
+    /// </summary>
     procedure ForceTotalsCalculation()
     begin
         DocumentTotals.SalesDocTotalsNotUpToDate();
     end;
 
+    /// <summary>
+    /// Redistributes invoice discount amounts across lines after validation.
+    /// </summary>
     procedure RedistributeTotalsOnAfterValidate()
     var
         SalesHeader: Record "Sales Header";
@@ -2262,6 +2332,9 @@ page 46 "Sales Order Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Updates the editable state of fields on the current row.
+    /// </summary>
     procedure UpdateEditableOnRow()
     begin
         IsCommentLine := not Rec.HasTypeToFillMandatoryFields();
@@ -2278,6 +2351,9 @@ page 46 "Sales Order Subform"
         OnAfterUpdateEditableOnRow(Rec, IsCommentLine, IsBlankNumber);
     end;
 
+    /// <summary>
+    /// Updates the type text display based on the current line type.
+    /// </summary>
     procedure UpdateTypeText()
     var
         RecRef: RecordRef;

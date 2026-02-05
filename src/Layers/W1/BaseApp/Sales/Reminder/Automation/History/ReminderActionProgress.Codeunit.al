@@ -4,8 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Manages the creation and updating of log entries to track reminder automation execution progress.
+/// </summary>
 codeunit 6751 "Reminder Action Progress"
 {
+    /// <summary>
+    /// Creates a new log entry for tracking the execution of a reminder action group.
+    /// </summary>
+    /// <param name="ReminderActionGroup">Specifies the reminder action group to create a log entry for.</param>
+    /// <param name="ReminderActionGroupLog">Returns the created reminder action group log record.</param>
     procedure CreateGroupEntry(var ReminderActionGroup: Record "Reminder Action Group"; var ReminderActionGroupLog: Record "Reminder Action Group Log")
     begin
         ReminderActionGroupLog."Reminder Action Group ID" := ReminderActionGroup.Code;
@@ -13,6 +21,12 @@ codeunit 6751 "Reminder Action Progress"
         ReminderActionGroupLog.Insert();
     end;
 
+    /// <summary>
+    /// Retrieves the most recent log entry for the specified reminder action group.
+    /// </summary>
+    /// <param name="ReminderActionGroupCode">Specifies the reminder action group code to find the last entry for.</param>
+    /// <param name="ReminderActionGroupLog">Returns the last reminder action group log record if found.</param>
+    /// <returns>True if a log entry was found; otherwise, false.</returns>
     procedure GetLastEntryForGroup(ReminderActionGroupCode: Code[50]; var ReminderActionGroupLog: Record "Reminder Action Group Log"): Boolean
     begin
         ReminderActionGroupLog.Reset();
@@ -21,6 +35,12 @@ codeunit 6751 "Reminder Action Progress"
         exit(ReminderActionGroupLog.FindLast());
     end;
 
+    /// <summary>
+    /// Retrieves the most recent log entry for the specified reminder action in the current run.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action to find the last entry for.</param>
+    /// <param name="ReminderActionLog">Returns the last reminder action log record if found.</param>
+    /// <returns>True if a log entry was found; otherwise, false.</returns>
     procedure GetLastActionEntry(var ReminderAction: Record "Reminder Action"; var ReminderActionLog: Record "Reminder Action Log"): Boolean
     var
         ReminderActionGroupLog: Record "Reminder Action Group Log";
@@ -34,6 +54,12 @@ codeunit 6751 "Reminder Action Progress"
         exit(ReminderActionLog.FindLast());
     end;
 
+    /// <summary>
+    /// Creates a new log entry for tracking the execution of a specific reminder action.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action to create a log entry for.</param>
+    /// <param name="ReminderActionLogStatus">Specifies the initial status for the log entry.</param>
+    /// <param name="ReminderActionLog">Returns the created reminder action log record.</param>
     procedure CreateNewActionEntry(var ReminderAction: Record "Reminder Action"; ReminderActionLogStatus: Enum "Reminder Log Status"; var ReminderActionLog: Record "Reminder Action Log")
     var
         ReminderActionGroupLog: Record "Reminder Action Group Log";
@@ -48,6 +74,11 @@ codeunit 6751 "Reminder Action Progress"
         ReminderActionLog.Insert(true);
     end;
 
+    /// <summary>
+    /// Updates the status of an existing reminder action group log entry.
+    /// </summary>
+    /// <param name="ReminderActionGroupLog">Specifies the reminder action group log to update.</param>
+    /// <param name="ReminderActionLogStatus">Specifies the new status for the log entry.</param>
     procedure UpdateGroupEntry(var ReminderActionGroupLog: Record "Reminder Action Group Log"; ReminderActionLogStatus: Enum "Reminder Log Status")
     begin
         ReminderActionGroupLog.Status := ReminderActionLogStatus;
@@ -56,6 +87,12 @@ codeunit 6751 "Reminder Action Progress"
         ReminderActionGroupLog.Modify();
     end;
 
+    /// <summary>
+    /// Updates the status and last processed record of a reminder action log entry.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action whose log entry should be updated.</param>
+    /// <param name="LastRecordID">Specifies the record ID of the last processed record.</param>
+    /// <param name="ReminderActionLogStatus">Specifies the new status for the log entry.</param>
     procedure UpdateActionEntry(var ReminderAction: Record "Reminder Action"; LastRecordID: RecordId; ReminderActionLogStatus: Enum "Reminder Log Status")
     var
         ReminderActionLog: Record "Reminder Action Log";
@@ -68,6 +105,12 @@ codeunit 6751 "Reminder Action Progress"
         ReminderActionLog.Modify();
     end;
 
+    /// <summary>
+    /// Updates the total records processed count and status summary text for a reminder action log entry.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action whose log entry should be updated.</param>
+    /// <param name="TotalRecordsProcessed">Specifies the total number of records processed so far.</param>
+    /// <param name="StatusText">Specifies the status summary text to display.</param>
     procedure UpdateStatusAndTotalRecordsProcessed(var ReminderAction: Record "Reminder Action"; TotalRecordsProcessed: Integer; StatusText: Text)
     var
         ReminderActionLog: Record "Reminder Action Log";

@@ -133,6 +133,7 @@ page 5857 "Get Post.Doc - P.InvLn Subform"
                 field(RemainingQty; RemainingQty)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Remaining Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity from the posted document line that remains in inventory, meaning that it has not been sold, returned, or consumed.';
@@ -140,6 +141,7 @@ page 5857 "Get Post.Doc - P.InvLn Subform"
                 field(AppliedQty; GetAppliedQty())
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Applied Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies how many units of the item that have been applied.';
@@ -160,6 +162,7 @@ page 5857 "Get Post.Doc - P.InvLn Subform"
                 {
                     ApplicationArea = SalesReturnOrder;
                     AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     Caption = 'Reverse Unit Cost (LCY)';
                     ToolTip = 'Specifies the unit cost that will appear on the new document lines.';
                     Visible = false;

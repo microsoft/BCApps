@@ -141,13 +141,15 @@ table 901 "Assembly Line"
                 if Rec."Variant Code" = '' then begin
                     GetItemResource();
                     Description := Item.Description;
-                    "Description 2" := Item."Description 2"
+                    "Description 2" := Item."Description 2";
+                    OnValidateVariantCodeOnUpdateDescriptionsFromItem(Rec, Item);
                 end else begin
                     ItemVariant.SetLoadFields(Description, "Description 2", Blocked);
                     ItemVariant.Get("No.", "Variant Code");
                     ItemVariant.TestField(Blocked, false);
                     Description := ItemVariant.Description;
                     "Description 2" := ItemVariant."Description 2";
+                    OnValidateVariantCodeOnUpdateDescriptionsFromVariantCode(Rec, ItemVariant);
                 end;
 
                 GetDefaultBin();
@@ -329,6 +331,7 @@ table 901 "Assembly Line"
         }
         field(40; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -355,6 +358,7 @@ table 901 "Assembly Line"
         }
         field(41; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -375,18 +379,21 @@ table 901 "Assembly Line"
         }
         field(42; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(43; "Remaining Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(44; "Consumed Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Consumed Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -399,12 +406,14 @@ table 901 "Assembly Line"
         }
         field(45; "Consumed Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Consumed Quantity (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(46; "Quantity to Consume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity to Consume';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -436,12 +445,14 @@ table 901 "Assembly Line"
         }
         field(47; "Quantity to Consume (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity to Consume (Base)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(48; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                    "Source Ref. No." = field("Line No."),
                                                                    "Source Type" = const(901),
@@ -456,6 +467,7 @@ table 901 "Assembly Line"
         }
         field(49; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                             "Source Ref. No." = field("Line No."),
                                                                             "Source Type" = const(901),
@@ -517,6 +529,7 @@ table 901 "Assembly Line"
         }
         field(60; "Quantity per"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity per';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -546,6 +559,7 @@ table 901 "Assembly Line"
         }
         field(61; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -668,6 +682,7 @@ table 901 "Assembly Line"
         }
         field(7301; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = filter(<> "Put-away"),
                                                                                   "Source Type" = const(901),
 #pragma warning disable AL0603
@@ -687,6 +702,7 @@ table 901 "Assembly Line"
         }
         field(7302; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter(<> "Put-away"),
                                                                                          "Source Type" = const(901),
 #pragma warning disable AL0603
@@ -706,6 +722,7 @@ table 901 "Assembly Line"
         }
         field(7303; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -717,6 +734,7 @@ table 901 "Assembly Line"
         }
         field(7304; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2357,6 +2375,16 @@ table 901 "Assembly Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetQtyPerUoMAndQtyRoundingPrecision(var AssemblyLine: Record "Assembly Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateVariantCodeOnUpdateDescriptionsFromItem(var AssemblyLine: Record "Assembly Line"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateVariantCodeOnUpdateDescriptionsFromVariantCode(var AssemblyLine: Record "Assembly Line"; ItemVariant: Record "Item Variant")
     begin
     end;
 }

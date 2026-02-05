@@ -376,6 +376,7 @@ page 2000001 "EB Payment Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Remittee (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the amount of the payments of the customer or vendor that has been entered on the payment journal line.';
@@ -389,6 +390,7 @@ page 2000001 "EB Payment Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance (LCY)';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the payment journal.';

@@ -19,6 +19,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
@@ -503,6 +504,7 @@ page 54 "Purchase Order Subform"
                     trigger OnValidate()
                     begin
                         SetItemChargeFieldsStyle();
+                        CurrPage.Update();
                     end;
                 }
                 field("Quantity Received"; Rec."Quantity Received")
@@ -529,6 +531,7 @@ page 54 "Purchase Order Subform"
                     trigger OnValidate()
                     begin
                         SetItemChargeFieldsStyle();
+                        CurrPage.Update();
                     end;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
@@ -540,12 +543,46 @@ page 54 "Purchase Order Subform"
                     trigger OnDrillDown()
                     var
                         PurchInvLine: Record "Purch. Inv. Line";
+                        PostedMatchedOrderLine: Record "Posted Matched Order Line";
+                        PurchInvLineSystemIDFilter: Text;
+                        NullGuid: Guid;
                     begin
                         PurchInvLine.SetCurrentKey("Document No.", "No.", "Expected Receipt Date");
                         PurchInvLine.SetRange("Order No.", Rec."Document No.");
                         PurchInvLine.SetRange("Order Line No.", Rec."Line No.");
                         PurchInvLine.SetFilter(Quantity, '<>%1', 0);
-                        PAGE.RunModal(0, PurchInvLine);
+                        if PurchInvLine.FindSet() then
+                            repeat
+                                PurchInvLineSystemIDFilter += Format(PurchInvLine.SystemId) + '|';
+                            until PurchInvLine.Next() = 0;
+
+                        PostedMatchedOrderLine.SetRange("Matched Order Line SystemId", Rec.SystemId);
+                        if PostedMatchedOrderLine.FindSet() then
+                            repeat
+                                PurchInvLineSystemIDFilter += Format(PostedMatchedOrderLine."Document Line SystemId") + '|';
+                            until PostedMatchedOrderLine.Next() = 0;
+
+                        if PurchInvLineSystemIDFilter <> '' then
+                            PurchInvLineSystemIDFilter := CopyStr(PurchInvLineSystemIDFilter, 1, StrLen(PurchInvLineSystemIDFilter) - 1)
+                        else
+                            PurchInvLineSystemIDFilter := NullGuid;
+
+                        PurchInvLine.Reset();
+                        PurchInvLine.SetFilter(SystemId, PurchInvLineSystemIDFilter);
+                        Page.RunModal(0, PurchInvLine);
+                    end;
+                }
+                field("Matched Inv./Cr. Memo Lines"; Rec."Matched Inv./Cr. Memo Lines")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Matched Invoice Lines';
+                    ToolTip = 'Specifies the number of purchase invoice lines to which this purchase order line is matched.';
+
+                    trigger OnDrillDown()
+                    var
+                        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+                    begin
+                        MatchedOrderLineMgmt.ShowMatchedInvoiceLines(Rec);
                     end;
                 }
                 field("Prepmt Amt to Deduct"; Rec."Prepmt Amt to Deduct")
@@ -1019,6 +1056,7 @@ page 54 "Purchase Order Subform"
                     field("Invoice Disc. Pct."; InvoiceDiscountPct)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 0;
                         Caption = 'Invoice Discount %';
                         DecimalPlaces = 0 : 3;
                         Editable = InvDiscAmountEditable;
@@ -1323,6 +1361,20 @@ page 54 "Purchase Order Subform"
                         RecRef.GetTable(Rec);
                         DocumentAttachmentDetails.OpenForRecRef(RecRef);
                         DocumentAttachmentDetails.RunModal();
+                    end;
+                }
+                action(MatchedInvoiceLines)
+                {
+                    ApplicationArea = Suite;
+                    Caption = 'Matched Invoice Lines';
+                    Image = TransferToLines;
+                    ToolTip = 'View the invoice lines matched to this order line.';
+
+                    trigger OnAction()
+                    var
+                        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+                    begin
+                        MatchedOrderLineMgmt.ShowMatchedInvoiceLines(Rec);
                     end;
                 }
             }

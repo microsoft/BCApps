@@ -396,6 +396,7 @@ table 5340 "CRM Systemuser"
         }
         field(49; Address1_Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 1: Latitude';
             Description = 'Latitude for address 1.';
             ExternalName = 'address1_latitude';
@@ -410,6 +411,7 @@ table 5340 "CRM Systemuser"
         }
         field(51; Address1_Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 1: Longitude';
             Description = 'Longitude for address 1.';
             ExternalName = 'address1_longitude';
@@ -553,6 +555,7 @@ table 5340 "CRM Systemuser"
         }
         field(70; Address2_Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 2: Latitude';
             Description = 'Latitude for address 2.';
             ExternalName = 'address2_latitude';
@@ -567,6 +570,7 @@ table 5340 "CRM Systemuser"
         }
         field(72; Address2_Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Address 2: Longitude';
             Description = 'Longitude for address 2.';
             ExternalName = 'address2_longitude';
@@ -847,6 +851,7 @@ table 5340 "CRM Systemuser"
         }
         field(105; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Exchange rate for the currency associated with the systemuser with respect to the base currency.';
             ExternalAccess = Read;

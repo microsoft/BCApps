@@ -11,6 +11,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Suggests sales price worksheet entries based on existing sales prices with optional adjustment factors and currency conversion.
+/// </summary>
 report 7052 "Suggest Sales Price on Wksh."
 {
     Caption = 'Suggest Sales Price on Wksh.';
@@ -315,6 +318,7 @@ report 7052 "Suggest Sales Price on Wksh."
                     field(OnlyPricesAbove; PriceLowerLimit)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Only Prices Above';
                         DecimalPlaces = 2 : 5;
                         ToolTip = 'Specifies the code for the sales type that the sales prices will be copied to. To see the existing sales codes, click the field.';
@@ -322,6 +326,7 @@ report 7052 "Suggest Sales Price on Wksh."
                     field(AdjustmentFactor; UnitPriceFactor)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 0;
                         Caption = 'Adjustment Factor';
                         DecimalPlaces = 0 : 5;
                         MinValue = 0;
@@ -476,6 +481,16 @@ report 7052 "Suggest Sales Price on Wksh."
 #pragma warning restore AA0074
         SalesPriceWkshLineExistsErr: Label 'There are multiple source lines for the record: %1.', Comment = '%1 = RecordId';
 
+    /// <summary>
+    /// Initializes the basic request parameters for suggesting sales prices on the worksheet.
+    /// </summary>
+    /// <param name="NewToSalesType">The target sales type for the suggested prices.</param>
+    /// <param name="NewToSalesCode">The target sales code.</param>
+    /// <param name="NewToStartDate">The starting date for the price validity.</param>
+    /// <param name="NewToEndDate">The ending date for the price validity.</param>
+    /// <param name="NewToCurrCode">The target currency code.</param>
+    /// <param name="NewToUOMCode">The target unit of measure code.</param>
+    /// <param name="NewCreateNewPrices">Specifies whether to create new price entries.</param>
     procedure InitializeRequest(NewToSalesType: Option Customer,"Customer Price Group",Campaign,"All CUstomers"; NewToSalesCode: Code[20]; NewToStartDate: Date; NewToEndDate: Date; NewToCurrCode: Code[10]; NewToUOMCode: Code[10]; NewCreateNewPrices: Boolean)
     begin
         ToSalesType := "Sales Price Type".FromInteger(NewToSalesType);
@@ -487,6 +502,19 @@ report 7052 "Suggest Sales Price on Wksh."
         CreateNewPrices := NewCreateNewPrices;
     end;
 
+    /// <summary>
+    /// Initializes all request parameters for suggesting sales prices on the worksheet including adjustment options.
+    /// </summary>
+    /// <param name="NewToSalesType">The target sales type for the suggested prices.</param>
+    /// <param name="NewToSalesCode">The target sales code.</param>
+    /// <param name="NewToStartDate">The starting date for the price validity.</param>
+    /// <param name="NewToEndDate">The ending date for the price validity.</param>
+    /// <param name="NewToCurrCode">The target currency code.</param>
+    /// <param name="NewToUOMCode">The target unit of measure code.</param>
+    /// <param name="NewCreateNewPrices">Specifies whether to create new price entries.</param>
+    /// <param name="NewPriceLowerLimit">The minimum price threshold for applying adjustments.</param>
+    /// <param name="NewUnitPriceFactor">The adjustment factor to multiply prices by.</param>
+    /// <param name="NewRoundingMethodCode">The rounding method code to apply to prices.</param>
     procedure InitializeRequest2(NewToSalesType: Option Customer,"Customer Price Group",Campaign,"All CUstomers"; NewToSalesCode: Code[20]; NewToStartDate: Date; NewToEndDate: Date; NewToCurrCode: Code[10]; NewToUOMCode: Code[10]; NewCreateNewPrices: Boolean; NewPriceLowerLimit: Decimal; NewUnitPriceFactor: Decimal; NewRoundingMethodCode: Code[10])
     begin
         InitializeRequest(NewToSalesType, NewToSalesCode, NewToStartDate, NewToEndDate, NewToCurrCode, NewToUOMCode, NewCreateNewPrices);
@@ -495,21 +523,45 @@ report 7052 "Suggest Sales Price on Wksh."
         RoundingMethod.Code := NewRoundingMethodCode;
     end;
 
+    /// <summary>
+    /// Raises an event after the report has finished processing.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostReport()
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before modifying or inserting a sales price worksheet record.
+    /// </summary>
+    /// <param name="SalesPriceWorksheet">The sales price worksheet record to be modified or inserted.</param>
+    /// <param name="SalesPrice">The source sales price record.</param>
+    /// <param name="UnitPriceFactor">The adjustment factor applied to prices.</param>
+    /// <param name="PriceLowerLimit">The minimum price threshold.</param>
+    /// <param name="RoundingMethod">The rounding method record used for price rounding.</param>
+    /// <param name="CreateNewPrices">Indicates whether new price entries are being created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyOrInsertSalesPriceWksh(var SalesPriceWorksheet: Record "Sales Price Worksheet"; var SalesPrice: Record "Sales Price"; UnitPriceFactor: Decimal; PriceLowerLimit: Decimal; RoundingMethod: Record "Rounding Method"; CreateNewPrices: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before setting the new unit price when it is above the price limit.
+    /// </summary>
+    /// <param name="SalesPriceWorksheet">The sales price worksheet record being processed.</param>
+    /// <param name="PriceLowerLimit">The minimum price threshold.</param>
+    /// <param name="IsHandled">Set to true to skip the default price calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetNewUnitPriceAbovePriceLimit(var SalesPriceWorksheet: Record "Sales Price Worksheet"; PriceLowerLimit: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after checking the sales price record to allow skipping specific records.
+    /// </summary>
+    /// <param name="SalesPrice">The sales price record being processed.</param>
+    /// <param name="Item">The related item record.</param>
+    /// <param name="SkipRecord">Set to true to skip processing this record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSalesPriceOnAfterGetRecordOnAfterCheck(SalesPrice: Record "Sales Price"; Item: Record Item; var SkipRecord: Boolean)
     begin

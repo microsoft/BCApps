@@ -26,18 +26,24 @@ page 6079 "Contract Amount Distribution"
                 field(AnnualAmount; AnnualAmount)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Annual Amount';
                     Editable = false;
                 }
                 field(CalcdAnnualAmount; CalcdAnnualAmount)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Calcd. Annual Amount';
                     Editable = false;
                 }
                 field(Difference; Difference)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Difference';
                     Editable = false;
                 }

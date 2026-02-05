@@ -151,6 +151,7 @@ table 7000021 "Posted Payment Order"
         field(34; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Remaining Amt. (LCY)" where("Bill Gr./Pmt. Order No." = field("No."),
                                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                   "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -165,6 +166,7 @@ table 7000021 "Posted Payment Order"
         field(35; "Amount Grouped (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Amt. for Collection (LCY)" where("Bill Gr./Pmt. Order No." = field("No."),
                                                                                        "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                        "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -179,6 +181,7 @@ table 7000021 "Posted Payment Order"
         field(36; "Remaining Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Posted Cartera Doc."."Remaining Amt. (LCY)" where("Bill Gr./Pmt. Order No." = field("No."),
                                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                   "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),

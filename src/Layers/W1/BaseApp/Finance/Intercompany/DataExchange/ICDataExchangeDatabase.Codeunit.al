@@ -116,6 +116,9 @@ codeunit 532 "IC Data Exchange Database" implements "IC Data Exchange"
     var
         RegisteredICPartner: Record "IC Partner";
     begin
+        if ICPartner."Inbox Type" <> Enum::"IC Partner Inbox Type"::Database then
+            exit;
+
         TempRegisteredICPartner.Reset();
         TempRegisteredICPartner.DeleteAll();
 

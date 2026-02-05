@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,6 +11,9 @@ page 10867 "Payment Step Card"
     PageType = Card;
     RefreshOnActivate = true;
     SourceTable = "Payment Step";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -257,4 +261,4 @@ page 10867 "Payment Step Card"
                         end;
     end;
 }
-
+#endif

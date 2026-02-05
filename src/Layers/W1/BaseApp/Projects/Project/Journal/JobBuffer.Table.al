@@ -30,26 +30,31 @@ table 1017 "Job Buffer"
         }
         field(3; "Amount 1"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount 1';
             DataClassification = SystemMetadata;
         }
         field(4; "Amount 2"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount 2';
             DataClassification = SystemMetadata;
         }
         field(5; "Amount 3"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount 3';
             DataClassification = SystemMetadata;
         }
         field(6; "Amount 4"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount 4';
             DataClassification = SystemMetadata;
         }
         field(7; "Amount 5"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount 5';
             DataClassification = SystemMetadata;
         }

@@ -1639,7 +1639,7 @@ codeunit 134929 "ERM MIR Test"
         FinanceChargeMemoLine.TestField(Amount, InterestAmount);
     end;
 
-    local procedure VerifyReminderFinanceChargeEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; Type: Option; No: Code[20]; DueDate: Date)
+    local procedure VerifyReminderFinanceChargeEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; Type: Enum "Reminder/Fin.ChargeEntry Type"; No: Code[20]; DueDate: Date)
     var
         ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry";
     begin

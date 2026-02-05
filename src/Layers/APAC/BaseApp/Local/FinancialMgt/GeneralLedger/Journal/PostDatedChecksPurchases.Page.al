@@ -169,6 +169,8 @@ page 28092 "Post Dated Checks-Purchases"
                 }
                 field(VendorBalance; VendorBalance)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance (LCY)';
                     Editable = false;
@@ -183,6 +185,8 @@ page 28092 "Post Dated Checks-Purchases"
                 }
                 field(LineAmount; LineAmount)
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Amount';
                     Editable = false;

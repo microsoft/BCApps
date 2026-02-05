@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,6 +17,9 @@ report 10868 "Draft notice"
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/Draftnotice.rdlc';
     Caption = 'Draft notice';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -495,3 +499,4 @@ report 10868 "Draft notice"
         exit("Payment Lines1"."Currency Code");
     end;
 }
+#endif

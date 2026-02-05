@@ -19,7 +19,7 @@ codeunit 99000790 "Mfg. Company Initialize"
         CapacityJnlTxt: Label 'CAPACITJNL', MaxLength = 10;
         ProdOrderTxt: Label 'PRODORDER', MaxLength = 10;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', true, false)]
     local procedure OnAfterInitSetupTables()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -30,7 +30,7 @@ codeunit 99000790 "Mfg. Company Initialize"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnBeforeSourceCodeSetupInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnBeforeSourceCodeSetupInsert', '', true, false)]
     local procedure OnBeforeSourceCodeSetupInsert(var SourceCodeSetup: Record "Source Code Setup"; sender: Codeunit "Company-Initialize")
     begin
         sender.InsertSourceCode(SourceCodeSetup."Consumption Journal", ConsumpJnlTxt, sender.PageName(Page::"Consumption Journal"));

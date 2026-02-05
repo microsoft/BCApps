@@ -289,6 +289,9 @@ codeunit 139688 "Recurring Billing Test"
 
         CreateBillingProposalForCustomerContractUsingTempTemplate("Period Calculation"::"Align to End of Month", '<1Y>', '<1Q>', 20230228D, 20230614D);
         CheckBillingLineAmountAndPrice(116.304);
+
+        CreateBillingProposalForCustomerContractUsingTempTemplate("Period Calculation"::"Align to End of Month", '<3M>', '<1M>', 20250226D, 20250228D);
+        CheckBillingLineAmountAndPrice(10.714);
     end;
 
     [Test]

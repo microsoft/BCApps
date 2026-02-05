@@ -40,31 +40,37 @@ table 920 "Res. Gr. Availability Buffer"
         }
         field(10; Capacity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Capacity';
             DataClassification = SystemMetadata;
         }
         field(11; "Qty. on Order (Job)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. on Order';
             DataClassification = SystemMetadata;
         }
         field(12; "Qty. on Service Order"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Allocated on Service Order';
             DataClassification = SystemMetadata;
         }
         field(13; "Availability After Orders"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Availability After Orders';
             DataClassification = SystemMetadata;
         }
         field(14; "Qty. Quoted (Job)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Project Quotes Allocation';
             DataClassification = SystemMetadata;
         }
         field(15; "Net Availability"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Availability';
             DataClassification = SystemMetadata;
         }

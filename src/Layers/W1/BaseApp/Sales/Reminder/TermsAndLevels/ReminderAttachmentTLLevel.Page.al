@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays and edits attachment text lines for a specific reminder level.
+/// </summary>
 page 549 "Reminder Attachment T.L. Level"
 {
     PageType = ListPlus;

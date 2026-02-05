@@ -150,6 +150,7 @@ table 124 "Purch. Cr. Memo Hdr."
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
         }
@@ -193,6 +194,7 @@ table 124 "Purch. Cr. Memo Hdr."
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -474,6 +476,7 @@ table 124 "Purch. Cr. Memo Hdr."
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -539,6 +542,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(1305; "Invoice Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = sum("Purch. Cr. Memo Line"."Inv. Discount Amount" where("Document No." = field("No.")));
             Caption = 'Invoice Discount Amount';
             Editable = false;

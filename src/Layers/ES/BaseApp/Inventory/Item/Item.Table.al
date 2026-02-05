@@ -2148,6 +2148,7 @@ table 27 Item
         }
         field(10700; "Cost Regulation %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cost Regulation %';
             DecimalPlaces = 2 : 2;
             MaxValue = 100;
@@ -2184,6 +2185,7 @@ table 27 Item
         field(99000756; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
             Editable = false;
         }

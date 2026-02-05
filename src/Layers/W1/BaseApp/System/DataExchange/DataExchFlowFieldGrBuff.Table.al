@@ -17,6 +17,7 @@ table 1239 "Data Exch. FlowField Gr. Buff."
         }
         field(3; "Value"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Value';
         }
     }

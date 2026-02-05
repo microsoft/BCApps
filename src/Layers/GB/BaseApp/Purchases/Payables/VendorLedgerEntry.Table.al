@@ -99,6 +99,7 @@ table 25 "Vendor Ledger Entry"
         field(15; "Original Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor Ledger Entry No." = field("Entry No."),
                                                                                   "Entry Type" = filter("Initial Entry"),
                                                                                   "Posting Date" = field("Date Filter")));
@@ -109,6 +110,7 @@ table 25 "Vendor Ledger Entry"
         field(16; "Remaining Amt. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor Ledger Entry No." = field("Entry No."),
                                                                                   "Posting Date" = field("Date Filter")));
             Caption = 'Remaining Amt. (LCY)';
@@ -118,6 +120,7 @@ table 25 "Vendor Ledger Entry"
         field(17; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                   "Vendor Ledger Entry No." = field("Entry No."),
                                                                                   "Posting Date" = field("Date Filter")));
@@ -128,11 +131,13 @@ table 25 "Vendor Ledger Entry"
         field(18; "Purchase (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Purchase (LCY)';
         }
         field(20; "Inv. Discount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Discount (LCY)';
         }
         field(21; "Buy-from Vendor No."; Code[20])
@@ -239,11 +244,13 @@ table 25 "Vendor Ledger Entry"
         field(40; "Pmt. Disc. Rcd.(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Disc. Rcd.(LCY)';
         }
         field(42; "Orig. Pmt. Disc. Possible(LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Org. Pmt. Disc. Possible (LCY)';
             Editable = false;
         }
@@ -312,6 +319,7 @@ table 25 "Vendor Ledger Entry"
         field(54; "Closed by Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Closed by Amount (LCY)';
         }
         field(58; "Debit Amount"; Decimal)
@@ -341,6 +349,7 @@ table 25 "Vendor Ledger Entry"
         field(60; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Debit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                         "Vendor Ledger Entry No." = field("Entry No."),
@@ -352,6 +361,7 @@ table 25 "Vendor Ledger Entry"
         field(61; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Credit Amount (LCY)" where("Ledger Entry Amount" = const(true),
                                                                                          "Vendor Ledger Entry No." = field("Entry No."),
@@ -387,11 +397,13 @@ table 25 "Vendor Ledger Entry"
         }
         field(73; "Adjusted Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Adjusted Currency Factor';
             DecimalPlaces = 0 : 15;
         }
         field(74; "Original Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Currency Factor';
             DecimalPlaces = 0 : 15;
         }
@@ -470,6 +482,7 @@ table 25 "Vendor Ledger Entry"
         field(83; "Pmt. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Pmt. Tolerance (LCY)';
         }
         field(84; "Amount to Apply"; Decimal)

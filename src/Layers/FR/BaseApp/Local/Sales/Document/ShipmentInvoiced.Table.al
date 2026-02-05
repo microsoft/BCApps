@@ -31,11 +31,13 @@ table 10825 "Shipment Invoiced"
         }
         field(10; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Qty. to Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship';
             DecimalPlaces = 0 : 5;
         }

@@ -225,6 +225,7 @@ page 20 "General Ledger Entries"
                     Caption = 'Running Balance';
                     ToolTip = 'Specifies the running balance in LCY.';
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = false;
                 }
                 field("Additional-Currency Amount"; Rec."Additional-Currency Amount")
@@ -240,6 +241,7 @@ page 20 "General Ledger Entries"
                     Caption = 'Running Balance (ACY)';
                     ToolTip = 'Specifies the running balance in additional reporting currency.';
                     AutoFormatType = 1;
+                    AutoFormatExpression = Rec.GetAdditionalReportingCurrencyCode();
                     Visible = false;
                 }
                 field("VAT Amount"; Rec."VAT Amount")

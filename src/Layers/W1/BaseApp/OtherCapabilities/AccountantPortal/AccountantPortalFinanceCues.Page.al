@@ -333,6 +333,8 @@ page 1315 "Accountant Portal Finance Cues"
 
                 field(CashAccountsBalanceAmountDecimal; CashAccountsBalanceAmountDecimal)
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'CashAccountsBalanceStyle', Locked = true;
                     ToolTip = 'Specifies the sum total of the cash accounts in the company.';

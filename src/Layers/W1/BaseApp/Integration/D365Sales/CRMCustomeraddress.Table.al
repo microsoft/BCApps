@@ -162,6 +162,7 @@ table 5360 "CRM Customeraddress"
         }
         field(19; Latitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Latitude';
             Description = 'Type the latitude value for the customer''s address, for use in mapping and other applications.';
             ExternalName = 'latitude';
@@ -176,6 +177,7 @@ table 5360 "CRM Customeraddress"
         }
         field(21; Longitude; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Longitude';
             Description = 'Type the longitude value for the customer''s address, for use in mapping and other applications.';
             ExternalName = 'longitude';
@@ -395,6 +397,7 @@ table 5360 "CRM Customeraddress"
         }
         field(48; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;

@@ -38,6 +38,7 @@ table 5886 "Exp. Phys. Invt. Tracking"
         }
         field(30; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -88,5 +89,5 @@ table 5886 "Exp. Phys. Invt. Tracking"
     end;
 }
 
- 
+
 #endif

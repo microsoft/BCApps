@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Globalization;
 
+/// <summary>
+/// Configures email and attachment text settings for a specific reminder level by language.
+/// </summary>
 page 835 "Reminder Level Communication"
 {
     PageType = Card;

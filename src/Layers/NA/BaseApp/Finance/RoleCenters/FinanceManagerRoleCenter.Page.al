@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1435,13 +1435,18 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Salesperson Commission';
                         RunObject = Report "Salesperson Commissions";
                     }
+#if not CLEAN28
                     action("Customer - Sales List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Sales List';
                         RunObject = report "Customer - Sales List";
                         Tooltip = 'Run the Customer - Sales List report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Aged Accounts Receivable")
                     {
                         ApplicationArea = Basic, Suite;

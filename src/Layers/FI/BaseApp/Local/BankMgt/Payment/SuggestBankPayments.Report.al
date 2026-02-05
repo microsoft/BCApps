@@ -151,6 +151,8 @@ report 32000003 "Suggest Bank Payments"
                     field(AmountAvailable; AmountAvailable)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Available Amount (LCY)';
                         ToolTip = 'Specifies a maximum amount available in local currency for payments. ';
 

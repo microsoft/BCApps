@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Displays and manages a standard sales code with its associated lines.
+/// </summary>
 page 170 "Standard Sales Code Card"
 {
     Caption = 'Standard Sales Lines Card';

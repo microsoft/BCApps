@@ -134,6 +134,7 @@ page 7000059 "Post. Payment Orders Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Open';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is not processed yet. ';
@@ -142,6 +143,7 @@ page 7000059 "Post. Payment Orders Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Closed';
                             Editable = false;
                             ToolTip = 'Specifies if the document is closed.';
@@ -150,6 +152,7 @@ page 7000059 "Post. Payment Orders Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';
@@ -158,6 +161,7 @@ page 7000059 "Post. Payment Orders Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Rejected';
                             Editable = false;
                             ToolTip = 'Specifies that the related payment is rejected.';

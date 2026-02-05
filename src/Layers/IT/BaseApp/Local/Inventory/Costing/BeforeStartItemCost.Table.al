@@ -44,23 +44,31 @@ table 12133 "Before Start Item Cost"
         }
         field(5; "Purchase Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Purchase Quantity';
         }
         field(6; "Purchase Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Purchase Amount';
         }
         field(7; "Production Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Production Quantity';
         }
         field(8; "Production Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Production Amount';
             Editable = false;
         }
         field(9; "Direct Components Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Direct Components Amount';
 
             trigger OnValidate()
@@ -70,6 +78,8 @@ table 12133 "Before Start Item Cost"
         }
         field(11; "Direct Routing Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Direct Routing Amount';
 
             trigger OnValidate()
@@ -79,6 +89,8 @@ table 12133 "Before Start Item Cost"
         }
         field(12; "Overhead Routing Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Overhead Routing Amount';
 
             trigger OnValidate()
@@ -88,6 +100,8 @@ table 12133 "Before Start Item Cost"
         }
         field(13; "Subcontracted Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Subcontracted Amount';
 
             trigger OnValidate()

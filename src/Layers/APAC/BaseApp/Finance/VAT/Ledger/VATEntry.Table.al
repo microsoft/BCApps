@@ -862,35 +862,43 @@ table 254 "VAT Entry"
         }
         field(28071; "Sett. Unrealised Amount (FCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Sett. Unrealised Amount (FCY)';
             Editable = false;
         }
         field(28072; "Sett. Unrealised Base (FCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Sett. Unrealised Base (FCY)';
             Editable = false;
         }
         field(28073; "Sett. Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sett. Unrealized Amount';
             Editable = false;
         }
         field(28074; "Sett. Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sett. Unrealized Base';
             Editable = false;
         }
         field(28075; "Sett. Rem. Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sett. Rem. Unrealized Amount';
             Editable = false;
         }
         field(28076; "Sett. Rem. Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sett. Rem. Unrealized Base';
             Editable = false;
         }

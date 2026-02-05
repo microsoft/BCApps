@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
 using System.Reflection;
 
+/// <summary>
+/// Manages dynamic field captions for sales lines based on document header settings.
+/// </summary>
 codeunit 345 "Sales Line CaptionClass Mgmt"
 {
     SingleInstance = true;
@@ -19,6 +22,12 @@ codeunit 345 "Sales Line CaptionClass Mgmt"
         GlobalSalesHeader: Record "Sales Header";
         GlobalField: Record "Field";
 
+    /// <summary>
+    /// Gets the caption class string for a sales line field based on VAT settings.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to get the caption for.</param>
+    /// <param name="FieldNumber">The field number to get the caption class for.</param>
+    /// <returns>The caption class string.</returns>
     procedure GetSalesLineCaptionClass(var SalesLine: Record "Sales Line"; FieldNumber: Integer): Text
     begin
         if (GlobalSalesHeader."Document Type" <> SalesLine."Document Type") or (GlobalSalesHeader."No." <> SalesLine."Document No.") then
@@ -42,6 +51,10 @@ codeunit 345 "Sales Line CaptionClass Mgmt"
         exit(GlobalField."Field Caption");
     end;
 
+    /// <summary>
+    /// Sets the cached sales header for caption class calculations.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to cache.</param>
     procedure SetCachedSalesHeader(SalesHeader: Record "Sales Header")
     begin
         GlobalSalesHeader := SalesHeader;

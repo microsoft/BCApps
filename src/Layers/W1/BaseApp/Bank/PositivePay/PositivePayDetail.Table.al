@@ -71,6 +71,8 @@ table 1241 "Positive Pay Detail"
         /// </summary>
         field(7; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         /// <summary>

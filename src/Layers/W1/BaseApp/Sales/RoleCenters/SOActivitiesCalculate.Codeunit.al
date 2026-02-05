@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.RoleCenters;
 
+/// <summary>
+/// Calculates sales order activity metrics for the Sales Cue in background tasks.
+/// </summary>
 codeunit 906 "SO Activities Calculate"
 {
     Permissions = tabledata "Sales Cue" = r;
@@ -22,6 +25,11 @@ codeunit 906 "SO Activities Calculate"
         Page.SetBackgroundTaskResult(Results);
     end;
 
+    /// <summary>
+    /// Calculates sales order activity field values based on the provided parameters and returns the results in a dictionary.
+    /// </summary>
+    /// <param name="Parameters">Specifies the input parameters dictionary containing the view filter for the sales cue.</param>
+    /// <param name="ReturnResults">Returns the calculated field values as key-value pairs in a dictionary.</param>
     procedure CalculateFieldValues(Parameters: Dictionary of [Text, Text]; var ReturnResults: Dictionary of [Text, Text])
     var
         SalesCue: Record "Sales Cue";
@@ -38,6 +46,11 @@ codeunit 906 "SO Activities Calculate"
         ReturnResults.Add(SalesCue.FieldName("S. Ord. - Reserved From Stock"), Format(SalesCue."S. Ord. - Reserved From Stock"));
     end;
 
+    /// <summary>
+    /// Evaluates the results dictionary from a background task and updates the sales cue record with the calculated values.
+    /// </summary>
+    /// <param name="ResultsDictionary">Specifies the dictionary containing the calculated field values from the background task.</param>
+    /// <param name="SalesCue">Specifies the sales cue record to update with the evaluated results.</param>
     procedure EvaluateResults(var ResultsDictionary: Dictionary of [Text, Text]; var SalesCue: Record "Sales Cue")
     var
         ResultValue: Text;

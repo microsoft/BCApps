@@ -154,6 +154,7 @@ tableextension 10013 "Service Invoice Header NA" extends "Service Invoice Header
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 6;

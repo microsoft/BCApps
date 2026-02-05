@@ -1,4 +1,4 @@
-﻿codeunit 134976 "ERM Sales Report"
+codeunit 134976 "ERM Sales Report"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -231,9 +231,11 @@
         LibraryReportDataset.AssertCurrentRowValueEquals('CustBalanceDueLCY_5__Control37', InvoiceAmount);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CustomerListRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Customer - List report is deprecated.', '28.0')]
     procedure CustomerList()
     var
         Customer: Record Customer;
@@ -261,6 +263,7 @@
     [Test]
     [HandlerFunctions('CustomerListRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Customer - List report is deprecated.', '28.0')]
     procedure CustomerListFilterStringWithGlobalDimCaptions()
     var
         Customer: Record Customer;
@@ -293,6 +296,7 @@
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('CustFilter', ExpectedFilterString);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('CustomerRegisterRequestPageHandler')]
@@ -507,9 +511,11 @@
         SalesInvoiceLine.TestField("Line Amount", SalesLine.Amount);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CustomerSalesListRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Customer - Sales List report is deprecated.', '28.0')]
     procedure CustomerSalesListWithAmount()
     var
         SalesHeader: Record "Sales Header";
@@ -541,6 +547,7 @@
     [Test]
     [HandlerFunctions('CustomerSalesListRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Customer - Sales List report is deprecated.', '28.0')]
     procedure CustomerSalesListWithAddress()
     var
         SalesHeader: Record "Sales Header";
@@ -566,6 +573,7 @@
         SalesInvoiceHeader.Get(PostedDocumentNo);
         LibraryReportDataset.AssertCurrentRowValueEquals('CustAddr_2_', SalesInvoiceHeader."Sell-to Address");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('StatementReportRequestPageHandler')]
@@ -2592,9 +2600,11 @@
         VerifyDueMonthsForDueDate(DueDate[4], 14);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('SalesStatisticsRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure SalesStatisticsReportForNonInventoryItem()
     var
         Item: Record Item;
@@ -2629,6 +2639,7 @@
         LibraryReportDataset.AssertElementWithValueExists('CustProfitLCY2', Item."Unit Price" - Item."Unit Cost");
         LibraryReportDataset.AssertElementWithValueExists('CustSalProfAdjmtCostLCY2', Item."Unit Cost");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('CustomerItemSalesRequestPageHandler')]
@@ -3488,6 +3499,7 @@
         exit(Customer."No.");
     end;
 
+#if not CLEAN28
     local procedure CreateCustomerWithDefaultGlobalDimValues(var Customer: Record Customer; var DimValueCode: array[2] of Code[20])
     var
         DimensionValue: Record "Dimension Value";
@@ -3502,6 +3514,7 @@
             DimValueCode[i] := DimensionValue.Code;
         end;
     end;
+#endif
 
     local procedure CreateCustomerItemReferenceNo(var Customer: Record Customer; var Item: Record Item): Code[20]
     var
@@ -3900,6 +3913,7 @@
         GenJournalLine.Modify();
     end;
 
+#if not CLEAN28
     local procedure UpdateGlobalDims()
     var
         Dimension: array[2] of Record Dimension;
@@ -3910,6 +3924,7 @@
             LibraryDimension.RunChangeGlobalDimensions(Dimension[1].Code, Dimension[2].Code);
         end;
     end;
+#endif
 
     local procedure PostJournalLines(var GenJournalLine: Record "Gen. Journal Line"; CustomerNo: Code[20]; DebitAmount: Decimal; CreditAmount: Decimal)
     begin
@@ -4059,12 +4074,15 @@
         REPORT.Run(REPORT::"Customer - Trial Balance", true, false, Customer);
     end;
 
+#if not CLEAN28
+    [Obsolete('Customer - List report is deprecated.', '28.0')]
     local procedure RunCustomerListReport(var Customer: Record Customer)
     begin
         Commit();
         Customer.SetRange("No.", Customer."No.");
         REPORT.Run(REPORT::"Customer - List", true, false, Customer);
     end;
+#endif
 
     local procedure RunStandardSalesOrderConfirmationReport(SalesHeaderNo: Code[20])
     var
@@ -4375,12 +4393,15 @@
         CustomerDetailedAging.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Customer - List report is deprecated.', '28.0')]
     procedure CustomerListRequestPageHandler(var CustomerList: TestRequestPage "Customer - List")
     begin
         CustomerList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -4530,8 +4551,10 @@
         CustomerItemSales.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Customer - Sales List report is deprecated.', '28.0')]
     procedure CustomerSalesListRequestPageHandler(var CustomerSalesList: TestRequestPage "Customer - Sales List")
     var
         CustomerNo: Variant;
@@ -4540,6 +4563,7 @@
         CustomerSalesList.Customer.SetFilter("No.", CustomerNo);
         CustomerSalesList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -4845,12 +4869,15 @@
         StandardSalesCreditMemo.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Sales Statistics report is deprecated.', '28.0')]
     procedure SalesStatisticsRequestPageHandler(var SalesStatistics: TestRequestPage "Sales Statistics")
     begin
         SalesStatistics.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

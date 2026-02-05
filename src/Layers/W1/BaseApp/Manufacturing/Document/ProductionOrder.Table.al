@@ -417,6 +417,7 @@ table 5405 "Production Order"
         }
         field(40; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -431,11 +432,15 @@ table 5405 "Production Order"
         }
         field(41; "Unit Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             DecimalPlaces = 2 : 5;
         }
         field(42; "Cost Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
             DecimalPlaces = 2 : 2;
         }
@@ -466,6 +471,7 @@ table 5405 "Production Order"
         field(51; "Expected Operation Cost Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Routing Line"."Expected Operation Cost Amt." where(Status = field(Status),
                                                                                                "Prod. Order No." = field("No.")));
             Caption = 'Expected Operation Cost Amt.';
@@ -475,6 +481,7 @@ table 5405 "Production Order"
         field(52; "Expected Component Cost Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Component"."Cost Amount" where(Status = field(Status),
                                                                            "Prod. Order No." = field("No."),
                                                                            "Due Date" = field("Date Filter")));
@@ -484,6 +491,7 @@ table 5405 "Production Order"
         }
         field(55; "Actual Time Used"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Capacity Ledger Entry".Quantity where("Order Type" = const(Production),
                                                                       "Order No." = field("No."),
                                                                       Type = field("Capacity Type Filter"),
@@ -496,6 +504,7 @@ table 5405 "Production Order"
         }
         field(56; "Allocated Capacity Need"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Needed Time" where(Status = field(Status),
                                                                                "Prod. Order No." = field("No."),
                                                                                Type = field("Capacity Type Filter"),
@@ -510,6 +519,7 @@ table 5405 "Production Order"
         }
         field(57; "Expected Capacity Need"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Prod. Order Capacity Need"."Needed Time" where(Status = field(Status),
                                                                                "Prod. Order No." = field("No."),
                                                                                Type = field("Capacity Type Filter"),
@@ -542,6 +552,8 @@ table 5405 "Production Order"
         }
         field(92; "Expected Material Ovhd. Cost"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Component"."Overhead Amount" where(Status = field(Status),
                                                                                "Prod. Order No." = field("No.")));
             Caption = 'Expected Material Ovhd. Cost';
@@ -552,6 +564,7 @@ table 5405 "Production Order"
         field(94; "Expected Capacity Ovhd. Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Prod. Order Routing Line"."Expected Capacity Ovhd. Cost" where(Status = field(Status),
                                                                                                "Prod. Order No." = field("No.")));
             Caption = 'Expected Capacity Ovhd. Cost';

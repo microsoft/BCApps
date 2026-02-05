@@ -8,6 +8,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 
+/// <summary>
+/// Stores prepayment percentage configurations by item and customer for sales orders.
+/// </summary>
 table 459 "Sales Prepayment %"
 {
     Caption = 'Sales Prepayment %';
@@ -15,12 +18,18 @@ table 459 "Sales Prepayment %"
 
     fields
     {
+        /// <summary>
+        /// Specifies the item number for which the prepayment percentage applies.
+        /// </summary>
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
             NotBlank = true;
             TableRelation = Item;
         }
+        /// <summary>
+        /// Specifies whether the prepayment percentage applies to a customer, customer price group, or all customers.
+        /// </summary>
         field(2; "Sales Type"; Option)
         {
             Caption = 'Sales Type';
@@ -33,6 +42,9 @@ table 459 "Sales Prepayment %"
                     Validate("Sales Code", '');
             end;
         }
+        /// <summary>
+        /// Specifies the customer number or customer price group code for which the prepayment percentage applies.
+        /// </summary>
         field(3; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
@@ -49,6 +61,9 @@ table 459 "Sales Prepayment %"
                     Error(Text001, FieldCaption("Sales Code"));
             end;
         }
+        /// <summary>
+        /// Specifies the date from which the prepayment percentage is valid.
+        /// </summary>
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
@@ -58,6 +73,9 @@ table 459 "Sales Prepayment %"
                 CheckDate();
             end;
         }
+        /// <summary>
+        /// Specifies the date until which the prepayment percentage is valid.
+        /// </summary>
         field(5; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
@@ -67,6 +85,9 @@ table 459 "Sales Prepayment %"
                 CheckDate();
             end;
         }
+        /// <summary>
+        /// Specifies the prepayment percentage required for the item before delivery.
+        /// </summary>
         field(6; "Prepayment %"; Decimal)
         {
             AutoFormatType = 0;

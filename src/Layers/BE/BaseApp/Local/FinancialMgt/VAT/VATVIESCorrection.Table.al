@@ -63,6 +63,7 @@ table 11300 "VAT VIES Correction"
         field(6; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
             NotBlank = true;
 

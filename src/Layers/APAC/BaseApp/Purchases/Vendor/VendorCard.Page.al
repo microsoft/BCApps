@@ -120,6 +120,8 @@ page 26 "Vendor Card"
                 }
                 field(BalanceAsCustomer; BalanceAsCustomer)
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance (LCY) As Customer';
                     Editable = false;
@@ -156,6 +158,8 @@ page 26 "Vendor Card"
                 }
                 field("""Balance (LCY)"" - ABS(""Post Dated Checks (LCY)"")"; Rec."Balance (LCY)" - Abs(Rec."Post Dated Checks (LCY)"))
                 {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Provisional Balance (LCY)';
                     ToolTip = 'Specifies the provincial balance, which is the current balance minus the value of the post-dated checks.';

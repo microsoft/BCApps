@@ -49,6 +49,9 @@ using System.Security.User;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Displays and manages a single sales order document for processing customer orders.
+/// </summary>
 page 42 "Sales Order"
 {
     Caption = 'Sales Order';
@@ -2981,6 +2984,9 @@ page 42 "Sales Order"
         end;
     end;
 
+    /// <summary>
+    /// Runs a background check for document errors.
+    /// </summary>
     procedure RunBackgroundCheck()
     begin
         CurrPage.SalesDocCheckFactbox.Page.CheckErrorsInBackground(Rec);
@@ -2994,11 +3000,17 @@ page 42 "Sales Order"
         PaymentServiceEnabled := PaymentServiceSetup.CanChangePaymentService(Rec);
     end;
 
+    /// <summary>
+    /// Updates the visibility of ship-to and bill-to address option groups.
+    /// </summary>
     procedure UpdateShipToBillToGroupVisibility()
     begin
         CustomerMgt.CalculateShipBillToOptions(ShipToOptions, BillToOptions, Rec);
     end;
 
+    /// <summary>
+    /// Sets whether the posting group field should be editable based on customer settings.
+    /// </summary>
     procedure SetPostingGroupEditable()
     var
         BillToCustomer: Record Customer;
@@ -3014,6 +3026,9 @@ page 42 "Sales Order"
     begin
     end;
 #endif
+    /// <summary>
+    /// Sets a flag to check notifications once on the next update.
+    /// </summary>
     procedure CheckNotificationsOnce()
     begin
         CallNotificationCheck := true;

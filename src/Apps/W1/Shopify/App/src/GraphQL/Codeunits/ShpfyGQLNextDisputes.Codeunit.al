@@ -18,7 +18,7 @@ codeunit 30389 "Shpfy GQL NextDisputes" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{ shopifyPaymentsAccount { disputes(first: 100, query: \"id:>{{SinceId}}\", after: \"{{After}}\") { edges { cursor node { amount { amount currencyCode } reasonDetails { networkReasonCode reason } order { id } evidenceDueBy evidenceSentOn finalizedOn id status type } } pageInfo { hasNextPage } } } }"}');
+        exit('{"query":"{ shopifyPaymentsAccount { disputes(first: 100, query: \"id:>={{SinceId}}\", after: \"{{After}}\") { edges { cursor node { amount { amount currencyCode } reasonDetails { networkReasonCode reason } order { id } evidenceDueBy evidenceSentOn finalizedOn id status type } } pageInfo { hasNextPage } } } }"}');
     end;
 
     /// <summary>

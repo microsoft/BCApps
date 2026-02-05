@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144058 "UT SEPA"
 {
     //  1 -  8. Purpose of the test is to verify error of Report ID - 10883 (SEPA ISO20022).
@@ -32,6 +33,9 @@ codeunit 144058 "UT SEPA"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -796,3 +800,4 @@ codeunit 144058 "UT SEPA"
         Reply := StoredReply;
     end;
 }
+#endif

@@ -15,6 +15,9 @@ using Microsoft.Sales.Setup;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Cancels issued finance charge memos by reversing posted entries and updating customer ledger entries.
+/// </summary>
 codeunit 1395 "Cancel Issued Fin. Charge Memo"
 {
     Permissions = TableData "Cust. Ledger Entry" = rm,
@@ -225,11 +228,20 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         OnAfterInitGenJnlLine(GenJnlLine, IssuedFinChargeMemoHeader);
     end;
 
+    /// <summary>
+    /// Gets the unique identifier for the applied customer ledger entry notification.
+    /// </summary>
+    /// <returns>The GUID used to identify the notification for applied customer ledger entries.</returns>
     procedure GetAppliedCustomerLedgerEntryNotificationId(): Guid
     begin
         exit('3C569183-8468-4978-936C-EF8A7C58B050');
     end;
 
+    /// <summary>
+    /// Retrieves accumulated error messages from the cancellation process.
+    /// </summary>
+    /// <param name="TempErrorMessageResult">Returns the temporary error message records containing any errors encountered during cancellation.</param>
+    /// <returns>True if there are error messages; otherwise, false.</returns>
     procedure GetErrorMessages(var TempErrorMessageResult: Record "Error Message" temporary): Boolean
     begin
         TempErrorMessageResult.Copy(TempErrorMessage, true);
@@ -267,6 +279,13 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         TempGenJnlLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Sets the parameters used when canceling an issued finance charge memo.
+    /// </summary>
+    /// <param name="NewUseSameDocumentNo">Specifies whether to use the same document number as the original finance charge memo.</param>
+    /// <param name="NewUseSamePostingDate">Specifies whether to use the same posting date as the original finance charge memo.</param>
+    /// <param name="PostingDate">Specifies the new posting date to use if NewUseSamePostingDate is false.</param>
+    /// <param name="NewSkipShowNotification">Specifies whether to skip showing notifications during the cancellation process.</param>
     procedure SetParameters(NewUseSameDocumentNo: Boolean; NewUseSamePostingDate: Boolean; PostingDate: Date; NewSkipShowNotification: Boolean)
     begin
         UseSameDocumentNo := NewUseSameDocumentNo;
@@ -275,6 +294,10 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         SkipShowNotification := NewSkipShowNotification;
     end;
 
+    /// <summary>
+    /// Sets the general journal batch to use when posting the cancellation entries.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">Specifies the general journal batch for posting cancellation entries.</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
@@ -307,6 +330,10 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
           AppliedCustomerLedgerNotification, IssuedFinChargeMemoHeader.RecordId, GetAppliedCustomerLedgerEntryNotificationId());
     end;
 
+    /// <summary>
+    /// Opens the Customer Ledger Entries page filtered to the entry specified in the notification.
+    /// </summary>
+    /// <param name="Notification">Specifies the notification containing the entry number to display.</param>
     procedure ShowCustomerLedgerEntry(Notification: Notification)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -336,21 +363,38 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         exit(not CustLedgerEntry.IsEmpty);
     end;
 
+    /// <summary>
+    /// Raised after a general journal line is initialized for posting the cancellation entry.
+    /// </summary>
+    /// <param name="GenJournalLine">Specifies the initialized general journal line.</param>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the issued finance charge memo header being canceled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the issued finance charge memo cancellation completes successfully.
+    /// </summary>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the canceled issued finance charge memo header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCancelIssuedFinChargeMemo(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the issued finance charge memo cancellation process begins.
+    /// </summary>
+    /// <param name="IssuedFinChargeMemoHeader">Specifies the issued finance charge memo header to cancel.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCancelIssuedFinChargeMemo(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating amount fields on the customer ledger entry during applied entry check.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry with calculated amounts.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAppliedFinChargeMemoCustLedgerEntryOnAfterCalcAmounts(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

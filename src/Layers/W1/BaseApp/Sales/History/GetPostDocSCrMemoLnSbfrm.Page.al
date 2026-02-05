@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays posted sales credit memo lines as a subform for line selection during document retrieval.
+/// </summary>
 page 5854 "Get Post.Doc-S.Cr.MemoLn Sbfrm"
 {
     Caption = 'Lines';
@@ -407,6 +410,10 @@ page 5854 "Get Post.Doc-S.Cr.MemoLn Sbfrm"
         exit(true);
     end;
 
+    /// <summary>
+    /// Gets the currently selected credit memo line with selection filter applied.
+    /// </summary>
+    /// <param name="FromSalesCrMemoLine">Returns the selected sales credit memo line.</param>
     procedure GetSelectedLine(var FromSalesCrMemoLine: Record "Sales Cr.Memo Line")
     begin
         FromSalesCrMemoLine.Copy(Rec);

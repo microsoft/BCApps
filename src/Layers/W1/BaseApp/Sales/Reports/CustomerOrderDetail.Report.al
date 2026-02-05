@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Lists outstanding sales order lines by customer showing item details, quantities, and expected shipment dates.
+/// </summary>
+
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -496,6 +500,11 @@ report 108 "Customer - Order Detail"
     protected var
         SalesHeader: Record "Sales Header";
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Order Detail report.
+    /// </summary>
+    /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
+    /// <param name="NewPagePerCustomer">True to start a new page per customer.</param>
     procedure InitializeRequest(ShowAmountInLCY: Boolean; NewPagePerCustomer: Boolean)
     begin
         PrintAmountsInLCY := ShowAmountInLCY;

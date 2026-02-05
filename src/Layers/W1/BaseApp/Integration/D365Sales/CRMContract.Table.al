@@ -237,6 +237,7 @@ table 5357 "CRM Contract"
         }
         field(27; TotalPrice; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Price';
             Description = 'Shows the total service charge for the contract, before any discounts are credited. This is calculated as the sum of values in the Total Price field for each existing contract line related to the contract.';
             ExternalAccess = Read;
@@ -253,6 +254,7 @@ table 5357 "CRM Contract"
         }
         field(29; TotalDiscount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount';
             Description = 'Shows the total discount applied to the contract''s service charges, calculated as the sum of values in the Discount fields for each existing contract line related to the contract.';
             ExternalAccess = Read;
@@ -273,6 +275,7 @@ table 5357 "CRM Contract"
         }
         field(31; NetPrice; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Price';
             Description = 'Shows the total charge to the customer for the service contract, calculated as the sum of values in the Net field for each existing contract line related to the contract.';
             ExternalAccess = Read;
@@ -495,6 +498,7 @@ table 5357 "CRM Contract"
         }
         field(56; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
@@ -503,6 +507,7 @@ table 5357 "CRM Contract"
         }
         field(57; TotalDiscount_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Discount (Base)';
             Description = 'Shows the Total Discount field converted to the system''s default base currency for reporting purposes. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -511,6 +516,7 @@ table 5357 "CRM Contract"
         }
         field(58; NetPrice_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Price (Base)';
             Description = 'Shows the Net Price field converted to the system''s default base currency for reporting purposes. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;
@@ -528,6 +534,7 @@ table 5357 "CRM Contract"
         }
         field(60; TotalPrice_Base; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Price (Base)';
             Description = 'Shows the Total Price field converted to the system''s default base currency for reporting purposes. The calculations use the exchange rate specified in the Currencies area.';
             ExternalAccess = Read;

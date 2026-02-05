@@ -20,23 +20,23 @@ page 149045 "AIT Evaluators"
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Test Suite Code';
-                    ToolTip = 'Specifies the code of the test suite.';
+                    Caption = 'Eval Suite Code';
+                    ToolTip = 'Specifies the code of the eval suite.';
                     Visible = false;
                 }
                 field("Test Method Line"; Rec."Test Method Line")
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Test Method Line';
-                    ToolTip = 'Specifies the line number of the test method.';
+                    Caption = 'Eval Method Line';
+                    ToolTip = 'Specifies the line number of the eval method.';
                     Visible = false;
                 }
                 field(Evaluator; Rec.Evaluator)
                 {
                     ApplicationArea = All;
                     Caption = 'Evaluator';
-                    ToolTip = 'Specifies the evaluator to use in the test suite.';
+                    ToolTip = 'Specifies the evaluator to use in the eval suite.';
                 }
                 field(EvaluatorType; Rec."Evaluator Type")
                 {

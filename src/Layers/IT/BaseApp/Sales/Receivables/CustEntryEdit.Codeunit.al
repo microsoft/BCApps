@@ -8,6 +8,9 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Processes modifications to customer ledger entries, updating fields such as payment terms, due dates, and on-hold status.
+/// </summary>
 codeunit 103 "Cust. Entry-Edit"
 {
     Permissions = TableData "Cust. Ledger Entry" = m,
@@ -89,6 +92,11 @@ codeunit 103 "Cust. Entry-Edit"
         CustLedgEntry: Record "Cust. Ledger Entry";
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
 
+    /// <summary>
+    /// Sets the On Hold status of a customer ledger entry.
+    /// </summary>
+    /// <param name="OnHoldCustLedgEntry">Specifies the customer ledger entry to update.</param>
+    /// <param name="NewOnHold">Specifies the new On Hold code to set on the entry.</param>
     procedure SetOnHold(var OnHoldCustLedgEntry: Record "Cust. Ledger Entry"; NewOnHold: Code[3])
     var
         LedgEntryTrackChanges: Codeunit "Ledg. Entry-Track Changes";
@@ -102,6 +110,10 @@ codeunit 103 "Cust. Entry-Edit"
             OnHoldCustLedgEntry.Modify();
     end;
 
+    /// <summary>
+    /// Sets a flag indicating whether the codeunit is called from a sales invoice edit operation.
+    /// </summary>
+    /// <param name="CalledFromSalesInvEditSet">Specifies whether the call originates from a sales invoice edit.</param>
     procedure SetCalledFromSalesInvoice(CalledFromSalesInvEditSet: Boolean)
     begin
         CalledFromSalesInvEdit := CalledFromSalesInvEditSet;
@@ -170,26 +182,55 @@ codeunit 103 "Cust. Entry-Edit"
         end;
     end;
 
+    /// <summary>
+    /// Raised before the customer ledger entry is modified.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry that will be modified.</param>
+    /// <param name="FromCustLedgEntry">The customer ledger entry containing the new values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCustLedgEntryModify(var CustLedgEntry: Record "Cust. Ledger Entry"; FromCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the OnRun trigger executes to allow custom processing.
+    /// </summary>
+    /// <param name="CustLedgerEntryRec">The customer ledger entry record passed to the codeunit.</param>
+    /// <param name="CustLedgerEntry">The internal customer ledger entry record.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry record.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var CustLedgerEntryRec: Record "Cust. Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the customer ledger entry has been modified.
+    /// </summary>
+    /// <param name="CustLedgerEntryRec">The customer ledger entry record passed to the codeunit.</param>
+    /// <param name="CustLedgerEntry">The modified customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterCustLedgEntryModify(var CustLedgerEntryRec: Record "Cust. Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining if fields have changed to allow additional change tracking.
+    /// </summary>
+    /// <param name="CurrCustLedgerEntry">The current customer ledger entry.</param>
+    /// <param name="NewCustLedgerEntry">The customer ledger entry with new values.</param>
+    /// <param name="Changed">Returns whether any fields have changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLogFieldChanged(CurrCustLedgerEntry: Record "Cust. Ledger Entry"; NewCustLedgerEntry: Record "Cust. Ledger Entry"; var Changed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales invoice header with customer ledger entry changes.
+    /// </summary>
+    /// <param name="UpdateSalesInvoiceCustLedgerEntry">The customer ledger entry with updated values.</param>
+    /// <param name="CalledFromSalesInvEdit">Indicates whether called from a sales invoice edit operation.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesInvoiceHeader(var UpdateSalesInvoiceCustLedgerEntry: Record "Cust. Ledger Entry"; CalledFromSalesInvEdit: Boolean; var IsHandled: Boolean)
     begin

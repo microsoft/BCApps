@@ -4,25 +4,43 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Stores individual automation actions that belong to a reminder action group with their type and execution order.
+/// </summary>
 table 6750 "Reminder Action"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Specifies the type of automation action, such as create, issue, or send reminders.
+        /// </summary>
         field(1; "Type"; Enum "Reminder Action")
         {
         }
+        /// <summary>
+        /// Specifies the reminder action group to which this action belongs.
+        /// </summary>
         field(2; "Reminder Action Group Code"; Code[50])
         {
             TableRelation = "Reminder Action Group".Code;
         }
+        /// <summary>
+        /// Specifies the unique code identifying this action within the group.
+        /// </summary>
         field(3; Code; Code[50])
         {
         }
+        /// <summary>
+        /// Specifies the execution sequence number for this action within the group.
+        /// </summary>
         field(8; Order; Integer)
         {
         }
+        /// <summary>
+        /// Indicates whether automation processing should stop if this action encounters an error.
+        /// </summary>
         field(9; "Stop on Error"; Boolean)
         {
         }
@@ -100,6 +118,10 @@ table 6750 "Reminder Action"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Gets the interface implementation for this reminder action type.
+    /// </summary>
+    /// <returns>The initialized reminder action interface for the action type.</returns>
     procedure GetReminderActionInterface(): Interface "Reminder Action"
     var
         ReminderActionInterface: Interface "Reminder Action";

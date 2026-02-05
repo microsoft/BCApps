@@ -11,6 +11,9 @@ using Microsoft.Sales.Setup;
 using System.Environment;
 using System.Security.User;
 
+/// <summary>
+/// Processes multiple sales orders for shipping and invoicing in a single batch operation.
+/// </summary>
 report 296 "Batch Post Sales Orders"
 {
     Caption = 'Batch Post Sales Orders';
@@ -223,6 +226,17 @@ report 296 "Batch Post Sales Orders"
         ReplaceDocumentDate: Boolean;
         CalcInvDisc: Boolean;
 
+    /// <summary>
+    /// Initializes the batch posting request with the specified parameters.
+    /// </summary>
+    /// <param name="ShipParam">Whether to ship the orders.</param>
+    /// <param name="InvoiceParam">Whether to invoice the orders.</param>
+    /// <param name="PostingDateParam">The posting date to use.</param>
+    /// <param name="VATDateParam">The VAT date to use.</param>
+    /// <param name="ReplacePostingDateParam">Whether to replace the posting date on documents.</param>
+    /// <param name="ReplaceDocumentDateParam">Whether to replace the document date.</param>
+    /// <param name="ReplaceVATDateParam">Whether to replace the VAT date.</param>
+    /// <param name="CalcInvDiscParam">Whether to calculate invoice discount.</param>
     procedure InitializeRequest(ShipParam: Boolean; InvoiceParam: Boolean; PostingDateParam: Date; VATDateParam: Date; ReplacePostingDateParam: Boolean; ReplaceDocumentDateParam: Boolean; ReplaceVATDateParam: Boolean; CalcInvDiscParam: Boolean)
     begin
         ShipReq := ShipParam;

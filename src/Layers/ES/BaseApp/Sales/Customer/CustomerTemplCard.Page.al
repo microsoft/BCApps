@@ -9,6 +9,9 @@ using Microsoft.Foundation.Address;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Displays and edits a customer template with predefined field values for new customers.
+/// </summary>
 page 1382 "Customer Templ. Card"
 {
     Caption = 'Customer Template';

@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,8 +8,18 @@ namespace Microsoft.Bank.Payment;
 table 10861 "Payment Status"
 {
     Caption = 'Payment Status';
+#if not CLEAN28
     LookupPageID = "Payment Status List";
+#endif
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -117,4 +128,4 @@ table 10861 "Payment Status"
         Text000: Label 'Deleting the first report is not allowed.';
         Text001: Label 'Deleting is not allowed because this Payment Status is already used.';
 }
-
+#endif

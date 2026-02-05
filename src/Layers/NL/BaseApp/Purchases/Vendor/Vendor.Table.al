@@ -497,6 +497,7 @@ table 23 Vendor
         field(61; "Net Change (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -509,6 +510,7 @@ table 23 Vendor
         field(62; "Purchases (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Vendor Ledger Entry"."Purchase (LCY)" where("Vendor No." = field("No."),
                                                                              "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                              "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -521,6 +523,7 @@ table 23 Vendor
         field(64; "Inv. Discounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Vendor Ledger Entry"."Inv. Discount (LCY)" where("Vendor No." = field("No."),
                                                                                   "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                   "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -533,6 +536,7 @@ table 23 Vendor
         field(65; "Pmt. Discounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Discount" .. "Payment Discount (VAT Adjustment)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -559,6 +563,7 @@ table 23 Vendor
         field(67; "Balance Due (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -631,6 +636,7 @@ table 23 Vendor
         field(74; "Payments (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Payment),
                                                                                   "Entry Type" = const("Initial Entry"),
                                                                                   "Vendor No." = field("No."),
@@ -645,6 +651,7 @@ table 23 Vendor
         field(75; "Inv. Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Invoice),
                                                                                    "Entry Type" = const("Initial Entry"),
                                                                                    "Vendor No." = field("No."),
@@ -659,6 +666,7 @@ table 23 Vendor
         field(76; "Cr. Memo Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const("Credit Memo"),
                                                                                   "Entry Type" = const("Initial Entry"),
                                                                                   "Vendor No." = field("No."),
@@ -673,6 +681,7 @@ table 23 Vendor
         field(77; "Fin. Charge Memo Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const("Finance Charge Memo"),
                                                                                    "Entry Type" = const("Initial Entry"),
                                                                                    "Vendor No." = field("No."),
@@ -867,6 +876,7 @@ table 23 Vendor
         field(99; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Debit Amount (LCY)" where("Vendor No." = field("No."),
                                                                                         "Entry Type" = filter(<> Application),
@@ -881,6 +891,7 @@ table 23 Vendor
         field(100; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             BlankZero = true;
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Credit Amount (LCY)" where("Vendor No." = field("No."),
                                                                                          "Entry Type" = filter(<> Application),
@@ -937,6 +948,7 @@ table 23 Vendor
         field(105; "Reminder Amounts (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Reminder),
                                                                                    "Entry Type" = const("Initial Entry"),
                                                                                    "Vendor No." = field("No."),
@@ -978,6 +990,7 @@ table 23 Vendor
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Purchase Line"."Outstanding Amount (LCY)" where("Document Type" = const(Order),
                                                                                 "Pay-to Vendor No." = field("No."),
                                                                                 "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -991,6 +1004,7 @@ table 23 Vendor
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Purchase Line"."Amt. Rcd. Not Invoiced (LCY)" where("Document Type" = const(Order),
                                                                                     "Pay-to Vendor No." = field("No."),
                                                                                     "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -1007,6 +1021,7 @@ table 23 Vendor
         field(117; "Pmt. Disc. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Discount Tolerance" | "Payment Discount Tolerance (VAT Adjustment)" | "Payment Discount Tolerance (VAT Excl.)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -1020,6 +1035,7 @@ table 23 Vendor
         field(118; "Pmt. Tolerance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                   "Entry Type" = filter("Payment Tolerance" | "Payment Tolerance (VAT Adjustment)" | "Payment Tolerance (VAT Excl.)"),
                                                                                   "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
@@ -1078,6 +1094,8 @@ table 23 Vendor
         }
         field(120; Refunds; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Initial Document Type" = const(Refund),
                                                                            "Entry Type" = const("Initial Entry"),
                                                                            "Vendor No." = field("No."),
@@ -1090,6 +1108,8 @@ table 23 Vendor
         }
         field(121; "Refunds (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(Refund),
                                                                                    "Entry Type" = const("Initial Entry"),
                                                                                    "Vendor No." = field("No."),
@@ -1102,6 +1122,8 @@ table 23 Vendor
         }
         field(122; "Other Amounts"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Initial Document Type" = const(" "),
                                                                            "Entry Type" = const("Initial Entry"),
                                                                            "Vendor No." = field("No."),
@@ -1114,6 +1136,8 @@ table 23 Vendor
         }
         field(123; "Other Amounts (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Document Type" = const(" "),
                                                                                    "Entry Type" = const("Initial Entry"),
                                                                                    "Vendor No." = field("No."),
@@ -1126,6 +1150,7 @@ table 23 Vendor
         }
         field(124; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1149,6 +1174,7 @@ table 23 Vendor
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Purchase Line"."Outstanding Amount (LCY)" where("Document Type" = const(Invoice),
                                                                                 "Pay-to Vendor No." = field("No."),
                                                                                 "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),

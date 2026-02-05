@@ -419,6 +419,8 @@ report 404 "Purchase - Quote"
                                 TempPurchaseLine.Find('-')
                             else
                                 TempPurchaseLine.Next();
+
+                            OnRoundLoopOnAfterGetRecordOnBeforeAssignPurchaseLine(TempPurchaseLine, "Purchase Line");
                             "Purchase Line" := TempPurchaseLine;
 
                             if ("Purchase Line"."Item Reference No." <> '') and (not ShowInternalInfo) then
@@ -793,6 +795,11 @@ report 404 "Purchase - Quote"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostDataItem(var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRoundLoopOnAfterGetRecordOnBeforeAssignPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var PurchaseLine: Record "Purchase Line")
     begin
     end;
 }

@@ -9,6 +9,9 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Inventory.Costing;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Displays statistical and financial information for a posted sales credit memo including amounts, VAT, and costs.
+/// </summary>
 page 398 "Sales Credit Memo Statistics"
 {
     Caption = 'Sales Credit Memo Statistics';
@@ -69,6 +72,7 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Sales (LCY)';
                     ToolTip = 'Specifies your total sales turnover in the fiscal year.';
                 }
@@ -76,6 +80,7 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     ToolTip = 'Specifies the original profit that was associated with the sales when they were originally posted.';
                 }
@@ -83,11 +88,13 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     ToolTip = 'Specifies the profit, taking into consideration changes in the purchase prices of the goods.';
                 }
                 field(ProfitPct; ProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -95,6 +102,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(AdjProfitPct; AdjProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -102,6 +110,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(LineQty; LineQty)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Quantity';
                     DecimalPlaces = 0 : 5;
@@ -109,6 +118,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(TotalParcels; TotalParcels)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Parcels';
                     DecimalPlaces = 0 : 5;
@@ -116,6 +126,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(TotalNetWeight; TotalNetWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Weight';
                     DecimalPlaces = 0 : 5;
@@ -123,6 +134,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(TotalGrossWeight; TotalGrossWeight)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Gross Weight';
                     DecimalPlaces = 0 : 5;
@@ -130,6 +142,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(TotalVolume; TotalVolume)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Volume';
                     DecimalPlaces = 0 : 5;
@@ -139,6 +152,7 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Cost (LCY)';
                     ToolTip = 'Specifies the total cost, in LCY, of the G/L account entries, items and/or resources in the sales document.';
                 }
@@ -146,6 +160,7 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     ToolTip = 'Specifies the total cost, in LCY, of the items in the posted sales credit memo, adjusted for any changes in the original costs of these items.';
                 }
@@ -153,6 +168,7 @@ page 398 "Sales Credit Memo Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the posted sales credit memo.';
 
@@ -190,6 +206,7 @@ page 398 "Sales Credit Memo Statistics"
                 }
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;

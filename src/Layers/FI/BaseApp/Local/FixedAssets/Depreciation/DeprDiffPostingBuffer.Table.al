@@ -22,10 +22,12 @@ table 13401 "Depr. Diff. Posting Buffer"
         }
         field(3; "Depreciation Amount 1"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Depreciation Amount 1';
         }
         field(4; "Depreciation Amount 2"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Depreciation Amount 2';
         }
         field(5; "FA No."; Code[20])

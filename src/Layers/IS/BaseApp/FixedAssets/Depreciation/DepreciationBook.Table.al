@@ -115,6 +115,7 @@ table 5611 "Depreciation Book"
         }
         field(20; "Default Exchange Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Exchange Rate';
             DecimalPlaces = 4 : 4;
             MinValue = 0;
@@ -151,12 +152,14 @@ table 5611 "Depreciation Book"
         field(28; "Default Final Rounding Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Final Rounding Amount';
             MinValue = 0;
         }
         field(29; "Default Ending Book Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Ending Book Value';
             MinValue = 0;
         }
@@ -377,7 +380,7 @@ table 5611 "Depreciation Book"
     var
         FASetup: Record "FA Setup";
         FAJnlSetup: Record "FA Journal Setup";
-        MustBeStraightLineTxt: Label 'You cannot set %1 to %2 because some Fixed Assets associated with this book\exists where Depreciation Method is other than Straight-Line.',Comment ='%1="Use Accounting Period" Field Caption %2="Use Accounting Period" Field Value';
+        MustBeStraightLineTxt: Label 'You cannot set %1 to %2 because some Fixed Assets associated with this book\exists where Depreciation Method is other than Straight-Line.', Comment = '%1="Use Accounting Period" Field Caption %2="Use Accounting Period" Field Value';
 
 #pragma warning disable AA0074
         Text000: Label 'The book cannot be deleted because it is in use.';
@@ -401,4 +404,10 @@ table 5611 "Depreciation Book"
         GLIntegration[8] := "G/L Integration - Maintenance";
         GLIntegration[9] := false; // Salvage Value
     end;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        exit('');
+    end;
 }
+

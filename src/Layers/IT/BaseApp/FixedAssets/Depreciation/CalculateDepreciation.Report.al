@@ -351,6 +351,7 @@ report 5692 "Calculate Depreciation"
                         field(ForcedPercent1; ForcedPercent1)
                         {
                             ApplicationArea = FixedAssets;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Force Depr. % ';
                             DecimalPlaces = 2 : 8;
@@ -376,6 +377,7 @@ report 5692 "Calculate Depreciation"
                         field(ForcedPercent2; ForcedPercent2)
                         {
                             ApplicationArea = FixedAssets;
+                            AutoFormatType = 0;
                             BlankZero = true;
                             Caption = 'Force Depr. % ';
                             DecimalPlaces = 2 : 8;

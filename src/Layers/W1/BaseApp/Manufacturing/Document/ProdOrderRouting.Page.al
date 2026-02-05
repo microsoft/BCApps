@@ -67,6 +67,12 @@ page 99000817 "Prod. Order Routing"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the description of the operation.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Flushing Method"; Rec."Flushing Method")
                 {
                     ApplicationArea = Manufacturing;
@@ -265,6 +271,7 @@ page 99000817 "Prod. Order Routing"
                 field("Expected Capacity Need"; Rec."Expected Capacity Need" / ExpCapacityNeed())
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     Caption = 'Expected Capacity Need';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the expected capacity need for the production order.';

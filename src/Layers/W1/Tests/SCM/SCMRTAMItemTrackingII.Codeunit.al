@@ -76,6 +76,8 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         ItemTracingOutputErr: Label 'There is no Parent Item Output Entry on Item Tracing Page.';
         IncorrectShippedQtyMsg: Label '%1 is not equal to %2 of the original Sales Line.', Comment = '%1: Field(Quantity Shipped), %2: Field(Qty. to Ship)';
         RemainingQtyMustBeEqualErr: Label 'Remaining Qty must be equal to %1 in %2', Comment = '%1 = Expected Value , %2 = Table Caption';
+        ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
+        ReceiptIsAlreadyInvoicedErr: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.';
 
     [Test]
     [HandlerFunctions('ItemTrackingDropShipmentPageHandler,QuantityToCreatePageHandler,SalesListPageHandler,ItemTrackingConfirmHandler,SynchronizeMessageHandler')]
@@ -3491,6 +3493,290 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         Assert.RecordIsEmpty(SalesInvoiceHeader);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingDropShipmentPageHandler,QuantityToCreatePageHandler,SalesListPageHandler,AvailabilityConfirmHandler')]
+    procedure QuantityMustBeRestoredWhenUndoDropShipmentSalesShipmentIsExecutedWithSerialNo()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 315785] Verify that quantity must be restored when Undo Drop Shipment Sales Shipment is executed with Serial No.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create an item with Serial No. tracking.
+        CreateItem(Item, ItemTrackingCodeSerialSpecific.Code);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Assign Global variable for Page Handler. Assign Tracking as SerialNo.
+        SetGlobalValue(Item."No.", false, false, false, AssignTracking::SerialNo, 0);
+
+        // [GIVEN] Open Item Tracking Lines for Sales Line.
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Assign Global variable for Page Handler. PartialTracking as True.
+        SetGlobalValue(Item."No.", false, false, true, AssignTracking::None, 0);
+
+        // [GIVEN] Assign Tracking on Purchase Line.
+        AssignTrackingOnPurchaseLine(PurchaseHeader."No.");
+
+        // [WHEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify Sale and Purchase are applied.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Sale, Item."No.");
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, SalesLine."Unit Price", 0, Item."Unit Cost", 0);
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, Item."Unit Cost", 0);
+
+        // [WHEN] Undo Sales Shipment.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Verify that Qty. to Ship is restored and Quantity Shipped is Zero.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that Qty. to Receive is restored and Quantity Received is Zero.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify Item Ledger Entries are created and net remaining quantity equals original quantity.
+        VerifyItemLedgerEntryWithQuantity(Item."No.", 4 * Quantity, 0, 0, 0);
+
+        // [THEN] Verify Purchase is applied with Purchase Entry.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Purchase, Item."No.");
+        ItemLedgerEntry.FindLast();
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, 0, 0, 0, -Item."Unit Cost");
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, 0, -Item."Unit Cost");
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingDropShipmentPageHandler,SalesListPageHandler,ConfirmHandler')]
+    procedure PartialQuantityMustBeRestoredWhenUndoDropShipmentSalesShipmentIsExecutedWithLotNo()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Quantity: Decimal;
+        PartialQuantity: Decimal;
+    begin
+        // [SCENARIO 615846] Verify that partial quantity must be restored when Undo Drop Shipment Sales Shipment is executed with Lot tracking.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandIntInRange(50, 50);
+        PartialQuantity := Quantity / 2;
+
+        // [GIVEN] Create an item with Lot No. tracking.
+        CreateItem(Item, ItemTrackingCodeLotSpecific.Code);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Update Sales Line to ship with partial quantity.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate("Qty. to Ship", PartialQuantity);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Set Item Tracking Action to AvailabilityLotNo.
+        ItemTrackingAction := ItemTrackingAction::AvailabilityLotNo;
+
+        // [GIVEN] Assign Global variable for Page Handler. Assign Tracking as LotNo.
+        SetGlobalValue(Item."No.", true, false, true, AssignTracking::LotNo, PartialQuantity);
+
+        // [GIVEN] Open Item Tracking Lines for Sales Line.
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Assign Global variable for Page Handler. PartialTracking as True.
+        SetGlobalValue(Item."No.", false, false, true, AssignTracking::None, PartialQuantity);
+
+        // [GIVEN] Assign Tracking on Purchase Line.
+        AssignTrackingOnPurchaseLine(PurchaseHeader."No.");
+
+        // [WHEN] Post Sales Document with shipment.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", PartialQuantity, PartialQuantity);
+
+        // [THEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", PartialQuantity, PartialQuantity);
+
+        // [THEN] Verify Sale and Purchase are applied.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Sale, Item."No.");
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, PartialQuantity * SalesLine."Unit Price", 0, PartialQuantity * Item."Unit Cost", 0);
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, PartialQuantity * Item."Unit Cost", 0);
+
+        // [WHEN] Undo Sales Shipment.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Verify that Qty. to Ship is restored and Quantity Shipped is Zero.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that Qty. to Receive is restored and Quantity Received is Zero.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify Item Ledger Entries are created and net remaining quantity equals original quantity.
+        VerifyItemLedgerEntryWithQuantity(Item."No.", 4, 0, 0, 0);
+
+        // [THEN] Verify Purchase is applied with Purchase Entry.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Purchase, Item."No.");
+        ItemLedgerEntry.FindLast();
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, 0, 0, 0, -PartialQuantity * Item."Unit Cost");
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, 0, -PartialQuantity * Item."Unit Cost");
+    end;
+
+    [Test]
+    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
+    procedure QuantityMustBeRestoredWhenUndoDropShipmentSalesShipmentIsExecuted()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 315785] Verify that quantity must be restored when Undo Drop Shipment Sales Shipment is executed.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create an item.
+        CreateItemWithVendorNo(Item);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify Sale and Purchase are applied.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Sale, Item."No.");
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, Quantity * SalesLine."Unit Price", 0, Quantity * Item."Unit Cost", 0);
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, Quantity * Item."Unit Cost", 0);
+
+        // [WHEN] Undo Sales Shipment.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Verify that Qty. to Ship is restored and Quantity Shipped is Zero.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that Qty. to Receive is restored and Quantity Received is Zero.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify Item Ledger Entries are created and net remaining quantity equals original quantity.
+        VerifyItemLedgerEntryWithQuantity(Item."No.", 4, 0, 0, 0);
+
+        // [THEN] Verify Purchase is applied with Purchase Entry.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Purchase, Item."No.");
+        ItemLedgerEntry.FindLast();
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, 0, 0, 0, -Quantity * Item."Unit Cost");
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, 0, -Quantity * Item."Unit Cost");
+    end;
+
+    [Test]
+    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
+    procedure QuantityMustNotBeRestoredWhenUndoDropShipmentSalesShipmentIsExecutedAndPurchaseOrderIsInvoiced()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 315785] Verify that quantity must not be restored when Undo Drop Shipment Sales Shipment is executed and Purchase Order is invoiced.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create an item.
+        CreateItemWithVendorNo(Item);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [THEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify Sale and Purchase are applied.
+        FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Sale, Item."No.");
+        VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry, true, ItemLedgerEntry."Entry Type"::Purchase);
+        VerifySalesEntry(Item."No.", SalesHeader."No.", 0, Quantity * SalesLine."Unit Price", 0, Quantity * Item."Unit Cost", 0);
+        VerifyPurchEntry(Item."No.", PurchaseHeader."No.", 0, Quantity * Item."Unit Cost", 0);
+
+        // [GIVEN] Post Purchase Document with Invoice only.
+        PostPurchaseDocument(PurchaseHeader."Document Type", PurchaseHeader."No.", false, true);
+
+        // [WHEN] Undo Sales Shipment.
+        asserterror UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Verify that the Undo Sales Shipment throws error.
+        Assert.ExpectedError(ReceiptIsAlreadyInvoicedErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5136,6 +5422,182 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         PurchGetReceipt.CreateInvLines(PurchRcptLine);
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    local procedure FindSalesShipmentHeader(var SalesShipmentHeader: Record "Sales Shipment Header"; OrderNo: Code[20])
+    begin
+        SalesShipmentHeader.SetRange("Order No.", OrderNo);
+        SalesShipmentHeader.FindFirst();
+    end;
+
+    local procedure UndoSalesShipment(OrderNo: Code[20])
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        PostedSalesShipment: TestPage "Posted Sales Shipment";
+    begin
+        FindSalesShipmentHeader(SalesShipmentHeader, OrderNo);
+
+        PostedSalesShipment.OpenEdit();
+        PostedSalesShipment.GoToRecord(SalesShipmentHeader);
+        PostedSalesShipment.SalesShipmLines.UndoShipment.Invoke();
+    end;
+
+    local procedure VerifyItemApplicationEntryForDropShipment(ItemLedgerEntry: Record "Item Ledger Entry"; FilterInbound: Boolean; ExpectedEntryType: Enum "Item Ledger Entry Type")
+    var
+        ItemApplicationEntry: Record "Item Application Entry";
+        ItemLedgerEntry2: Record "Item Ledger Entry";
+    begin
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        if FilterInbound then
+            ItemApplicationEntry.SetFilter("Inbound Item Entry No.", '<>0')
+        else
+            ItemApplicationEntry.SetFilter("Outbound Item Entry No.", '<>%1', 0);
+
+        ItemApplicationEntry.FindFirst();
+        ItemLedgerEntry2.Get(ItemApplicationEntry."Inbound Item Entry No.");
+        Assert.AreEqual(
+            ExpectedEntryType,
+            ItemLedgerEntry2."Entry Type",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry2.FieldCaption("Entry Type"), ExpectedEntryType, ItemLedgerEntry2.TableCaption()));
+    end;
+
+    local procedure VerifyQuantityForDropShipmentInSalesLine(SalesHeader: Record "Sales Header"; ItemNo: Code[20]; ExpectedQuantityShipped: Decimal; ExpectedQtyToShip: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        FindSalesLine(SalesLine, ItemNo);
+
+        Assert.AreEqual(
+            ExpectedQuantityShipped,
+            SalesLine."Quantity Shipped",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Quantity Shipped"), ExpectedQuantityShipped, SalesLine.TableCaption()));
+        Assert.AreEqual(
+            ExpectedQtyToShip,
+            SalesLine."Qty. to Ship",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Qty. to Ship"), ExpectedQtyToShip, SalesLine.TableCaption()));
+    end;
+
+    local procedure VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; ExpectedQuantityReceived: Decimal; ExpectedQtyToReceive: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        FindPurchaseLine(PurchaseLine, ItemNo);
+
+        Assert.AreEqual(
+            ExpectedQuantityReceived,
+            PurchaseLine."Quantity Received",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Quantity Received"), ExpectedQuantityReceived, PurchaseLine.TableCaption()));
+        Assert.AreEqual(
+            ExpectedQtyToReceive,
+            PurchaseLine."Qty. to Receive",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Qty. to Receive"), ExpectedQtyToReceive, PurchaseLine.TableCaption()));
+    end;
+
+    local procedure FindSalesLine(var SalesLine: Record "Sales Line"; No: Code[20])
+    begin
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.SetRange("No.", No);
+        SalesLine.FindFirst();
+    end;
+
+    local procedure VerifyItemLedgerEntryWithQuantity(ItemNo: Code[20]; ItemLedgEntryCount: Integer; Quantity: Decimal; RemainingQty: Decimal; InvoicedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        Assert.RecordCount(ItemLedgerEntry, ItemLedgEntryCount);
+
+        ItemLedgerEntry.CalcSums(Quantity, "Invoiced Quantity", "Invoiced Quantity", "Remaining Quantity");
+        Assert.AreEqual(
+            Quantity,
+            ItemLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption(Quantity), Quantity, ItemLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            RemainingQty,
+            ItemLedgerEntry."Remaining Quantity",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption("Remaining Quantity"), RemainingQty, ItemLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            InvoicedQty,
+            ItemLedgerEntry."Invoiced Quantity",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption("Invoiced Quantity"), InvoicedQty, ItemLedgerEntry.TableCaption()));
+    end;
+
+    local procedure VerifySalesEntry(ItemNo: Code[20]; SalesOrderNo: Code[20]; VerifyLineType: Option Shipment,Invoice; SalesExpectedAmount: Decimal; SalesActualAmount: Decimal; CostExpectedAmount: Decimal; CostActualAmount: Decimal)
+    var
+        ItemLedgEntry: Record "Item Ledger Entry";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        ItemLedgEntry.SetRange("Item No.", ItemNo);
+        ItemLedgEntry.SetRange("Entry Type", ItemLedgEntry."Entry Type"::Sale);
+        case VerifyLineType of
+            VerifyLineType::Shipment:
+                begin
+                    SalesShipmentHeader.SetRange("Order No.", SalesOrderNo);
+                    SalesShipmentHeader.FindFirst();
+                    ItemLedgEntry.SetRange("Document No.", SalesShipmentHeader."No.");
+                end;
+            VerifyLineType::Invoice:
+                begin
+                    SalesInvoiceHeader.SetRange("Order No.", SalesOrderNo);
+                    SalesInvoiceHeader.FindFirst();
+                    ItemLedgEntry.SetRange("Document No.", SalesInvoiceHeader."No.");
+                end;
+        end;
+        ItemLedgEntry.FindLast();
+        ItemLedgEntry.CalcFields("Sales Amount (Expected)", "Cost Amount (Expected)", "Sales Amount (Actual)", "Cost Amount (Actual)");
+        Assert.AreEqual(
+            SalesExpectedAmount,
+            ItemLedgEntry."Sales Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Sales Amount (Expected)"), SalesExpectedAmount, ItemLedgEntry.TableCaption()));
+        Assert.AreEqual(
+            SalesActualAmount,
+            ItemLedgEntry."Sales Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Sales Amount (Actual)"), SalesActualAmount, ItemLedgEntry.TableCaption()));
+        Assert.AreEqual(
+            -1 * CostExpectedAmount,
+            ItemLedgEntry."Cost Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Cost Amount (Expected)"), -1 * CostExpectedAmount, ItemLedgEntry.TableCaption()));
+        Assert.AreEqual(
+            -1 * CostActualAmount,
+            ItemLedgEntry."Cost Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Cost Amount (Actual)"), -1 * CostActualAmount, ItemLedgEntry.TableCaption()));
+    end;
+
+    local procedure VerifyPurchEntry(ItemNo: Code[20]; PurchOrderNo: Code[20]; VerifyLineType: Option Receipt,Invoice; CostExpectedAmount: Decimal; CostActualAmount: Decimal)
+    var
+        ItemLedgEntry: Record "Item Ledger Entry";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        ItemLedgEntry.SetRange("Item No.", ItemNo);
+        ItemLedgEntry.SetRange("Entry Type", ItemLedgEntry."Entry Type"::Purchase);
+        case VerifyLineType of
+            VerifyLineType::Receipt:
+                begin
+                    PurchRcptHeader.SetRange("Order No.", PurchOrderNo);
+                    PurchRcptHeader.FindFirst();
+                    ItemLedgEntry.SetRange("Document No.", PurchRcptHeader."No.");
+                end;
+            VerifyLineType::Invoice:
+                begin
+                    PurchInvHeader.SetRange("Order No.", PurchOrderNo);
+                    PurchInvHeader.FindFirst();
+                    ItemLedgEntry.SetRange("Document No.", PurchInvHeader."No.");
+                end;
+        end;
+        ItemLedgEntry.FindLast();
+        ItemLedgEntry.CalcFields("Cost Amount (Expected)", "Cost Amount (Actual)");
+        Assert.AreEqual(
+            CostExpectedAmount,
+            ItemLedgEntry."Cost Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Cost Amount (Expected)"), CostExpectedAmount, ItemLedgEntry.TableCaption()));
+        Assert.AreEqual(
+            CostActualAmount,
+            ItemLedgEntry."Cost Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Cost Amount (Actual)"), CostActualAmount, ItemLedgEntry.TableCaption()));
     end;
 
     [ModalPageHandler]

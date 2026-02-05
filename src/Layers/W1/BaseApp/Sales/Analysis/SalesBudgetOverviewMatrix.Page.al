@@ -10,6 +10,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Displays sales budget data in a matrix format for the budget overview page.
+/// </summary>
 page 9239 "Sales Budget Overview Matrix"
 {
     Caption = 'Sales Budget Overview Matrix';
@@ -466,6 +469,18 @@ page 9239 "Sales Budget Overview Matrix"
           ValueType, OnlyLines);
     end;
 
+    /// <summary>
+    /// Loads the matrix with budget data and display settings.
+    /// </summary>
+    /// <param name="NewMatrixColumns">Array of column captions for the matrix.</param>
+    /// <param name="NewMatrixRecords">Array of dimension code buffer records for matrix rows.</param>
+    /// <param name="NewCurrentNoOfMatrixColumns">Number of columns to display.</param>
+    /// <param name="NewCurrentBudgetName">The budget name to use.</param>
+    /// <param name="NewLineDimType">The dimension type for matrix lines.</param>
+    /// <param name="NewColumnDimType">The dimension type for matrix columns.</param>
+    /// <param name="NewRoundingFactor">The rounding factor for displayed values.</param>
+    /// <param name="NewValueType">The type of values to display.</param>
+    /// <param name="NewPeriodType">The period type for date calculations.</param>
     procedure LoadMatrix(NewMatrixColumns: array[32] of Text[80]; var NewMatrixRecords: array[12] of Record "Dimension Code Buffer"; NewCurrentNoOfMatrixColumns: Integer; NewCurrentBudgetName: Code[10]; NewLineDimType: Enum "Item Budget Dimension Type"; NewColumnDimType: Enum "Item Budget Dimension Type"; NewRoundingFactor: Enum "Analysis Rounding Factor"; NewValueType: Enum "Item Analysis Value Type"; NewPeriodType: Enum "Analysis Period Type")
     var
         i: Integer;
@@ -490,6 +505,17 @@ page 9239 "Sales Budget Overview Matrix"
         RoundingFactorFormatString := MatrixMgt.FormatRoundingFactor(RoundingFactor, false);
     end;
 
+    /// <summary>
+    /// Sets the filter values for the budget matrix display.
+    /// </summary>
+    /// <param name="_DateFilter">Date filter expression.</param>
+    /// <param name="_ItemFilter">Item filter expression.</param>
+    /// <param name="_SourceNoFilter">Source number filter expression.</param>
+    /// <param name="_GlobalDim1Filter">Global dimension 1 filter expression.</param>
+    /// <param name="_GlobalDim2Filter">Global dimension 2 filter expression.</param>
+    /// <param name="_BudgetDim1Filter">Budget dimension 1 filter expression.</param>
+    /// <param name="_BudgetDim2Filter">Budget dimension 2 filter expression.</param>
+    /// <param name="_BudgetDim3Filter">Budget dimension 3 filter expression.</param>
     procedure SetFilters(_DateFilter: Text; _ItemFilter: Text; _SourceNoFilter: Text; _GlobalDim1Filter: Text; _GlobalDim2Filter: Text; _BudgetDim1Filter: Text; _BudgetDim2Filter: Text; _BudgetDim3Filter: Text)
     begin
         DateFilter := _DateFilter;

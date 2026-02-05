@@ -16,7 +16,7 @@ codeunit 99000885 "Mfg. ItemTrackingNavigateMgt"
         TempProdOrderLine: Record "Prod. Order Line" temporary;
         TempProdOrderComp: Record "Prod. Order Component" temporary;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindTrackingRecordsOnBeforeFind', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindTrackingRecordsOnBeforeFind', '', true, false)]
     local procedure OnFindTrackingRecordsOnBeforeFind()
     begin
         TempProdOrder.DeleteAll();
@@ -24,7 +24,7 @@ codeunit 99000885 "Mfg. ItemTrackingNavigateMgt"
         TempProdOrderLine.DeleteAll();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindLedgerEntryByDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindLedgerEntryByDocumentType', '', true, false)]
     local procedure OnFindLedgerEntryByDocumentType(var ItemLedgerEntry: Record "Item Ledger Entry"; RecRef: RecordRef; var sender: Codeunit "Item Tracking Navigate Mgt.")
     begin
         if ItemLedgerEntry."Entry Type" in [ItemLedgerEntry."Entry Type"::Consumption, ItemLedgerEntry."Entry Type"::Output] then
@@ -48,7 +48,7 @@ codeunit 99000885 "Mfg. ItemTrackingNavigateMgt"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindReservEntryOnBeforeCaseDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindReservEntryOnBeforeCaseDocumentType', '', true, false)]
     local procedure OnFindReservEntryOnBeforeCaseDocumentType(var ReservationEntry: Record "Reservation Entry"; RecRef: RecordRef; var IsHandled: Boolean; var sender: Codeunit "Item Tracking Navigate Mgt.")
     begin
         case ReservationEntry."Source Type" of
@@ -89,7 +89,7 @@ codeunit 99000885 "Mfg. ItemTrackingNavigateMgt"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnShowTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnShowTable', '', true, false)]
     local procedure OnShowTable(TableNo: Integer)
     begin
         case TableNo of

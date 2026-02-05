@@ -82,19 +82,22 @@ table 7136 "Item Budget Buffer"
         }
         field(11; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(12; "Sales Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount';
             DataClassification = SystemMetadata;
         }
         field(13; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
             DataClassification = SystemMetadata;
         }

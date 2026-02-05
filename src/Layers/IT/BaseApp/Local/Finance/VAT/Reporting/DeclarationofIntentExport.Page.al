@@ -41,6 +41,7 @@ page 12161 "Declaration of Intent Export"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount To Declare';
                     MinValue = 0;
                     NotBlank = true;

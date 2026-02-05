@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Stores error records from failed reminder automation actions with error type, message, and related document details.
+/// </summary>
 table 6754 "Reminder Automation Error"
 {
     DataClassification = CustomerContent;
@@ -12,32 +15,59 @@ table 6754 "Reminder Automation Error"
 
     fields
     {
+        /// <summary>
+        /// Specifies the unique auto-incrementing identifier for this error record.
+        /// </summary>
         field(1; Id; Integer)
         {
             DataClassification = CustomerContent;
             AutoIncrement = true;
         }
+        /// <summary>
+        /// Specifies the reminder action code where the error occurred.
+        /// </summary>
         field(2; ReminderActionId; Code[50])
         {
         }
+        /// <summary>
+        /// Contains the full error message text.
+        /// </summary>
         field(3; "Error Text"; Blob)
         {
         }
+        /// <summary>
+        /// Contains the error call stack for debugging purposes.
+        /// </summary>
         field(4; "Error Call Stack"; Blob)
         {
         }
+        /// <summary>
+        /// Contains a shortened version of the error text for display purposes.
+        /// </summary>
         field(5; "Error Text Short"; Text[1024])
         {
         }
+        /// <summary>
+        /// Specifies the automation run ID during which this error occurred.
+        /// </summary>
         field(6; "Run Id"; Integer)
         {
         }
+        /// <summary>
+        /// Specifies the type of error that occurred during automation processing.
+        /// </summary>
         field(7; "Error Type"; Enum "Reminder Automation Error Type")
         {
         }
+        /// <summary>
+        /// Specifies the reminder action group code where the error occurred.
+        /// </summary>
         field(8; "Reminder Action Group Code"; Code[50])
         {
         }
+        /// <summary>
+        /// Indicates whether this error has been dismissed by the user.
+        /// </summary>
         field(10; Dismissed; Boolean)
         {
         }
@@ -51,6 +81,10 @@ table 6754 "Reminder Automation Error"
         }
     }
 
+    /// <summary>
+    /// Gets the full error message text from the blob field.
+    /// </summary>
+    /// <returns>The complete error message text.</returns>
     procedure GetErrorMessage(): Text
     var
         ErrorMessageInStream: InStream;
@@ -62,6 +96,10 @@ table 6754 "Reminder Automation Error"
         exit(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Sets the error message text in both the blob field and the short text field.
+    /// </summary>
+    /// <param name="NewErrorMessage">The error message text to store.</param>
     procedure SetErrorMessage(NewErrorMessage: Text)
     var
         ErrorMessageOutStream: OutStream;
@@ -72,6 +110,10 @@ table 6754 "Reminder Automation Error"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Gets the error call stack text from the blob field.
+    /// </summary>
+    /// <returns>The error call stack text for debugging.</returns>
     procedure GetErrorCallstack(): Text
     var
         ErrorCallstackInStream: InStream;
@@ -83,6 +125,10 @@ table 6754 "Reminder Automation Error"
         exit(ErrorCallstack);
     end;
 
+    /// <summary>
+    /// Sets the error call stack text in the blob field.
+    /// </summary>
+    /// <param name="NewErrorCallStack">The error call stack text to store.</param>
     procedure SetErrorCallStack(NewErrorCallStack: Text)
     var
         ErrorCallstackOutStream: OutStream;

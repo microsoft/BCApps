@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Generates sales invoices automatically from standard customer sales codes for recurring billing.
+/// </summary>
 report 172 "Create Recurring Sales Inv."
 {
     AdditionalSearchTerms = 'repeat sales';

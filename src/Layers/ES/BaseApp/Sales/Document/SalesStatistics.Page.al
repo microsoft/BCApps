@@ -11,6 +11,9 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Displays financial statistics and totals for a sales document including VAT calculations.
+/// </summary>
 #pragma warning disable AS0106 // Protected variables TempVATAmountLinePrep, TempVATAmountLineTot, TempTotVATAmountLinePrep, TempTotVATAmountLineTot were removed before AS0106 was introduced.
 page 160 "Sales Statistics"
 #pragma warning restore AS0106
@@ -109,6 +112,7 @@ page 160 "Sales Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Original Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the original profit that was associated with the sales when they were originally posted.';
@@ -117,12 +121,14 @@ page 160 "Sales Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Profit (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the profit, taking into consideration changes in the purchase prices of the goods.';
                 }
                 field(ProfitPct; ProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Original Profit %';
                     DecimalPlaces = 1 : 1;
@@ -131,6 +137,7 @@ page 160 "Sales Statistics"
                 }
                 field(AdjProfitPct; AdjProfitPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Adjusted Profit %';
                     DecimalPlaces = 1 : 1;
@@ -199,6 +206,7 @@ page 160 "Sales Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Adjusted Cost (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the total cost, in LCY, of the items in the sales document, adjusted for any changes in the original costs of these items. If this field contains zero, it means that there were no entries to calculate, possibly because of date compression or because the adjustment batch job has not yet been run.';
@@ -209,6 +217,7 @@ page 160 "Sales Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Cost Adjmt. Amount (LCY)';
                     Editable = false;
                     ToolTip = 'Specifies the difference between the original cost and the total adjusted cost of the items in the sales document.';
@@ -248,6 +257,7 @@ page 160 "Sales Statistics"
                 }
                 field(CreditLimitLCYExpendedPct; CreditLimitLCYExpendedPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expended % of Credit Limit (LCY)';
                     ExtendedDatatype = Ratio;
@@ -461,6 +471,9 @@ page 160 "Sales Statistics"
         exit('2,0,' + FieldCaption);
     end;
 
+    /// <summary>
+    /// Updates VAT amounts on sales lines based on modifications made to the VAT amount lines.
+    /// </summary>
     procedure UpdateVATOnSalesLines()
     var
         SalesLine: Record "Sales Line";

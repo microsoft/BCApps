@@ -32,6 +32,12 @@ table 99000788 "Production Matrix BOM Line"
         {
             Caption = 'Description';
         }
+        field(12; "Description 2"; Text[50])
+        {
+            Caption = 'Description 2';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies additional description text.';
+        }
     }
 
     keys

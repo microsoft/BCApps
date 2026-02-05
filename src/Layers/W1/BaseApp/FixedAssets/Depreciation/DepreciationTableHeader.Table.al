@@ -30,6 +30,7 @@ table 5642 "Depreciation Table Header"
         }
         field(4; "Total No. of Units"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total No. of Units';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

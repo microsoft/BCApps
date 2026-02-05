@@ -315,6 +315,7 @@ page 422 "G/L Balance/Budget"
                 }
                 field(BudgetPct; BudgetPct)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Suite;
                     BlankZero = true;
                     Caption = 'Balance/Budget (%)';

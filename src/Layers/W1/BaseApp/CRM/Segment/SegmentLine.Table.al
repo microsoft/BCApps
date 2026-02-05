@@ -994,15 +994,7 @@ table 5077 "Segment Line"
             exit;
 
         DeleteAll();
-        Init();
-        if Contact.Type = Contact.Type::Person then
-            SetRange("Contact Company No.", Contact."Company No.");
-        SetRange("Contact No.", Contact."No.");
-        Validate("Contact No.", Contact."No.");
-
-        "Salesperson Code" := FindSalespersonByUserEmail();
-        if "Salesperson Code" = '' then
-            "Salesperson Code" := Contact."Salesperson Code";
+        InitializeSegmentLineFromContact(Contact);
 
         OnCreateInteractionFromContactOnBeforeStartWizard(Rec, Contact);
 
@@ -1137,7 +1129,6 @@ table 5077 "Segment Line"
 
     procedure StartWizard()
     var
-        Opportunity: Record Opportunity;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1145,15 +1136,7 @@ table 5077 "Segment Line"
         if IsHandled then
             exit;
 
-        if GlobalCampaign.Get("Campaign No.") then
-            "Campaign Description" := GlobalCampaign.Description;
-        if Opportunity.Get("Opportunity No.") then
-            "Opportunity Description" := Opportunity.Description;
-        "Wizard Contact Name" := GetContactName();
-        "Wizard Step" := "Wizard Step"::"1";
-        "Interaction Successful" := true;
-        Validate(Date, WorkDate());
-        "Time of Interaction" := DT2Time(RoundDateTime(CurrentDateTime + 1000, 60000, '>'));
+        UpdateDefaults();
         Insert();
 
         RunCreateInteraction();
@@ -1775,6 +1758,58 @@ table 5077 "Segment Line"
         if UserSetup."Salespers./Purch. Code" <> '' then
             VALIDATE("Salesperson Code", UserSetup."Salespers./Purch. Code");
 
+    end;
+
+    local procedure InitializeSegmentLineFromContact(Contact: Record Contact)
+    begin
+        Init();
+        if Contact.Type = Contact.Type::Person then
+            SetRange("Contact Company No.", Contact."Company No.");
+        SetRange("Contact No.", Contact."No.");
+        Validate("Contact No.", Contact."No.");
+
+        "Salesperson Code" := FindSalespersonByUserEmail();
+        if "Salesperson Code" = '' then
+            "Salesperson Code" := Contact."Salesperson Code";
+    end;
+
+    local procedure UpdateDefaults()
+    var
+        Opportunity: Record Opportunity;
+    begin
+        if GlobalCampaign.Get("Campaign No.") then
+            "Campaign Description" := GlobalCampaign.Description;
+        if Opportunity.Get("Opportunity No.") then
+            "Opportunity Description" := Opportunity.Description;
+        "Wizard Contact Name" := GetContactName();
+        "Wizard Step" := "Wizard Step"::"1";
+        "Interaction Successful" := true;
+        Validate(Date, WorkDate());
+        "Time of Interaction" := DT2Time(RoundDateTime(CurrentDateTime + 1000, 60000, '>'));
+    end;
+
+    internal procedure CreateSegLineInteractionFromContactForEmail(var Contact: Record Contact)
+    var
+        SegManagement: Codeunit SegManagement;
+    begin
+        DeleteAll();
+        InitializeSegmentLineFromContact(Contact);
+        UpdateDefaults();
+        Insert();
+
+        Validate("Interaction Template Code", GetInteractionTemplateCodeForEmail());
+        SegManagement.LogInteraction(Rec, TempAttachment, TempInterLogEntryCommentLine, true, false);
+    end;
+
+    local procedure GetInteractionTemplateCodeForEmail(): Code[10]
+    var
+        InteractionTemplateSetup: Record "Interaction Template Setup";
+    begin
+        if not InteractionTemplateSetup.ReadPermission() then
+            exit('');
+
+        if InteractionTemplateSetup.Get() then
+            exit(InteractionTemplateSetup."E-Mails");
     end;
 
     [IntegrationEvent(false, false)]

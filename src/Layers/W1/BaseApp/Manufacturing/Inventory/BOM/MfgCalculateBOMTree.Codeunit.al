@@ -19,7 +19,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         UOMMgt: Codeunit "Unit of Measure Management";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateTreeForSource', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateTreeForSource', '', true, false)]
     local procedure ProdOrderLineOnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum Microsoft.Inventory.BOM."BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: Integer; sender: Codeunit "Calculate BOM Tree")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -320,7 +320,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         exit(LowLevelScrapPct + HighLevelScrapPct + LowLevelScrapPct * HighLevelScrapPct / 100);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateItemSubTreeOnSetIsLeaf', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateItemSubTreeOnSetIsLeaf', '', true, false)]
     local procedure OnGenerateItemSubTreeOnSetIsLeaf(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer; sender: Codeunit "Calculate BOM Tree")
     begin
         BOMBuffer."Is Leaf" := not GenerateProdCompSubTree(ParentItem, BOMBuffer, ItemFilter, EntryNo, sender);
@@ -406,7 +406,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"BOM Node", 'OnWriteToDatabaseOnProductionBOM', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"BOM Node", 'OnWriteToDatabaseOnProductionBOM', '', true, false)]
     local procedure OnWriteToDatabaseOnProductionBOM(BOMNo: Code[20]; CalculateLowLevelCode: Integer)
     var
         ProductionBOMHeader: Record "Production BOM Header";
@@ -415,7 +415,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         ProductionBOMHeader.ModifyAll("Low-Level Code", CalculateLowLevelCode);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Component", 'OnCopyFromItemOnAfterGetParentItem', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Component", 'OnCopyFromItemOnAfterGetParentItem', '', true, false)]
     local procedure OnCopyFromItemOnAfterGetParentItem(var Item: Record Item; ParentItem: Record Item)
     var
         CalcLowLevelCode: Codeunit Microsoft.Manufacturing.ProductionBOM."Calculate Low-Level Code";

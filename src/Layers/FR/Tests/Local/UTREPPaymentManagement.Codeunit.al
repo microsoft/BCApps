@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144045 "UT REP Payment Management"
 {
     //  1. Purpose of the test is to validate On Pre Data Item Trigger of Report ID - 10860 Payment List.
@@ -42,6 +43,9 @@ codeunit 144045 "UT REP Payment Management"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -844,4 +848,4 @@ codeunit 144045 "UT REP Payment Management"
         GLCustLedgerReconciliation.SaveAsPdf(FomatFileName(GLCustLedgerReconciliation.Caption));
     end;
 }
-
+#endif

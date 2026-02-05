@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Sales.Posting;
 
+/// <summary>
+/// Validates a sales document header before posting to ensure data integrity.
+/// </summary>
 codeunit 9071 "Check Sales Document"
 {
     TableNo = "Sales Header";

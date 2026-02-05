@@ -1,4 +1,3 @@
-// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1290,13 +1289,18 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Customer Total-Balance';
                         RunObject = report "Customer Total-Balance";
                     }
+#if not CLEAN28
                     action("Customer - List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - List';
                         RunObject = report "Customer - List";
                         Tooltip = 'Run the Customer - List report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Customer - Summary Aging")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1318,13 +1322,18 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Customer - Labels";
                         Tooltip = 'Run the Customer Labels report.';
                     }
+#if not CLEAN28
                     action("Sales Statistics")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sales Statistics';
                         RunObject = report "Sales Statistics";
                         Tooltip = 'Run the Sales Statistics report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Salesperson - Sales Statistics")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1339,13 +1348,18 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Salesperson - Commission";
                         Tooltip = 'Run the Salesperson Commission report.';
                     }
+#if not CLEAN28
                     action("Customer - Sales List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Sales List';
                         RunObject = report "Customer - Sales List";
                         Tooltip = 'Run the Customer - Sales List report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
 #if not CLEAN28
                     action("Aged Accounts Receivable")
                     {

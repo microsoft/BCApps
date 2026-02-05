@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Inventory.Location;
 
+/// <summary>
+/// Retrieves distinct location information from sales order lines for warehouse operations.
+/// </summary>
 query 5001 "Locations from items Sales"
 {
     Caption = 'Locations from items Sales';

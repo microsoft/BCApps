@@ -13,6 +13,9 @@ using System.Environment;
 using System.Globalization;
 using System.Text;
 
+/// <summary>
+/// Displays and manages sales prices with filtering by sales type, item, currency, and date range.
+/// </summary>
 page 7002 "Sales Prices"
 {
     Caption = 'Sales Prices';
@@ -426,6 +429,9 @@ page 7002 "Sales Prices"
         CurrencyCodeFilter := Rec.GetFilter("Currency Code");
     end;
 
+    /// <summary>
+    /// Applies filter settings to the sales price records based on current filter values.
+    /// </summary>
     procedure SetRecFilters()
     begin
         SalesCodeFilterCtrlEnable := true;
@@ -659,21 +665,42 @@ page 7002 "Sales Prices"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the currently selected sales price records as a filter.
+    /// </summary>
+    /// <param name="SalesPrice">The sales price record variable to receive the selection filter.</param>
     procedure GetSelectionFilter(var SalesPrice: Record "Sales Price")
     begin
         CurrPage.SetSelectionFilter(SalesPrice);
     end;
 
+    /// <summary>
+    /// Raises an event after calculating whether the sales code field should be editable.
+    /// </summary>
+    /// <param name="SalesPrice">The current sales price record.</param>
+    /// <param name="SalesCodeControlEditable">Indicates whether the sales code control is editable.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCurrRecordOnAfterCalcSalesCodeControlEditable(var SalesPrice: Record "Sales Price"; var SalesCodeControlEditable: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before retrieving record filters when the page opens.
+    /// </summary>
+    /// <param name="SalesPrice">The sales price record.</param>
+    /// <param name="IsHandled">Set to true to skip the default filter retrieval logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnBeforeGetRecFilters(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before checking if filter values are valid.
+    /// </summary>
+    /// <param name="SalesPrice">The sales price record.</param>
+    /// <param name="TableNo">The table number being filtered.</param>
+    /// <param name="FilterTxt">The filter text to validate.</param>
+    /// <param name="IsEmptyFilter">Indicates whether the filter is empty.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckFilters(var SalesPrice: Record "Sales Price"; TableNo: Integer; var FilterTxt: Text; var IsEmptyFilter: Boolean)
     begin

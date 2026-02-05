@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Lists available sales analysis reports for viewing and editing.
+/// </summary>
 page 9376 "Analysis Report Sale"
 {
     ApplicationArea = SalesAnalysis;

@@ -64,16 +64,19 @@ table 5478 "Purch. Inv. Line Aggregate"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(17; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Qty. to Receive"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Qty. to Receive';
             DecimalPlaces = 0 : 5;
@@ -86,11 +89,13 @@ table 5478 "Purch. Inv. Line Aggregate"
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -116,6 +121,7 @@ table 5478 "Purch. Inv. Line Aggregate"
         }
         field(60; "Quantity Received"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Quantity Received';
             DecimalPlaces = 0 : 5;
@@ -123,6 +129,7 @@ table 5478 "Purch. Inv. Line Aggregate"
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;

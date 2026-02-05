@@ -28,7 +28,7 @@ page 5628 "Fixed Asset G/L Journal"
     SourceTable = "Gen. Journal Line";
     UsageCategory = Tasks;
     AboutTitle = 'About Fixed Asset G/L Journals';
-    AboutText = 'With the **Fixed Asset G/L Journals**, All entries are posted to the fixed asset ledger and the general ledger such as acquisition, depreciation, disposal, write-down, appreciation and maintenance.';
+    AboutText = 'With the **Fixed Asset G/L Journals**, all entries are posted to the fixed asset ledger and the general ledger such as acquisition, depreciation, disposal, write-down, appreciation and maintenance.';
 
     layout
     {
@@ -586,6 +586,7 @@ page 5628 "Fixed Asset G/L Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance that has accumulated in the journal.';
@@ -599,6 +600,7 @@ page 5628 "Fixed Asset G/L Journal"
                         {
                             ApplicationArea = All;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the journal.';

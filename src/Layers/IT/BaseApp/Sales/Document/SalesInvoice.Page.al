@@ -38,6 +38,9 @@ using System.Privacy;
 using System.Security.User;
 using System.Threading;
 
+/// <summary>
+/// Displays and manages a single sales invoice document for direct customer billing.
+/// </summary>
 page 43 "Sales Invoice"
 {
     Caption = 'Sales Invoice';
@@ -2226,6 +2229,11 @@ page 43 "Sales Invoice"
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
     end;
 
+    /// <summary>
+    /// Calls the document posting procedure with the specified posting codeunit and navigation option.
+    /// </summary>
+    /// <param name="PostingCodeunitID">The ID of the posting codeunit to execute.</param>
+    /// <param name="Navigate">The navigation option after posting.</param>
     procedure CallPostDocument(PostingCodeunitID: Integer; Navigate: Enum "Navigate After Posting")
     begin
         PostDocument(PostingCodeunitID, Navigate);
@@ -2383,6 +2391,9 @@ page 43 "Sales Invoice"
         ShouldSearchForCustByName := Rec.ShouldSearchForCustomerByName(Rec."Sell-to Customer No.");
     end;
 
+    /// <summary>
+    /// Runs a background check for document errors.
+    /// </summary>
     procedure RunBackgroundCheck()
     begin
         CurrPage.SalesDocCheckFactbox.Page.CheckErrorsInBackground(Rec);
@@ -2396,6 +2407,10 @@ page 43 "Sales Invoice"
             SetControlAppearance();
     end;
 
+    /// <summary>
+    /// Sets whether to skip the confirmation dialog when closing the page.
+    /// </summary>
+    /// <param name="Skip">Whether to skip the confirmation dialog.</param>
     procedure SetSkipConfirmationDialogOnClosing(Skip: Boolean)
     begin
         SkipConfirmationDialogOnClosing := Skip;
@@ -2408,6 +2423,9 @@ page 43 "Sales Invoice"
         PaymentServiceEnabled := PaymentServiceSetup.CanChangePaymentService(Rec);
     end;
 
+    /// <summary>
+    /// Sets whether the posting group field should be editable based on customer settings.
+    /// </summary>
     procedure SetPostingGroupEditable()
     var
         BillToCustomer: Record Customer;

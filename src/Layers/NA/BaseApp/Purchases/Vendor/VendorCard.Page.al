@@ -122,6 +122,8 @@ page 26 "Vendor Card"
                 }
                 field(BalanceAsCustomer; BalanceAsCustomer)
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance (LCY) As Customer';
                     Editable = false;

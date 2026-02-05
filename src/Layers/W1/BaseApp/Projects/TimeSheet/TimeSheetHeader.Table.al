@@ -133,6 +133,7 @@ table 950 "Time Sheet Header"
         }
         field(20; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                                   Status = field("Status Filter"),
                                                                   "Job No." = field("Job No. Filter"),
@@ -145,6 +146,7 @@ table 950 "Time Sheet Header"
         }
         field(21; "Posted Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Posting Entry".Quantity where("Time Sheet No." = field("No.")));
             Caption = 'Posted Quantity';
             FieldClass = FlowField;
@@ -189,6 +191,7 @@ table 950 "Time Sheet Header"
         }
         field(40; "Quantity Open"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Open)));
             Caption = 'Quantity Open';
@@ -197,6 +200,7 @@ table 950 "Time Sheet Header"
         }
         field(41; "Quantity Submitted"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Submitted)));
             Caption = 'Quantity Submitted';
@@ -205,6 +209,7 @@ table 950 "Time Sheet Header"
         }
         field(42; "Quantity Approved"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Approved)));
             Caption = 'Quantity Approved';
@@ -213,6 +218,7 @@ table 950 "Time Sheet Header"
         }
         field(43; "Quantity Rejected"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Rejected)));
             Caption = 'Quantity Rejected';

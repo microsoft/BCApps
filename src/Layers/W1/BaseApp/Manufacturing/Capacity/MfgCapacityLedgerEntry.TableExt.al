@@ -33,36 +33,42 @@ tableextension 99000801 "Mfg. Capacity Ledger Entry" extends "Capacity Ledger En
         }
         field(11; "Setup Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Setup Time';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
         }
         field(12; "Run Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Run Time';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
         }
         field(13; "Stop Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Stop Time';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
         }
         field(16; "Output Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Output Quantity';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
         }
         field(17; "Scrap Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Quantity';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
         }
         field(19; "Concurrent Capacity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Concurrent Capacity';
             DataClassification = CustomerContent;
         }

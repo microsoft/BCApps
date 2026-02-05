@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.Journal;
 
 codeunit 99000791 "Mfg. Page Management"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', true, false)]
     local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer);
     begin
         case RecordRef.Number of
@@ -20,7 +20,7 @@ codeunit 99000791 "Mfg. Page Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnGetItemJournalTemplatePageID', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnGetItemJournalTemplatePageID', '', true, false)]
     local procedure OnGetItemJournalTemplatePageID(ItemJournalTemplate: Record "Item Journal Template"; RecordRef: RecordRef; var CardPageID: Integer);
     begin
         case ItemJournalTemplate.Type of

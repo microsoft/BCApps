@@ -11,6 +11,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Generates an item-level sales analysis showing quantities and amounts sold to each customer for a specified period.
+/// </summary>
 report 113 "Customer/Item Sales"
 {
     DefaultLayout = RDLC;
@@ -340,6 +343,10 @@ report 113 "Customer/Item Sales"
         Item: Record Item;
         TempValueEntryBuffer: Record "Value Entry" temporary;
 
+    /// <summary>
+    /// Initializes the report request options for the Customer Item Sales report.
+    /// </summary>
+    /// <param name="NewPagePerCustomer">True to start a new page per customer.</param>
     procedure InitializeRequest(NewPagePerCustomer: Boolean)
     begin
         PrintOnlyOnePerPage := NewPagePerCustomer;

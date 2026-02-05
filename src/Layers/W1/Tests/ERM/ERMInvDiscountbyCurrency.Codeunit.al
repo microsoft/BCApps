@@ -27,6 +27,7 @@ codeunit 134079 "ERM Inv Discount by Currency"
         TotalExclVAT: Decimal;
         isInitialized: Boolean;
         IsVerify: Boolean;
+        CostAdjustmentAmountErr: Label 'Cost adjustment amount must be %1.';
 
     [Test]
     [Scope('OnPrem')]
@@ -538,6 +539,37 @@ codeunit 134079 "ERM Inv Discount by Currency"
         OpenSalesOrderStatisticsNM(SalesHeader."No.");
     end;
 
+    [Test]
+    [HandlerFunctions('SalesOrderStatisticsHandler')]
+    procedure VerifyCostAdjustAmountonSalesOrderStatistics()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 613094] Verify Cost Adjustment Amount on Sales Order Statistics window.
+        Initialize();
+
+        // [GIVEN] Create Customer, Service Type Item.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateServiceTypeItem(Item);
+        Item.Validate("Unit Cost", LibraryRandom.RandIntInRange(70, 100));
+        Item.Validate("Unit Price", LibraryRandom.RandIntInRange(100, 120));
+        Item.Modify(true);
+
+        // [GIVEN] Create Sales Order with one Sales Line for Service Type Item.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // [WHEN] Post Sales Order Shipment.
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        Commit();
+
+        // [THEN] Verify Cost Adjustment Amount on Sales Order Statistics window.
+        OpenSalesOrderStatisticsNM(SalesHeader."No.");
+    end;
+
     [Normal]
     local procedure Initialize()
     var
@@ -958,6 +990,15 @@ codeunit 134079 "ERM Inv Discount by Currency"
             SalesOrderStatistics.InvDiscountAmount_Invoicing.SetValue(InvoiceDiscountAmount);
             SalesOrderStatistics.OK().Invoke();
         end;
+    end;
+
+    [PageHandler]
+    procedure SalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
+    var
+        ActualCostAdjustment: Decimal;
+    begin
+        ActualCostAdjustment := SalesOrderStatistics."TotalAdjCostLCY[2] - TotalSalesLineLCY[2].""Unit Cost (LCY)""".AsDecimal();
+        Assert.AreEqual(0, ActualCostAdjustment, StrSubstNo(CostAdjustmentAmountErr, 0));
     end;
 
 }

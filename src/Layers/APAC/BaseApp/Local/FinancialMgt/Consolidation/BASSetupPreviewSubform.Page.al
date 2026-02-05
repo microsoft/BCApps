@@ -59,6 +59,7 @@ page 11610 "BAS Setup Preview Subform"
                 }
                 field(ColumnValue; ColumnValue)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
                     Caption = 'Column Amount';

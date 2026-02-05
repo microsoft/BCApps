@@ -51,6 +51,7 @@ page 7000058 "Post. Pmt. Ord. Maturity Lin."
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Amount (LCY)';
                     DrillDown = true;
                     ToolTip = 'Specifies the amount for the posted payment order for the period.';

@@ -72,6 +72,7 @@ table 955 "Time Sheet Line Archive"
         }
         field(15; "Total Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Time Sheet Detail Archive".Quantity where("Time Sheet No." = field("Time Sheet No."),
                                                                           "Time Sheet Line No." = field("Line No.")));
             Caption = 'Total Quantity';

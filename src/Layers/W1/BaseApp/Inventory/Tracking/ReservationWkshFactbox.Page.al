@@ -37,12 +37,14 @@ page 330 "Reservation Wksh. Factbox"
                 }
                 field("Outstanding Qty."; OutstandingQty)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Outstanding quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity that has not yet been handled for this source document line.';
                 }
                 field("Total Reserved Qty."; TotalReservedQty)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Reserved quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the total quantity that has been reserved for this source document line.';
@@ -54,6 +56,7 @@ page 330 "Reservation Wksh. Factbox"
                 }
                 field("Reserved From Stock Qty."; ReservedFromStockQty)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Reserved from stock';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity that has been reserved from stock for this source document line.';

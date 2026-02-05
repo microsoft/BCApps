@@ -140,6 +140,8 @@ page 10039 "Purchase Order Stats."
                 field("BreakdownAmt[1,1]"; BreakdownAmt[1, 1])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 1]);
                     Editable = false;
@@ -148,6 +150,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt2; BreakdownAmt[1, 2])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 2]);
                     Caption = 'BreakdownAmt';
@@ -156,6 +160,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt3; BreakdownAmt[1, 3])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 3]);
                     Caption = 'BreakdownAmt';
@@ -164,6 +170,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt4; BreakdownAmt[1, 4])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[1, 4]);
                     Caption = 'BreakdownAmt';
@@ -297,6 +305,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt5; BreakdownAmt[2, 1])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 1]);
                     Caption = 'BreakdownAmt';
@@ -305,6 +315,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt6; BreakdownAmt[2, 2])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 2]);
                     Caption = 'BreakdownAmt';
@@ -313,6 +325,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt7; BreakdownAmt[2, 3])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 3]);
                     Caption = 'BreakdownAmt';
@@ -321,6 +335,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt8; BreakdownAmt[2, 4])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[2, 4]);
                     Caption = 'BreakdownAmt';
@@ -444,6 +460,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt9; BreakdownAmt[3, 1])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 1]);
                     Caption = 'BreakdownAmt';
@@ -452,6 +470,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt10; BreakdownAmt[3, 2])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 2]);
                     Caption = 'BreakdownAmt';
@@ -460,6 +480,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt11; BreakdownAmt[3, 3])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 3]);
                     Caption = 'BreakdownAmt';
@@ -468,6 +490,8 @@ page 10039 "Purchase Order Stats."
                 field(BreakdownAmt12; BreakdownAmt[3, 4])
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     CaptionClass = Format(BreakdownLabel[3, 4]);
                     Caption = 'BreakdownAmt';
@@ -533,6 +557,7 @@ page 10039 "Purchase Order Stats."
                 field(PrepmtInvPct; PrepmtInvPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Invoiced % of Prepayment Amt.';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Invoiced Percentage of Prepayment Amt.';
@@ -548,6 +573,7 @@ page 10039 "Purchase Order Stats."
                 field(PrepmtDeductedPct; PrepmtDeductedPct)
                 {
                     ApplicationArea = Prepayments;
+                    AutoFormatType = 0;
                     Caption = 'Deducted % of Prepayment Amt. to Deduct';
                     ExtendedDatatype = Ratio;
                     ToolTip = 'Specifies the Deducted Percentage of Prepayment Amt. to Deduct.';

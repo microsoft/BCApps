@@ -34,6 +34,7 @@ table 5803 "Item Journal Buffer"
         }
         field(12; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -47,6 +48,7 @@ table 5803 "Item Journal Buffer"
         field(5802; "Inventory Value (Calculated)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inventory Value (Calculated)';
             DataClassification = SystemMetadata;
             Editable = false;

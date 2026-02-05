@@ -1503,5 +1503,15 @@
     "codeunitId": 139321,
     "codeunitName": "Teams Centralized Depl. Tests",
     "method": "VerifyStatusNotCompletedWhenExitRightAway"
+  },
+  {
+    "method": "VendorTemplCardControls",
+    "codeunitId": 138008,
+    "codeunitName": "Cust/Vend/Item/Empl Templates"
+  },
+  {
+    "method": "AllAppTablesAreInPermissionSet",
+    "codeunitId": 132532,
+    "codeunitName": "Test Granules"
   }
 ]

@@ -396,6 +396,7 @@ table 5991 "Service Shipment Line"
         }
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
         }

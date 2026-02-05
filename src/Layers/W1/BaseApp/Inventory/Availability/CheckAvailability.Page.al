@@ -25,6 +25,7 @@ page 342 "Check Availability"
             field(AvailableInventory; InventoryQty)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Available Inventory';
                 DecimalPlaces = 0 : 5;
                 Editable = false;
@@ -33,6 +34,7 @@ page 342 "Check Availability"
             field(InventoryShortage; TotalQuantity)
             {
                 ApplicationArea = Basic, Suite;
+                AutoFormatType = 0;
                 Caption = 'Inventory Shortage';
                 DecimalPlaces = 0 : 5;
                 Editable = false;

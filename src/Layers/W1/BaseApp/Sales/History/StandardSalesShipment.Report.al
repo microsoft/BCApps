@@ -28,6 +28,9 @@ using System.Globalization;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Generates a standard format printable document for posted sales shipments with item tracking details.
+/// </summary>
 report 1308 "Standard Sales - Shipment"
 {
     Caption = 'Sales - Shipment';
@@ -1015,6 +1018,13 @@ report 1308 "Standard Sales - Shipment"
         exit(SalesShipmentLbl);
     end;
 
+    /// <summary>
+    /// Initializes the report request options for the standard sales shipment report.
+    /// </summary>
+    /// <param name="NewLogInteraction">Specifies whether to log the interaction.</param>
+    /// <param name="DisplayAsmInfo">Specifies whether to display assembly information.</param>
+    /// <param name="NewShowCorrectionLines">Specifies whether to show correction lines.</param>
+    /// <param name="NewShowLotSN">Specifies whether to show lot and serial number information.</param>
     procedure InitializeRequest(NewLogInteraction: Boolean; DisplayAsmInfo: Boolean; NewShowCorrectionLines: Boolean; NewShowLotSN: Boolean)
     begin
         LogInteraction := NewLogInteraction;

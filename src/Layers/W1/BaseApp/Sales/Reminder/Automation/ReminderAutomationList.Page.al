@@ -5,6 +5,9 @@
 namespace Microsoft.Sales.Reminder;
 using System.Telemetry;
 
+/// <summary>
+/// Displays a list of all reminder automation groups with their status and scheduling information.
+/// </summary>
 page 6753 "Reminder Automation List"
 {
     PageType = List;

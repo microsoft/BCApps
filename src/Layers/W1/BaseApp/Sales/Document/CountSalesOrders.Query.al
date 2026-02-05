@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Provides aggregated counts of sales orders based on status and shipping criteria.
+/// </summary>
 query 9060 "Count Sales Orders"
 {
     Caption = 'Count Sales Orders';

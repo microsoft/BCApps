@@ -50,6 +50,8 @@ page 9263 "Contract Gain/Loss Matrix"
                 field(TotalGainLoss; TotalGainLoss)
                 {
                     ApplicationArea = Service;
+                    AutoFormatType = 0;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Total Movement';
                     ToolTip = 'Specifies the total change in annual amount on the service contract.';

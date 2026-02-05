@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays detailed information about a specific reminder automation run including all action logs.
+/// </summary>
 page 6758 "Reminder Act. History Detailed"
 {
     PageType = Document;

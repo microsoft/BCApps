@@ -85,6 +85,7 @@ table 1013 "Job Item Price"
         }
         field(7; "Unit Cost Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Cost Factor';
 
             trigger OnValidate()

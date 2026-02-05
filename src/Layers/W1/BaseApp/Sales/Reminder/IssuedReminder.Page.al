@@ -12,6 +12,9 @@ using Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Displays the details of a posted reminder document including customer information, lines, and totals.
+/// </summary>
 page 438 "Issued Reminder"
 {
     Caption = 'Issued Reminder';

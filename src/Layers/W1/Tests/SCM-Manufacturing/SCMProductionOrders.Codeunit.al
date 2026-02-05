@@ -5028,6 +5028,82 @@ codeunit 137069 "SCM Production Orders"
         Assert.IsTrue(ProdOrderHeader."Completely Picked", CompletelyPickedErr);
     end;
 
+    [Test]
+    procedure ParallelRoutingStructurePreservedWhenChangingWorkCenterInFamilyProdOrder()
+    var
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        Item1: Record Item;
+        Item2: Record Item;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: array[4] of Record "Routing Line";
+        WorkCenter1: Record "Work Center";
+        WorkCenter2: Record "Work Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        // [SCENARIO 613242] Changing work center in a family production order should preserve parallel routing structure
+
+        Initialize();
+
+        // [GIVEN] Create two work centers
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter1);
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter2);
+
+        // [GIVEN] Create a parallel routing with 3 operations: 10 -> (21, 22) -> 30
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Parallel);
+
+        //[GIVEN] Create Routing Lines with operation
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine[1], '', '10', RoutingLine[1].Type::"Work Center", WorkCenter1."No.");
+        RoutingLine[1].Validate("Setup Time", 1);
+        RoutingLine[1].Validate("Next Operation No.", '21;22');
+        RoutingLine[1].Recalculate := false;
+        RoutingLine[1].Modify(true);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine[2], '', '21', RoutingLine[2].Type::"Work Center", WorkCenter1."No.");
+        RoutingLine[2].Validate("Setup Time", 1);
+        RoutingLine[2].Validate("Previous Operation No.", '10');
+        RoutingLine[2].Validate("Next Operation No.", '30');
+        RoutingLine[2].Recalculate := false;
+        RoutingLine[2].Modify(true);
+
+        // [GIVEN] Certify the routing
+        RoutingHeader.Status := RoutingHeader.Status::Certified;
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] Create two items
+        LibraryInventory.CreateItem(Item1);
+        LibraryInventory.CreateItem(Item2);
+
+        // [GIVEN] Create a family with the routing and two items
+        LibraryManufacturing.CreateFamily(Family);
+        Family.Validate("Routing No.", RoutingHeader."No.");
+        Family.Modify(true);
+
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Item1."No.", 1);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Item2."No.", 1);
+
+        // [GIVEN] Create and refresh a Released Production Order from the family
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", 1);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [WHEN] Change work center in operation 21 from WorkCenter1 to WorkCenter2
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", '21');
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine."No." := WorkCenter2."No.";
+        ProdOrderRoutingLine.Modify(true);
+
+        // [THEN] Check Operation 10 should still have Next Operation No. = '21;22'
+        ProdOrderRoutingLine.SetRange("Operation No.", '10');
+        ProdOrderRoutingLine.FindFirst();
+        Assert.AreEqual('21;22', ProdOrderRoutingLine."Next Operation No.",
+            'Operation 10 should still link to both 21 and 22');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

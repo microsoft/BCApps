@@ -38,6 +38,7 @@ tableextension 10011 "Service Header NA" extends "Service Header"
         }
         field(10060; "Exchange Rate USD"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate USD';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 6;

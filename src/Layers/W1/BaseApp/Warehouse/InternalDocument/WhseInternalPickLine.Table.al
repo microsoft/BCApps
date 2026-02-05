@@ -110,6 +110,7 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -142,12 +143,14 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(16; "Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(19; "Qty. Outstanding"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -165,12 +168,14 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(20; "Qty. Outstanding (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Outstanding (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(23; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -184,12 +189,14 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(24; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = const(Pick),
                                                                                   "Whse. Document Type" = const("Internal Pick"),
                                                                                   "Whse. Document No." = field("No."),
@@ -205,6 +212,7 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(28; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = const(Pick),
                                                                                          "Whse. Document Type" = const("Internal Pick"),
                                                                                          "Whse. Document No." = field("No."),
@@ -237,6 +245,7 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(30; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -285,11 +294,13 @@ table 7334 "Whse. Internal Pick Line"
         }
         field(37; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
         }
         field(38; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
         }

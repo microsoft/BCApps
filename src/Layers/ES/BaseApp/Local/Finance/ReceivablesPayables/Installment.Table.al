@@ -26,6 +26,7 @@ table 7000018 Installment
         }
         field(3; "% of Total"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = '% of Total';
             DecimalPlaces = 2 : 5;
             MaxValue = 100;

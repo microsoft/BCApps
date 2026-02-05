@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a read-only view of attachment text configurations as a subpage part.
+/// </summary>
 page 839 "Reminder View Attachment Text"
 {
     PageType = ListPart;

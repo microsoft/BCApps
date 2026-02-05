@@ -45,6 +45,8 @@ page 1707 "Deferral Sched. Arch. Subform"
                     field(TotalDeferral; TotalDeferral)
                     {
                         ApplicationArea = Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Total Amount to Defer';
                         Editable = false;
                         Enabled = false;

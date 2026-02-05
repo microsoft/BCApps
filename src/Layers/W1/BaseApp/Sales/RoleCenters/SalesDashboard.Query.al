@@ -10,6 +10,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides sales transaction data by combining item ledger entries with customer and salesperson information for dashboard reporting.
+/// </summary>
 query 101 "Sales Dashboard"
 {
     Caption = 'Sales Dashboard';

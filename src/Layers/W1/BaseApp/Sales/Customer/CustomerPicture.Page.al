@@ -8,6 +8,9 @@ using Microsoft.Integration.Entity;
 using System.Device;
 using System.IO;
 
+/// <summary>
+/// Manages the customer picture with options to take, import, export, and delete images.
+/// </summary>
 page 785 "Customer Picture"
 {
     Caption = 'Customer Picture';
@@ -147,6 +150,9 @@ page 785 "Customer Picture"
         MustSpecifyNameErr: Label 'You must specify a customer name before you can import a picture.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
 
+    /// <summary>
+    /// Captures a new picture using the device camera and saves it to the customer record.
+    /// </summary>
     procedure TakeNewPicture()
     var
         PictureInstream: InStream;
@@ -172,6 +178,10 @@ page 785 "Customer Picture"
         DeleteExportEnabled := Rec.Image.HasValue;
     end;
 
+    /// <summary>
+    /// Checks whether a camera is available on the device.
+    /// </summary>
+    /// <returns>True if camera is available, otherwise false.</returns>
     procedure IsCameraAvailable(): Boolean
     begin
         exit(Camera.IsAvailable());

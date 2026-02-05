@@ -123,6 +123,7 @@ codeunit 9763 "SFTP Client Implementation"
             FileList."Full Name" := CopyStr(ISftpFile.FullName(), 1, MaxStrLen(FileList."Full Name"));
             FileList."Is Directory" := ISftpFile.IsDirectory();
             FileList.Length := ISftpFile.Length();
+            FileList."Last Write Time" := ISftpFile.LastWriteTime();
             FileList.Insert();
             Index += 1;
         end;

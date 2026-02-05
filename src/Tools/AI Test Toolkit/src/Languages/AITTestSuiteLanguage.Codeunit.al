@@ -13,10 +13,10 @@ codeunit 149046 "AIT Test Suite Language"
     Access = Internal;
 
     /// <summary>
-    /// Updates the test suite languages by adding all available language versions from the test input groups.
+    /// Updates the eval suite languages by adding all available language versions from the test input groups.
     /// Languages that are no longer part of any dataset will be removed.
     /// </summary>
-    /// <param name="TestSuiteCode">The test suite code to update languages for.</param>
+    /// <param name="TestSuiteCode">The eval suite code to update languages for.</param>
     /// <param name="TestInputGroupCode">The test input group code to get languages from.</param>
     procedure UpdateLanguagesFromDataset(TestSuiteCode: Code[100]; TestInputGroupCode: Code[100])
     var
@@ -69,9 +69,9 @@ codeunit 149046 "AIT Test Suite Language"
     end;
 
     /// <summary>
-    /// Opens a lookup page to select and assign a language to the test suite.
+    /// Opens a lookup page to select and assign a language to the eval suite.
     /// </summary>
-    /// <param name="AITTestSuite">The test suite record to assign a language to.</param>
+    /// <param name="AITTestSuite">The eval suite record to assign a language to.</param>
     procedure AssistEditTestSuiteLanguage(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuiteLanguage: Record "AIT Test Suite Language";

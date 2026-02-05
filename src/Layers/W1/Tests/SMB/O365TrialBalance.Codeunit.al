@@ -183,38 +183,38 @@ codeunit 138029 "O365 Trial Balance"
         TrialBalance.OpenEdit();
 
         // Test drill down on Formulas
-        LibraryVariableStorage.Enqueue(30);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description3.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues3.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues3.AsDecimal());
         TrialBalance.CurrentPeriodValues3.DrillDown();
-        LibraryVariableStorage.Enqueue(30);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description3.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues3.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues3.AsDecimal());
         TrialBalance.CurrentPeriodMinusOneValues3.DrillDown();
 
-        LibraryVariableStorage.Enqueue(40);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description4.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues4.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues4.AsDecimal());
         TrialBalance.CurrentPeriodValues4.DrillDown();
-        LibraryVariableStorage.Enqueue(40);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description4.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues4.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues4.AsDecimal());
         TrialBalance.CurrentPeriodMinusOneValues4.DrillDown();
 
-        LibraryVariableStorage.Enqueue(60);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description6.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues6.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues6.AsDecimal());
         TrialBalance.CurrentPeriodValues6.DrillDown();
-        LibraryVariableStorage.Enqueue(60);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description6.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues6.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues6.AsDecimal());
         TrialBalance.CurrentPeriodMinusOneValues6.DrillDown();
 
-        LibraryVariableStorage.Enqueue(70);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description7.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues7.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues7.AsDecimal());
         TrialBalance.CurrentPeriodValues7.DrillDown();
-        LibraryVariableStorage.Enqueue(70);
+        LibraryVariableStorage.Enqueue(TrialBalance.Description7.Value);
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodValues7.AsDecimal());
         LibraryVariableStorage.Enqueue(TrialBalance.CurrentPeriodMinusOneValues7.AsDecimal());
         TrialBalance.CurrentPeriodMinusOneValues7.DrillDown();
@@ -359,16 +359,16 @@ codeunit 138029 "O365 Trial Balance"
     [Scope('OnPrem')]
     procedure AccScheduleOverviewHandler(var AccScheduleOverview: TestPage "Acc. Schedule Overview")
     var
-        RowNo: Variant;
+        Description: Variant;
         Amount1: Variant;
         Amount2: Variant;
     begin
-        LibraryVariableStorage.Dequeue(RowNo);
+        LibraryVariableStorage.Dequeue(Description);
         LibraryVariableStorage.Dequeue(Amount2);
         LibraryVariableStorage.Dequeue(Amount1);
         Assert.AreEqual(
-          RowNo,
-          AccScheduleOverview."Row No.".AsInteger(),
+          Description,
+          AccScheduleOverview.Description.Value(),
           'Unexpected account schedule line selected in the overview page.');
         Assert.AreEqual(
           Round(Amount1),

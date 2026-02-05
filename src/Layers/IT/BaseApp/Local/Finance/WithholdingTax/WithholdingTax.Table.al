@@ -73,6 +73,7 @@ table 12116 "Withholding Tax"
         field(20; "Total Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Amount';
 
             trigger OnValidate()
@@ -83,6 +84,7 @@ table 12116 "Withholding Tax"
         field(21; "Base - Excluded Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base - Excluded Amount';
 
             trigger OnValidate()
@@ -99,6 +101,7 @@ table 12116 "Withholding Tax"
         field(22; "Non Taxable Amount By Treaty"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount By Treaty';
 
             trigger OnValidate()
@@ -111,17 +114,20 @@ table 12116 "Withholding Tax"
         }
         field(23; "Non Taxable Amount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Taxable Amount %';
             DecimalPlaces = 0 : 3;
         }
         field(30; "Non Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount';
         }
         field(31; "Taxable Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Taxable Base';
         }
         field(33; "Withholding Tax Code"; Code[20])
@@ -141,12 +147,14 @@ table 12116 "Withholding Tax"
         }
         field(36; "Withholding Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Withholding Tax %';
             DecimalPlaces = 0 : 3;
         }
         field(37; "Withholding Tax Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Withholding Tax Amount';
         }
         field(40; "Source-Withholding Tax"; Boolean)

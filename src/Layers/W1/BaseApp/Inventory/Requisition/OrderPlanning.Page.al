@@ -247,6 +247,7 @@ page 5522 "Order Planning"
                     field(AvailableForTransfer; QtyOnOtherLocations)
                     {
                         ApplicationArea = Location;
+                        AutoFormatType = 0;
                         Caption = 'Available For Transfer';
                         DecimalPlaces = 0 : 5;
                         Editable = false;
@@ -260,6 +261,7 @@ page 5522 "Order Planning"
                     field(SubstitionAvailable; format(SubstitionAvailable))
                     {
                         ApplicationArea = Planning;
+                        AutoFormatType = 0;
                         Caption = 'Substitutes Exist';
                         DrillDown = false;
                         Editable = false;
@@ -274,6 +276,7 @@ page 5522 "Order Planning"
                     field(QuantityAvailable; QtyATP)
                     {
                         ApplicationArea = Planning;
+                        AutoFormatType = 0;
                         Caption = 'Quantity Available';
                         DecimalPlaces = 0 : 5;
                         DrillDown = false;

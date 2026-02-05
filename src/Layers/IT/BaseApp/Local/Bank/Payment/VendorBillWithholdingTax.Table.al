@@ -47,6 +47,7 @@ table 12185 "Vendor Bill Withholding Tax"
         {
             Caption = 'Original Total Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(13; "Base - Excluded Amount"; Decimal)
         {
@@ -95,6 +96,7 @@ table 12185 "Vendor Bill Withholding Tax"
         }
         field(34; "Non Taxable %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Taxable %';
             DecimalPlaces = 0 : 3;
         }
@@ -112,6 +114,7 @@ table 12185 "Vendor Bill Withholding Tax"
         }
         field(37; "Withholding Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Withholding Tax %';
             DecimalPlaces = 0 : 3;
         }
@@ -167,6 +170,7 @@ table 12185 "Vendor Bill Withholding Tax"
         }
         field(55; "Social Security %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Social Security %';
             DecimalPlaces = 0 : 4;
         }
@@ -178,6 +182,7 @@ table 12185 "Vendor Bill Withholding Tax"
         }
         field(57; "Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Free-Lance %';
             DecimalPlaces = 0 : 4;
         }

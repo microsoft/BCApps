@@ -44,6 +44,8 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 Processed := true;
             until ItemLedgerEntry.Next() = 0;
 
+        OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(ItemLedgerEntry);
+
         if Processed then
             Message(PostedSuccessfullyMsg);
     end;
@@ -527,6 +529,11 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateConsumptionReservationEntryOnBeforeInsert(var ReservationEntry: Record "Reservation Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(var ItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 }

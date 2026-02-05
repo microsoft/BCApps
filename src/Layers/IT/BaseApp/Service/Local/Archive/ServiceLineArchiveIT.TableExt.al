@@ -18,6 +18,7 @@ tableextension 12141 "Service Line Archive IT" extends "Service Line Archive"
         }
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DataClassification = CustomerContent;
             DecimalPlaces = 2 : 2;

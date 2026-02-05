@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Updates the print counter on posted sales credit memo headers when documents are printed.
+/// </summary>
 codeunit 316 "Sales Cr. Memo-Printed"
 {
     Permissions = TableData "Sales Cr.Memo Header" = rimd;
@@ -23,6 +26,10 @@ codeunit 316 "Sales Cr. Memo-Printed"
     var
         SuppressCommit: Boolean;
 
+    /// <summary>
+    /// Sets whether the commit operation should be suppressed after updating the print counter.
+    /// </summary>
+    /// <param name="NewSuppressCommit">Specifies whether to suppress the commit operation.</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;

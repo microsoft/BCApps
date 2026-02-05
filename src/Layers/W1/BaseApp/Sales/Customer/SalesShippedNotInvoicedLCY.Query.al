@@ -4,6 +4,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Retrieves sales amounts that have been shipped but not yet invoiced in local currency.
+/// </summary>
 query 115 "Sales Shipped Not Invoiced LCY"
 {
     Caption = 'Sales Shipped Not Invoiced (LCY)';

@@ -145,6 +145,8 @@ codeunit 22 "Item Jnl.-Post Line"
         Text030: Label 'The quantity that you are trying to invoice is larger than the quantity in the item ledger with the entry number %1.';
         Text033: Label 'Quantity must be -1, 0 or 1 when Serial No. is stated.';
         PostToGlLbl: Label 'Posting to G/L    #1#####', Comment = '%1 is an integer value';
+        CanOnlyBeUsedForDropShipmentErr: Label 'This can be only used for Drop Shipment applications.';
+        DropShipmentCostApplicationsCannotBeUnappliedErr: Label 'Drop Shipment cost applications cannot be unapplied.';
 #pragma warning restore AA0074
 #pragma warning restore AA0470
 
@@ -1113,6 +1115,79 @@ codeunit 22 "Item Jnl.-Post Line"
         SetValuationDateAllValueEntrie(CostItemLedgEntry."Entry No.", Valuationdate, false);
 
         UpdateLinkedValuationUnapply(Valuationdate, CostItemLedgEntry."Entry No.", CostItemLedgEntry.Positive);
+    end;
+
+    procedure UnApplyDropShipment(ItemApplicationEntry: Record "Item Application Entry"; NewItemShptEntryNo: Integer)
+    var
+        ItemLedgerEntry1: Record "Item Ledger Entry";
+        ItemLedgerEntry2: Record "Item Ledger Entry";
+        CostItemLedgerEntry: Record "Item Ledger Entry";
+        InventoryPeriod: Record "Inventory Period";
+        ValuationDate: Date;
+    begin
+        if not InventoryPeriod.IsValidDate(ItemApplicationEntry."Posting Date") then
+            InventoryPeriod.ShowError(ItemApplicationEntry."Posting Date");
+
+        ItemLedgerEntry1.Get(ItemApplicationEntry."Inbound Item Entry No.");
+        ItemLedgerEntry2.Get(ItemApplicationEntry."Outbound Item Entry No.");
+
+        if (not ItemLedgerEntry1."Drop Shipment") or (not ItemLedgerEntry2."Drop Shipment") then
+            Error(CanOnlyBeUsedForDropShipmentErr);
+
+        if ItemApplicationEntry."Item Ledger Entry No." = ItemApplicationEntry."Inbound Item Entry No." then
+            CheckItemCorrection(ItemLedgerEntry1);
+        if ItemApplicationEntry."Item Ledger Entry No." = ItemApplicationEntry."Outbound Item Entry No." then
+            CheckItemCorrection(ItemLedgerEntry2);
+
+        if ItemLedgerEntry2."Entry Type" = ItemLedgerEntry2."Entry Type"::Transfer then
+            Error(Text023);
+
+        ItemApplicationEntry.TestField("Transferred-from Entry No.", 0);
+
+        GetItem(ItemLedgerEntry1."Item No.", true);
+        CostItemLedgerEntry.Get(ItemApplicationEntry.CostReceiver());
+
+        if ItemLedgerEntry1."Applies-to Entry" = ItemLedgerEntry2."Entry No." then
+            ItemLedgerEntry1."Applies-to Entry" := 0;
+
+        if not ItemApplicationEntry.CostApplication() then begin
+            ItemLedgerEntry1."Remaining Quantity" := ItemLedgerEntry1."Remaining Quantity" - ItemApplicationEntry.Quantity;
+            ItemLedgerEntry1.Open := ItemLedgerEntry1."Remaining Quantity" <> 0;
+            ItemLedgerEntry1.Modify();
+        end else
+            Error(DropShipmentCostApplicationsCannotBeUnappliedErr);
+
+        if Item."Costing Method" = Item."Costing Method"::Average then
+            if not ItemApplicationEntry.Fixed() then
+                UpdateValuedByAverageCost(CostItemLedgerEntry."Entry No.", true);
+
+        InsertApplEntry(
+            ItemApplicationEntry."Item Ledger Entry No.",
+            NewItemShptEntryNo,
+            ItemApplicationEntry."Item Ledger Entry No.",
+            0,
+            ItemApplicationEntry."Posting Date",
+            ItemApplicationEntry.Quantity,
+            true);
+
+        ItemApplicationEntry.InsertHistory();
+        TouchEntry(ItemApplicationEntry."Inbound Item Entry No.");
+        SaveTouchedEntry(ItemApplicationEntry."Inbound Item Entry No.", true);
+        if ItemApplicationEntry."Outbound Item Entry No." <> 0 then begin
+            TouchEntry(ItemApplicationEntry."Outbound Item Entry No.");
+            SaveTouchedEntry(ItemApplicationEntry."Inbound Item Entry No.", false);
+        end;
+        ItemApplicationEntry.Delete();
+
+        ValuationDate := GetMaxAppliedValuationdate(CostItemLedgerEntry);
+        if ValuationDate = 0D then
+            ValuationDate := CostItemLedgerEntry."Posting Date"
+        else
+            ValuationDate := max(CostItemLedgerEntry."Posting Date", ValuationDate);
+
+        SetValuationDateAllValueEntrie(CostItemLedgerEntry."Entry No.", ValuationDate, false);
+
+        UpdateLinkedValuationUnapply(ValuationDate, CostItemLedgerEntry."Entry No.", CostItemLedgerEntry.Positive);
     end;
 
     /// <summary>
@@ -2190,7 +2265,7 @@ codeunit 22 "Item Jnl.-Post Line"
             exit;
 
         IsHandled := false;
-        OnBeforePostValueEntryToGL(ValueEntry, IsHandled);
+        OnBeforePostValueEntryToGL(ValueEntry, IsHandled, PostToGL);
         if IsHandled then
             exit;
         PostValueEntryToGL(ValueEntry);
@@ -4333,14 +4408,22 @@ codeunit 22 "Item Jnl.-Post Line"
 
         NewItemLedgEntry."Entry No." := ItemLedgEntryNo;
         NewItemLedgEntry.Quantity := -OldItemLedgEntry.Quantity;
-        NewItemLedgEntry."Remaining Quantity" := -OldItemLedgEntry.Quantity;
+        if (NewItemLedgEntry."Drop Shipment") and (NewItemLedgEntry."Document Type" = NewItemLedgEntry."Document Type"::"Sales Shipment") then
+            NewItemLedgEntry."Remaining Quantity" := 0
+        else
+            NewItemLedgEntry."Remaining Quantity" := -OldItemLedgEntry.Quantity;
+
         if NewItemLedgEntry.Quantity > 0 then
             NewItemLedgEntry."Shipped Qty. Not Returned" := 0
         else
             NewItemLedgEntry."Shipped Qty. Not Returned" := NewItemLedgEntry.Quantity;
         NewItemLedgEntry."Invoiced Quantity" := NewItemLedgEntry.Quantity;
         NewItemLedgEntry.Positive := NewItemLedgEntry."Remaining Quantity" > 0;
-        NewItemLedgEntry.Open := NewItemLedgEntry."Remaining Quantity" <> 0;
+        if (NewItemLedgEntry."Drop Shipment") and (NewItemLedgEntry."Document Type" = NewItemLedgEntry."Document Type"::"Sales Shipment") then
+            NewItemLedgEntry.Open := false
+        else
+            NewItemLedgEntry.Open := NewItemLedgEntry."Remaining Quantity" <> 0;
+
         NewItemLedgEntry."Completely Invoiced" := true;
         NewItemLedgEntry."Last Invoice Date" := NewItemLedgEntry."Posting Date";
         NewItemLedgEntry.Correction := true;
@@ -7077,7 +7160,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean)
+    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean; PostToGL: Boolean)
     begin
     end;
 

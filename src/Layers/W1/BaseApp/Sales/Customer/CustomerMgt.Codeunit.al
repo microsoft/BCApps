@@ -12,6 +12,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Provides customer management functions including statistics calculations and sales analysis.
+/// </summary>
 codeunit 1302 "Customer Mgt."
 {
 
@@ -23,6 +26,11 @@ codeunit 1302 "Customer Mgt."
         FiscalYearTotals: Boolean;
 
 #if not CLEAN27
+    /// <summary>
+    /// Calculates the average number of days it takes for a customer to pay their invoices.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate the average days to pay for.</param>
+    /// <returns>The average number of days to pay as a decimal value.</returns>
     [Obsolete('Use procedure CalculatePaymentStats(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text]) instead.', '27.0')]
     procedure AvgDaysToPay(CustNo: Code[20]) AverageDaysToPay: Decimal
     var
@@ -42,6 +50,11 @@ codeunit 1302 "Customer Mgt."
                 exit(AverageDaysToPay);
     end;
 #endif
+    /// <summary>
+    /// Calculates payment statistics for a customer including average days to pay, late payment counts, and overdue invoices.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies the customer number to calculate payment statistics for.</param>
+    /// <param name="Stats">Returns a dictionary containing the calculated payment statistics.</param>
     procedure CalculatePaymentStats(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -110,6 +123,11 @@ codeunit 1302 "Customer Mgt."
             Stats.Add(CustomerCardCalculations.GetDaysSinceLastSaleLabel(), (WorkDate() - CustLedgerEntry."Posting Date").ToText());
     end;
 
+    /// <summary>
+    /// Retrieves the last payment information for a customer including date, amount, and whether it was paid on time.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies the customer number to retrieve payment information for.</param>
+    /// <param name="Stats">Returns a dictionary containing the last payment date, amount, and on-time status.</param>
     procedure CalcLastPaymentInfo(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -130,6 +148,11 @@ codeunit 1302 "Customer Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Calculates the number of distinct items that have been sold to a customer.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies the customer number to count distinct items for.</param>
+    /// <param name="Stats">Returns a dictionary containing the count of distinct items sold.</param>
     procedure CalcNumberOfDistinctItemsSold(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text])
     var
         CustomerCardCalculations: Codeunit "Customer Card Calculations";
@@ -145,6 +168,11 @@ codeunit 1302 "Customer Mgt."
         Stats.Add(CustomerCardCalculations.GetDistinctItemsSoldLabel(), DistinctItemCount.ToText())
     end;
 
+    /// <summary>
+    /// Calculates interaction statistics for a customer including total count, last interaction date, and most frequent type.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies the customer number to calculate interaction statistics for.</param>
+    /// <param name="Stats">Returns a dictionary containing the calculated interaction statistics.</param>
     procedure CalculateInteractionStats(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text])
     var
         InteractionLogEntry: Record "Interaction Log Entry";
@@ -178,6 +206,17 @@ codeunit 1302 "Customer Mgt."
 
     end;
 
+    /// <summary>
+    /// Calculates customer statistics including sales, profit, and cost adjustments for the current fiscal year.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record to calculate statistics for.</param>
+    /// <param name="AdjmtCostLCY">Returns the adjusted cost in local currency.</param>
+    /// <param name="AdjCustProfit">Returns the adjusted customer profit.</param>
+    /// <param name="AdjProfitPct">Returns the adjusted profit percentage.</param>
+    /// <param name="CustInvDiscAmountLCY">Returns the customer invoice discount amount in local currency.</param>
+    /// <param name="CustPaymentsLCY">Returns the customer payments in local currency.</param>
+    /// <param name="CustSalesLCY">Returns the customer sales in local currency.</param>
+    /// <param name="CustProfit">Returns the customer profit.</param>
     procedure CalculateStatistic(Customer: Record Customer; var AdjmtCostLCY: Decimal; var AdjCustProfit: Decimal; var AdjProfitPct: Decimal; var CustInvDiscAmountLCY: Decimal; var CustPaymentsLCY: Decimal; var CustSalesLCY: Decimal; var CustProfit: Decimal)
     begin
         Customer.SetFilter("Date Filter", GetCurrentYearFilter());
@@ -186,6 +225,17 @@ codeunit 1302 "Customer Mgt."
         CalculateStatisticsWithCurrentCustomerValues(Customer, AdjmtCostLCY, AdjCustProfit, AdjProfitPct, CustInvDiscAmountLCY, CustPaymentsLCY, CustSalesLCY, CustProfit)
     end;
 
+    /// <summary>
+    /// Calculates customer statistics using current customer field values without applying date filters.
+    /// </summary>
+    /// <param name="Customer">Specifies the customer record with pre-calculated field values.</param>
+    /// <param name="AdjmtCostLCY">Returns the adjusted cost in local currency.</param>
+    /// <param name="AdjCustProfit">Returns the adjusted customer profit.</param>
+    /// <param name="AdjProfitPct">Returns the adjusted profit percentage.</param>
+    /// <param name="CustInvDiscAmountLCY">Returns the customer invoice discount amount in local currency.</param>
+    /// <param name="CustPaymentsLCY">Returns the customer payments in local currency.</param>
+    /// <param name="CustSalesLCY">Returns the customer sales in local currency.</param>
+    /// <param name="CustProfit">Returns the customer profit.</param>
     procedure CalculateStatisticsWithCurrentCustomerValues(var Customer: Record Customer; var AdjmtCostLCY: Decimal; var AdjCustProfit: Decimal; var AdjProfitPct: Decimal; var CustInvDiscAmountLCY: Decimal; var CustPaymentsLCY: Decimal; var CustSalesLCY: Decimal; var CustProfit: Decimal)
     var
         CostCalcuMgt: Codeunit "Cost Calculation Management";
@@ -213,6 +263,12 @@ codeunit 1302 "Customer Mgt."
         CustPaymentsLCY := Customer."Payments (LCY)";
     end;
 
+    /// <summary>
+    /// Calculates the total sales amount on posted invoices for a customer within the current year.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate posted invoice amounts for.</param>
+    /// <param name="RecCount">Returns the count of posted invoices.</param>
+    /// <returns>The total sales amount in local currency on posted invoices.</returns>
     procedure CalcAmountsOnPostedInvoices(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -220,6 +276,12 @@ codeunit 1302 "Customer Mgt."
         exit(CalcAmountsOnPostedDocs(CustNo, RecCount, CustLedgEntry."Document Type"::Invoice));
     end;
 
+    /// <summary>
+    /// Calculates the total sales amount on posted credit memos for a customer within the current year.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate posted credit memo amounts for.</param>
+    /// <param name="RecCount">Returns the count of posted credit memos.</param>
+    /// <returns>The total sales amount in local currency on posted credit memos.</returns>
     procedure CalcAmountsOnPostedCrMemos(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -227,6 +289,12 @@ codeunit 1302 "Customer Mgt."
         exit(CalcAmountsOnPostedDocs(CustNo, RecCount, CustLedgEntry."Document Type"::"Credit Memo"));
     end;
 
+    /// <summary>
+    /// Calculates the total outstanding amount on sales orders for a customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate sales order amounts for.</param>
+    /// <param name="RecCount">Returns the count of sales orders.</param>
+    /// <returns>The total outstanding amount in local currency on sales orders.</returns>
     procedure CalcAmountsOnOrders(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         SalesHeader: Record "Sales Header";
@@ -234,6 +302,12 @@ codeunit 1302 "Customer Mgt."
         exit(CalculateAmountsOnUnpostedDocs(CustNo, RecCount, SalesHeader."Document Type"::Order));
     end;
 
+    /// <summary>
+    /// Calculates the total outstanding amount on sales quotes for a customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate sales quote amounts for.</param>
+    /// <param name="RecCount">Returns the count of sales quotes.</param>
+    /// <returns>The total outstanding amount in local currency on sales quotes.</returns>
     procedure CalcAmountsOnQuotes(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         SalesHeader: Record "Sales Header";
@@ -252,6 +326,11 @@ codeunit 1302 "Customer Mgt."
         exit(CustLedgerEntry."Sales (LCY)");
     end;
 
+    /// <summary>
+    /// Calculates the total outstanding amount including VAT on unposted invoices and credit memos for a customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate amounts for.</param>
+    /// <returns>The total outstanding amount including VAT on unposted documents.</returns>
     procedure CalculateAmountsWithVATOnUnpostedDocuments(CustNo: Code[20]): Decimal
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -271,6 +350,12 @@ codeunit 1302 "Customer Mgt."
         exit(Result);
     end;
 
+    /// <summary>
+    /// Calculates the total outstanding amount on unposted sales invoices for a customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate unposted invoice amounts for.</param>
+    /// <param name="RecCount">Returns the count of unposted invoices.</param>
+    /// <returns>The total outstanding amount in local currency on unposted invoices.</returns>
     procedure CalculateAmountsOnUnpostedInvoices(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         SalesLine: Record "Sales Line";
@@ -278,6 +363,12 @@ codeunit 1302 "Customer Mgt."
         exit(CalculateAmountsOnUnpostedDocs(CustNo, RecCount, SalesLine."Document Type"::Invoice));
     end;
 
+    /// <summary>
+    /// Calculates the total outstanding amount on unposted sales credit memos for a customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate unposted credit memo amounts for.</param>
+    /// <param name="RecCount">Returns the count of unposted credit memos.</param>
+    /// <returns>The total outstanding amount in local currency on unposted credit memos.</returns>
     procedure CalculateAmountsOnUnpostedCrMemos(CustNo: Code[20]; var RecCount: Integer): Decimal
     var
         SalesLine: Record "Sales Line";
@@ -319,6 +410,10 @@ codeunit 1302 "Customer Mgt."
         exit(Round(Result));
     end;
 
+    /// <summary>
+    /// Opens the Posted Sales Invoices page filtered for the specified customer within the current year.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter posted invoices for.</param>
     procedure DrillDownOnPostedInvoices(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -330,6 +425,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Posted Sales Invoices", SalesInvoiceHeader);
     end;
 
+    /// <summary>
+    /// Opens the Posted Sales Credit Memos page filtered for the specified customer within the current year.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter posted credit memos for.</param>
     procedure DrillDownOnPostedCrMemo(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -341,6 +440,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Posted Sales Credit Memos", SalesCrMemoHeader);
     end;
 
+    /// <summary>
+    /// Opens the Sales Order List page filtered for the specified customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter sales orders for.</param>
     procedure DrillDownOnOrders(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -352,6 +455,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Sales Order List", SalesHeader);
     end;
 
+    /// <summary>
+    /// Opens the Sales Quotes page filtered for the specified customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter sales quotes for.</param>
     procedure DrillDownOnQuotes(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -363,6 +470,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Sales Quotes", SalesHeader);
     end;
 
+    /// <summary>
+    /// Opens the Sales List page showing unposted invoices and credit memos for the specified customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter expected money owed documents for.</param>
     procedure DrillDownMoneyOwedExpected(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -372,6 +483,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Sales List", SalesHeader)
     end;
 
+    /// <summary>
+    /// Opens the Sales Invoice List page filtered for unposted invoices of the specified customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter unposted invoices for.</param>
     procedure DrillDownOnUnpostedInvoices(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -381,6 +496,10 @@ codeunit 1302 "Customer Mgt."
         PAGE.Run(PAGE::"Sales Invoice List", SalesHeader)
     end;
 
+    /// <summary>
+    /// Opens the Sales Credit Memos page filtered for unposted credit memos of the specified customer.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to filter unposted credit memos for.</param>
     procedure DrillDownOnUnpostedCrMemos(CustNo: Code[20])
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -421,6 +540,10 @@ codeunit 1302 "Customer Mgt."
         OnAfterSetFilterForPostedDocs(CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Retrieves the date filter for the current fiscal year or accounting period.
+    /// </summary>
+    /// <returns>A text filter representing the current year date range.</returns>
     procedure GetCurrentYearFilter(): Text[30]
     var
         DateFilterCalc: Codeunit "DateFilter-Calc";
@@ -440,6 +563,11 @@ codeunit 1302 "Customer Mgt."
         exit(CustDateFilter);
     end;
 
+    /// <summary>
+    /// Calculates the total sales for a customer including posted and outstanding invoices and credit memos.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate total sales for.</param>
+    /// <returns>The total sales amount in local currency.</returns>
     procedure GetTotalSales(CustNo: Code[20]) Result: Decimal
     var
         Totals: Decimal;
@@ -468,6 +596,11 @@ codeunit 1302 "Customer Mgt."
         exit(Totals)
     end;
 
+    /// <summary>
+    /// Calculates the year-to-date sales for a customer using fiscal year totals.
+    /// </summary>
+    /// <param name="CustNo">Specifies the customer number to calculate year-to-date sales for.</param>
+    /// <returns>The year-to-date sales amount in local currency.</returns>
     procedure GetYTDSales(CustNo: Code[20]): Decimal
     var
         Totals: Decimal;
@@ -479,6 +612,11 @@ codeunit 1302 "Customer Mgt."
     end;
 
 
+    /// <summary>
+    /// Searches for duplicate external document numbers in sales documents and posted documents.
+    /// </summary>
+    /// <param name="OriginalSalesHeader">Specifies the sales header to search for matching external document numbers.</param>
+    /// <returns>True if a duplicate external document number is found, otherwise false.</returns>
     procedure SearchForExternalDocNo(var OriginalSalesHeader: Record "Sales Header"): Boolean
     var
         SalesHeader: Record "Sales Header";
@@ -517,6 +655,12 @@ codeunit 1302 "Customer Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Calculates the ship-to and bill-to options based on the sales header address information.
+    /// </summary>
+    /// <param name="ShipToOptions">Returns the calculated ship-to option based on address comparison.</param>
+    /// <param name="BillToOptions">Returns the calculated bill-to option based on customer and address comparison.</param>
+    /// <param name="SalesHeader">Specifies the sales header to evaluate for ship-to and bill-to options.</param>
     procedure CalculateShipBillToOptions(var ShipToOptions: Enum "Sales Ship-to Options"; var BillToOptions: Enum "Sales Bill-to Options"; var SalesHeader: Record "Sales Header")
     var
         ShipToNameEqualsSellToName: Boolean;
@@ -545,37 +689,79 @@ codeunit 1302 "Customer Mgt."
         OnAfterCalculateShipBillToOptions(ShipToOptions, BillToOptions, SalesHeader);
     end;
 
+    /// <summary>
+    /// Raised after setting filters for posted customer ledger entries.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilterForPostedDocs(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters for unposted sales lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record with filters applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilterForUnpostedLines(var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the total sales for a customer.
+    /// </summary>
+    /// <param name="CustNo">The customer number.</param>
+    /// <param name="Result">Set to the result to override the calculation.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetTotalSales(CustNo: Code[20]; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised to allow skipping the date filter setting for current year calculations.
+    /// </summary>
+    /// <param name="SkipSetFilter">Set to true to skip the date filter.</param>
     [IntegrationEvent(false, false)]
     local procedure SkipSettingFilter(var SkipSetFilter: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the ship-to and bill-to options for a sales header.
+    /// </summary>
+    /// <param name="ShipToOptions">The calculated ship-to option that can be modified.</param>
+    /// <param name="BillToOptions">The calculated bill-to option that can be modified.</param>
+    /// <param name="SalesHeader">The sales header used for the calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateShipBillToOptions(var ShipToOptions: Enum "Sales Ship-to Options"; var BillToOptions: Enum "Sales Bill-to Options"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before searching for duplicate external document numbers.
+    /// </summary>
+    /// <param name="OriginalSalesHeader">The sales header to check for duplicates.</param>
+    /// <param name="ResultFound">Set to true if a duplicate was found.</param>
+    /// <param name="IsHandled">Set to true to skip the default search.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSearchForExternalDocNo(var OriginalSalesHeader: Record "Sales Header"; var ResultFound: Boolean; var IsHandled: Boolean)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised before calculating customer statistics using current customer field values.
+    /// </summary>
+    /// <param name="Customer">The customer record.</param>
+    /// <param name="AdjmtCostLCY">The adjusted cost in local currency to override.</param>
+    /// <param name="AdjCustProfit">The adjusted customer profit to override.</param>
+    /// <param name="AdjProfitPct">The adjusted profit percentage to override.</param>
+    /// <param name="CustInvDiscAmountLCY">The invoice discount amount to override.</param>
+    /// <param name="CustPaymentsLCY">The customer payments to override.</param>
+    /// <param name="CustSalesLCY">The customer sales to override.</param>
+    /// <param name="CustProfit">The customer profit to override.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateStatisticsWithCurrentCustomerValues(var Customer: Record Customer; var AdjmtCostLCY: Decimal; var AdjCustProfit: Decimal; var AdjProfitPct: Decimal; var CustInvDiscAmountLCY: Decimal; var CustPaymentsLCY: Decimal; var CustSalesLCY: Decimal; var CustProfit: Decimal; var IsHandled: Boolean)
     begin

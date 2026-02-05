@@ -43,17 +43,20 @@ table 5408 "Prod. Ord. Line Tracking Buff."
         }
         field(40; "Qty. split for Put Away"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. split for Put Away';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(41; "Qty. split for Put Away (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. split for Put Away (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(73; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -62,6 +65,7 @@ table 5408 "Prod. Ord. Line Tracking Buff."
         }
         field(74; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -95,6 +99,7 @@ table 5408 "Prod. Ord. Line Tracking Buff."
         }
         field(99000753; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
         }

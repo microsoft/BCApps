@@ -36,6 +36,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field1; MATRIX_CellData[1])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[1];
@@ -47,6 +48,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field2; MATRIX_CellData[2])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[2];
@@ -58,6 +60,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field3; MATRIX_CellData[3])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[3];
@@ -69,6 +72,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field4; MATRIX_CellData[4])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[4];
@@ -80,6 +84,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field5; MATRIX_CellData[5])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[5];
@@ -91,6 +96,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field6; MATRIX_CellData[6])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[6];
@@ -102,6 +108,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field7; MATRIX_CellData[7])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[7];
@@ -113,6 +120,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field8; MATRIX_CellData[8])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[8];
@@ -124,6 +132,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field9; MATRIX_CellData[9])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[9];
@@ -135,6 +144,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field10; MATRIX_CellData[10])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[10];
@@ -146,6 +156,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field11; MATRIX_CellData[11])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[11];
@@ -157,6 +168,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field12; MATRIX_CellData[12])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[12];
@@ -168,6 +180,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field13; MATRIX_CellData[13])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[13];
@@ -179,6 +192,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field14; MATRIX_CellData[14])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[14];
@@ -190,6 +204,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field15; MATRIX_CellData[15])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[15];
@@ -201,6 +216,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field16; MATRIX_CellData[16])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[16];
@@ -212,6 +228,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field17; MATRIX_CellData[17])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[17];
@@ -223,6 +240,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field18; MATRIX_CellData[18])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[18];
@@ -234,6 +252,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field19; MATRIX_CellData[19])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[19];
@@ -245,6 +264,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field20; MATRIX_CellData[20])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[20];
@@ -256,6 +276,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field21; MATRIX_CellData[21])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[21];
@@ -267,6 +288,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field22; MATRIX_CellData[22])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[22];
@@ -278,6 +300,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field23; MATRIX_CellData[23])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[23];
@@ -289,6 +312,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field24; MATRIX_CellData[24])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[24];
@@ -300,6 +324,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field25; MATRIX_CellData[25])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[25];
@@ -311,6 +336,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field26; MATRIX_CellData[26])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[26];
@@ -322,6 +348,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field27; MATRIX_CellData[27])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[27];
@@ -333,6 +360,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field28; MATRIX_CellData[28])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[28];
@@ -344,6 +372,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field29; MATRIX_CellData[29])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[29];
@@ -355,6 +384,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field30; MATRIX_CellData[30])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[30];
@@ -366,6 +396,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field31; MATRIX_CellData[31])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[31];
@@ -377,6 +408,7 @@ page 9293 "Machine Center Calendar Matrix"
                 }
                 field(Field32; MATRIX_CellData[32])
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     CaptionClass = '3,' + MATRIX_CaptionSet[32];

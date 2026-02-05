@@ -42,6 +42,7 @@ table 5404 "Item Unit of Measure"
         }
         field(3; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -67,6 +68,7 @@ table 5404 "Item Unit of Measure"
         }
         field(4; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -98,6 +100,7 @@ table 5404 "Item Unit of Measure"
         }
         field(7300; Length; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Length';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -109,6 +112,7 @@ table 5404 "Item Unit of Measure"
         }
         field(7301; Width; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Width';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -120,6 +124,7 @@ table 5404 "Item Unit of Measure"
         }
         field(7302; Height; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Height';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -131,12 +136,14 @@ table 5404 "Item Unit of Measure"
         }
         field(7303; Cubage; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Cubage';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(7304; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

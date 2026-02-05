@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Inventory.Location;
 using Microsoft.Warehouse.Request;
 
+/// <summary>
+/// Creates and manages warehouse requests when sales documents are released or reopened.
+/// </summary>
 codeunit 5771 "Whse.-Sales Release"
 {
     Permissions = TableData "Warehouse Request" = rimd;
@@ -20,6 +23,10 @@ codeunit 5771 "Whse.-Sales Release"
         OldLocationCode: Code[10];
         First: Boolean;
 
+    /// <summary>
+    /// Creates warehouse requests when a sales document is released.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being released.</param>
     procedure Release(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -89,6 +96,10 @@ codeunit 5771 "Whse.-Sales Release"
         OnAfterRelease(SalesHeader);
     end;
 
+    /// <summary>
+    /// Updates warehouse requests to open status when a sales document is reopened.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being reopened.</param>
     procedure Reopen(SalesHeader: Record "Sales Header")
     var
         WarehouseRequest2: Record "Warehouse Request";
@@ -114,6 +125,10 @@ codeunit 5771 "Whse.-Sales Release"
         OnAfterReopen(SalesHeader);
     end;
 
+    /// <summary>
+    /// Updates the external document number on warehouse requests for a released sales order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header with the updated external document number.</param>
     [Scope('OnPrem')]
     procedure UpdateExternalDocNoForReleasedOrder(SalesHeader: Record "Sales Header")
     begin
@@ -125,6 +140,13 @@ codeunit 5771 "Whse.-Sales Release"
             WarehouseRequest.ModifyAll("External Document No.", SalesHeader."External Document No.");
     end;
 
+    /// <summary>
+    /// Creates or updates a warehouse request for a sales document and location.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header for the warehouse request.</param>
+    /// <param name="SalesLine">The sales line determining the location.</param>
+    /// <param name="WhseType">The warehouse request type (Inbound or Outbound).</param>
+    /// <param name="WarehouseRequest">The warehouse request record to create or update.</param>
     procedure CreateWarehouseRequest(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; WhseType: Enum "Warehouse Request Type"; var WarehouseRequest: Record "Warehouse Request")
     var
         SalesLine2: Record "Sales Line";

@@ -20,7 +20,9 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
+#if not CLEAN28
 using Microsoft.Sales.Reports;
+#endif
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -32,6 +34,9 @@ using System.Integration.PowerBI;
 using System.Text;
 using System.Threading;
 
+/// <summary>
+/// Displays a list of sales orders for managing customer order processing and fulfillment.
+/// </summary>
 page 9305 "Sales Order List"
 {
     ApplicationArea = Basic, Suite, Assembly;
@@ -1059,6 +1064,7 @@ page 9305 "Sales Order List"
                 RunObject = Query "Sales Order Analysis";
                 ToolTip = 'Analyze (group, summarize, pivot) your Sales Order performance against customers and goods/services sold, including outstanding vs. posted quantities and amounts.';
             }
+#if not CLEAN28
             action("Sales Reservation Avail.")
             {
                 ApplicationArea = Reservation;
@@ -1066,7 +1072,11 @@ page 9305 "Sales Order List"
                 Image = "Report";
                 RunObject = Report "Sales Reservation Avail.";
                 ToolTip = 'View, print, or save an overview of availability of items for shipment on sales documents, filtered on shipment status.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                ObsoleteTag = '28.0';
             }
+#endif
         }
         area(Promoted)
         {
@@ -1296,6 +1306,9 @@ page 9305 "Sales Order List"
     protected var
         SalesTaxStatisticsVisible: Boolean;
 
+    /// <summary>
+    /// Shows a preview of the posting result for the selected order.
+    /// </summary>
     procedure ShowPreview()
     var
         SelectedSalesHeader: Record "Sales Header";
@@ -1329,6 +1342,9 @@ page 9305 "Sales Order List"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Sets a flag to only show orders with VAT lines.
+    /// </summary>
     procedure SkipShowingLinesWithoutVAT()
     begin
         OnlyShowHeadersWithVat := true;

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Inventory.Item;
 
+/// <summary>
+/// Calculates the total remaining quantity of inventory items in base units across sales lines.
+/// </summary>
 query 37 RemQtyBaseInvtItemSalesLine
 {
     QueryType = Normal;
@@ -37,6 +40,10 @@ query 37 RemQtyBaseInvtItemSalesLine
         }
     }
 
+    /// <summary>
+    /// Sets filters on the query to match sales lines from the specified sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to filter by.</param>
     procedure SetSalesLineFilter(SalesHeader: Record "Sales Header")
     begin
         SetRange(Document_No_, SalesHeader."No.");

@@ -89,6 +89,7 @@ page 1615 "Office Job Journal"
             field(DisplayQuantity; DisplayQuantity)
             {
                 ApplicationArea = Jobs;
+                AutoFormatType = 0;
                 Caption = 'Quantity';
                 Editable = IsEditable;
                 ToolTip = 'Specifies the quantity you want to transfer to the project journal.';

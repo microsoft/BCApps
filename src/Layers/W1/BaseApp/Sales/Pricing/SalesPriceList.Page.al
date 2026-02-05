@@ -11,6 +11,9 @@ using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Pricing;
 
+/// <summary>
+/// Displays and manages a single sales price list with its header details and line items.
+/// </summary>
 page 7016 "Sales Price List"
 {
     Caption = 'Sales Price List';
@@ -654,6 +657,9 @@ page 7016 "Sales Price List"
         ViewGroupIsVisible: Boolean;
         UseCustomLookup: Boolean;
 
+    /// <summary>
+    /// Sets the enabled state of the source number field based on the source type configuration.
+    /// </summary>
     protected procedure SetSourceNoEnabled()
     var
         PriceSource: Record "Price Source";
@@ -664,6 +670,10 @@ page 7016 "Sales Price List"
         ParentSourceNoVisible := ParentSourceNoEnabled and not UseCustomLookup;
     end;
 
+    /// <summary>
+    /// Validates and applies the selected source type to the price list header.
+    /// </summary>
+    /// <param name="SourceType2">The source type integer value to validate.</param>
     protected procedure ValidateSourceType(SourceType2: Integer)
     begin
         Rec.Validate("Source Type", SourceType2);
@@ -671,16 +681,33 @@ page 7016 "Sales Price List"
         CurrPage.SaveRecord();
     end;
 
+    /// <summary>
+    /// Raises an event to handle custom source type updates when the source group is not Customer or Job.
+    /// </summary>
+    /// <param name="PriceListHeader">The price list header record.</param>
+    /// <param name="SourceType">The sales price source type to set.</param>
+    /// <param name="IsJobGroup">Indicates whether the source group is Job.</param>
     [IntegrationEvent(true, false)]
     local procedure OnUpdateSourceTypeOnCaseElse(PriceListHeader: Record "Price List Header"; var SourceType: Enum "Sales Price Source Type"; var IsJobGroup: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an event after determining the default source type for the price source group.
+    /// </summary>
+    /// <param name="PriceSourceGroup">The price source group.</param>
+    /// <param name="DefaultPriceSourceType">The default price source type to use.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetDefaultSourceType(PriceSourceGroup: Enum "Price Source Group"; var DefaultPriceSourceType: Enum "Price Source Type")
     begin
     end;
 
+    /// <summary>
+    /// Raises an event before checking for draft lines when closing the page.
+    /// </summary>
+    /// <param name="PriceListHeader">The price list header record.</param>
+    /// <param name="Result">The result to return from the query close page trigger.</param>
+    /// <param name="IsHandled">Set to true to skip the default draft line check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnQueryClosePageOnBeforeDraftLineCheck(PriceListHeader: Record "Price List Header"; var Result: Boolean; var IsHandled: Boolean)
     begin

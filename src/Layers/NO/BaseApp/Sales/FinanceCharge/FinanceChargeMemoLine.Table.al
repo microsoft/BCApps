@@ -18,6 +18,9 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 using System.Text;
 
+/// <summary>
+/// Stores line items for unissued finance charge memos including customer ledger entries, interest amounts, and additional fees.
+/// </summary>
 table 303 "Finance Charge Memo Line"
 {
     Caption = 'Finance Charge Memo Line';
@@ -25,22 +28,34 @@ table 303 "Finance Charge Memo Line"
 
     fields
     {
+        /// <summary>
+        /// Specifies the finance charge memo number that this line belongs to.
+        /// </summary>
         field(1; "Finance Charge Memo No."; Code[20])
         {
             Caption = 'Finance Charge Memo No.';
             TableRelation = "Finance Charge Memo Header";
         }
+        /// <summary>
+        /// Specifies the sequential line number within the finance charge memo.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             NotBlank = true;
         }
+        /// <summary>
+        /// Specifies the line number that this line is attached to, used for extended text lines.
+        /// </summary>
         field(3; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
             Editable = false;
             TableRelation = "Finance Charge Memo Line"."Line No." where("Finance Charge Memo No." = field("Finance Charge Memo No."));
         }
+        /// <summary>
+        /// Specifies the line type: blank for text, G/L Account for fees, or Customer Ledger Entry for interest charges.
+        /// </summary>
         field(4; Type; Option)
         {
             Caption = 'Type';
@@ -62,6 +77,9 @@ table 303 "Finance Charge Memo Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the customer ledger entry number for which interest is being charged.
+        /// </summary>
         field(5; "Entry No."; Integer)
         {
             BlankZero = true;
@@ -109,21 +127,33 @@ table 303 "Finance Charge Memo Line"
                 CalcFinChrg();
             end;
         }
+        /// <summary>
+        /// Specifies the posting date of the original customer ledger entry.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the document date of the original customer ledger entry.
+        /// </summary>
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the due date of the original customer ledger entry used for interest calculation.
+        /// </summary>
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the document type of the original customer ledger entry, such as invoice or credit memo.
+        /// </summary>
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
@@ -134,6 +164,9 @@ table 303 "Finance Charge Memo Line"
                 Validate("Document No.");
             end;
         }
+        /// <summary>
+        /// Specifies the document number of the original customer ledger entry.
+        /// </summary>
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
@@ -159,10 +192,16 @@ table 303 "Finance Charge Memo Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the description of the line, typically the customer ledger entry description or G/L account name.
+        /// </summary>
         field(12; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Specifies the original amount of the customer ledger entry before any payments.
+        /// </summary>
         field(13; "Original Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -171,6 +210,9 @@ table 303 "Finance Charge Memo Line"
             Caption = 'Original Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the remaining unpaid amount of the customer ledger entry at the document date.
+        /// </summary>
         field(14; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -179,6 +221,9 @@ table 303 "Finance Charge Memo Line"
             Caption = 'Remaining Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the G/L account number for additional fees or the standard text code for text lines.
+        /// </summary>
         field(15; "No."; Code[20])
         {
             Caption = 'No.';
@@ -220,6 +265,9 @@ table 303 "Finance Charge Memo Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the interest amount or additional fee amount for this line.
+        /// </summary>
         field(16; Amount; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -261,8 +309,12 @@ table 303 "Finance Charge Memo Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the interest rate percentage used to calculate the finance charge on this entry.
+        /// </summary>
         field(17; "Interest Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Interest Rate';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -275,6 +327,9 @@ table 303 "Finance Charge Memo Line"
                 CalcFinChrg();
             end;
         }
+        /// <summary>
+        /// Specifies the general product posting group used for posting the finance charge.
+        /// </summary>
         field(18; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -287,17 +342,27 @@ table 303 "Finance Charge Memo Line"
                         Validate("VAT Prod. Posting Group", GenProdPostingGrp."Def. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the VAT percentage applied to the finance charge amount.
+        /// </summary>
         field(19; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies how VAT is calculated for this line, such as normal VAT or reverse charge.
+        /// </summary>
         field(20; "VAT Calculation Type"; enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the calculated VAT amount on the finance charge.
+        /// </summary>
         field(21; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -306,6 +371,9 @@ table 303 "Finance Charge Memo Line"
             Caption = 'VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the tax group code used for sales tax calculation in North American jurisdictions.
+        /// </summary>
         field(22; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
@@ -316,6 +384,9 @@ table 303 "Finance Charge Memo Line"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the VAT product posting group that determines the VAT rate and accounts.
+        /// </summary>
         field(23; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -360,26 +431,41 @@ table 303 "Finance Charge Memo Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Specifies the VAT identifier code from the VAT posting setup.
+        /// </summary>
         field(24; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the type of line: finance charge line, beginning text, ending text, or rounding.
+        /// </summary>
         field(25; "Line Type"; Option)
         {
             Caption = 'Line Type';
             OptionCaption = 'Finance Charge Memo Line,Beginning Text,Ending Text,Rounding';
             OptionMembers = "Finance Charge Memo Line","Beginning Text","Ending Text",Rounding;
         }
+        /// <summary>
+        /// Specifies the VAT clause code that provides explanatory text for VAT on printed documents.
+        /// </summary>
         field(26; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
         }
+        /// <summary>
+        /// Indicates whether this line contains detailed interest rate breakdown when multiple rates apply.
+        /// </summary>
         field(30; "Detailed Interest Rates Entry"; Boolean)
         {
             Caption = 'Detailed Interest Rates Entry';
         }
+        /// <summary>
+        /// Indicates whether this line was created automatically by the system rather than manually.
+        /// </summary>
         field(101; "System-Created Entry"; Boolean)
         {
             Caption = 'System-Created Entry';
@@ -584,6 +670,10 @@ table 303 "Finance Charge Memo Line"
         OnAfterCalcFinCharge(Rec, FinChrgMemoHeader);
     end;
 
+    /// <summary>
+    /// Checks whether any lines are attached to this finance charge memo line.
+    /// </summary>
+    /// <returns>True if attached lines exist; otherwise, false.</returns>
     procedure CheckAttachedLines(): Boolean
     var
         FinChrgMemoLine: Record "Finance Charge Memo Line";
@@ -596,6 +686,9 @@ table 303 "Finance Charge Memo Line"
         exit(false);
     end;
 
+    /// <summary>
+    /// Deletes all lines that are attached to this finance charge memo line.
+    /// </summary>
     procedure UpdateAttachedLines()
     var
         FinChrgMemoLine: Record "Finance Charge Memo Line";
@@ -648,6 +741,10 @@ table 303 "Finance Charge Memo Line"
         end;
     end;
 
+    /// <summary>
+    /// Sets the finance charge memo header for processing line calculations.
+    /// </summary>
+    /// <param name="NewFinChrgMemoHeader">Specifies the finance charge memo header to use for line processing.</param>
     procedure SetFinChrgMemoHeader(var NewFinChrgMemoHeader: Record "Finance Charge Memo Header")
     begin
         FinChrgMemoHeader := NewFinChrgMemoHeader;
@@ -670,6 +767,10 @@ table 303 "Finance Charge Memo Line"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the currency code from the parent finance charge memo header.
+    /// </summary>
+    /// <returns>The currency code of the finance charge memo.</returns>
     procedure GetCurrencyCode(): Code[10]
     var
         FinChrgMemoHeader: Record "Finance Charge Memo Header";
@@ -683,6 +784,10 @@ table 303 "Finance Charge Memo Line"
         exit('');
     end;
 
+    /// <summary>
+    /// Calculates the closed at date for the customer ledger entry based on closing entries.
+    /// </summary>
+    /// <returns>The calculated closed at date.</returns>
     procedure CalcClosedatDate() ClosedatDate: Date
     var
         IsHandled: Boolean;
@@ -708,6 +813,10 @@ table 303 "Finance Charge Memo Line"
             until CustLedgEntry2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets the checking mode to enable validation without inserting records.
+    /// </summary>
+    /// <param name="DoChecking">True to enable checking mode; false to disable.</param>
     procedure SetCheckingMode(DoChecking: Boolean)
     begin
         Checking := DoChecking;
@@ -833,6 +942,9 @@ table 303 "Finance Charge Memo Line"
         OnAfterCumulateDetailedEntries(Rec, FinChrgMemoHeader, ClosedatDate, CumAmount);
     end;
 
+    /// <summary>
+    /// Opens the customer ledger entries lookup page filtered by the current document number.
+    /// </summary>
     procedure LookupDocNo()
     begin
         if Type <> Type::"Customer Ledger Entry" then
@@ -967,87 +1079,188 @@ table 303 "Finance Charge Memo Line"
         end;
     end;
 
+    /// <summary>
+    /// Raised after the finance charge is calculated for the line.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnAfterCalcFinCharge(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the finance charge calculation procedure executes.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default finance charge calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcFinChrgProcedure(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the finance charge interest rate is calculated.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry record.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
+    /// <param name="UseCalcDate">Specifies the calculation date that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcFinanceChargeInterestRate(FinanceChargeMemoLine: Record "Finance Charge Memo Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; FinanceChargeTerms: Record "Finance Charge Terms"; var UseCalcDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating multiple interest rate entries for varying interest rates.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="InsertedLines">Specifies whether lines were inserted.</param>
+    /// <param name="IsHandled">Set to true to skip the default multiple interest rate entry creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateMulitplyInterestRateEntries(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var InsertedLines: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the closed at date is calculated for the customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry record.</param>
+    /// <param name="ClosedAtDate">Specifies the closed at date that can be set.</param>
+    /// <param name="IsHandled">Set to true to skip the default closed at date calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcClosedatDate(CustLedgerEntry: Record "Cust. Ledger Entry"; var ClosedAtDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the interest calculation method case is evaluated in the finance charge calculation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line from the loop.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="FinanceChargeMemoLineSender">Specifies the original finance charge memo line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterFinChrgTermsInterestCalculationMethodCase(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; FinanceChargeTerms: Record "Finance Charge Terms"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var FinanceChargeMemoLineSender: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining whether to skip a customer ledger entry because it is on hold.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="SkipBecauseEntryOnHold">Specifies whether to skip the entry that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterCalcSkipBecauseEntryOnHold(CustLedgerEntry: Record "Cust. Ledger Entry"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var SkipBecauseEntryOnHold: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the number of lines to insert for multiple interest rates.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="NrOfDays">Specifies the number of days for interest calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnBeforeCheckNrOfLinesToInsert(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; NrOfDays: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating that the customer ledger entry is not on hold.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Specifies the customer ledger entry record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip the default on hold validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnsureNotOnHold(var CustLedgerEntry: Record "Cust. Ledger Entry"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the VAT posting setup is retrieved during VAT product posting group validation.
+    /// </summary>
+    /// <param name="VATPostingSetup">Specifies the VAT posting setup record.</param>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnAfterVATPostingSetupGet(var VATPostingSetup: Record "VAT Posting Setup"; FinanceChargeMemoLine: Record "Finance Charge Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the customer ledger entry view filters are set.
+    /// </summary>
+    /// <param name="CustLedgEntry">Specifies the customer ledger entry record with filters applied.</param>
+    /// <param name="FinChrgTerms">Specifies the finance charge terms record.</param>
+    /// <param name="FinChrgMemoHeader">Specifies the finance charge memo header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCustLedgEntryView(var CustLedgEntry: Record "Cust. Ledger Entry"; FinChrgTerms: Record "Finance Charge Terms"; FinChrgMemoHeader: Record "Finance Charge Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after G/L account values are assigned when validating the No. field.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="GLAccount">Specifies the G/L account record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnAfterAssignGLAccountValues(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Raised before the VAT posting setup is retrieved during VAT product posting group validation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the current finance charge memo line record.</param>
+    /// <param name="xFinanceChargeMemoLine">Specifies the previous finance charge memo line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default VAT posting setup retrieval.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeVATPostingSetupGet(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; xFinanceChargeMemoLine: Record "Finance Charge Memo Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before building the description for multiple interest rate entries.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="UseCalcDate">Specifies the calculation end date.</param>
+    /// <param name="UseDueDate">Specifies the due date used for calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateMulitplyInterestRateEntriesOnBeforeBuildDescription(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; UseCalcDate: Date; UseDueDate: Date)
     begin
     end;
-    
+
+    /// <summary>
+    /// Raised after cumulating detailed customer ledger entries for interest calculation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="ClosedAtDate">Specifies the closed at date.</param>
+    /// <param name="CumAmount">Specifies the cumulated amount that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCumulateDetailedEntries(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; ClosedAtDate: Date; var CumAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finance charge terms are retrieved when processing the finance charge memo header.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeTerms">Specifies the finance charge terms record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessFinChrgMemoHeaderOnAfterFinChrgTermsGet(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var FinanceChargeTerms: Record "Finance Charge Terms")
     begin
     end;
 
+    /// <summary>
+    /// Raised after the finance charge interest rate is calculated during the finance charge calculation.
+    /// </summary>
+    /// <param name="FinanceChargeMemoLine">Specifies the finance charge memo line record.</param>
+    /// <param name="FinanceChargeMemoHeader">Specifies the finance charge memo header record.</param>
+    /// <param name="IsHandled">Set to true to skip further processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChargeOnAfterCalcFinanceChargeInterestRate(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; var IsHandled: Boolean)
     begin

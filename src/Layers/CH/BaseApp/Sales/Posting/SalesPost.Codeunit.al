@@ -79,6 +79,9 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
+/// <summary>
+/// Posts sales documents by creating ledger entries for customers, items, resources, fixed assets, and the general ledger.
+/// </summary>
 codeunit 80 "Sales-Post"
 {
     Permissions = TableData "Sales Line" = rimd,
@@ -378,6 +381,9 @@ codeunit 80 "Sales-Post"
           CustLedgEntry, WhseShip, WhseReceive, PreviewMode);
 
         OnAfterPostSalesDocDropShipment(PurchRcptHeader."No.", SuppressCommit);
+
+        if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then
+            UpdateSalesOrderLineIfExist(SalesHeader."No.");
     end;
 
     /// <summary>
@@ -1391,6 +1397,12 @@ codeunit 80 "Sales-Post"
         OnAfterPostItemLine(SalesHeader, SalesLine, QtyToInvoice, QtyToInvoiceBase, SuppressCommit, ItemJnlPostLine);
     end;
 
+    /// <summary>
+    /// Processes associated item journal lines for drop shipment orders.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header of the document being posted.</param>
+    /// <param name="SalesLine">Specifies the sales line being processed.</param>
+    /// <param name="TempDropShptPostBuffer">Returns the drop shipment posting buffer with the associated item entry.</param>
     procedure ProcessAssocItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     var
         IsHandled: Boolean;
@@ -2298,6 +2310,14 @@ codeunit 80 "Sales-Post"
             Error(RelatedItemLedgEntriesNotFoundErr);
     end;
 
+    /// <summary>
+    /// Posts an associated item journal line for drop shipment or special order transactions.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
+    /// <returns>The item shipment entry number, or 0 if tracking was handled.</returns>
     procedure PostAssocItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): Integer
     var
         ItemJnlLine: Record "Item Journal Line";
@@ -2342,6 +2362,16 @@ codeunit 80 "Sales-Post"
         exit(ItemJnlLine."Item Shpt. Entry No.");
     end;
 
+    /// <summary>
+    /// Initializes an item journal line for associated purchase order posting.
+    /// </summary>
+    /// <param name="ItemJnlLine">The item journal line to initialize.</param>
+    /// <param name="PurchOrderHeader">The purchase order header.</param>
+    /// <param name="PurchOrderLine">The purchase order line.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
     procedure InitAssocItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; PurchOrderHeader: Record "Purchase Header"; PurchOrderLine: Record "Purchase Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal)
     begin
         OnBeforeInitAssocItemJnlLine(ItemJnlLine, PurchOrderHeader, PurchOrderLine, SalesHeader, SalesLine);
@@ -4334,6 +4364,10 @@ codeunit 80 "Sales-Post"
         NewItemChargeAssgntSales.Insert();
     end;
 
+    /// <summary>
+    /// Copies and validates item charge assignments for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record to process item charges for.</param>
     procedure CopyAndCheckItemCharge(SalesHeader: Record "Sales Header")
     var
         TempSalesLine: Record "Sales Line" temporary;
@@ -4952,6 +4986,15 @@ codeunit 80 "Sales-Post"
         end;
     end;
 
+    /// <summary>
+    /// Posts an item charge to the specified item ledger entry.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line with the item charge.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number to apply the charge to.</param>
+    /// <param name="QuantityBase">The quantity in base unit of measure.</param>
+    /// <param name="AmountToAssign">The amount to assign.</param>
+    /// <param name="QtyToAssign">The quantity to assign.</param>
     procedure PostItemCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemLedgEntryNo: Integer; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal)
     var
         DummyTrackingSpecification: Record "Tracking Specification";
@@ -5026,6 +5069,14 @@ codeunit 80 "Sales-Post"
             until TempSrcTrackingSpec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Transfers reservation entries from a sales line to an item journal line.
+    /// </summary>
+    /// <param name="SalesOrderLine">The sales order line with reservations.</param>
+    /// <param name="ItemJnlLine">The item journal line to transfer reservations to.</param>
+    /// <param name="QtyToBeShippedBase">The base quantity to be shipped.</param>
+    /// <param name="TempTrackingSpecification2">Temporary tracking specifications.</param>
+    /// <param name="CheckApplFromItemEntry">Returns whether to check application from item entry.</param>
     procedure TransferReservToItemJnlLine(var SalesOrderLine: Record "Sales Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeShippedBase: Decimal; var TempTrackingSpecification2: Record "Tracking Specification" temporary; var CheckApplFromItemEntry: Boolean)
     var
         RemainingQuantity: Decimal;
@@ -5074,6 +5125,13 @@ codeunit 80 "Sales-Post"
         end;
     end;
 
+    /// <summary>
+    /// Transfers reservation entries from a purchase line to an item journal line for drop shipments.
+    /// </summary>
+    /// <param name="PurchOrderLine">The purchase order line with reservations.</param>
+    /// <param name="ItemJnlLine">The item journal line to transfer reservations to.</param>
+    /// <param name="SalesLine">The related sales line.</param>
+    /// <param name="QtyToBeShippedBase">The base quantity to be shipped.</param>
     procedure TransferReservFromPurchLine(var PurchOrderLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; QtyToBeShippedBase: Decimal)
     var
         ReservEntry: Record "Reservation Entry";
@@ -8054,6 +8112,13 @@ codeunit 80 "Sales-Post"
         end;
     end;
 
+    /// <summary>
+    /// Posts item tracking for return receipt lines during invoicing.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TrackingSpecificationExists">Indicates if tracking specification exists.</param>
+    /// <param name="TempTrackingSpecification">Temporary tracking specification records.</param>
     procedure PostItemTrackingForReceipt(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; TrackingSpecificationExists: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     var
         ItemEntryRelation: Record "Item Entry Relation";
@@ -8226,6 +8291,16 @@ codeunit 80 "Sales-Post"
         exit(Condition);
     end;
 
+    /// <summary>
+    /// Posts item tracking entries for shipments during invoice posting.
+    /// Processes shipment lines that have been shipped but not yet invoiced, applying item tracking and updating invoiced quantities.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="SalesLine">The sales line record being invoiced.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists for the line.</param>
+    /// <param name="TempTrackingSpecification">Temporary tracking specification records.</param>
+    /// <param name="TempItemLedgEntryNotInvoiced">Temporary item ledger entries that have not been invoiced.</param>
+    /// <param name="HasATOShippedNotInvoiced">Indicates whether there are assemble-to-order items shipped but not invoiced.</param>
     procedure PostItemTrackingForShipment(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; TrackingSpecificationExists: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean)
     var
         ItemEntryRelation: Record "Item Entry Relation";
@@ -8357,6 +8432,11 @@ codeunit 80 "Sales-Post"
         exit(Condition);
     end;
 
+    /// <summary>
+    /// Updates order lines after posting by adjusting shipped, received, and invoiced quantities.
+    /// Also handles prepayment deductions, blanket order updates, and resets quantities for the next posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record that was posted.</param>
     procedure PostUpdateOrderLine(SalesHeader: Record "Sales Header")
     var
         TempSalesLine: Record "Sales Line" temporary;
@@ -8578,6 +8658,10 @@ codeunit 80 "Sales-Post"
             Error(InvoiceMoreThanShippedErr, SalesOrderLine."Document No.");
     end;
 
+    /// <summary>
+    /// Updates return order lines after posting credit memos that reference return receipts.
+    /// Adjusts invoiced quantities and validates that invoiced quantity does not exceed received quantity.
+    /// </summary>
     procedure PostUpdateReturnReceiptLine()
     var
         SalesOrderLine: Record "Sales Line";
@@ -8949,609 +9033,1597 @@ codeunit 80 "Sales-Post"
 
         exit(false);
     end;
-    
+
+    local procedure UpdateSalesOrderLineIfExist(DocumentNo: Code[20])
+    var
+        SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
+        SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
+        if SalesCreditMemoHeader.FindFirst() then
+            CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+    end;
+
+    /// <summary>
+    /// Raised before posting sales lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to be posted.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostLines(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be posted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="HideProgressWindow">Indicates whether to hide the progress window.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="CalledBy">Identifies the caller of the posting routine.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostSalesDoc(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var HideProgressWindow: Boolean; var IsHandled: Boolean; var CalledBy: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item tracking quantity on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default quantity check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemTrackingQuantity(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the tracking specification for a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempItemSalesLine">The temporary sales line with item tracking.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckTrackingSpecification(SalesHeader: Record "Sales Header"; var TempItemSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the certificate of supply status for a shipment.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header.</param>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="IsHandled">Set to true to skip the default status check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCertificateOfSupplyStatus(SalesShipmentHeader: Record "Sales Shipment Header"; SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before committing the posted sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary sales lines being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostCommitSalesDoc(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; var ModifyHeader: Boolean; var CommitIsSuppressed: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining end loop condition for received but not invoiced items.
+    /// </summary>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line being processed.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="EndLoop">Indicates whether to end the loop.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsEndLoopForReceivedNotInvoiced(RemQtyToBeInvoiced: Decimal; TrackingSpecificationExists: Boolean; var ReturnReceiptLine: Record "Return Receipt Line"; var TempTrackingSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line"; var EndLoop: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the prepayment VAT portion during prepayment amount adjustment.
+    /// </summary>
+    /// <param name="PrepmtVATPart">The calculated prepayment VAT portion.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAdjustPrepmtAmountLCYOnAfterCalcPrepmtVATPart(var PrepmtVATPart: Decimal; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether a new invoice is required.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales lines being processed.</param>
+    /// <param name="NewInvoice">Indicates whether a new invoice will be created.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcInvoice(var TempSalesLine: Record "Sales Line" temporary; var NewInvoice: Boolean; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking the sales document for posting readiness.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was checked.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is required.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is required.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ErrorMessageMgt">The error message management codeunit for handling errors.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckSalesDoc(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; WhseShip: Boolean; WhseReceive: Boolean; PreviewMode: Boolean; var ErrorMessageMgt: Codeunit "Error Message Management")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking and updating the sales header for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was checked and updated.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckAndUpdate(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking tracking and warehouse requirements for receiving.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="Receive">Indicates whether receiving is required.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="TempSalesLine">The temporary sales lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTrackingAndWarehouseForReceive(var SalesHeader: Record "Sales Header"; var Receive: Boolean; CommitIsSuppressed: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; var TempSalesLine: record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking tracking and warehouse requirements for shipping.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="Ship">Indicates whether shipping is required.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="TempSalesLine">The temporary sales lines being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTrackingAndWarehouseForShip(var SalesHeader: Record "Sales Header"; var Ship: Boolean; CommitIsSuppressed: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after creating a warehouse journal line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="TempWhseJnlLine">The temporary warehouse journal line that was created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWhseJnlLine(var SalesLine: Record "Sales Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after copying sales lines to temporary lines.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales lines that were populated.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyToTempLines(var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after deleting documents after posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteAfterPosting(SalesHeader: Record "Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving the general ledger setup.
+    /// </summary>
+    /// <param name="GLSetup">The general ledger setup that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGLSetup(var GLSetup: Record "General Ledger Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving sales lines for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="NewSalesLine">The new sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesLines(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: record "Sales Line"; var NewSalesLine: record "Sales Line");
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving line data from the sales order.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being populated.</param>
+    /// <param name="SalesOrderLine">The source sales order line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetLineDataFromOrder(var SalesLine: Record "Sales Line"; SalesOrderLine: Record "Sales Line")
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after retrieving the sales and receivables setup.
+    /// </summary>
+    /// <param name="SalesSetup">The sales and receivables setup that was retrieved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesSetup(var SalesSetup: Record "Sales & Receivables Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving sales lines for posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewSalesLine">The sales line record to be populated.</param>
+    /// <param name="QtyType">The quantity type to retrieve.</param>
+    /// <param name="IncludePrepayments">Indicates whether to include prepayments.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLines(var SalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; QtyType: Option; IncludePrepayments: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before retrieving sales lines into temporary records.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewSalesLine">The new sales line record.</param>
+    /// <param name="OldSalesLine">The original sales line record.</param>
+    /// <param name="QtyType">The quantity type to retrieve.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLinesTemp(var SalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; QtyType: Option)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after incrementing the total amount with a sales line.
+    /// </summary>
+    /// <param name="TotalSalesLine">The total sales line being accumulated.</param>
+    /// <param name="SalesLine">The sales line being added to the total.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIncrAmount(var TotalSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing an associated item journal line for drop shipment.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line that was initialized.</param>
+    /// <param name="PurchaseHeader">The associated purchase header.</param>
+    /// <param name="PurchaseLine">The associated purchase line.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the invoice rounding amount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line for invoice rounding.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="UseTempData">Indicates whether to use temporary data.</param>
+    /// <param name="InvoiceRoundingAmount">The calculated invoice rounding amount.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="Currency">The currency used for rounding.</param>
+    /// <param name="BiggestLineNo">The biggest line number in the document.</param>
+    /// <param name="LastLineRetrieved">Indicates whether the last line was retrieved.</param>
+    /// <param name="RoundingLineInserted">Indicates whether a rounding line was inserted.</param>
+    /// <param name="RoundingLineNo">The line number of the rounding line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInvoiceRoundingAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TotalSalesLine: Record "Sales Line"; UseTempData: Boolean; InvoiceRoundingAmount: Decimal; CommitIsSuppressed: Boolean; Currency: Record Currency; var BiggestLineNo: Integer; var LastLineRetrieved: Boolean; var RoundingLineInserted: Boolean; var RoundingLineNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a drop shipment purchase receipt header.
+    /// </summary>
+    /// <param name="PurchRcptHeader">The purchase receipt header that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertDropOrderPurchRcptHeader(var PurchRcptHeader: Record "Purch. Rcpt. Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales credit memo header.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertCrMemoHeader(var SalesHeader: Record "Sales Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales invoice header.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesInvHeader">The sales invoice header that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertInvoiceHeader(var SalesHeader: Record "Sales Header"; var SalesInvHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the prepayment VAT base to deduct.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="PrepmtLineNo">The prepayment line number.</param>
+    /// <param name="TotalPrepmtAmtToDeduct">The total prepayment amount to deduct.</param>
+    /// <param name="TempPrepmtDeductLCYSalesLine">The temporary prepayment deduction line in LCY.</param>
+    /// <param name="PrepmtVATBaseToDeduct">The prepayment VAT base amount to deduct.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertedPrepmtVATBaseToDeduct(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; PrepmtLineNo: Integer; TotalPrepmtAmtToDeduct: Decimal; var TempPrepmtDeductLCYSalesLine: Record "Sales Line" temporary; var PrepmtVATBaseToDeduct: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting all posted headers (shipment, invoice, credit memo, receipt).
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesShipmentHeader">The posted sales shipment header.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHdr">The posted sales credit memo header.</param>
+    /// <param name="ReceiptHeader">The posted return receipt header.</param>
+    /// <param name="GenJournalDocumentType">The general journal document type.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="GenJnlLineExtDocNo">The general journal line external document number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertPostedHeaders(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHdr: Record "Sales Cr.Memo Header"; var ReceiptHeader: Record "Return Receipt Header"; var GenJournalDocumentType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35])
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales shipment header.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertShipmentHeader(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales shipment line.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="SalesShptLine">The sales shipment line that was inserted.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertShipmentLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: record "Sales Shipment Line"; PreviewMode: Boolean; xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a return receipt line for warehouse posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertReturnReceiptLineWhsePost(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; var ReturnReceiptLine: Record "Return Receipt Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting a drop shipment order.
+    /// </summary>
+    /// <param name="TempDropShptPostBuffer">The temporary drop shipment posting buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostDropOrderShipment(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="SalesShptHdrNo">The posted sales shipment header number.</param>
+    /// <param name="RetRcpHdrNo">The posted return receipt header number.</param>
+    /// <param name="SalesInvHdrNo">The posted sales invoice header number.</param>
+    /// <param name="SalesCrMemoHdrNo">The posted sales credit memo header number.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="InvtPickPutaway">Indicates whether inventory pick/put-away is involved.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was created.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment was processed.</param>
+    /// <param name="WhseReceiv">Indicates whether warehouse receipt was processed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostSalesDoc(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; SalesShptHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesInvHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20]; CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; var CustLedgerEntry: Record "Cust. Ledger Entry"; WhseShip: Boolean; WhseReceiv: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the order line after posting.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostUpdateOrderLine(var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting a sales document with drop shipment.
+    /// </summary>
+    /// <param name="PurchRcptNo">The purchase receipt number for the drop shipment.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostSalesDocDropShipment(PurchRcptNo: Code[20]; CommitIsSuppressed: Boolean)
     begin
     end;
 
 
+    /// <summary>
+    /// Raised after posting an item journal line for a sales line.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line that was posted.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
+    /// <param name="WhseJnlPostLine">The warehouse journal register line codeunit instance.</param>
+    /// <param name="OriginalItemJnlLine">The original item journal line before posting.</param>
+    /// <param name="ItemShptEntryNo">The item shipment entry number.</param>
+    /// <param name="IsATO">Indicates whether this is an assemble-to-order transaction.</param>
+    /// <param name="TempHandlingSpecification">The temporary handling tracking specification.</param>
+    /// <param name="TempATOTrackingSpecification">The temporary ATO tracking specification.</param>
+    /// <param name="TempWarehouseJournalLine">The temporary warehouse journal line.</param>
+    /// <param name="ShouldPostItemJnlLine">Indicates whether the item journal line should be posted.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlPostLine: Codeunit "Whse. Jnl.-Register Line"; OriginalItemJnlLine: Record "Item Journal Line"; var ItemShptEntryNo: Integer; IsATO: Boolean; var TempHandlingSpecification: Record "Tracking Specification"; var TempATOTrackingSpecification: Record "Tracking Specification"; TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; ShouldPostItemJnlLine: Boolean; WhseShip: Boolean; WhseRcptHeader: Record "Warehouse Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting all sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment was processed.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt was processed.</param>
+    /// <param name="SalesLinesProcessed">Indicates whether sales lines were processed.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="EverythingInvoiced">Indicates whether all lines were invoiced.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostSalesLines(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; WhseShip: Boolean; WhseReceive: Boolean; var SalesLinesProcessed: Boolean; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting a sales line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line that was posted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesInvLine">The sales invoice line that was created.</param>
+    /// <param name="SalesCrMemoLine">The sales credit memo line that was created.</param>
+    /// <param name="xSalesLine">The original sales line before posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var SalesInvLine: Record "Sales Invoice Line"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var xSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the invoice line during post update processing.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line that was updated.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesOrderHeader">The temporary sales order header.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostUpdateInvoiceLine(var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var TempSalesOrderHeader: Record "Sales Header" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the return receipt line during post update processing.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line that was updated.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostUpdateReturnReceiptLine(var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating item charge assignments.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateItemChargeAssgnt(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating posting numbers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePostingNos(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the return receipt number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateReturnReceiptNo(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the shipping number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateShippingNo(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var ModifyHeader: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating won opportunities.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateWonOpportunities(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking mandatory fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was checked.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckMandatoryFields(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the sales invoice header.
+    /// </summary>
+    /// <param name="SalesInvHeader">The sales invoice header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesInvHeaderInsert(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header"; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line that was inserted.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="ItemLedgShptEntryNo">The item ledger shipment entry number.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempItemChargeAssgntSales">The temporary item charge assignment records.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesInvLineInsert(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesLine: Record "Sales Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; var SalesHeader: Record "Sales Header"; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the sales credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales credit memo line.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line that was inserted.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="TempItemChargeAssgntSales">The temporary item charge assignment records.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesCrMemoLineInsert(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; CommitIsSuppressed: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the sales shipment header.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesShptHeaderInsert(var SalesShipmentHeader: Record "Sales Shipment Header"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header"; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a sales shipment line.
+    /// </summary>
+    /// <param name="SalesShipmentLine">The sales shipment line that was inserted.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="ItemShptLedEntryNo">The item shipment ledger entry number.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="SalesShptHeader">The sales shipment header.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesShptLineInsert(var SalesShipmentLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line"; ItemShptLedEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; SalesInvoiceHeader: Record "Sales Invoice Header"; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; SalesShptHeader: Record "Sales Shipment Header"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the purchase receipt header for a drop shipment.
+    /// </summary>
+    /// <param name="PurchRcptHeader">The purchase receipt header that was inserted.</param>
+    /// <param name="PurchaseHeader">The source purchase header.</param>
+    /// <param name="SalesHeader">The related sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchRcptHeaderInsert(var PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchaseHeader: Record "Purchase Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a purchase receipt line for a drop shipment.
+    /// </summary>
+    /// <param name="PurchRcptLine">The purchase receipt line that was inserted.</param>
+    /// <param name="PurchRcptHeader">The purchase receipt header.</param>
+    /// <param name="PurchOrderLine">The source purchase order line.</param>
+    /// <param name="DropShptPostBuffer">The drop shipment posting buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchRcptLineInsert(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchOrderLine: Record "Purchase Line"; DropShptPostBuffer: Record "Drop Shpt. Post. Buffer"; CommitIsSuppressed: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting the return receipt header.
+    /// </summary>
+    /// <param name="ReturnReceiptHeader">The return receipt header that was inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReturnRcptHeaderInsert(var ReturnReceiptHeader: Record "Return Receipt Header"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after inserting a return receipt line.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line that was inserted.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="ItemShptLedEntryNo">The item shipment ledger entry number.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReturnRcptLineInsert(var ReturnRcptLine: Record "Return Receipt Line"; ReturnRcptHeader: Record "Return Receipt Header"; SalesLine: Record "Sales Line"; ItemShptLedEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after finalizing the posting process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header that was created.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header that was created.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header that was created.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header that was created.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinalizePosting(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finalizing posting but before the database commit.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header that was created.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header that was created.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header that was created.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header that was created.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment was processed.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt was processed.</param>
+    /// <param name="EverythingInvoiced">Indicates whether all lines were invoiced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinalizePostingOnBeforeCommit(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var CommitIsSuppressed: Boolean; var PreviewMode: Boolean; WhseShip: Boolean; WhseReceive: Boolean; var EverythingInvoiced: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after finding lines that have not been shipped.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesLine">The temporary sales lines that have not been shipped.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindNotShippedLines(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after resetting temporary sales lines.
+    /// </summary>
+    /// <param name="TempSalesLineLocal">The temporary sales lines that were reset.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterResetTempLines(var TempSalesLineLocal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after restoring the sales header from a copy.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was restored.</param>
+    /// <param name="SalesHeaderCopy">The copy of the sales header used for restoration.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRestoreSalesHeader(var SalesHeader: Record "Sales Header"; SalesHeaderCopy: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the sales header after posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
+    /// <param name="TempSalesLine">The temporary sales lines.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateAfterPosting(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the last posting numbers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateLastPostingNos(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the sales header with posting information.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry that was created.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="SalesHeader">The sales header that was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesHeader(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; GenJnlLineDocType: Integer; GenJnlLineDocNo: Code[20]; PreviewMode: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the sales line before posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line that was updated.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesLineBeforePost(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if warehouse lines exist.
+    /// </summary>
+    /// <param name="WhseValidateSourceLine">The warehouse validate source line codeunit instance.</param>
+    /// <param name="SalesLine">The sales line being checked.</param>
+    /// <param name="ShowError">Indicates whether to show an error.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterWhseLinesExist(var WhseValidateSourceLine: Codeunit "Whse. Validate Source Line"; SalesLine: Record "Sales Line"; var ShowError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before archiving the unposted order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be archived.</param>
+    /// <param name="IsHandled">Set to true to skip the default archiving logic.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="OrderArchived">Indicates whether the order was archived.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeArchiveUnpostedOrder(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; PreviewMode: Boolean; var OrderArchived: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before confirming the download of a shipment.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="Result">The result of the confirmation.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmDownloadShipment(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating the posted warehouse receipt header.
+    /// </summary>
+    /// <param name="PostedWhseReceiptHeader">The posted warehouse receipt header to be created.</param>
+    /// <param name="WarehouseReceiptHeader">The source warehouse receipt header.</param>
+    /// <param name="SalesHeader">The related sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedWhseRcptHeader(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating prepayment lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempPrepmtSalesLine">The temporary prepayment sales lines to be created.</param>
+    /// <param name="CompleteFunctionality">Indicates whether complete functionality is enabled.</param>
+    /// <param name="IsHandled">Set to true to skip the default prepayment line creation.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCreatePrepaymentLines(var SalesHeader: Record "Sales Header"; var TempPrepmtSalesLine: Record "Sales Line" temporary; CompleteFunctionality: Boolean; var IsHandled: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the blanket order sales line.
+    /// </summary>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line to be modified.</param>
+    /// <param name="SalesLine">The source sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBlanketOrderSalesLineModify(var BlanketOrderSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating the posted warehouse shipment header.
+    /// </summary>
+    /// <param name="PostedWhseShipmentHeader">The posted warehouse shipment header to be created.</param>
+    /// <param name="WarehouseShipmentHeader">The source warehouse shipment header.</param>
+    /// <param name="SalesHeader">The related sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedWhseShptHeader(var PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; SalesHeader: Record "Sales Header")
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before creating a warehouse journal line.
+    /// </summary>
+    /// <param name="ItemJnlLine">The item journal line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default warehouse journal line creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateWhseJnlLine(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finalizing the posting process.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="EverythingInvoiced">Indicates whether all lines were invoiced.</param>
+    /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeFinalizePosting(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var EverythingInvoiced: Boolean; SuppressCommit: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing an associated item journal line for drop shipment.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line to be initialized.</param>
+    /// <param name="PurchaseHeader">The associated purchase header.</param>
+    /// <param name="PurchaseLine">The associated purchase line.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before inserting an intercompany general journal line.
+    /// </summary>
+    /// <param name="ICGenJournalLine">The intercompany general journal line to be inserted.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(var ICGenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting posted document headers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempWarehouseShipmentHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWarehouseReceiptHeader">The temporary warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedHeaders(var SalesHeader: Record "Sales Header"; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the return receipt header.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header to be inserted.</param>
+    /// <param name="Handled">Set to true to skip the default insertion logic.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnReceiptHeader(SalesHeader: Record "Sales Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; var Handled: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a return receipt line during warehouse posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="ReturnRcptLine">The return receipt line to be inserted.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
+    /// <param name="PostedWhseRcptHeader">The posted warehouse receipt header.</param>
+    /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
+    /// <param name="CostBaseAmount">The cost base amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnReceiptLineWhsePost(SalesLine: Record "Sales Line"; ReturnRcptHeader: Record "Return Receipt Header"; WhseShip: Boolean; WhseReceive: Boolean; TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; var IsHandled: Boolean; var ReturnRcptLine: Record "Return Receipt Line"; var xSalesLine: Record "Sales Line"; PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; WhseRcptHeader: Record "Warehouse Receipt Header"; var CostBaseAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the return entry relation.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="EntryNo">The entry number.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnEntryRelation(var ReturnRcptLine: Record "Return Receipt Line"; var EntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the shipment entry relation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="ItemShptEntryNo">The item shipment entry number.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertShptEntryRelation(SalesHeader: Record "Sales Header"; var SalesShptLine: Record "Sales Shipment Line"; var ItemShptEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the sales invoice header.
+    /// </summary>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="SalesInvHeader">The sales invoice header to be inserted.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertInvoiceHeader(SalesHeader: Record "Sales Header"; var SalesInvHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the invoice rounding amount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TotalAmountIncludingVAT">The total amount including VAT.</param>
+    /// <param name="UseTempData">Indicates whether temporary data is being used.</param>
+    /// <param name="InvoiceRoundingAmount">The invoice rounding amount.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TotalSalesLine">The total sales line record.</param>
+    /// <param name="Currency">The currency record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInvoiceRoundingAmount(SalesHeader: Record "Sales Header"; TotalAmountIncludingVAT: Decimal; UseTempData: Boolean; var InvoiceRoundingAmount: Decimal; CommitIsSuppressed: Boolean; var TotalSalesLine: Record "Sales Line"; var Currency: Record Currency)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if the loop should end for shipped but not invoiced items.
+    /// </summary>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="HasATOShippedNotInvoiced">Indicates whether there are assemble-to-order items shipped but not invoiced.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="InvoicingTrackingSpecification">The invoicing tracking specification.</param>
+    /// <param name="ItemLedgEntryNotInvoiced">The item ledger entry not invoiced.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="Result">The result indicating whether to end the loop.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsEndLoopForShippedNotInvoiced(RemQtyToBeInvoiced: Decimal; TrackingSpecificationExists: Boolean; var HasATOShippedNotInvoiced: Boolean; var SalesShptLine: Record "Sales Shipment Line"; var InvoicingTrackingSpecification: Record "Tracking Specification"; var ItemLedgEntryNotInvoiced: Record "Item Ledger Entry"; SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the item journal line.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line to be posted.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="TempItemChargeAssgntSales">The temporary item charge assignment records.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before handling the archiving of an unposted order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be archived.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="IsHandled">Set to true to skip the default archiving logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandleArchiveUnpostedOrder(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before locking database tables.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default table locking logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLockTables(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before making inventory adjustment during the Run procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="SkipInventoryAdjustment">Indicates whether to skip the inventory adjustment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeMakeInventoryAdjustment(var SalesHeader: Record "Sales Header"; SalesInvHeader: Record "Sales Invoice Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; PreviewMode: Boolean; var SkipInventoryAdjustment: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the intercompany general journal during the Run procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="SrcCode">The source code.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostICGenJnl(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var SrcCode: Code[10]; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; var ReturnReceiptHeader: Record "Return Receipt Header"; var PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before preparing to check the document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be checked.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrepareCheckDocument(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing the associated item journal line for drop shipment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing logic.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempDropShptPostBuffer">The temporary drop shipment posting buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessAssocItemJnlLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting all sales lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record set to be deleted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineDeleteAll(var SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the sales shipment header.
+    /// </summary>
+    /// <param name="SalesShptHeader">The sales shipment header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="InvtPickPutaway">Indicates whether inventory pick/put-away is involved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesShptHeaderInsert(var SalesShptHeader: Record "Sales Shipment Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; WhseShip: Boolean; InvtPickPutaway: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales shipment line.
+    /// </summary>
+    /// <param name="SalesShptLine">The sales shipment line to be inserted.</param>
+    /// <param name="SalesShptHeader">The sales shipment header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PostedWhseShipmentLine">The posted warehouse shipment line.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="ItemLedgShptEntryNo">The item ledger shipment entry number.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesShptLineInsert(var SalesShptLine: Record "Sales Shipment Line"; SalesShptHeader: Record "Sales Shipment Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; ItemLedgShptEntryNo: Integer; xSalesLine: record "Sales Line"; var TempSalesLineGlobal: record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the sales invoice header.
+    /// </summary>
+    /// <param name="SalesInvHeader">The sales invoice header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseShptHeader">The warehouse shipment header.</param>
+    /// <param name="InvtPickPutaway">Indicates whether inventory pick/put-away is involved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesInvHeaderInsert(var SalesInvHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; WhseShip: Boolean; WhseShptHeader: Record "Warehouse Shipment Header"; InvtPickPutaway: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales invoice line.
+    /// </summary>
+    /// <param name="SalesInvLine">The sales invoice line to be inserted.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="PostingSalesLine">The posting sales line.</param>
+    /// <param name="SalesShipmentHeader">The sales shipment header.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="ReturnReceiptHeader">The return receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesInvLineInsert(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; PostingSalesLine: Record "Sales Line"; SalesShipmentHeader: Record "Sales Shipment Header"; SalesHeader: Record "Sales Header"; var ReturnReceiptHeader: Record "Return Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the sales credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var SalesInvHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a sales credit memo line.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The sales credit memo line to be inserted.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesShptHeader">The sales shipment header.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="PostingSalesLine">The posting sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesCrMemoLineInsert(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header"; var ReturnRcptHeader: Record "Return Receipt Header"; var PostingSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the purchase receipt header for a drop shipment.
+    /// </summary>
+    /// <param name="PurchRcptHeader">The purchase receipt header to be inserted.</param>
+    /// <param name="PurchaseHeader">The source purchase header.</param>
+    /// <param name="SalesHeader">The related sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="RunOnInsert">Indicates whether to run the OnInsert trigger.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchRcptHeaderInsert(var PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchaseHeader: Record "Purchase Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var RunOnInsert: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a purchase receipt line for a drop shipment.
+    /// </summary>
+    /// <param name="PurchRcptLine">The purchase receipt line to be inserted.</param>
+    /// <param name="PurchRcptHeader">The purchase receipt header.</param>
+    /// <param name="PurchOrderLine">The source purchase order line.</param>
+    /// <param name="DropShptPostBuffer">The drop shipment posting buffer.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="IsHandled">Set to true to skip the default insertion logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchRcptLineInsert(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchOrderLine: Record "Purchase Line"; DropShptPostBuffer: Record "Drop Shpt. Post. Buffer"; CommitIsSuppressed: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before releasing the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to be released.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleaseSalesDocument(SalesHeader: Record "Sales Header"; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the return receipt header.
+    /// </summary>
+    /// <param name="ReturnRcptHeader">The return receipt header to be inserted.</param>
+    /// <param name="SalesHeader">The source sales header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnRcptHeaderInsert(var ReturnRcptHeader: Record "Return Receipt Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; WhseReceive: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; WhseShip: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting a return receipt line.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line to be inserted.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="SalesHeader">The sales header being posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnRcptLineInsert(var ReturnRcptLine: Record "Return Receipt Line"; ReturnRcptHeader: Record "Return Receipt Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; xSalesLine: record "Sales Line"; var TempSalesLineGlobal: record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before posting the job contract line for a sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="IsHandled">Set to true to skip the default job contract line posting.</param>
+    /// <param name="JobContractLine">Indicates whether this is a job contract line.</param>
+    /// <param name="InvoicePostingInterface">The invoice posting interface.</param>
+    /// <param name="SalesLineACY">The sales line in additional currency.</param>
+    /// <param name="SalesInvHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostJobContractLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; var JobContractLine: Boolean; var InvoicePostingInterface: Interface "Invoice Posting"; SalesLineACY: Record "Sales Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the associated item journal line for drop shipments.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line to be posted.</param>
+    /// <param name="PurchaseLine">The associated purchase line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the item journal line for a sales line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
+    /// <param name="ItemLedgShptEntryNo">The item ledger shipment entry number.</param>
+    /// <param name="ItemChargeNo">The item charge number.</param>
+    /// <param name="TrackingSpecification">The tracking specification.</param>
+    /// <param name="IsATO">Indicates whether this is an assemble-to-order line.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default posting logic.</param>
+    /// <param name="Result">The result of the posting operation.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="TempHandlingSpecification">The temporary handling specification.</param>
+    /// <param name="TempValueEntryRelation">The temporary value entry relation.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before copying document fields to the item journal line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="QtyToBeShippedIsZero">Indicates whether the quantity to be shipped is zero.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemJnlLineCopyDocumentFields(SalesHeader: Record "Sales Header"; QtyToBeShipped: Decimal; var QtyToBeShippedIsZero: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting item charges per order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="ItemJnlLine2">The item journal line for the item charge.</param>
+    /// <param name="ItemChargeSalesLine">The sales line containing the item charge.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerOrder(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ItemJnlLine2: Record "Item Journal Line"; var ItemChargeSalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating posting numbers for the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to update.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePostingNos(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var ModifyHeader: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after preparing the item journal line but before posting it.
+    /// </summary>
+    /// <param name="ItemJournalLine">The item journal line to be posted.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
+    /// <param name="CheckApplFromItemEntry">Indicates whether to check application from item entry.</param>
+    /// <param name="TrackingSpecification">The tracking specification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineBeforePost(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; QtyToBeShippedBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var CheckApplFromItemEntry: Boolean; var TrackingSpecification: Record "Tracking Specification")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the item journal line warehouse line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineWhseLine(SalesLine: Record "Sales Line"; ItemLedgEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting item tracking for return receipt.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemTrackingReturnRcpt(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesShipmentLine: Record "Sales Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptLine: Record "Return Receipt Line"; SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting item tracking for shipment.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemTrackingForShipment(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesShipmentLine: Record "Sales Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean; SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the item line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="QtyToInvoice">The quantity to invoice.</param>
+    /// <param name="QtyToInvoiceBase">The quantity to invoice in base unit of measure.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; QtyToInvoice: Decimal; QtyToInvoiceBase: Decimal; CommitIsSuppressed: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting an item charge.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="TempItemChargeAssignmentSales">The temporary item charge assignment.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; TempItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary; ItemLedgEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised after testing the sales line for posting readiness.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line that was tested.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating and modifying the temporary order line during post update.
+    /// </summary>
+    /// <param name="SalesLine">The sales line that was modified.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostUpdateOrderLineModifyTempLine(SalesLine: Record "Sales Line"; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting G/L entries and customer ledger entries.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="TotalSalesLineLCY">The total sales line amounts in local currency.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="WhseShptHeader">The warehouse shipment header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
+    /// <param name="SalesInvHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry that was created.</param>
+    /// <param name="SrcCode">The source code.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="GenJnlLineExtDocNo">The general journal line external document number.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="DropShipOrder">Indicates whether this is a drop shipment order.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostGLAndCustomer(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TotalSalesLine: Record "Sales Line"; TotalSalesLineLCY: Record "Sales Line"; CommitIsSuppressed: Boolean;
         WhseShptHeader: Record "Warehouse Shipment Header"; WhseShip: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -9559,402 +10631,976 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+    /// <summary>
+    /// Raised after posting the resource journal line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="JobTaskSalesLine">The job task sales line.</param>
+    /// <param name="ResJnlLine">The resource journal line that was posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostResJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobTaskSalesLine: Record "Sales Line"; ResJnlLine: Record "Res. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after reversing the amount on a sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line with reversed amounts.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReverseAmount(var SalesLine: Record "Sales Line")
     begin
     end;
 
-
+    /// <summary>
+    /// Raised after dividing amounts on a sales line for VAT calculation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line with divided amounts.</param>
+    /// <param name="QtyType">The quantity type (General, Invoicing, or Shipping).</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line.</param>
+    /// <param name="TempVATAmountLineRemainder">The temporary VAT amount line remainder.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDivideAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; SalesLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised after rounding amounts on a sales line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line with rounded amounts.</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRoundAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the blanket order line.
+    /// </summary>
+    /// <param name="BlanketOrderSalesLine">The blanket order sales line that was updated.</param>
+    /// <param name="SalesLine">The sales line used to update the blanket order.</param>
+    /// <param name="Ship">Indicates whether the document is being shipped.</param>
+    /// <param name="Receive">Indicates whether the document is being received.</param>
+    /// <param name="Invoice">Indicates whether the document is being invoiced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateBlanketOrderLine(var BlanketOrderSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating the prepayment sales line with rounding.
+    /// </summary>
+    /// <param name="PrepmtSalesLine">The prepayment sales line that was updated.</param>
+    /// <param name="TotalRoundingAmount">The total rounding amounts.</param>
+    /// <param name="TotalPrepmtAmount">The total prepayment amounts.</param>
+    /// <param name="FinalInvoice">Indicates whether this is the final invoice.</param>
+    /// <param name="PricesInclVATRoundingAmount">The prices including VAT rounding amounts.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="TotalSalesLineLCY">The total sales line amounts in local currency.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePrepmtSalesLineWithRounding(var PrepmtSalesLine: Record "Sales Line"; TotalRoundingAmount: array[2] of Decimal; TotalPrepmtAmount: array[2] of Decimal; FinalInvoice: Boolean; PricesInclVATRoundingAmount: array[2] of Decimal; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating warehouse documents.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="WhseShptHeader">The warehouse shipment header.</param>
+    /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
+    /// <param name="EverythingInvoiced">Indicates whether everything has been invoiced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateWhseDocuments(SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; WhseShptHeader: Record "Warehouse Shipment Header"; WhseRcptHeader: Record "Warehouse Receipt Header"; EverythingInvoiced: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after updating associated order posting numbers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesLine">The temporary sales lines.</param>
+    /// <param name="DropShipment">Indicates whether this is a drop shipment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateAssosOrderPostingNos(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var DropShipment: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after releasing the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was released.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReleaseSalesDoc(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating the posting and document dates.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was validated.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ReplacePostingDate">Indicates whether the posting date should be replaced.</param>
+    /// <param name="ReplaceDocumentDate">Indicates whether the document date should be replaced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidatePostingAndDocumentDate(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; ReplacePostingDate: Boolean; ReplaceDocumentDate: Boolean)
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before calculating the invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="NewInvoice">Indicates whether a new invoice will be created.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcInvoice(SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var NewInvoice: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating item journal line amounts from quantity to be shipped.
+    /// </summary>
+    /// <param name="ItemJnlLine">The item journal line.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
+    /// <param name="InvDiscAmountPerShippedQty">The invoice discount amount per shipped quantity.</param>
+    /// <param name="RemAmt">The remaining amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcItemJnlAmountsFromQtyToBeShipped(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; var IsHandled: Boolean; var InvDiscAmountPerShippedQty: Decimal; RemAmt: Decimal)
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before checking associated order lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAssosOrderLines(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking customer blockage.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being checked.</param>
+    /// <param name="CustCode">The customer code to check.</param>
+    /// <param name="ExecuteDocCheck">Indicates whether to execute document check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="TempSalesLine">The temporary sales lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCustBlockage(SalesHeader: Record "Sales Header"; CustCode: Code[20]; var ExecuteDocCheck: Boolean; var IsHandled: Boolean; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if job number on shipment line equals sales line.
+    /// </summary>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckJobNoOnShptLineEqualToSales(SalesShipmentLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking G/L account direct posting settings.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccountDirectPosting(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether to insert the return receipt header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckInsertReturnReceiptHeader(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item reservation disruption.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemReservDisruption(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking mandatory header fields.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckMandatoryHeaderFields(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether to post warehouse receipt line from shipment line.
+    /// </summary>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostWhseRcptLineFromShipmentLine(var SalesShptLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking whether to post warehouse shipment lines.
+    /// </summary>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="WhseShptHeader">The warehouse shipment header.</param>
+    /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostWhseShptLines(var SalesShptLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean; WhseShptHeader: Record "Warehouse Shipment Header"; WhseRcptHeader: Record "Warehouse Receipt Header"; WhseShip: Boolean; WhseReceive: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking posting flags.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostingFlags(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking prepayment amount to deduct.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales lines.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="Fraction">The fraction for calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtAmtToDeduct(var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; Fraction: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking header shipping advice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckHeaderShippingAdvice(SalesHeader: Record "Sales Header"; WhseShip: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking header posting type.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckHeaderPostingType(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking if sales line is invoiced more than shipped.
+    /// </summary>
+    /// <param name="SalesOrderLine">The sales order line.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesLineInvoiceMoreThanShipped(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesShptLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the total invoice amount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to check.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckTotalInvoiceAmount(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking the total prepayment amount to deduct.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="TempTotalSalesLine">The temporary total sales line.</param>
+    /// <param name="MaxAmtToDeduct">The maximum amount to deduct.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckTotalPrepmtAmtToDeduct(var TempSalesLine: Record "Sales Line" temporary; var TempTotalSalesLine: Record "Sales Line" temporary; var MaxAmtToDeduct: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking warehouse requirements.
+    /// </summary>
+    /// <param name="TempItemSalesLine">The temporary item sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWarehouse(var TempItemSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before clearing remaining amount if not item journal roll rounding.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemJnlRollRndg">Indicates whether item journal roll rounding is used.</param>
+    /// <param name="RemAmt">The remaining amount.</param>
+    /// <param name="RemDiscAmt">The remaining discount amount.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClearRemAmtIfNotItemJnlRollRndg(SalesLine: Record "Sales Line"; ItemJnlRollRndg: Boolean; var RemAmt: Decimal; var RemDiscAmt: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before dividing amounts on a sales line for VAT calculation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line to process.</param>
+    /// <param name="QtyType">The quantity type (General, Invoicing, or Shipping).</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line.</param>
+    /// <param name="TempVATAmountLineRemainder">The temporary VAT amount line remainder.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="TempPrepmtDeductLCYSalesLine">The temporary prepayment deduct LCY sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDivideAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; var SalesLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var IsHandled: Boolean; var TempPrepmtDeductLCYSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing line amount and line discount amount during divide amount.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line to process.</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
+    /// <param name="IncludePrepayments">Indicates whether to include prepayments.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="TempPrepmtDeductLCYSalesLine">The temporary prepayment deduct LCY sales line.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeDivideAmountInitLineAmountAndLineDiscountAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesLineQty: Decimal; IncludePrepayments: Boolean; var IsHandled: Boolean; var TempPrepmtDeductLCYSalesLine: Record "Sales Line" temporary; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the invoice posting setup.
+    /// </summary>
+    /// <param name="InvoicePostingInterface">The invoice posting interface.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetInvoicePostingSetup(var InvoicePostingInterface: Interface "Invoice Posting"; var IsHandled: Boolean)
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before rounding amounts on a sales line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales line to round.</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
+    /// <param name="CurrExchRate">The currency exchange rate.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRoundAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesLineQty: Decimal; var CurrExchRate: Record "Currency Exchange Rate")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting assemble-to-order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="TempPostedATOLink">The temporary posted assemble-to-order link.</param>
+    /// <param name="AsmPost">The assembly post codeunit instance.</param>
+    /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
+    /// <param name="ResJnlPostLine">The resource journal post line codeunit instance.</param>
+    /// <param name="WhseJnlPostLine">The warehouse journal register line codeunit instance.</param>
+    /// <param name="HideProgressWindow">Indicates whether to hide the progress window.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostATO(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempPostedATOLink: Record "Posted Assemble-to-Order Link" temporary; var AsmPost: Codeunit "Assembly-Post"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlPostLine: Codeunit "Whse. Jnl.-Register Line"; HideProgressWindow: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the drop shipment order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="TempDropShptPostBuffer">The temporary drop shipment post buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostDropOrderShipment(var SalesHeader: Record "Sales Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry to be created.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="GenJnlLineExtDocNo">The general journal line external document number.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="SrcCode">The source code.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostInvoice(var SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; SrcCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting an item charge.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line containing the item charge.</param>
+    /// <param name="TempItemChargeAssignmentSales">The temporary item charge assignment.</param>
+    /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary; ItemLedgEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting item tracking.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="TempItemLedgEntryNotInvoiced">The temporary item ledger entries not invoiced.</param>
+    /// <param name="HasATOShippedNotInvoiced">Indicates whether ATO has been shipped but not invoiced.</param>
+    /// <param name="PreciseTotalChargeAmt">The precise total charge amount.</param>
+    /// <param name="RoundedPrevTotalChargeAmt">The rounded previous total charge amount.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="ItemJnlRollRndg">Indicates whether item journal roll rounding is used.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTracking(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TrackingSpecificationExists: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean; var PreciseTotalChargeAmt: Decimal; var RoundedPrevTotalChargeAmt: Decimal; RemQtyToBeInvoiced: Decimal; var ItemJnlRollRndg: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item tracking for return receipt posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being checked.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTrackingCheckReturnReceipt(SalesLine: Record "Sales Line"; RemQtyToBeInvoiced: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before checking item tracking for shipment posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being checked.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTrackingCheckShipment(SalesLine: Record "Sales Line"; RemQtyToBeInvoiced: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting item tracking for return receipt.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingReturnRcpt(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesShipmentLine: Record "Sales Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptLine: Record "Return Receipt Line"; SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting item tracking for shipment.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesShipmentLine">The sales shipment line.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForShipment(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesShipmentLine: Record "Sales Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean; SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the resource journal line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="JobTaskSalesLine">The job task sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="ExtDocNo">The external document number.</param>
+    /// <param name="SourceCode">The source code.</param>
+    /// <param name="SalesShptHeader">The sales shipment header.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="ResJnlPostLine">The resource journal post line codeunit instance.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostResJnlLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var JobTaskSalesLine: Record "Sales Line"; var IsHandled: Boolean; DocNo: Code[20]; ExtDocNo: Code[35]; SourceCode: Code[10]; SalesShptHeader: Record "Sales Shipment Header"; ReturnRcptHeader: Record "Return Receipt Header"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the order line during post processing.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="SalesSetup">The sales and receivables setup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateOrderLine(SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; CommitIsSuppressed: Boolean; var SalesSetup: Record "Sales & Receivables Setup")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the temporary order line during post update.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateOrderLineModifyTempLine(var TempSalesLine: Record "Sales Line" temporary; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting warehouse receipt line from shipment line.
+    /// </summary>
+    /// <param name="WhseRcptLine">The warehouse receipt line.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="PostedWhseRcptHeader">The posted warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostWhseRcptLineFromShipmentLine(var WhseRcptLine: Record "Warehouse Receipt Line"; SalesShptLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean; PostedWhseRcptHeader: Record "Posted Whse. Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating posting and document dates.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to validate.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostingAndDocumentDate(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating invoiced quantity on shipment line.
+    /// </summary>
+    /// <param name="SalesShipmentLine">The sales shipment line to update.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateInvoicedQtyOnShipmentLine(var SalesShipmentLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header"; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the update invoiced quantity on shipment line procedure.
+    /// </summary>
+    /// <param name="SalesShptLine">The sales shipment line to update.</param>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateInvoicedQtyOnShipmentLineProcedure(var SalesShptLine: Record "Sales Shipment Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised before sending the intercompany document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to send.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default send logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before setting posting flags.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to set flags for.</param>
+    /// <param name="IsHandled">Set to true to skip the default flag setting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetPostingFlags(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing fields by document type.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestFieldsByDocType(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sales line for posting readiness.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sales line for fixed asset posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLineFixedAsset(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sales line for item charge posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLineItemCharge(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sales line for job posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="SkipTestJobNo">Set to true to skip the job number test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLineJob(SalesLine: Record "Sales Line"; var SkipTestJobNo: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the updated sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="IsHandled">Set to true to skip the default test logic.</param>
+    /// <param name="ErrorMessageManagement">The error message management codeunit for handling errors.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestUpdatedSalesLine(SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ErrorMessageManagement: Codeunit "Error Message Management")
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the sales line for other posting scenarios.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to test.</param>
+    /// <param name="SkipTestJobNo">Set to true to skip the job number test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesLineOthers(SalesLine: Record "Sales Line"; var SkipTestJobNo: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before testing the status for release.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to test.</param>
+    /// <param name="IsHandled">Set to true to skip the default status test logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestStatusRelease(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before inserting the temporary prepayment sales line.
+    /// </summary>
+    /// <param name="TempPrepmtSalesLine">The temporary prepayment sales line to insert.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="CompleteFunctionality">Indicates whether to use complete functionality.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempPrepmtSalesLineInsert(var TempPrepmtSalesLine: Record "Sales Line" temporary; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; CompleteFunctionality: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the temporary prepayment sales line.
+    /// </summary>
+    /// <param name="TempPrepmtSalesLine">The temporary prepayment sales line to modify.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="CompleteFunctionality">Indicates whether to use complete functionality.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempPrepmtSalesLineModify(var TempPrepmtSalesLine: Record "Sales Line" temporary; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; CompleteFunctionality: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring reservation to item journal line.
+    /// </summary>
+    /// <param name="SalesOrderLine">The sales order line.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferReservToItemJnlLine(var SalesOrderLine: Record "Sales Line"; var QtyToBeShippedBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before releasing the sales document.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to release.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleaseSalesDoc(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating associated order posting numbers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="DropShipment">Indicates whether this is a drop shipment.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAssosOrderPostingNos(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; PreviewMode: Boolean; var DropShipment: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating associated lines.
+    /// </summary>
+    /// <param name="SalesOrderLine">The sales order line.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAssocLines(var SalesOrderLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the blanket order line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="Ship">Indicates whether the document is being shipped.</param>
+    /// <param name="Receive">Indicates whether the document is being received.</param>
+    /// <param name="Invoice">Indicates whether the document is being invoiced.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBlanketOrderLine(SalesLine: Record "Sales Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the handled intercompany inbox transaction.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the posting number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="DateOrderSeriesUsed">Indicates whether date order series is used.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePostingNo(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var ModifyHeader: Boolean; var IsHandled: Boolean; var DateOrderSeriesUsed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the prepayment sales line with rounding.
+    /// </summary>
+    /// <param name="PrepmtSalesLine">The prepayment sales line.</param>
+    /// <param name="TotalRoundingAmount">The total rounding amounts.</param>
+    /// <param name="TotalPrepmtAmount">The total prepayment amounts.</param>
+    /// <param name="FinalInvoice">Indicates whether this is the final invoice.</param>
+    /// <param name="PricesInclVATRoundingAmount">The prices including VAT rounding amounts.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="TotalSalesLineLCY">The total sales line amounts in local currency.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtSalesLineWithRounding(var PrepmtSalesLine: Record "Sales Line"; TotalRoundingAmount: array[2] of Decimal; TotalPrepmtAmount: array[2] of Decimal; FinalInvoice: Boolean; PricesInclVATRoundingAmount: array[2] of Decimal; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating quantity to be invoiced for shipment.
+    /// </summary>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="HasATOShippedNotInvoiced">Indicates whether ATO has been shipped but not invoiced.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="InvoicingTrackingSpecification">The invoicing tracking specification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToBeInvoicedForShipment(var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; HasATOShippedNotInvoiced: Boolean; SalesLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line"; InvoicingTrackingSpecification: Record "Tracking Specification")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating quantity to be invoiced for return receipt.
+    /// </summary>
+    /// <param name="QtyToBeInvoiced">The quantity to be invoiced.</param>
+    /// <param name="QtyToBeInvoicedBase">The quantity to be invoiced in base unit of measure.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="ReturnReceiptLine">The return receipt line.</param>
+    /// <param name="InvoicingTrackingSpecification">The invoicing tracking specification.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="RemQtyToBeInvoicedBase">The remaining quantity to be invoiced in base unit of measure.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToBeInvoicedForReturnReceipt(var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; SalesLine: Record "Sales Line"; ReturnReceiptLine: Record "Return Receipt Line"; InvoicingTrackingSpecification: Record "Tracking Specification"; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the return receipt number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateReturnReceiptNo(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales header.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesHeader(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; GenJnlLineDocType: Option; var IsHandled: Boolean; GenJnlLineDocNo: Code[20]; PreviewMode: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the sales line before posting.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to update.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="RoundingLineInserted">Indicates whether a rounding line was inserted.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesLineBeforePost(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; RoundingLineInserted: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating the shipping number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="InvtPickPutaway">Indicates whether inventory pick/put-away is involved.</param>
+    /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
+    /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateShippingNo(var SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; InvtPickPutaway: Boolean; PreviewMode: Boolean; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating warehouse documents.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
+    /// <param name="WhseShptHeader">The warehouse shipment header.</param>
+    /// <param name="TempWhseRcptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="TempWhseShptHeader">The temporary warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateWhseDocuments(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; WhseReceive: Boolean; WhseShip: Boolean; WhseRcptHeader: Record "Warehouse Receipt Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if warehouse handling is required.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to check.</param>
+    /// <param name="Required">Indicates whether warehouse handling is required.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeWhseHandlingRequired(SalesLine: Record "Sales Line"; var Required: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised when invoicing a sales shipment line.
+    /// </summary>
+    /// <param name="SalesShipmentLine">The sales shipment line being invoiced.</param>
+    /// <param name="InvoiceNo">The invoice number.</param>
+    /// <param name="InvoiceLineNo">The invoice line number.</param>
+    /// <param name="QtyToInvoice">The quantity to invoice.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInvoiceSalesShptLine(SalesShipmentLine: Record "Sales Shipment Line"; InvoiceNo: Code[20]; InvoiceLineNo: Integer; QtyToInvoice: Decimal; CommitIsSuppressed: Boolean)
     begin
@@ -10057,6 +11703,11 @@ codeunit 80 "Sales-Post"
         OnAfterUpdateSalesLineDimSetIDFromAppliedEntry(SalesLineToPost, ItemLedgEntry, DimSetID);
     end;
 
+    /// <summary>
+    /// Raised when sending the sales document.
+    /// </summary>
+    /// <param name="ShipAndInvoice">Indicates whether to ship and invoice.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendSalesDocument(ShipAndInvoice: Boolean; CommitIsSuppressed: Boolean)
     begin
@@ -10405,10 +12056,12 @@ codeunit 80 "Sales-Post"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]
-    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean)
+    local procedure OnBeforePostValueEntryToGL(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean; PostToGL: Boolean)
     var
         InventorySetup: Record "Inventory Setup";
     begin
+        if not PostToGL then
+            exit;
         if InventorySetup.UseLegacyPosting() then
             exit;
         PostponedValueEntries.Add(ValueEntry."Entry No.");
@@ -10427,122 +12080,300 @@ codeunit 80 "Sales-Post"
             ItemsToAdjust.Add(Item2."No.");
     end;
 
+    /// <summary>
+    /// Raised before modifying the purchase order line during archive purchase orders.
+    /// </summary>
+    /// <param name="PurchOrderLine">The purchase order line.</param>
+    /// <param name="TempDropShptPostBuffer">The temporary drop shipment post buffer.</param>
     [IntegrationEvent(false, false)]
     local procedure OnArchivePurchaseOrdersOnBeforePurchOrderLineModify(var PurchOrderLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the item journal line before post.
+    /// </summary>
+    /// <param name="SalesLine">The sales line being processed.</param>
+    /// <param name="ItemJnlLine">The item journal line.</param>
+    /// <param name="TempWhseJnlLine">The temporary warehouse journal line.</param>
+    /// <param name="Location">The location record.</param>
+    /// <param name="PostWhseJnlLine">Indicates whether to post warehouse journal line.</param>
+    /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="TrackingSpecification">The tracking specification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLineBeforePost(SalesLine: Record "Sales Line"; var ItemJnlLine: Record "Item Journal Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; Location: Record Location; var PostWhseJnlLine: Boolean; QtyToBeShippedBase: Decimal; var IsHandled: Boolean; TrackingSpecification: Record "Tracking Specification")
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting the sales document after posting.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header to delete.</param>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
+    /// <param name="SkipDelete">Set to true to skip the delete operation.</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    /// <param name="EverythingInvoiced">Indicates whether everything has been invoiced.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteAfterPosting(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SkipDelete: Boolean; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Raised before deleting approval entries.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default delete logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteApprovalEntries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before finding the customer ledger entry.
+    /// </summary>
+    /// <param name="CustLedgEntry">The customer ledger entry to find.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindCustLedgEntry(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
-
+    /// <summary>
+    /// Raised before getting the country code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="CountryRegionCode">The country/region code to return.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCountryCode(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var CountryRegionCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the country/region code.
+    /// </summary>
+    /// <param name="CustNo">The customer number.</param>
+    /// <param name="ShipToCode">The ship-to code.</param>
+    /// <param name="SellToCountryRegionCode">The sell-to country/region code.</param>
+    /// <param name="Result">The result country/region code.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCountryRegionCode(CustNo: Code[20]; ShipToCode: Code[10]; SellToCountryRegionCode: Code[10]; var Result: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the item entry relation.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="ItemEntryRelation">The item entry relation.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetItemEntryRelation(var SalesHeader: Record "Sales Header"; var ItemEntryRelation: Record "Item Entry Relation"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the sales line quantity.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="QtyType">The quantity type (General, Invoicing, or Shipping).</param>
+    /// <param name="SalesLineQty">The sales line quantity to return.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLineQty(SalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; var SalesLineQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting return receipt line from tracking or updating item entry relation.
+    /// </summary>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification.</param>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="ItemEntryRelation">The item entry relation.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="TrackingSpecificationExists">Indicates whether tracking specification exists.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetReturnRcptLineFromTrackingOrUpdateItemEntryRelation(var TempTrackingSpecification: Record "Tracking Specification" temporary; var ReturnRcptLine: Record "Return Receipt Line"; var ItemEntryRelation: Record "Item Entry Relation"; var IsHandled: Boolean; TrackingSpecificationExists: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing sales line quantity to invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line to initialize.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitSalesLineQtyToInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before initializing post assemble-to-order.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="AsmPost">The assembly post codeunit instance.</param>
+    /// <param name="HideProgressWindow">Indicates whether to hide the progress window.</param>
+    /// <param name="IsHandled">Set to true to skip the default initialization logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitPostATO(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var AsmPost: Codeunit "Assembly-Post"; HideProgressWindow: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the return receipt line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="ReturnRcptLine">The return receipt line to insert.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="RemQtyToBeInvoicedBase">The remaining quantity to be invoiced in base unit of measure.</param>
+    /// <param name="IsHandled">Set to true to skip the default insert logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnReceiptLine(SalesLine: Record "Sales Line"; ReturnRcptLine: Record "Return Receipt Line"; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting ATO associated item journal line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="PostedATOLink">The posted assemble-to-order link.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="RemQtyToBeInvoicedBase">The remaining quantity to be invoiced in base unit of measure.</param>
+    /// <param name="ItemLedgShptEntryNo">The item ledger shipment entry number.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostATOAssocItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var PostedATOLink: Record "Posted Assemble-to-Order Link"; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before evaluating the condition for posting item tracking for receipt.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="Condition">The condition result.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForReceiptCondition(SalesLine: Record "Sales Line"; ReturnRcptLine: Record "Return Receipt Line"; var Condition: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before evaluating the condition for posting item tracking for shipment.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="Condition">The condition result.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForShipmentCondition(SalesLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line"; var Condition: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the item tracking line.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="TempItemLedgEntryNotInvoiced">The temporary item ledger entries not invoiced.</param>
+    /// <param name="HasATOShippedNotInvoiced">Indicates whether ATO has been shipped but not invoiced.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="ItemLedgShptEntryNo">The item ledger shipment entry number.</param>
+    /// <param name="RemQtyToBeInvoiced">The remaining quantity to be invoiced.</param>
+    /// <param name="RemQtyToBeInvoicedBase">The remaining quantity to be invoiced in base unit of measure.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTrackingLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean; var IsHandled: Boolean; var ItemLedgShptEntryNo: Integer; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting the sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="TempSalesLineGlobal">The temporary global sales lines.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line.</param>
+    /// <param name="EverythingInvoiced">Indicates whether everything has been invoiced.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostSalesLines(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var TempVATAmountLine: Record "VAT Amount Line" temporary; var EverythingInvoiced: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the item entry relation.
+    /// </summary>
+    /// <param name="ItemEntryRelation">The item entry relation to set.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
+    /// <param name="InvoicingTrackingSpecification">The invoicing tracking specification.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetItemEntryRelation(var ItemEntryRelation: Record "Item Entry Relation"; var SalesShptLine: Record "Sales Shipment Line"; var InvoicingTrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before determining if warehouse journal line should be posted.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="Result">The result of the determination.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShouldPostWhseJnlLine(SalesLine: Record "Sales Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before summing sales lines (variant 2).
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="NewSalesLine">The new sales line for totals.</param>
+    /// <param name="OldSalesLine">The old sales line being processed.</param>
+    /// <param name="QtyType">The quantity type (General, Invoicing, or Shipping).</param>
+    /// <param name="InsertSalesLine">Indicates whether to insert the sales line.</param>
+    /// <param name="CalcAdCostLCY">Indicates whether to calculate adjusted cost in LCY.</param>
+    /// <param name="TotalAdjCostLCY">The total adjusted cost in LCY.</param>
+    /// <param name="IncludePrepayments">Indicates whether to include prepayments.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSumSalesLines2(SalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; InsertSalesLine: Boolean; CalcAdCostLCY: Boolean; var TotalAdjCostLCY: Decimal; IncludePrepayments: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before summing temporary sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="OldSalesLine">The old sales line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSumSalesLinesTemp(var SalesHeader: Record "Sales Header"; var OldSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before posting warehouse shipment lines.
+    /// </summary>
+    /// <param name="WhseShptLine2">The warehouse shipment line.</param>
+    /// <param name="SalesShptLine2">The sales shipment line.</param>
+    /// <param name="SalesLine2">The sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="PostedWhseShptHeader">The posted warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostWhseShptLines(var WhseShptLine2: Record "Warehouse Shipment Line"; SalesShptLine2: Record "Sales Shipment Line"; var SalesLine2: Record "Sales Line"; var IsHandled: Boolean; PostedWhseShptHeader: Record "Posted Whse. Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised when setting filters for calculating invoice discount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to set filters on.</param>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePostingDescriptionOnInvoice(var SalesHeader: Record "Sales Header"; PostingNo: Code[20]; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -10553,111 +12384,250 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting factor during calculation of item journal amounts from quantity to be invoiced.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="Factor">The calculated factor.</param>
+    /// <param name="ItemJournalLine">The item journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcItemJnlAmountsFromQtyToBeInvoicedOnAfterSetFactor(SalesLine: Record "Sales Line"; var Factor: Decimal; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after processing sales lines during create prepayment lines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="TempPrepmtSalesLine">The temporary prepayment sales line.</param>
+    /// <param name="NextLineNo">The next line number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnAfterProcessSalesLines(SalesHeader: Record "Sales Header"; var TempPrepmtSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting temporary line for extended text during create prepayment lines.
+    /// </summary>
+    /// <param name="TempPrepmtSalesLine">The temporary prepayment sales line.</param>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="TempExtTextLine">The temporary extended text line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeInsertTempLineForExtText(var TempPrepmtSalesLine: Record "Sales Line" temporary; var TempSalesLine: Record "Sales Line" temporary; var TempExtTextLine: Record "Extended Text Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before filling temporary lines in the main code procedure.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="CalledBy">Identifies the caller of the posting routine.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeFillTempLines(var SalesHeader: Record "Sales Header"; CalledBy: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before loop during copy and check item charge.
+    /// </summary>
+    /// <param name="TempSalesLine">The temporary sales line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SkipTestJobNo">Set to true to skip the job number test.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyAndCheckItemChargeOnBeforeLoop(var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; var SkipTestJobNo: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters during copy to temporary lines.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyToTempLinesOnAfterSetFilters(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting new item charge assignment during insert associated order charge.
+    /// </summary>
+    /// <param name="TempItemChargeAssgntSales">The temporary item charge assignment.</param>
+    /// <param name="NewItemChargeAssgntSales">The new item charge assignment to insert.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertAssocOrderChargeOnBeforeNewItemChargeAssgntSalesInsert(TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; var NewItemChargeAssgntSales: Record "Item Charge Assignment (Sales)")
     begin
     end;
 
+    /// <summary>
+    /// Raised after transferring fields to sales credit memo header during insert credit memo header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesCrMemoHeader">The sales credit memo header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertCrMemoHeaderOnAfterSalesCrMemoHeaderTransferFields(var SalesHeader: Record "Sales Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring fields to sales credit memo header during insert credit memo header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertCrMemoHeaderOnBeforeSalesCrMemoHeaderTransferFields(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to insert shipment header during insert posted headers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="TempWarehouseShipmentHeader">The temporary warehouse shipment header.</param>
+    /// <param name="TempWarehouseReceiptHeader">The temporary warehouse receipt header.</param>
+    /// <param name="InsertShipmentHeaderNeeded">Indicates whether inserting shipment header is needed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterCalcInsertShipmentHeaderNeeded(var SalesHeader: Record "Sales Header"; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary; var InsertShipmentHeaderNeeded: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before inserting the invoice header during insert posted headers.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="IsHandled">Set to true to skip the default insert logic.</param>
+    /// <param name="SalesInvHeader">The sales invoice header.</param>
+    /// <param name="GenJnlLineDocType">The general journal line document type.</param>
+    /// <param name="GenJnlLineDocNo">The general journal line document number.</param>
+    /// <param name="GenJnlLineExtDocNo">The general journal line external document number.</param>
+    /// <param name="InvoicePostingInterface">The invoice posting interface.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnBeforeInsertInvoiceHeader(SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SalesInvHeader: Record "Sales Invoice Header"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var InvoicePostingInterface: Interface "Invoice Posting")
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating posted receipt line during insert return receipt line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="WhseRcptLine">The warehouse receipt line.</param>
+    /// <param name="PostedWhseRcptHeader">The posted warehouse receipt header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnReceiptLineOnBeforeCreatePostedRcptLine(SalesLine: record "Sales Line"; var ReturnRcptLine: record "Return Receipt Line"; var WhseRcptLine: Record "Warehouse Receipt Line"; PostedWhseRcptHeader: Record "Posted Whse. Receipt Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to get warehouse receipt line during insert return receipt line warehouse post.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="ShouldGetWhseRcptLine">Indicates whether to get warehouse receipt line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnReceiptLineWhsePostOnAfterCalcShouldGetWhseRcptLine(var ReturnRcptLine: Record "Return Receipt Line"; SalesLine: Record "Sales line"; WhseShip: Boolean; WhseReceive: Boolean; ReturnRcptHeader: Record "Return Receipt Header"; var ShouldGetWhseRcptLine: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to get warehouse shipment line during insert return receipt line warehouse post.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
+    /// <param name="WhseReceive">Indicates whether warehouse receipt is involved.</param>
+    /// <param name="ReturnRcptHeader">The return receipt header.</param>
+    /// <param name="ShouldGetWhseShptLine">Indicates whether to get warehouse shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnReceiptLineWhsePostOnAfterCalcShouldGetWhseShptLine(var ReturnRcptLine: Record "Return Receipt Line"; SalesLine: Record "Sales line"; WhseShip: Boolean; WhseReceive: Boolean; ReturnRcptHeader: Record "Return Receipt Header"; var ShouldGetWhseShptLine: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before creating posted shipment line during insert return receipt line warehouse post.
+    /// </summary>
+    /// <param name="ReturnRcptLine">The return receipt line.</param>
+    /// <param name="WhseShptLine">The warehouse shipment line.</param>
+    /// <param name="PostedWhseShptHeader">The posted warehouse shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnReceiptLineWhsePostOnBeforeCreatePostedShptLine(var ReturnRcptLine: Record "Return Receipt Line"; var WhseShptLine: Record "Warehouse Shipment Line"; PostedWhseShptHeader: Record "Posted Whse. Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after transferring fields to sales shipment header during insert shipment header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesShptHeader">The sales shipment header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring fields to sales shipment header during insert shipment header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertShipmentHeaderOnBeforeTransferfieldsToSalesShptHeader(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing quantity fields during insert shipment line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="xSalesLine">The previous sales line.</param>
+    /// <param name="SalesShptLine">The sales shipment line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertShipmentLineOnAfterInitQuantityFields(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating whether to process shipment relation during insert shipment line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="ShouldProcessShipmentRelation">Indicates whether to process shipment relation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertShipmentLineOnAfterCalcShouldProcessShipmentRelation(var SalesLine: Record "Sales Line"; var ShouldProcessShipmentRelation: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before transferring fields to sales invoice header during insert invoice header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertInvoiceHeaderOnBeforeSalesInvHeaderTransferFields(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after transferring fields to sales invoice header during insert invoice header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesInvoiceHeader">The sales invoice header.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertInvoiceHeaderOnAfterSalesInvHeaderTransferFields(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before dividing amount during sum sales lines 2.
+    /// </summary>
+    /// <param name="OldSalesLine">The old sales line.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    /// <param name="SalesHeader">The sales header.</param>
+    /// <param name="SalesLine">The sales line.</param>
+    /// <param name="QtyType">The quantity type.</param>
+    /// <param name="SalesLineQty">The sales line quantity.</param>
+    /// <param name="TempVATAmountLine">The temporary VAT amount line.</param>
+    /// <param name="TempVATAmountLineRemainder">The temporary VAT amount line remainder.</param>
+    /// <param name="IncludePrepayments">Indicates whether to include prepayments.</param>
+    /// <param name="RoundingLineInserted">Indicates whether a rounding line was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2OnBeforeDivideAmount(var OldSalesLine: Record "Sales Line"; var IsHandled: Boolean; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; QtyType: Option; var SalesLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; IncludePrepayments: Boolean; RoundingLineInserted: Boolean)
     begin
@@ -11871,6 +13841,12 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating won opportunities after posting a sales invoice.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header that was posted.</param>
+    /// <param name="SalesInvHeader">The posted sales invoice header.</param>
+    /// <param name="IsHandled">Set to true to skip the default opportunity update logic.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeUpdateWonOpportunities(var SalesHeader: Record "Sales Header"; SalesInvHeader: Record "Sales Invoice Header"; var IsHandled: Boolean);
     begin
@@ -11891,6 +13867,12 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+    /// <summary>
+    /// Raised before making inventory adjustments after posting.
+    /// </summary>
+    /// <param name="InvtSetup">The inventory setup record.</param>
+    /// <param name="InvtAdjmtHandler">The inventory adjustment handler codeunit.</param>
+    /// <param name="IsHandled">Set to true to skip the default inventory adjustment logic.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeMakeInventoryAdjustment(var InvtSetup: Record "Inventory Setup"; var InvtAdjmtHandler: Codeunit "Inventory Adjustment Handler"; var IsHandled: Boolean);
     begin

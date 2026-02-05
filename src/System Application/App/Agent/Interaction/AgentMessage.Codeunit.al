@@ -33,11 +33,11 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <param name="AgentTaskMessage">The message record to update.</param>
     /// <param name="NewMessageText">New message text to set.</param>
-    [Scope('OnPrem')]
     procedure UpdateText(var AgentTaskMessage: Record "Agent Task Message"; NewMessageText: Text)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.UpdateText(AgentTaskMessage, NewMessageText);
     end;
 
@@ -58,11 +58,11 @@ codeunit 4307 "Agent Message"
     /// Sets the message status to sent.
     /// </summary>
     /// <param name="AgentTaskMessage">Agent task message to update status.</param>
-    [Scope('OnPrem')]
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.SetStatusToSent(AgentTaskMessage);
     end;
 
@@ -86,11 +86,11 @@ codeunit 4307 "Agent Message"
     /// The default value is false.
     /// </summary>
     /// <param name="IgnoreAttachment">If true, attachments will be marked as ignored when added to a message.</param>
-    [Scope('OnPrem')]
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.SetIgnoreAttachment(IgnoreAttachment);
     end;
 

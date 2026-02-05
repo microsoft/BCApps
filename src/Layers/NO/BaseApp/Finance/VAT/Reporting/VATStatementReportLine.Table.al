@@ -93,12 +93,14 @@ table 742 "VAT Statement Report Line"
         field(10600; "Non-Deductible Base"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible Base';
             Editable = false;
         }
         field(10601; "Non-Deductible Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non-Deductible Amount';
             Editable = false;
         }

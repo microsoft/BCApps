@@ -70,6 +70,7 @@ table 5203 "Employee Qualification"
         field(9; Cost; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost';
             ToolTip = 'Specifies the cost of the qualification.';
         }

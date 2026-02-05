@@ -8,6 +8,9 @@ using Microsoft.Assembly.Document;
 using Microsoft.Foundation.UOM;
 using System.Utilities;
 
+/// <summary>
+/// Generates a printable pick instruction document for warehouse staff to fulfill sales orders.
+/// </summary>
 report 214 "Pick Instruction"
 {
     DefaultLayout = RDLC;
@@ -241,6 +244,10 @@ report 214 "Pick Instruction"
         exit(UOMCode);
     end;
 
+    /// <summary>
+    /// Initializes the report request with the number of copies to print.
+    /// </summary>
+    /// <param name="NewNoOfCopies">The number of copies to print.</param>
     procedure InitializeRequest(NewNoOfCopies: Integer)
     begin
         NoOfCopies := NewNoOfCopies;

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Displays a list of standard sales codes assigned to a specific customer.
+/// </summary>
 page 173 "Standard Customer Sales Codes"
 {
     Caption = 'Recurring Sales Lines';
@@ -135,6 +138,10 @@ page 173 "Standard Customer Sales Codes"
         }
     }
 
+    /// <summary>
+    /// Gets the selected records from the page.
+    /// </summary>
+    /// <param name="StdCustSalesCode">Returns the selected standard customer sales code records.</param>
     procedure GetSelected(var StdCustSalesCode: Record "Standard Customer Sales Code")
     begin
         CurrPage.SetSelectionFilter(StdCustSalesCode);

@@ -2053,6 +2053,40 @@ codeunit 134101 "ERM Prepayment II"
             StrSubstNo(BaseAmountNotMatchedErr, ExpectedVATBaseAmount));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPrepaymentRoundingWithInvoiceDiscount()
+    var
+        LineGLAccount: Record "G/L Account";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DocumentNo: Code[20];
+        PrePaymentLineAmount: Decimal;
+        SalesPrepaymentsAccount: Code[20];
+    begin
+        // [SCENARIO 612821] Rounding issue for sales prepayment invoice.
+
+        // [GIVEN] Update Sales and Receivable Setup with Check Prepayment boolean and Create Setup for Prepayment Value.
+        Initialize();
+        UpdateCheckPrepmtInSalesReceivableSetup(true);
+        SalesPrepaymentsAccount := SetupPrepaymentOrder(SalesHeader, LineGLAccount);
+        ModifySalesHeader(SalesHeader);
+
+        // Find Prepayment Line Amount before Posting Prepayment.
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        repeat
+            PrePaymentLineAmount += SalesLine."Prepmt. Line Amount";
+        until SalesLine.Next() = 0;
+
+        // [WHEN] Post Prepayment Invoice on Sales Header.
+        DocumentNo := GetPostedDocumentNo(SalesHeader."Prepayment No. Series");
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [THEN] Verify Posted Sales Invoice Line with Same Prepayment Line Amount
+        VerifySalesInvoiceLine(DocumentNo, SalesInvoiceLine.Type::"G/L Account", SalesPrepaymentsAccount, 1, PrePaymentLineAmount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

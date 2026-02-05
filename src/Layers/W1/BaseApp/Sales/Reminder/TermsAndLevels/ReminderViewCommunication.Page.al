@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a read-only view of all communication text configurations for a reminder level or term.
+/// </summary>
 page 842 "Reminder View Communication"
 {
     PageType = ListPlus;

@@ -79,6 +79,7 @@ table 12174 "Customer Bill Header"
         field(60; "Total Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Customer Bill Line".Amount where("Customer Bill No." = field("No.")));
             Caption = 'Total Amount';
             Editable = false;
@@ -128,8 +129,8 @@ table 12174 "Customer Bill Header"
             SalesSetup.Get();
             SalesSetup.TestField("Temporary Bill List No.");
             "User ID" := UserId;
-                "No. Series" := SalesSetup."Temporary Bill List No.";
-                "No." := NoSeries.GetNextNo("No. Series");
+            "No. Series" := SalesSetup."Temporary Bill List No.";
+            "No." := NoSeries.GetNextNo("No. Series");
         end;
 
         Validate("List Date", WorkDate());

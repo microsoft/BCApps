@@ -166,6 +166,8 @@ page 1108 "Cost Journal"
                         field(Balance; LineBalance + Rec.Balance - xRec.Balance)
                         {
                             ApplicationArea = CostAccounting;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Balance';
                             Editable = false;
                             ToolTip = 'Specifies the balance on the cost journal line.';
@@ -178,6 +180,8 @@ page 1108 "Cost Journal"
                         field(TotalBalance; TotalBalance + Rec.Balance - xRec.Balance)
                         {
                             ApplicationArea = CostAccounting;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Total Balance';
                             Editable = false;
                             ToolTip = 'Specifies the total balance on the cost journal.';

@@ -8,6 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Displays posted return receipt lines as a subform for line selection during document retrieval.
+/// </summary>
 page 5853 "Get Pst.Doc-RtrnRcptLn Subform"
 {
     Caption = 'Lines';
@@ -283,6 +286,10 @@ page 5853 "Get Pst.Doc-RtrnRcptLn Subform"
         exit(Rec."Line No." = TempReturnRcptLine."Line No.");
     end;
 
+    /// <summary>
+    /// Gets the currently selected return receipt line with selection filter applied.
+    /// </summary>
+    /// <param name="FromReturnRcptLine">Returns the selected return receipt line.</param>
     procedure GetSelectedLine(var FromReturnRcptLine: Record "Return Receipt Line")
     begin
         FromReturnRcptLine.Copy(Rec);

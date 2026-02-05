@@ -71,6 +71,12 @@ page 99000767 "Routing Version Lines"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description of the entry.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;

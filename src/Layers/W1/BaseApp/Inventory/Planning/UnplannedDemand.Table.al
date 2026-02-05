@@ -93,6 +93,7 @@ table 5520 "Unplanned Demand"
         }
         field(16; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
         }
         field(17; Level; Integer)
@@ -108,6 +109,7 @@ table 5520 "Unplanned Demand"
         }
         field(19; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -124,6 +126,7 @@ table 5520 "Unplanned Demand"
         }
         field(22; "Needed Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Needed Qty. (Base)';
         }
         field(23; "Special Order"; Boolean)

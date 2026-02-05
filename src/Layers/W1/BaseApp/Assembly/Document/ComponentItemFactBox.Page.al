@@ -30,6 +30,7 @@ page 917 "Component - Item FactBox"
             }
             field("Required Quantity"; ShowRequiredQty())
             {
+                AutoFormatType = 0;
                 ApplicationArea = Assembly;
                 BlankZero = true;
                 Caption = 'Required Quantity';
@@ -47,6 +48,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Item Availability"; AssemblyInfoPaneManagement.CalcAvailability(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     BlankZero = true;
                     Caption = 'Item Availability';
@@ -61,6 +63,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Available Inventory"; AssemblyInfoPaneManagement.CalcAvailableInventory(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
                     Caption = 'Available Inventory';
@@ -69,6 +72,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Scheduled Receipt"; AssemblyInfoPaneManagement.CalcScheduledReceipt(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     BlankZero = true;
                     Caption = 'Scheduled Receipt';
@@ -77,6 +81,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Reserved Receipt"; AssemblyInfoPaneManagement.CalcReservedReceipt(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Reserved Receipt';
@@ -85,6 +90,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Gross Requirement"; AssemblyInfoPaneManagement.CalcGrossRequirement(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     BlankZero = true;
                     Caption = 'Gross Requirement';
@@ -93,6 +99,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Reserved Requirement"; AssemblyInfoPaneManagement.CalcReservedRequirement(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Reserved Requirement';
@@ -117,6 +124,7 @@ page 917 "Component - Item FactBox"
                 }
                 field("Qty. per Unit of Measure"; ShowQtyPerUoM())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     BlankZero = true;
                     Caption = 'Qty. per Unit of Measure';

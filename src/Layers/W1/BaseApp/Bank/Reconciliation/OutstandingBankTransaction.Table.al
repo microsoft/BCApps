@@ -83,6 +83,7 @@ table 1284 "Outstanding Bank Transaction"
         /// </summary>
         field(7; Amount; Decimal)
         {
+            AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount';
         }

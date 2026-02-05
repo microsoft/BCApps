@@ -8,6 +8,9 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 
+/// <summary>
+/// Provides detailed configuration for a sales analysis view including dimensions and filters.
+/// </summary>
 page 7155 "Sales Analysis View Card"
 {
     Caption = 'Sales Analysis View Card';

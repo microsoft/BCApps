@@ -74,6 +74,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Column Amount';
                     DrillDown = true;
@@ -131,6 +132,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Correction Amount';
                     ToolTip = 'Specifies the amount of the VAT correction. You must enter the correction amount, not the new amount.';
@@ -144,6 +146,7 @@ page 475 "VAT Statement Preview Line"
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     BlankZero = true;
                     Caption = 'Total Amount';
                     ToolTip = 'Specifies the total amount minus any invoice discount amount for the service order. The value does not include VAT.';

@@ -66,6 +66,8 @@ table 2000041 "CODA Statement Line"
         }
         field(11; "Statement Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Statement Amount';
             Editable = false;
         }
@@ -317,6 +319,7 @@ table 2000041 "CODA Statement Line"
         }
         field(46; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -324,11 +327,14 @@ table 2000041 "CODA Statement Line"
         field(47; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
             Editable = false;
         }
         field(48; "Unapplied Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Unapplied Amount';
             Editable = false;
 

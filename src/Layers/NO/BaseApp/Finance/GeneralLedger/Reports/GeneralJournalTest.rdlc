@@ -5459,17 +5459,11 @@ End Function</Code>
         <Field Name="BalLCYCaption_GenJnlLine">
           <DataField>BalLCYCaption_GenJnlLine</DataField>
         </Field>
-        <Field Name="VATCaption_GenJnlLine">
-          <DataField>VATCaption_GenJnlLine</DataField>
-        </Field>
         <Field Name="VATNumberCaption_GenJnlLine">
           <DataField>VATNumberCaption_GenJnlLine</DataField>
         </Field>
         <Field Name="BalGenPostTypeCaption_GenJnlLine">
           <DataField>BalGenPostTypeCaption_GenJnlLine</DataField>
-        </Field>
-        <Field Name="BalVATCodeCaption_GenJnlLine">
-          <DataField>BalVATCodeCaption_GenJnlLine</DataField>
         </Field>
         <Field Name="BalVATNumberCaption_GenJnlLine">
           <DataField>BalVATNumberCaption_GenJnlLine</DataField>
@@ -5555,17 +5549,11 @@ End Function</Code>
         <Field Name="TotalLCYCaption">
           <DataField>TotalLCYCaption</DataField>
         </Field>
-        <Field Name="VATCode_GenJnlLine">
-          <DataField>VATCode_GenJnlLine</DataField>
-        </Field>
         <Field Name="VATNumber_GenJnlLine">
           <DataField>VATNumber_GenJnlLine</DataField>
         </Field>
         <Field Name="BalGenPostType_GenJnlLine">
           <DataField>BalGenPostType_GenJnlLine</DataField>
-        </Field>
-        <Field Name="BalVATCode_GenJnlLine">
-          <DataField>BalVATCode_GenJnlLine</DataField>
         </Field>
         <Field Name="BalVATNumber_GenJnlLine">
           <DataField>BalVATNumber_GenJnlLine</DataField>

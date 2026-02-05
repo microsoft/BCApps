@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Telemetry;
 
+/// <summary>
+/// Executes the batch sending of issued reminders based on configured setup parameters.
+/// </summary>
 codeunit 6754 "Send Reminder Action Job"
 {
     TableNo = "Reminder Action";
@@ -23,6 +26,11 @@ codeunit 6754 "Send Reminder Action Job"
         SendReminders(Rec, ErrorsOccured);
     end;
 
+    /// <summary>
+    /// Sends all issued reminders matching the configured filters and reports errors.
+    /// </summary>
+    /// <param name="ReminderAction">Specifies the reminder action containing the send configuration.</param>
+    /// <param name="ErrorsOccured">Returns true if errors occurred during execution; otherwise, false.</param>
     procedure SendReminders(var ReminderAction: Record "Reminder Action"; var ErrorsOccured: Boolean)
     var
         DummyReminderActionGroup: Record "Reminder Action Group";

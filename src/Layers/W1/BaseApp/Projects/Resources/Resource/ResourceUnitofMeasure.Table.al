@@ -30,6 +30,7 @@ table 205 "Resource Unit of Measure"
         }
         field(3; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;

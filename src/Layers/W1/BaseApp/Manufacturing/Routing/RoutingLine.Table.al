@@ -120,30 +120,35 @@ table 99000764 "Routing Line"
         }
         field(12; "Setup Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Setup Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(13; "Run Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Run Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(14; "Wait Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Wait Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(15; "Move Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Move Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(16; "Fixed Scrap Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Fixed Scrap Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -155,11 +160,13 @@ table 99000764 "Routing Line"
         }
         field(17; "Lot Size"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Lot Size';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Scrap Factor %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Factor %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -189,20 +196,29 @@ table 99000764 "Routing Line"
             Caption = 'Move Time Unit of Meas. Code';
             TableRelation = "Capacity Unit of Measure";
         }
+        field(23; "Description 2"; Text[50])
+        {
+            Caption = 'Description 2';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies additional description text.';
+        }
         field(27; "Minimum Process Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Process Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(28; "Maximum Process Time"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Maximum Process Time';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(30; "Concurrent Capacities"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
@@ -210,6 +226,7 @@ table 99000764 "Routing Line"
         }
         field(31; "Send-Ahead Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Send-Ahead Quantity';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -242,6 +259,7 @@ table 99000764 "Routing Line"
 
                 StandardTask.Get("Standard Task Code");
                 Description := StandardTask.Description;
+                "Description 2" := StandardTask."Description 2";
 
                 DeleteRelations();
 
@@ -306,6 +324,7 @@ table 99000764 "Routing Line"
         field(40; "Unit Cost per"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost per';
             MinValue = 0;
         }
@@ -335,12 +354,14 @@ table 99000764 "Routing Line"
         }
         field(52; "Fixed Scrap Qty. (Accum.)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Fixed Scrap Qty. (Accum.)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(53; "Scrap Factor % (Accumulated)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap Factor % (Accumulated)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -479,8 +500,10 @@ table 99000764 "Routing Line"
                 "Wait Time Unit of Meas. Code" := WorkCenter."Unit of Measure Code";
             if "Move Time Unit of Meas. Code" = '' then
                 "Move Time Unit of Meas. Code" := WorkCenter."Unit of Measure Code";
-            if "Standard Task Code" = '' then
+            if "Standard Task Code" = '' then begin
                 Description := WorkCenter.Name;
+                "Description 2" := WorkCenter."Name 2";
+            end;
         end;
         OnAfterWorkCenterTransferFields(Rec, WorkCenter);
     end;
@@ -496,6 +519,7 @@ table 99000764 "Routing Line"
         OnMachineCtrTransferFieldsOnAfterWorkCenterTransferFields(Rec, xRec, WorkCenter, MachineCenter, IsHandled);
         if not IsHandled then begin
             Description := MachineCenter.Name;
+            "Description 2" := MachineCenter."Name 2";
             "Setup Time" := MachineCenter."Setup Time";
             "Wait Time" := MachineCenter."Wait Time";
             "Move Time" := MachineCenter."Move Time";

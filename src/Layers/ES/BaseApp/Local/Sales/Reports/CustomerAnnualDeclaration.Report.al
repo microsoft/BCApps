@@ -180,6 +180,8 @@ report 10702 "Customer - Annual Declaration"
                     Caption = 'Options';
                     field(MinAmount; MinAmount)
                     {
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         ApplicationArea = Basic, Suite;
                         Caption = 'Amounts greater than';
                         ToolTip = 'Specifies the invoice amount that the customer must exceed to appear in the report.';

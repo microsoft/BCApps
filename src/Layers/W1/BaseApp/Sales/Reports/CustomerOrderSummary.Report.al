@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reports;
 
+/// <summary>
+/// Generates a summary of outstanding sales orders by customer showing order amounts grouped by expected shipment period.
+/// </summary>
+
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -594,6 +598,11 @@ report 107 "Customer - Order Summary"
         [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
         AfterCaptionLbl: Label 'after...';
 #endif
+    /// <summary>
+    /// Initializes the report request options for the Customer Order Summary report.
+    /// </summary>
+    /// <param name="StartingDate">The starting date for the summary periods.</param>
+    /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
     procedure InitializeRequest(StartingDate: Date; ShowAmountInLCY: Boolean)
     begin
         PeriodStartDate[1] := StartingDate;

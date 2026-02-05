@@ -427,6 +427,7 @@ page 1310 "O365 Activities"
         end;
 
         Rec.SetFilter("Due Next Week Filter", '%1..%2', CalcDate('<1D>', WorkDate()), CalcDate('<1W>', WorkDate()));
+        CalculateCueFieldValues();  // starts page-background tasks
 
         HasCamera := Camera.IsAvailable();
 
@@ -451,8 +452,6 @@ page 1310 "O365 Activities"
 
         RoleCenterNotificationMgt.ShowNotifications();
         ConfPersonalizationMgt.RaiseOnOpenRoleCenterEvent();
-
-        CalculateCueFieldValues();
     end;
 
     var

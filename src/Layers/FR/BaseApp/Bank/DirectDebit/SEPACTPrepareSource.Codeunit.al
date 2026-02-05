@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
+#if not CLEAN28
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.GeneralLedger.Journal;
 
 /// <summary>
@@ -53,11 +55,13 @@ codeunit 1222 "SEPA CT-Prepare Source"
     /// <param name="TempGenJnlLine">Target temporary table to populate with generated journal lines.</param>
     local procedure CreateTempJnlLines(var FromGenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     var
+#if not CLEAN28
         PaymentHeader: Record "Payment Header";
         PaymentLine: Record "Payment Line";
         PaymentDocNo: Code[20];
         AppliedDocNoList: Text;
         DescriptionLen: Integer;
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -65,6 +69,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
         if IsHandled then
             exit;
 
+#if not CLEAN28
         PaymentDocNo := FromGenJnlLine.GetFilter("Document No.");
         PaymentHeader.Get(PaymentDocNo);
         PaymentLine.Reset();
@@ -103,7 +108,9 @@ codeunit 1222 "SEPA CT-Prepare Source"
                 OnCreateTempJnlLinesOnBeforeInsertTempGenJnlLine(TempGenJnlLine, PaymentLine);
                 TempGenJnlLine.Insert();
             until PaymentLine.Next() = 0;
-
+#else
+        TempGenJnlLine := FromGenJnlLine;
+#endif
         OnAfterCreateTempJnlLines(FromGenJnlLine, TempGenJnlLine);
     end;
 
@@ -142,9 +149,12 @@ codeunit 1222 "SEPA CT-Prepare Source"
     begin
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCreateTempJnlLinesOnBeforeInsertTempGenJnlLine(var TempGenJnlLine: Record "Gen. Journal Line" temporary; var PaymentLine: Record "Payment Line")
     begin
     end;
+#endif
 }
 

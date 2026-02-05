@@ -61,31 +61,37 @@ table 1019 "Job Difference Buffer"
         }
         field(10; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
         }
         field(11; "Total Cost"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Cost';
             DataClassification = SystemMetadata;
         }
         field(12; "Line Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Amount';
             DataClassification = SystemMetadata;
         }
         field(10010; "Budgeted Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Budgeted Quantity';
             DataClassification = SystemMetadata;
         }
         field(10011; "Budgeted Total Cost"; Decimal)
         {
             Caption = 'Budgeted Total Cost';
+            AutoFormatType = 0;
             DataClassification = SystemMetadata;
         }
         field(10012; "Budgeted Line Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Budgeted Line Amount';
             DataClassification = SystemMetadata;
         }

@@ -165,6 +165,7 @@ page 38 "Item Ledger Entries"
                 field(RunningBalance; CalcRunningInvBalance.GetItemBalance(Rec))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Inventory';
                     ToolTip = 'Specifies the inventory at date including this entry.';
                     DecimalPlaces = 0 : 5;
@@ -173,6 +174,7 @@ page 38 "Item Ledger Entries"
                 field(RunningBalanceLoc; CalcRunningInvBalance.GetItemBalanceLoc(Rec))
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Inventory by Location';
                     ToolTip = 'Specifies the inventory at date including this entry, for this location.';
                     DecimalPlaces = 0 : 5;
@@ -193,6 +195,7 @@ page 38 "Item Ledger Entries"
                 field("Remaining Qty. by Date"; Rec."Remaining Qty. by Date")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the remaining quantity for the item ledger entry as of the date specified in the Date Filter field.';
                     Visible = false;
                 }

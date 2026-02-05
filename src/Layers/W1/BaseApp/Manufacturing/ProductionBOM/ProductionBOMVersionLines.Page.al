@@ -48,6 +48,12 @@ page 99000789 "Production BOM Version Lines"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description of the production BOM line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Calculation Formula"; Rec."Calculation Formula")
                 {
                     ApplicationArea = Manufacturing;

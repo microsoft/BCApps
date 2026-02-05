@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Manages language translations for reminder terms note text to support multi-language reminders.
+/// </summary>
 page 1052 "Reminder Terms Translation"
 {
     Caption = 'Reminder Terms Translation';

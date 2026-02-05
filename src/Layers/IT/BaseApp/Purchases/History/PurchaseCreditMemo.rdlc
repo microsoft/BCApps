@@ -1987,7 +1987,7 @@
                                                       <FontFamily>Segoe UI</FontFamily>
                                                       <FontSize>8pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
-                                                      <Format>=Fields!Amount_PurchCrMemoLineFormat.Value</Format>
+                                                      <Format>=Fields!TotalAmountFormat.Value</Format>
                                                     </Style>
                                                   </TextRun>
                                                 </TextRuns>

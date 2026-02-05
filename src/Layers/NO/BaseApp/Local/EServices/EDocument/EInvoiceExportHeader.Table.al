@@ -173,14 +173,20 @@ table 10604 "E-Invoice Export Header"
         }
         field(10688; "Legal Taxable Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Legal Taxable Amount';
         }
         field(10689; "Total Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Total Amount';
         }
         field(10690; "Total Invoice Discount Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Total Invoice Discount Amount';
         }
         field(10691; "Quantity Name"; Text[50])
@@ -193,10 +199,14 @@ table 10604 "E-Invoice Export Header"
         }
         field(10693; "Tax Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Tax Amount';
         }
         field(10694; "Total Rounding Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Total Rounding Amount';
         }
     }

@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Archive;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Lists all archived sales return order versions for viewing and reference.
+/// </summary>
 page 6629 "Sales Return List Archive"
 {
     ApplicationArea = Basic, Suite;

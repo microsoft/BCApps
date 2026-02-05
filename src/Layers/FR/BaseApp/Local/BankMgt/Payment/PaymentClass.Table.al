@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -11,8 +12,18 @@ using System.Telemetry;
 table 10860 "Payment Class"
 {
     Caption = 'Payment Class';
+#if not CLEAN28    
     LookupPageID = "Payment Class List";
+#endif    
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#if not CLEAN28    
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -78,11 +89,15 @@ table 10860 "Payment Class"
         }
         field(10; "Is Create Document"; Boolean)
         {
+#if not CLEAN28                 
             CalcFormula = exist("Payment Step" where("Payment Class" = field(Code),
                                                       "Action Type" = const("Create New Document")));
+#endif            
             Caption = 'Is Create Document';
             Editable = false;
+#if not CLEAN28            
             FieldClass = FlowField;
+#endif            
         }
         field(11; "Unrealized VAT Reversal"; Option)
         {
@@ -164,4 +179,4 @@ table 10860 "Payment Class"
         GLSetup: Record "General Ledger Setup";
         Text003: Label '%1 %2 has at least one %3 for which %4 is checked.';
 }
-
+#endif

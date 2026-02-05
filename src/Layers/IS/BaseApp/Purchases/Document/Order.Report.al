@@ -532,6 +532,8 @@ report 405 "Order"
                                 TempPurchaseLine.Find('-')
                             else
                                 TempPurchaseLine.Next();
+
+                            OnAfterGetRecordRoundLoopOnBeforeAssignPurchaseLine(TempPurchaseLine);
                             "Purchase Line" := TempPurchaseLine;
 
                             if not "Purchase Header"."Prices Including VAT" and
@@ -1266,6 +1268,11 @@ report 405 "Order"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostDataItem(var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordRoundLoopOnBeforeAssignPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
     end;
 }

@@ -30,6 +30,8 @@ table 11609 "EFT Register"
         }
         field(4; "Total Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Amount (LCY)';
         }
         field(5; Time; Time)

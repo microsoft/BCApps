@@ -315,6 +315,7 @@ table 1383 "Vendor Templ."
         }
         field(124; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

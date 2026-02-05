@@ -47,10 +47,14 @@ table 32000004 "Ref. Payment - Exported Buffer"
         }
         field(10; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(11; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(12; "Vendor Account"; Code[20])

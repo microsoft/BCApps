@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides a processing-only report that launches the customer statement with custom layout support.
+/// </summary>
 report 153 "Customer Statement"
 {
     ApplicationArea = Basic, Suite;

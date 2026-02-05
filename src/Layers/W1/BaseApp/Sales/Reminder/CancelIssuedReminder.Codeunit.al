@@ -16,6 +16,9 @@ using Microsoft.Sales.Setup;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Reverses the posting of an issued reminder by creating corrective G/L entries and restoring customer ledger state.
+/// </summary>
 codeunit 1393 "Cancel Issued Reminder"
 {
     Permissions = TableData "Cust. Ledger Entry" = rm,
@@ -292,6 +295,11 @@ codeunit 1393 "Cancel Issued Reminder"
         exit('F984E76B-CA21-46E3-B89C-146018C022B2');
     end;
 
+    /// <summary>
+    /// Retrieves the error messages that occurred during the cancellation process.
+    /// </summary>
+    /// <param name="TempErrorMessageResult">Returns the temporary error message records.</param>
+    /// <returns>True if there are error messages; otherwise, false.</returns>
     procedure GetErrorMessages(var TempErrorMessageResult: Record "Error Message" temporary): Boolean
     begin
         TempErrorMessageResult.Copy(TempErrorMessage, true);
@@ -335,8 +343,14 @@ codeunit 1393 "Cancel Issued Reminder"
     end;
 
     /// <summary>
-    /// Specify parameters with specifying VAT Date
+    /// Sets the cancellation parameters including VAT date options for processing issued reminders.
     /// </summary>
+    /// <param name="NewUseSameDocumentNo">Specifies whether to use the same document number as the original reminder.</param>
+    /// <param name="NewUseSamePostingDate">Specifies whether to use the same posting date as the original reminder.</param>
+    /// <param name="PostingDate">Specifies the new posting date to use if not using the original date.</param>
+    /// <param name="NewUseSameVATDate">Specifies whether to use the same VAT date as the original reminder.</param>
+    /// <param name="VATDate">Specifies the new VAT date to use if not using the original date.</param>
+    /// <param name="NewSkipShowNotification">Specifies whether to skip displaying validation notifications.</param>
     procedure SetParameters(NewUseSameDocumentNo: Boolean; NewUseSamePostingDate: Boolean; PostingDate: Date; NewUseSameVATDate: Boolean; VATDate: Date; NewSkipShowNotification: Boolean)
     begin
         SetParameters(NewUseSameDocumentNo, NewUseSamePostingDate, PostingDate, NewSkipShowNotification);
@@ -345,8 +359,12 @@ codeunit 1393 "Cancel Issued Reminder"
     end;
 
     /// <summary>
-    /// Specify parameters with UseSameVATDate default to True
+    /// Sets the cancellation parameters with VAT date defaulting to the original reminder date.
     /// </summary>
+    /// <param name="NewUseSameDocumentNo">Specifies whether to use the same document number as the original reminder.</param>
+    /// <param name="NewUseSamePostingDate">Specifies whether to use the same posting date as the original reminder.</param>
+    /// <param name="PostingDate">Specifies the new posting date to use if not using the original date.</param>
+    /// <param name="NewSkipShowNotification">Specifies whether to skip displaying validation notifications.</param>
     procedure SetParameters(NewUseSameDocumentNo: Boolean; NewUseSamePostingDate: Boolean; PostingDate: Date; NewSkipShowNotification: Boolean)
     begin
         UseSameDocumentNo := NewUseSameDocumentNo;
@@ -356,6 +374,10 @@ codeunit 1393 "Cancel Issued Reminder"
         UseSameVATDate := true;
     end;
 
+    /// <summary>
+    /// Sets the general journal batch to use for posting cancellation entries.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">Specifies the general journal batch for posting.</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
@@ -395,6 +417,10 @@ codeunit 1393 "Cancel Issued Reminder"
           NextLevelReminderNotification, IssuedReminderHeader.RecordId, GetShowNextLevelReminderNotificationId());
     end;
 
+    /// <summary>
+    /// Opens the issued reminder card page for the reminder number specified in the notification.
+    /// </summary>
+    /// <param name="Notification">Specifies the notification containing the issued reminder number.</param>
     procedure ShowIssuedReminder(Notification: Notification)
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
@@ -423,6 +449,10 @@ codeunit 1393 "Cancel Issued Reminder"
           AppliedCustomerLedgerNotification, IssuedReminderHeader.RecordId, GetAppliedCustomerLedgerEntryNotificationId());
     end;
 
+    /// <summary>
+    /// Opens the customer ledger entries page for the entry number specified in the notification.
+    /// </summary>
+    /// <param name="Notification">Specifies the notification containing the customer ledger entry number.</param>
     procedure ShowCustomerLedgerEntry(Notification: Notification)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -456,46 +486,95 @@ codeunit 1393 "Cancel Issued Reminder"
         exit(LastLevel);
     end;
 
+    /// <summary>
+    /// Raised after initializing a general journal line for reminder cancellation posting.
+    /// </summary>
+    /// <param name="GenJournalLine">The initialized general journal line.</param>
+    /// <param name="IssuedReminderHeader">The issued reminder header being canceled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking if an issued reminder can be canceled.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header being validated.</param>
+    /// <param name="SkipShowNotification">Indicates whether to skip showing notifications.</param>
+    /// <param name="TempErrMessage">Temporary table containing error messages.</param>
+    /// <param name="Result">Returns whether the reminder passed validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckIssuedReminder(IssuedReminderHeader: Record "Issued Reminder Header"; SkipShowNotification: boolean; var TempErrMessage: Record "Error Message" temporary; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after an issued reminder is successfully canceled.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header that was canceled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCancelIssuedReminder(var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before canceling an issued reminder.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header to cancel.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCancelIssuedReminder(var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised before processing each issued reminder line during cancellation.
+    /// </summary>
+    /// <param name="IssuedReminderLine">The issued reminder line being processed.</param>
+    /// <param name="ReminderInterestAmount">The cumulative interest amount.</param>
+    /// <param name="ReminderInterestVATAmount">The cumulative interest VAT amount.</param>
+    /// <param name="DocumentNo">The document number for the cancellation.</param>
+    /// <param name="PostingDate">The posting date for the cancellation.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCancelIssuedReminderOnBeforeProcessIssuedReminderLine(var IssuedReminderLine: Record "Issued Reminder Line"; var ReminderInterestAmount: Decimal; var ReminderInterestVATAmount: Decimal; DocumentNo: Code[20]; PostingDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the amount fields on the customer ledger entry during applied entry check.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with calculated fields.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAppliedReminderCustLedgerEntryOnAfterCalcFields(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after applying filters to find the next reminder level during validation.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">The issued reminder header being validated.</param>
+    /// <param name="IssuedReminderLine">The current issued reminder line.</param>
+    /// <param name="IssuedReminderLine2">The issued reminder line filter for finding next level.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckNextReminderLevelOnAfterFilterIssuedReminderLine2(IssuedReminderHeader: Record "Issued Reminder Header"; var IssuedReminderLine: Record "Issued Reminder Line"; var IssuedReminderLine2: Record "Issued Reminder Line");
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying the customer ledger entry to decrease the last issued reminder level.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDecreaseCustomerLedgerEntryLastIssuedReminderLevelOnBeforeModify(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before setting the reminder entry as canceled.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">The reminder entry to cancel.</param>
+    /// <param name="IssuedReminderLine">The issued reminder line being processed.</param>
+    /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetReminderEntryCancelled(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; IssuedReminderLine: Record "Issued Reminder Line"; var IsHandled: boolean)
     begin

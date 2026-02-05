@@ -43,6 +43,10 @@ codeunit 545 "Send Reminder"
             Rec.ClearSentEmailFieldsOnLevelUpdate(Rec);
     end;
 
+    /// <summary>
+    /// Prompts the user to select how the reminder was sent and updates the sent email fields accordingly.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">Specifies the issued reminder header to update.</param>
     procedure UpdateReminderSentFromUI(var IssuedReminderHeader: Record "Issued Reminder Header")
     var
         SelectedOption: Integer;
@@ -57,6 +61,10 @@ codeunit 545 "Send Reminder"
             UpdateSentForCurrentLevelWithoutEmail(IssuedReminderHeader);
     end;
 
+    /// <summary>
+    /// Updates the email tracking fields on the issued reminder header after successful email delivery.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">Specifies the issued reminder header to update.</param>
     procedure UpdateSentEmailFields(var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
         IssuedReminderHeader."Sent For Current Level" := true;
@@ -71,6 +79,10 @@ codeunit 545 "Send Reminder"
         IssuedReminderHeader.Modify();
     end;
 
+    /// <summary>
+    /// Marks the reminder as sent for the current level without recording email delivery details.
+    /// </summary>
+    /// <param name="IssuedReminderHeader">Specifies the issued reminder header to update.</param>
     procedure UpdateSentForCurrentLevelWithoutEmail(var IssuedReminderHeader: Record "Issued Reminder Header")
     begin
         if IssuedReminderHeader."Reminder Level" <> IssuedReminderHeader."Email Sent Level" then
@@ -80,6 +92,11 @@ codeunit 545 "Send Reminder"
         IssuedReminderHeader.Modify();
     end;
 
+    /// <summary>
+    /// Stores the failed email outbox message ID on the issued reminder header for later retry.
+    /// </summary>
+    /// <param name="MessageID">Specifies the email outbox entry number of the failed message.</param>
+    /// <param name="IssuedReminderNo">Specifies the issued reminder number to update.</param>
     procedure SetFailedOutboxMessageID(MessageID: BigInteger; IssuedReminderNo: Code[20])
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
@@ -91,6 +108,10 @@ codeunit 545 "Send Reminder"
         IssuedReminderHeader.Modify();
     end;
 
+    /// <summary>
+    /// Deletes the failed email outbox message linked to the issued reminder if it exists.
+    /// </summary>
+    /// <param name="IssuedReminderNo">Specifies the issued reminder number whose failed outbox message should be deleted.</param>
     procedure DeleteFailedOutboxMessageIfExists(IssuedReminderNo: Code[20])
     var
         IssuedReminderHeader: Record "Issued Reminder Header";

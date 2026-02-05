@@ -17,11 +17,13 @@ table 390 "Availability at Date"
         }
         field(2; "Scheduled Receipt"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scheduled Receipt';
             DecimalPlaces = 0 : 5;
         }
         field(3; "Gross Requirement"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Requirement';
             DecimalPlaces = 0 : 5;
         }

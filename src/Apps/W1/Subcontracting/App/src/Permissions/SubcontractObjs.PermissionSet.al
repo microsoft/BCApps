@@ -1,0 +1,91 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+permissionset 99001501 "Subcontract. - Objs"
+{
+    Caption = 'Subcontracting - Objects';
+    Assignable = true;
+    Access = Internal;
+    Permissions =
+        // Tables
+        table "Subc. Management Setup" = X,
+        table "Subcontractor Price" = X,
+
+        // Codeunits
+        codeunit "Single Instance Dictionary" = X,
+        codeunit "Subc. Business Setup Ext." = X,
+        codeunit "Subc. Calc. Prod. Order Ext." = X,
+        codeunit "Subc. Calc.StandardCost Ext." = X,
+        codeunit "Subc. Calc BOM Tree Ext." = X,
+        codeunit "Subc. Calc Subcontracts Ext." = X,
+        codeunit "Subc. Carry Out Action Ext." = X,
+        codeunit "Subc. Create Prod. Ord. Opt." = X,
+        codeunit "Subc. Create Prod. Rtng. Ext." = X,
+        codeunit "Subc. CrPurchSubcon(Yes/No)" = X,
+        codeunit "Subc. Date Calculation Mgt." = X,
+        codeunit "Subc. DirectTransferLine Ext." = X,
+        codeunit "Subc. Factbox Mgmt." = X,
+        codeunit "Subc. ItemChargeAssPurchExt" = X,
+        codeunit "Subc. Item Extension" = X,
+        codeunit "Subc. ItemJnlCheckExt" = X,
+        codeunit "Subc. ItemJnlPostLine Ext" = X,
+        codeunit "Subc. Notification Mgmt." = X,
+        codeunit "Subc. Planning Comp. Ext." = X,
+        codeunit "Subc. Planning Line Mgmt Ext." = X,
+        codeunit "Subc. Price Management" = X,
+        codeunit "Subc. Prod. Order Comp. Ext." = X,
+        codeunit "Subc. Prod. Order Rtng. Ext." = X,
+        codeunit "Subc. Prod. Ord. Comp. Res." = X,
+        codeunit "Subc. ProdOrderCreateBind" = X,
+        codeunit "Subc. Purch. Post Ext" = X,
+        codeunit "Subc. Purchase Header Ext" = X,
+        codeunit "Subc. Purchase Line Ext" = X,
+        codeunit "Subc. Reporting Triggers Ext" = X,
+        codeunit "Subc. Req.Line Extension" = X,
+        codeunit "Subc. Req. Wksh. Make Ord." = X,
+        codeunit "Subcontracting Comp. Init." = X,
+        codeunit "Subcontracting Management" = X,
+        codeunit "Subcontracting Management Ext." = X,
+        codeunit "Subc. Synchronize Management" = X,
+        codeunit "Subc. Temp Data Initializer" = X,
+        codeunit "Subc. TempProdOrdBind" = X,
+        codeunit "Subc. Transfer Line Ext." = X,
+        codeunit "Subc. TransferPost Ext" = X,
+        codeunit "Subc. Transfer Rcpt Line Ext." = X,
+        codeunit "Subc. Transfer Shpt Line Ext." = X,
+        codeunit "Subc. TransOrderPostRcpt Ext" = X,
+        codeunit "Subc. TransOrderPostShpt Ext" = X,
+        codeunit "Subc. TransOrderPostTrans Ext" = X,
+        codeunit "Subc. Trans Rcpt Header Ext" = X,
+        codeunit "Subc. Trans Shpt Header Ext" = X,
+        codeunit "Subc. Vendor Extension" = X,
+        codeunit "Subc. Version Mgmt." = X,
+        codeunit "Subc. Whse Direct Posting" = X,
+        codeunit "Subc. WhsePostReceipt Ext" = X,
+        codeunit "Subc. WhsePurchRelease Ext" = X,
+        codeunit "Subc. Work Center Extension" = X,
+        codeunit "Subcontracting Install" = X,
+
+        // Pages
+        page "Subc. Management Setup" = X,
+        page "Subc. Prod. Order Components" = X,
+        page "Subc. Purchase Line Factbox" = X,
+        page "Subc. PurchProvisionWizard" = X,
+        page "Subc. Routing Info Factbox" = X,
+        page "Subc. Temp BOM Lines" = X,
+        page "Subc. Temp Prod Order Comp" = X,
+        page "Subc. TempProdOrdRtngLines" = X,
+        page "Subc. Temp Routing Lines" = X,
+        page "Subc. Transfer Line Factbox" = X,
+        page "Subcontractor Prices" = X,
+
+        // Reports
+        report "Subc. Create Prod. Routing" = X,
+        report "Subc. Create Transf. Order" = X,
+        report "Subc. Create SubCReturnOrder" = X,
+        report "Subc. Detailed Calculation" = X,
+        report "Subc. Dispatching List" = X;
+}

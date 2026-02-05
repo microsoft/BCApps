@@ -99,6 +99,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(34; "Non Taxable %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Non Taxable %';
             DecimalPlaces = 0 : 3;
         }
@@ -116,6 +117,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(37; "Withholding Tax %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Withholding Tax %';
             DecimalPlaces = 0 : 3;
         }
@@ -184,6 +186,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(55; "Social Security %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Social Security %';
             DecimalPlaces = 0 : 4;
         }
@@ -195,6 +198,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(57; "Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Free-Lance %';
             DecimalPlaces = 0 : 4;
         }
@@ -320,6 +324,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(119; "INAIL Per Mil"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Per Mil';
             DecimalPlaces = 0 : 4;
         }
@@ -331,6 +336,7 @@ table 12113 "Tmp Withholding Contribution"
         }
         field(121; "INAIL Free-Lance %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'INAIL Free-Lance %';
             DecimalPlaces = 0 : 4;
         }

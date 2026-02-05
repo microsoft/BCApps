@@ -6,6 +6,9 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides user confirmation dialog before canceling a posted sales invoice.
+/// </summary>
 codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
 {
     Permissions = TableData "Sales Invoice Header" = rm,
@@ -21,6 +24,11 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
         CancelPostedInvoiceQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
         OpenPostedCreditMemoQst: Label 'A credit memo was successfully created. Do you want to open the posted credit memo?';
 
+    /// <summary>
+    /// Cancels the posted sales invoice after user confirmation and optionally opens the created credit memo.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to cancel.</param>
+    /// <returns>True if the invoice was successfully canceled, otherwise false.</returns>
     procedure CancelInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";

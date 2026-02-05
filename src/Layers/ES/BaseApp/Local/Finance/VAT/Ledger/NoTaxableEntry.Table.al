@@ -59,11 +59,13 @@ table 10740 "No Taxable Entry"
         field(8; Base; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base';
         }
         field(9; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
         }
         field(10; "VAT Calculation Type"; Enum "Tax Calculation Type")
@@ -163,6 +165,7 @@ table 10740 "No Taxable Entry"
         }
         field(102; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
         }
@@ -172,18 +175,26 @@ table 10740 "No Taxable Entry"
         }
         field(121; "Base (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base (LCY)';
         }
         field(122; "Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(131; "Base (ACY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'Base (ACY)';
         }
         field(132; "Amount (ACY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             Caption = 'Amount (ACY)';
         }
         field(10707; "VAT Reporting Date"; Date)
@@ -225,6 +236,9 @@ table 10740 "No Taxable Entry"
     fieldgroups
     {
     }
+
+    var
+        GLSetup: Record "General Ledger Setup";
 
     [Scope('OnPrem')]
     procedure FilterNoTaxableEntry(EntryType: Option; SourceNo: Code[20]; DocumentType: Option; DocumentNo: Code[20]; PostingDate: Date; IsReversed: Boolean)
@@ -416,6 +430,12 @@ table 10740 "No Taxable Entry"
             exit(0);
 
         exit(NoTaxableEntry."Entry No.");
+    end;
+
+    local procedure GetAdditionalReportingCurrencyCode(): Text[10]
+    begin
+        GLSetup.GetRecordOnce();
+        exit(GLSetup."Additional Reporting Currency");
     end;
 
     [IntegrationEvent(false, false)]

@@ -47,11 +47,13 @@ table 5540 "Timeline Event"
         }
         field(20; "Original Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Original Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(21; "New Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'New Quantity';
             DecimalPlaces = 0 : 5;
         }

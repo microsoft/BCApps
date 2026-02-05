@@ -66,6 +66,7 @@ page 5603 "Main Asset Statistics"
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Proceeds on Disposal';
                     ToolTip = 'Specifies the total proceeds on disposals for the fixed asset. The value is calculated using the entries in the FA Ledger Entries window.';
                     Visible = DispPriceVisible;
@@ -74,6 +75,7 @@ page 5603 "Main Asset Statistics"
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Caption = 'Gain/Loss';
                     ToolTip = 'Specifies the total gain (credit) or loss (debit) for the fixed asset. The field is calculated using the entries in the FA Ledger Entries window. To see the ledger entries that make up the amount shown, click the field.';
                     Visible = GLPriceVisible;
@@ -134,6 +136,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Acquisition Cost';
                             ToolTip = 'Specifies the total percentage of acquisition cost that can be allocated when acquisition cost is posted.';
                         }
@@ -141,6 +144,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Depreciation';
                             ToolTip = 'Specifies the total depreciation for the fixed asset.';
                         }
@@ -148,6 +152,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Write-Down';
                             ToolTip = 'Specifies the total LCY amount of write-down entries for the fixed asset.';
                         }
@@ -155,6 +160,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Appreciation';
                             ToolTip = 'Specifies the sum that applies to appreciations.';
                         }
@@ -162,6 +168,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Custom 1';
                             ToolTip = 'Specifies the total LCY amount for custom 1 entries for the fixed asset.';
                         }
@@ -169,6 +176,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Salvage Value';
                             ToolTip = 'Specifies the salvage value for the fixed asset.';
                         }
@@ -176,6 +184,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Custom 2';
                             ToolTip = 'Specifies the total LCY amount for custom 2 entries for the fixed asset.';
                         }
@@ -191,6 +200,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Book Value';
                             ToolTip = 'Specifies the sum that applies to book values.';
                         }
@@ -198,6 +208,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Depreciation Basis';
                             ToolTip = 'Specifies the depreciation basis amount for the fixed asset.';
                         }
@@ -205,6 +216,7 @@ page 5603 "Main Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Maintenance';
                             ToolTip = 'Specifies the total maintenance cost for the fixed asset. This is calculated from the maintenance ledger entries.';
                         }

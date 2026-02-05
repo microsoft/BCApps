@@ -19,13 +19,13 @@ table 386 "Entry No. Amount Buffer"
         }
         field(2; Amount; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
         field(3; Amount2; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Amount2';
             DataClassification = SystemMetadata;
         }
@@ -51,11 +51,13 @@ table 386 "Entry No. Amount Buffer"
         }
         field(8; "Source Currency Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Source Currency Amount';
             DataClassification = SystemMetadata;
         }
         field(9; "Source Currency VAT Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Source Currency VAT Amount';
             DataClassification = SystemMetadata;
         }

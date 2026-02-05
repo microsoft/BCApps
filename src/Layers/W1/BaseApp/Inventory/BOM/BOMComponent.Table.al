@@ -78,6 +78,7 @@ table 90 "BOM Component"
         }
         field(8; "Quantity per"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity per';
             DecimalPlaces = 0 : 5;
             MinValue = 0;

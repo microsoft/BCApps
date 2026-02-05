@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+/// <summary>
+/// Provides editing capabilities for specific fields on posted sales shipments that can be modified after posting.
+/// </summary>
 page 1350 "Posted Sales Shipment - Update"
 {
     Caption = 'Posted Sales Shipment - Update';
@@ -141,6 +144,10 @@ page 1350 "Posted Sales Shipment - Update"
         OnAfterRecordChanged(Rec, xSalesShipmentHeader, IsChanged);
     end;
 
+    /// <summary>
+    /// Sets the record for this page to edit.
+    /// </summary>
+    /// <param name="SalesShipmentHeader">The sales shipment header to edit.</param>
     procedure SetRec(SalesShipmentHeader: Record "Sales Shipment Header")
     begin
         Rec := SalesShipmentHeader;

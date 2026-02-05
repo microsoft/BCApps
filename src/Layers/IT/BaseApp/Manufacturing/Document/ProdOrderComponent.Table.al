@@ -100,6 +100,7 @@ table 5407 "Prod. Order Component"
                         Validate("Quantity per");
                 end;
                 Description := Item.Description;
+                "Description 2" := Item."Description 2";
                 UpdateUOMFromItem(Item);
                 OnValidateItemNoOnAfterUpdateUOMFromItem(Rec, xRec, Item);
                 GetUpdateFromSKU();
@@ -136,6 +137,7 @@ table 5407 "Prod. Order Component"
         }
         field(14; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -233,6 +235,7 @@ table 5407 "Prod. Order Component"
         }
         field(20; "Scrap %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Scrap %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -266,6 +269,7 @@ table 5407 "Prod. Order Component"
         }
         field(22; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -275,6 +279,7 @@ table 5407 "Prod. Order Component"
         }
         field(23; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -284,6 +289,7 @@ table 5407 "Prod. Order Component"
         }
         field(25; "Expected Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Expected Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -349,12 +355,14 @@ table 5407 "Prod. Order Component"
         }
         field(26; "Remaining Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Act. Consumption (Qty)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Production Order" = R;
             CalcFormula = - sum("Item Ledger Entry".Quantity where("Entry Type" = const(Consumption),
                                                                    "Order Type" = const(Production),
@@ -437,6 +445,12 @@ table 5407 "Prod. Order Component"
                 if "Flushing Method" <> xRec."Flushing Method" then
                     UpdateBin(Rec, FieldNo("Flushing Method"), FieldCaption("Flushing Method"));
             end;
+        }
+        field(29; "Description 2"; Text[50])
+        {
+            Caption = 'Description 2';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies additional description text.';
         }
         field(30; "Location Code"; Code[10])
         {
@@ -551,6 +565,7 @@ table 5407 "Prod. Order Component"
         }
         field(40; Length; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Length';
             DecimalPlaces = 0 : 5;
 
@@ -561,6 +576,7 @@ table 5407 "Prod. Order Component"
         }
         field(41; Width; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Width';
             DecimalPlaces = 0 : 5;
 
@@ -571,6 +587,7 @@ table 5407 "Prod. Order Component"
         }
         field(42; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             DecimalPlaces = 0 : 5;
 
@@ -581,6 +598,7 @@ table 5407 "Prod. Order Component"
         }
         field(43; Depth; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Depth';
             DecimalPlaces = 0 : 5;
 
@@ -615,6 +633,7 @@ table 5407 "Prod. Order Component"
         }
         field(45; "Quantity per"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity per';
             DecimalPlaces = 0 : 5;
 
@@ -634,6 +653,8 @@ table 5407 "Prod. Order Component"
         }
         field(50; "Unit Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
             DecimalPlaces = 2 : 5;
 
@@ -656,6 +677,7 @@ table 5407 "Prod. Order Component"
         field(51; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
             Editable = false;
         }
@@ -688,23 +710,27 @@ table 5407 "Prod. Order Component"
         }
         field(60; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(61; "Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(62; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
         field(63; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Prod. Order No."),
                                                                             "Source Ref. No." = field("Line No."),
                                                                             "Source Type" = const(5407),
@@ -721,6 +747,7 @@ table 5407 "Prod. Order Component"
         }
         field(71; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("Prod. Order No."),
                                                                    "Source Ref. No." = field("Line No."),
                                                                    "Source Type" = const(5407),
@@ -737,6 +764,7 @@ table 5407 "Prod. Order Component"
         }
         field(73; "Expected Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Expected Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -817,6 +845,7 @@ table 5407 "Prod. Order Component"
         }
         field(5750; "Pick Qty."; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = filter(<> "Put-away"),
                                                                                   "Source Type" = const(5407),
 #pragma warning disable AL0603
@@ -836,6 +865,7 @@ table 5407 "Prod. Order Component"
         }
         field(7300; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -849,6 +879,7 @@ table 5407 "Prod. Order Component"
         }
         field(7301; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -867,6 +898,7 @@ table 5407 "Prod. Order Component"
         }
         field(7303; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter(<> "Put-away"),
                                                                                          "Source Type" = const(5407),
 #pragma warning disable AL0603
@@ -887,6 +919,7 @@ table 5407 "Prod. Order Component"
 #if not CLEAN27
         field(12180; "Qty. transf. to Subcontractor"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Entry Type" = const(Transfer),
                                                                   "Prod. Order No." = field("Prod. Order No."),
                                                                   "Prod. Order Line No." = field("Prod. Order Line No."),
@@ -903,6 +936,7 @@ table 5407 "Prod. Order Component"
         }
         field(12181; "Qty. in Transit (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Qty. in Transit (Base)" where("Prod. Order No." = field("Prod. Order No."),
                                                                               "Prod. Order Line No." = field("Prod. Order Line No."),
                                                                               "Prod. Order Comp. Line No." = field("Line No."),
@@ -919,6 +953,7 @@ table 5407 "Prod. Order Component"
         }
         field(12182; "Qty. on Transfer Order (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Outstanding Qty. (Base)" where("Prod. Order No." = field("Prod. Order No."),
                                                                                "Prod. Order Line No." = field("Prod. Order Line No."),
                                                                                "Prod. Order Comp. Line No." = field("Line No."),
@@ -965,11 +1000,14 @@ table 5407 "Prod. Order Component"
 #endif
         field(99000754; "Direct Unit Cost"; Decimal)
         {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
             DecimalPlaces = 2 : 5;
         }
         field(99000755; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
 
@@ -983,6 +1021,7 @@ table 5407 "Prod. Order Component"
         }
         field(99000756; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
 
@@ -993,11 +1032,15 @@ table 5407 "Prod. Order Component"
         }
         field(99000757; "Direct Cost Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Direct Cost Amount';
             DecimalPlaces = 2 : 2;
         }
         field(99000758; "Overhead Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Overhead Amount';
             DecimalPlaces = 2 : 2;
         }
@@ -1349,6 +1392,7 @@ table 5407 "Prod. Order Component"
         "Line No." := PlanningComponent."Line No.";
         "Item No." := PlanningComponent."Item No.";
         Description := PlanningComponent.Description;
+        "Description 2" := PlanningComponent."Description 2";
         "Unit of Measure Code" := PlanningComponent."Unit of Measure Code";
         "Quantity per" := PlanningComponent."Quantity per";
         Quantity := PlanningComponent.Quantity;
@@ -2108,13 +2152,15 @@ table 5407 "Prod. Order Component"
     var
         ItemVariant: Record "Item Variant";
     begin
-        if Rec."Variant Code" = '' then
-            Description := Item.Description
-        else begin
-            ItemVariant.SetLoadFields(Description, Blocked);
+        if Rec."Variant Code" = '' then begin
+            Description := Item.Description;
+            "Description 2" := Item."Description 2";
+        end else begin
+            ItemVariant.SetLoadFields(Description, "Description 2", Blocked);
             ItemVariant.Get("Item No.", "Variant Code");
             ItemVariant.TestField(Blocked, false);
             Description := ItemVariant.Description;
+            "Description 2" := ItemVariant."Description 2";
         end;
         OnAfterAssignDecsriptionFromItemOrVariant(Rec, xRec, Item, ItemVariant);
     end;

@@ -30,6 +30,9 @@ using System.Automation;
 using System.Security.User;
 using System.Threading;
 
+/// <summary>
+/// Displays and manages a single sales return order document for processing customer returns.
+/// </summary>
 page 6630 "Sales Return Order"
 {
     Caption = 'Sales Return Order';
@@ -1864,6 +1867,10 @@ page 6630 "Sales Return Order"
         IsSalesLinesEditable := Rec.SalesLinesEditable();
     end;
 
+    /// <summary>
+    /// Posts the sales return order using the specified posting codeunit.
+    /// </summary>
+    /// <param name="PostingCodeunitID">The ID of the codeunit to use for posting.</param>
     procedure CallPostDocument(PostingCodeunitID: Integer)
     begin
         PostDocument(PostingCodeunitID);
@@ -1945,6 +1952,9 @@ page 6630 "Sales Return Order"
         DocNoVisible := DocumentNoVisibility.SalesDocumentNoIsVisible(DocType::"Return Order", Rec."No.");
     end;
 
+    /// <summary>
+    /// Sets whether the posting group field is editable based on the bill-to customer's settings.
+    /// </summary>
     procedure SetPostingGroupEditable()
     var
         BillToCustomer: Record Customer;
@@ -1953,6 +1963,9 @@ page 6630 "Sales Return Order"
             IsPostingGroupEditable := BillToCustomer."Allow Multiple Posting Groups";
     end;
 
+    /// <summary>
+    /// Shows a preview of the posting results for the sales return order.
+    /// </summary>
     procedure ShowPreview()
     var
         SalesPostYesNo: Codeunit "Sales-Post (Yes/No)";
@@ -1976,6 +1989,9 @@ page 6630 "Sales Return Order"
         SetPostingGroupEditable();
     end;
 
+    /// <summary>
+    /// Runs background validation to check for errors in the sales return order.
+    /// </summary>
     procedure RunBackgroundCheck()
     begin
         CurrPage.SalesDocCheckFactbox.Page.CheckErrorsInBackground(Rec);

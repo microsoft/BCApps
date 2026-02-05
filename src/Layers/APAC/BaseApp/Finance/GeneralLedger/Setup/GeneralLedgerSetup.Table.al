@@ -1313,6 +1313,7 @@ table 98 "General Ledger Setup"
         }
         field(11602; "BAS GST Division Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'BAS GST Division Factor';
             MinValue = 0;
         }

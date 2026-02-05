@@ -10,6 +10,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Sales.Document;
 
@@ -90,6 +91,7 @@ codeunit 99000787 "Create Prod. Order Lines"
     var
         Family: Record Family;
         FamilyLine: Record "Family Line";
+        RoutingHeader: Record "Routing Header";
         ErrorOccured: Boolean;
     begin
         Family.Get(ProdOrder."Source No.");
@@ -108,6 +110,10 @@ codeunit 99000787 "Create Prod. Order Lines"
                     ProdOrderLine.Validate(Quantity, FamilyLine.Quantity * ProdOrder.Quantity);
                     ProdOrderLine."Routing No." := Family."Routing No.";
                     ProdOrderLine."Routing Reference No." := 0;
+                    if Family."Routing No." <> '' then begin
+                        RoutingHeader.Get(Family."Routing No.");
+                        ProdOrderLine."Routing Type" := RoutingHeader.Type;
+                    end;
                     ProdOrderLine.UpdateDatetime();
                     OnCopyFromFamilyOnBeforeInsertProdOrderLine(ProdOrderLine, FamilyLine);
                     InsertProdOrderLine();
@@ -459,7 +465,7 @@ codeunit 99000787 "Create Prod. Order Lines"
         ProdOrderLine."Qty. per Unit of Measure" := ProdOrderComp."Qty. per Unit of Measure";
         ProdOrderLine."Bin Code" := ProdOrderComp."Bin Code";
         ProdOrderLine.Description := ProdOrderComp.Description;
-        ProdOrderLine."Description 2" := Item."Description 2";
+        ProdOrderLine."Description 2" := ProdOrderComp."Description 2";
         ProdOrderComp.CalcFields("Reserved Quantity");
         ProdOrderLine.Validate(Quantity, ProdOrderComp."Expected Quantity" - ProdOrderComp."Reserved Quantity");
         if ProdOrderLine."Quantity (Base)" = 0 then

@@ -216,6 +216,8 @@ report 3010546 "DTA Suggest Vendor Payments"
                     }
                     field(MaxAmtLCY; MaxAmtLCY)
                     {
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         ApplicationArea = Basic, Suite;
                         BlankZero = true;
                         Caption = 'Available Amount (LCY)';

@@ -20,7 +20,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
         UOMMgt: Codeunit "Unit of Measure Management";
         QtyPerFieldIsNotSetErr: Label 'The Quantity per. field in the BOM for Item %1 has not been set.', Comment = '%1 Item No.';
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnInitFromItemOnAfterSetReplenishmentSystem', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnInitFromItemOnAfterSetReplenishmentSystem', '', true, false)]
     local procedure OnInitFromItemOnAfterSetReplenishmentSystem(var BOMBuffer: Record "BOM Buffer"; Item: Record Item; StockkeepingUnit: Record "Stockkeeping Unit");
     var
         VersionMgt: Codeunit VersionManagement;
@@ -36,7 +36,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterGetUnitCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterGetUnitCost', '', true, false)]
     local procedure OnAfterGetUnitCost(var BOMBuffer: Record "BOM Buffer"; var Item: Record Item)
     begin
         if MfgCostCalculationMgt.CanIncNonInvCostIntoProductionItem() then begin
@@ -47,7 +47,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnGetItemCostsOnBeforeRoundCosts', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnGetItemCostsOnBeforeRoundCosts', '', true, false)]
     local procedure OnGetItemCostsOnBeforeRoundCosts(var BOMBuffer: Record "BOM Buffer"; var Item: Record Item)
     begin
         if not Item.IsInventoriableType() then
@@ -69,7 +69,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterRoundCosts', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterRoundCosts', '', true, false)]
     local procedure OnAfterRoundCosts(var BOMBuffer: Record "BOM Buffer"; ShareOfTotalCost: Decimal);
     begin
         BOMBuffer."Single-Level Subcontrd. Cost" := BOMBuffer.RoundUnitAmt(BOMBuffer."Single-Level Subcontrd. Cost", ShareOfTotalCost);
@@ -84,13 +84,13 @@ codeunit 99000820 "Mfg. Bom Buffer"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcIndirectCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcIndirectCost', '', true, false)]
     local procedure OnAfterCalcIndirectCost(var BOMBuffer: Record "BOM Buffer"; var Cost: Decimal)
     begin
         Cost += BOMBuffer."Single-Level Mfg. Ovhd Cost";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcDirectCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcDirectCost', '', true, false)]
     local procedure OnAfterCalcDirectCost(var BOMBuffer: Record "BOM Buffer"; var Cost: Decimal)
     begin
         Cost += BOMBuffer."Single-Level Subcontrd. Cost";
@@ -98,7 +98,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
             Cost += BOMBuffer."Single-Lvl Mat. Non-Invt. Cost";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcOvhdCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterCalcOvhdCost', '', true, false)]
     local procedure OnAfterCalcOvhdCost(var BOMBuffer: Record "BOM Buffer"; LotSize: Decimal)
     begin
         if MfgCostCalculationMgt.CanIncNonInvCostIntoProductionItem() then
@@ -144,7 +144,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
         BOMBuffer."Rolled-up Mfg. Ovhd Cost" := BOMBuffer.RoundUnitAmt(BOMBuffer."Rolled-up Mfg. Ovhd Cost", 1);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnIsQtyPerOKOnAfterCheckItemAssemblyBOM', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnIsQtyPerOKOnAfterCheckItemAssemblyBOM', '', true, false)]
     local procedure OnIsQtyPerOKOnAfterCheckItemAssemblyBOM(Item: Record Item; var BOMWarningLog: Record "BOM Warning Log")
     var
         ProdBOMHeader: Record "Production BOM Header";
@@ -155,7 +155,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
                     StrSubstNo(QtyPerFieldIsNotSetErr, Item."No."), DATABASE::"Production BOM Header", CopyStr(ProdBOMHeader.GetPosition(), 1, 250));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterIsLineOk', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Buffer", 'OnAfterIsLineOk', '', true, false)]
     local procedure OnAfterIsLineOk(var BOMBuffer: Record "BOM Buffer"; LogWarning: Boolean; var BOMWarningLog: Record "BOM Warning Log"; var Result: Boolean)
     begin
         Result := Result and
@@ -163,7 +163,7 @@ codeunit 99000820 "Mfg. Bom Buffer"
           BOMBuffer.IsRoutingOk(LogWarning, BOMWarningLog);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BOM Warning Log", 'OnAfterShowWarning', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BOM Warning Log", 'OnAfterShowWarning', '', true, false)]
     local procedure OnAfterShowWarning(var BOMWarningLog: Record "BOM Warning Log"; RecRef: RecordRef)
     var
         ProdBOMHeader: Record "Production BOM Header";

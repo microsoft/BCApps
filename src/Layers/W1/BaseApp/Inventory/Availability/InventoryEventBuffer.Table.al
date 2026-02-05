@@ -65,6 +65,7 @@ table 5530 "Inventory Event Buffer"
         }
         field(20; "Remaining Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -84,6 +85,7 @@ table 5530 "Inventory Event Buffer"
         }
         field(23; "Reserved Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Reserved Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -123,6 +125,7 @@ table 5530 "Inventory Event Buffer"
         }
         field(35; "Orig. Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Orig. Quantity (Base)';
             DataClassification = SystemMetadata;
             Editable = false;

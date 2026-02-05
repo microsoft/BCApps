@@ -84,6 +84,7 @@ page 6503 "Avail. - Item Tracking Lines"
                 field(ReservedQtyBase; GetReservedQtyBase())
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Reserved Qty. (Base)';
                     Editable = false;
                     ToolTip = 'Specifies the quantity that has been reserved for the item.';
@@ -91,6 +92,7 @@ page 6503 "Avail. - Item Tracking Lines"
                 field(QtyToReserve; QtyToReserve)
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Available Quantity';
                     DecimalPlaces = 0 : 5;
                     Editable = false;
@@ -99,6 +101,7 @@ page 6503 "Avail. - Item Tracking Lines"
                 field(ReservedThisLine; GetReservedQty())
                 {
                     ApplicationArea = Reservation;
+                    AutoFormatType = 0;
                     Caption = 'Current Reserved Quantity';
                     DecimalPlaces = 0 : 5;
                     ToolTip = 'Specifies the quantity of the item that is reserved for the document type.';

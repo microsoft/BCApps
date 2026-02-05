@@ -11,6 +11,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Ledger;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Displays the line items of a posted sales shipment as a subform on the document page.
+/// </summary>
 page 131 "Posted Sales Shpt. Subform"
 {
     AutoSplitKey = true;
@@ -457,6 +460,9 @@ page 131 "Posted Sales Shpt. Subform"
         Rec.ShowItemSalesInvLines();
     end;
 
+    /// <summary>
+    /// Opens the document line tracking page for this shipment line.
+    /// </summary>
     procedure ShowDocumentLineTracking()
     var
         DocumentLineTrackingPage: Page "Document Line Tracking";

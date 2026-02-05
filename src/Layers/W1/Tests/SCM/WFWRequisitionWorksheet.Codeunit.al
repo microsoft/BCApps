@@ -38,6 +38,8 @@ codeunit 139506 "WFW Requisition Worksheet"
         SendApprovalRequestRequisitionWorksheetBatchActionMustBeDisabledLbl: Label 'Send Approval Request Requisition Worksheet Batch action must be disabled';
         CancelApprovalRequestRequisitionWkshBatchActionMustBeDisabledLbl: Label 'Cancel Approval Request Requisition Worksheet Batch action must be disabled';
         CancelApprovalRequestRequisitionWkshBatchActionMustBeEnabledLbl: Label 'Cancel Approval Request Requisition Worksheet Batch action must be enabled';
+        PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t insert a record for active batch approval request. To insert a record, you can Reject approval and document requested changes in approval comment lines.';
+        PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t delete a record that has open approval entries. To delete a record, you can Reject approval and document requested changes in approval comment lines.';
         ApproveActionMustNotBeVisibleLbl: Label 'Approve action must not be visible';
         RejectActionMustNotBeVisibleLbl: Label 'Reject action must not be visible';
         DelegateActionMustNotBeVisibleLbl: Label 'Delegate action must not be visible';
@@ -714,11 +716,11 @@ codeunit 139506 "WFW Requisition Worksheet"
         // [WHEN] An "Requisition Wksh. Name" with one requisition line is created.
         CreateRequisitionWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
 
-        // [THEN] Verify that restriction record exists for the Requisition Line.
-        VerifyRestrictionRecordExists(RequisitionLine.RecordId);
+        // [THEN] Verify that restriction record exists for the Requisition Worksheet.
+        VerifyRestrictionRecordExists(RequisitionWkshName.RecordId);
 
-        // [GIVEN] Workflow step instance is created for the Requisition Line.
-        CreateWorkflowStepInstance(Workflow.Code, RequisitionLine.RecordId);
+        // [GIVEN] Workflow step instance is created for the Requisition Batch.
+        CreateWorkflowStepInstance(Workflow.Code, RequisitionWkshName.RecordId);
 
         // [WHEN] Workflow is disabled and Workflow Step Instances are deleted.
         Workflow.Enabled := false;
@@ -727,7 +729,7 @@ codeunit 139506 "WFW Requisition Worksheet"
         WorkflowStepInstance.DeleteAll(true);
 
         // [THEN] Verify that no restriction record exists for the Requisition Line.
-        VerifyNoRestrictionRecordExists(RequisitionLine.RecordId);
+        VerifyNoRestrictionRecordExists(RequisitionWkshName.RecordId);
     end;
 
     [Test]
@@ -1168,6 +1170,53 @@ codeunit 139506 "WFW Requisition Worksheet"
         Assert.IsTrue(ApprovalEntry.IsEmpty, UnexpectedNoOfApprovalEntriesErr);
     end;
 
+    [Test]
+    procedure TestDeleteRequisitionLineIsNotAllowedForCreatedApprovalEntry()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        ApprovalStatus: Enum "Approval Status";
+    begin
+        // [SCENARIO 307883] Verify that deleting an Requisition Line is not allowed when an approval entry has status created.
+        Initialize();
+
+        // [GIVEN] Create a Requisition Wksh. Name with one line.
+        CreateRequisitionWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+
+        // [GIVEN] An Approval Entry for the Requisition Worksheet Batch is created with status created.
+        CreateApprovalEntryForCurrentUser(RequisitionWkshName.RecordId, ApprovalStatus::Created);
+
+        // [WHEN] Delete the Requisition Line.
+        asserterror RequisitionLine.Delete(true);
+
+        // [THEN] Verify that the expected error message is shown.
+        Assert.ExpectedError(PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg);
+    end;
+
+    [Test]
+    procedure TestInsertRequisitionLineIsNotAllowedForCreatedApprovalEntry()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionLine1: Record "Requisition Line";
+        ApprovalStatus: Enum "Approval Status";
+    begin
+        // [SCENARIO 307883] Verify that insert an Requisition Line is not allowed when an approval entry has status created.
+        Initialize();
+
+        // [GIVEN] Create a Requisition Wksh. Name with one line.
+        CreateRequisitionWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+
+        // [GIVEN] An Approval Entry for the Requisition Worksheet Batch is created with status created.
+        CreateApprovalEntryForCurrentUser(RequisitionWkshName.RecordId, ApprovalStatus::Created);
+
+        // [WHEN] Insert the Requisition Line.
+        asserterror CreateRequisitionLine(RequisitionLine1, RequisitionWkshName, RequisitionLine."No.");
+
+        // [THEN] Verify that the expected error message is shown.
+        Assert.ExpectedError(PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -1252,7 +1301,7 @@ codeunit 139506 "WFW Requisition Worksheet"
     begin
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshNameName);
         RequisitionLine.FindFirst();
-        ApprovalsMgmt.ApproveRequisitionWkshLineRequest(RequisitionLine);
+        ApprovalsMgmt.ApproveRequisitionWkshRequest(RequisitionLine);
     end;
 
     local procedure ApproveAllOpenApprovalEntriesForBatch(BatchName: Code[10]; RecIdToApprove: RecordId; ApproverUserSetup: Record "User Setup")
@@ -1538,7 +1587,7 @@ codeunit 139506 "WFW Requisition Worksheet"
     begin
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshNameName);
         RequisitionLine.FindFirst();
-        ApprovalsMgmt.RejectRequisitionWkshLineRequest(RequisitionLine);
+        ApprovalsMgmt.RejectRequisitionWkshRequest(RequisitionLine);
     end;
 
     local procedure VerifyOpenApprovalEntry(ApprovalEntry: Record "Approval Entry"; ApproverUserSetup: Record "User Setup"; RequestorUserSetup: Record "User Setup")

@@ -46,14 +46,20 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     var
+#if not CLEAN28
         LibraryDimension: Codeunit "Library - Dimension";
+#endif
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
+#if not CLEAN28
         LibraryFRLocalization: Codeunit "Library - FR Localization";
+#endif
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+#if not CLEAN28
         LibraryPurchase: Codeunit "Library - Purchase";
+#endif
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -317,6 +323,8 @@ codeunit 144015 "ERM FR Feature Bugs"
         ShipmentInvoiced.FindFirst();
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     [Test]
     [HandlerFunctions('PaymentClassListPageHandler')]
     [Scope('OnPrem')]
@@ -334,7 +342,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         DefaultDimensionCodeOnPaymentSlip(
           PaymentStepLedger.Sign::Credit, PaymentLine."Account Type"::Vendor, DefaultDimension."No.", DefaultDimension."Dimension Code");
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     [Test]
     [HandlerFunctions('PaymentClassListPageHandler')]
     [Scope('OnPrem')]
@@ -352,7 +363,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         DefaultDimensionCodeOnPaymentSlip(
           PaymentStepLedger.Sign::Debit, PaymentLine."Account Type"::Customer, DefaultDimension."No.", DefaultDimension."Dimension Code");
     end;
+#endif    
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     [Test]
     [HandlerFunctions('PaymentClassListPageHandler')]
     procedure CreateAndPostPaymentSlipForIncompleteDimension()
@@ -377,7 +391,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         // [THEN] No error thrown, and invalid Dimension Set Entry is not created
         PaymentLine.TestField("Dimension Set ID", 0);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure DefaultDimensionCodeOnPaymentSlip(Sign: Option; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DimensionCode: Code[10])
     var
         DimensionSetEntry: Record "Dimension Set Entry";
@@ -393,6 +410,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         DimensionSetEntry.FindFirst();
         DimensionSetEntry.TestField("Dimension Code", DimensionCode);
     end;
+#endif      
 
     local procedure Initialize()
     var
@@ -435,6 +453,8 @@ codeunit 144015 "ERM FR Feature Bugs"
         UpdateFAJournalSetup(FAJournalSetup);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreateAndUpdateCustomerWithDimension(var DefaultDimension: Record "Default Dimension")
     var
         Customer: Record Customer;
@@ -446,6 +466,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDefaultDimensionCustomer(DefaultDimension, Customer."No.", Dimension.Code, DimensionValue.Code);
     end;
+#endif    
 
     local procedure CreateCertifiedProductionBOMWithLotTrackedItem(): Code[20]
     var
@@ -570,6 +591,8 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(ItemTrackingCode.Code);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreatePaymentClass(): Text[30]
     var
         PaymentClass: Record "Payment Class";
@@ -580,7 +603,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         PaymentClass.Modify(true);
         exit(PaymentClass.Code);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreatePaymentStatus(PaymentClass: Text[30]; Sign: Option)
     var
         PaymentStatus: Record "Payment Status";
@@ -599,7 +625,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryFRLocalization.CreatePaymentStep(PaymentStep, PaymentClass);
         LibraryFRLocalization.CreatePaymentStepLedger(PaymentStepLedger, PaymentClass, Sign, PaymentStep.Line);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreatePaymentSlip(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]): Integer
     var
         PaymentHeader: Record "Payment Header";
@@ -612,6 +641,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         PaymentLine.Modify(true);
         exit(PaymentLine."Dimension Set ID");
     end;
+#endif
 
     local procedure CreatePostDepreciationAndDerogatoryFAJournal(FANo: Code[20]; DepreciationBookCode: Code[10]; DepreciationAmount: Decimal; DerogatoryAmount: Decimal)
     var
@@ -661,6 +691,8 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(ShipmentNo);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreateAndUpdateVendorWithDimension(var DefaultDimension: Record "Default Dimension")
     var
         Dimension: Record Dimension;
@@ -672,7 +704,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, DimensionValue.Code);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreateAndUpdateVendorWithIncompleteDimension(var DefaultDimension: Record "Default Dimension")
     var
         Dimension: Record Dimension;
@@ -682,6 +717,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, '');
     end;
+#endif    
 
     local procedure RunCalculateDepreciationReport(DepreciationBookCode: Code[10])
     begin
@@ -799,12 +835,15 @@ codeunit 144015 "ERM FR Feature Bugs"
         ItemTrackingLines.OK().Invoke();
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure PaymentClassListPageHandler(var PaymentClassList: TestPage "Payment Class List")
     begin
         PaymentClassList.OK().Invoke();
     end;
+#endif    
 
     [ConfirmHandler]
     [Scope('OnPrem')]

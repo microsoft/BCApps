@@ -1,7 +1,11 @@
+#if not CLEAN28
 codeunit 144077 "SEPA.02 DD Functional Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -923,4 +927,4 @@ codeunit 144077 "SEPA.02 DD Functional Test"
         SuggestCustomerPayments.OK().Invoke();
     end;
 }
-
+#endif

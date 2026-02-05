@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using System.Environment;
 
+/// <summary>
+/// Displays and manages the escalation levels configured for a set of reminder terms.
+/// </summary>
 page 432 "Reminder Levels"
 {
     Caption = 'Reminder Levels';

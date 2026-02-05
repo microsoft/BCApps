@@ -219,6 +219,7 @@ page 29 "Vendor Ledger Entries"
                     Caption = 'Running Balance (LCY)';
                     ToolTip = 'Specifies the running balance in LCY.';
                     AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     Visible = false;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")

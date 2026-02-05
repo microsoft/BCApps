@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Removes sales quotes that have passed their expiration date from the system.
+/// </summary>
 report 5172 "Delete Expired Sales Quotes"
 {
     Caption = 'Delete Expired Sales Quotes';

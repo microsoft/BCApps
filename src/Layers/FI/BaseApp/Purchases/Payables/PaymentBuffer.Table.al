@@ -69,6 +69,7 @@ table 372 "Payment Buffer"
         field(8; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
@@ -219,5 +220,5 @@ table 372 "Payment Buffer"
     end;
 }
 
- 
+
 #endif

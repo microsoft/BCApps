@@ -12,6 +12,9 @@ using Microsoft.Utilities;
 using System.Email;
 using System.Utilities;
 
+/// <summary>
+/// Converts a sales quote directly into a sales invoice for immediate billing.
+/// </summary>
 codeunit 1305 "Sales-Quote to Invoice"
 {
     TableNo = "Sales Header";
@@ -105,6 +108,10 @@ codeunit 1305 "Sales-Quote to Invoice"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the sales invoice header created from the quote conversion.
+    /// </summary>
+    /// <param name="SalesHeader2">Returns the created sales invoice header.</param>
     procedure GetSalesInvoiceHeader(var SalesHeader2: Record "Sales Header")
     begin
         SalesHeader2 := SalesInvoiceHeader;

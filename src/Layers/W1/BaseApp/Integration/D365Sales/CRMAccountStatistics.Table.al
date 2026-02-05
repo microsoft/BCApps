@@ -205,6 +205,8 @@ table 5367 "CRM Account Statistics"
         }
         field(23; "Balance (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Balance (LCY)';
             Description = 'Account Balance at the last known date';
             ExternalName = 'nav_balancelcy';
@@ -229,6 +231,7 @@ table 5367 "CRM Account Statistics"
         }
         field(26; ExchangeRate; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Exchange Rate';
             Description = 'Exchange rate for the currency associated with the entity with respect to the base currency.';
             ExternalAccess = Read;
@@ -237,6 +240,7 @@ table 5367 "CRM Account Statistics"
         }
         field(27; "Balance (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance (LCY) (Base)';
             Description = 'Value of the Balance (LCY) in base currency.';
             ExternalAccess = Read;
@@ -245,6 +249,8 @@ table 5367 "CRM Account Statistics"
         }
         field(28; "Outstanding Orders (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Outstanding Orders (LCY)';
             Description = '';
             ExternalName = 'nav_outstandingorderslcy';
@@ -252,6 +258,7 @@ table 5367 "CRM Account Statistics"
         }
         field(29; "Outstanding Orders (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Orders (LCY) (Base)';
             Description = 'Value of the Outstanding Orders (LCY) in base currency.';
             ExternalAccess = Read;
@@ -260,6 +267,8 @@ table 5367 "CRM Account Statistics"
         }
         field(30; "Shipped Not Invoiced (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Shipped Not Invd. (LCY)';
             Description = '';
             ExternalName = 'nav_shippednotinvoicedlcy';
@@ -267,6 +276,7 @@ table 5367 "CRM Account Statistics"
         }
         field(31; "Shipped Not Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Shipped Not Invd. (LCY) (Base)';
             Description = 'Value of the Shipped Not Invd. (LCY) in base currency.';
             ExternalAccess = Read;
@@ -275,6 +285,8 @@ table 5367 "CRM Account Statistics"
         }
         field(32; "Outstanding Invoices (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Outstanding Invoices (LCY)';
             Description = '';
             ExternalName = 'nav_outstandinginvoiceslcy';
@@ -282,6 +294,7 @@ table 5367 "CRM Account Statistics"
         }
         field(33; "Outstanding Invoices (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Invoices (LCY) (Base)';
             Description = 'Value of the Outstanding Invoices (LCY) in base currency.';
             ExternalAccess = Read;
@@ -290,6 +303,8 @@ table 5367 "CRM Account Statistics"
         }
         field(34; "Outstanding Serv Orders (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Outstanding Serv. Orders (LCY)';
             Description = '';
             ExternalName = 'nav_outstandingserviceorderslcy';
@@ -297,6 +312,7 @@ table 5367 "CRM Account Statistics"
         }
         field(35; "Outstanding Serv Orders (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Serv. Orders (LCY) (Base)';
             Description = 'Value of the Outstanding Serv. Orders (LCY) in base currency.';
             ExternalAccess = Read;
@@ -305,6 +321,8 @@ table 5367 "CRM Account Statistics"
         }
         field(36; "Serv Shipped Not Invd (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Serv. Shipped Not Invd. (LCY)';
             Description = '';
             ExternalName = 'nav_servshippednotinvoicedlcy';
@@ -312,6 +330,7 @@ table 5367 "CRM Account Statistics"
         }
         field(37; "Serv Shipped Not Invd (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Serv. Shipped Not Invd. (LCY) (Base)';
             Description = 'Value of the Serv. Shipped Not Invd. (LCY) in base currency.';
             ExternalAccess = Read;
@@ -320,6 +339,8 @@ table 5367 "CRM Account Statistics"
         }
         field(38; "Outstd Serv Invoices (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Outstanding Serv. Invoices (LCY)';
             Description = '';
             ExternalName = 'nav_outstandingservinvoiceslcy';
@@ -327,6 +348,7 @@ table 5367 "CRM Account Statistics"
         }
         field(39; "Outstd Serv Invoices (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Serv. Invoices (LCY) (Base)';
             Description = 'Value of the Outstanding Serv. Invoices (LCY) in base currency.';
             ExternalAccess = Read;
@@ -335,6 +357,8 @@ table 5367 "CRM Account Statistics"
         }
         field(40; "Total (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total (LCY)';
             Description = '';
             ExternalName = 'nav_totallcy';
@@ -342,6 +366,7 @@ table 5367 "CRM Account Statistics"
         }
         field(41; "Total (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total (LCY) (Base)';
             Description = 'Value of the Total (LCY) in base currency.';
             ExternalAccess = Read;
@@ -350,6 +375,8 @@ table 5367 "CRM Account Statistics"
         }
         field(42; "Credit Limit (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Credit Limit (LCY)';
             Description = '';
             ExternalName = 'nav_creditlimitlcy';
@@ -357,6 +384,7 @@ table 5367 "CRM Account Statistics"
         }
         field(43; "Credit Limit (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Credit Limit (LCY) (Base)';
             Description = 'Value of the Credit Limit (LCY) in base currency.';
             ExternalAccess = Read;
@@ -365,6 +393,8 @@ table 5367 "CRM Account Statistics"
         }
         field(44; "Overdue Amounts (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Overdue Amounts (LCY)';
             Description = '';
             ExternalName = 'nav_overdueamountslcy';
@@ -372,6 +402,7 @@ table 5367 "CRM Account Statistics"
         }
         field(45; "Overdue Amounts (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overdue Amounts (LCY) (Base)';
             Description = 'Value of the Overdue Amounts (LCY) in base currency.';
             ExternalAccess = Read;
@@ -387,6 +418,8 @@ table 5367 "CRM Account Statistics"
         }
         field(47; "Total Sales (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Sales (LCY)';
             Description = '';
             ExternalName = 'nav_totalsaleslcy';
@@ -394,6 +427,7 @@ table 5367 "CRM Account Statistics"
         }
         field(48; "Total Sales (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total Sales (LCY) (Base)';
             Description = 'Value of the Total Sales (LCY) in base currency.';
             ExternalAccess = Read;
@@ -402,6 +436,8 @@ table 5367 "CRM Account Statistics"
         }
         field(49; "Invd Prepayment Amount (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Invoiced Prepayment Amount (LCY)';
             Description = '';
             ExternalName = 'nav_invoicedprepaymentamountlcy';
@@ -409,6 +445,7 @@ table 5367 "CRM Account Statistics"
         }
         field(50; "Invd Prepayment Amount (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Prepayment Amount (LCY) (Base)';
             Description = 'Value of the Invoiced Prepayment Amount (LCY) in base currency.';
             ExternalAccess = Read;

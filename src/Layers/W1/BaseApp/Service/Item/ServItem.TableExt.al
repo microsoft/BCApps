@@ -43,6 +43,7 @@ tableextension 6452 "Serv. Item" extends Item
         }
         field(5901; "Qty. on Service Order"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Service Line"."Outstanding Qty. (Base)" where("Document Type" = const(Order),
                                                                               Type = const(Item),
                                                                               "No." = field("No."),
@@ -59,6 +60,7 @@ tableextension 6452 "Serv. Item" extends Item
         }
         field(5902; "Res. Qty. on Service Orders"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Service Header" = R;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Item No." = field("No."),
                                                                             "Source Type" = const(5902),

@@ -153,6 +153,7 @@ tableextension 12152 "Service Header IT" extends "Service Header"
 #pragma warning disable AA0232
         field(12170; "Payment %"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Payment Lines"."Payment %" where("Sales/Purchase" = const(Sales),
                                                                  Type = field("Document Type"),
                                                                  Code = field("No.")));
@@ -285,6 +286,8 @@ tableextension 12152 "Service Header IT" extends "Service Header"
         }
         field(12186; "Fattura Stamp Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Fattura Stamp Amount';
             DataClassification = CustomerContent;
         }

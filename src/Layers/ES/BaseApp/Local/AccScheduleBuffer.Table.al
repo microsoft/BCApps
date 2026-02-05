@@ -18,11 +18,13 @@ table 10703 "Acc. Schedule Buffer"
         }
         field(2; "Balance (Curr. Year)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance (Curr. Year)';
             DataClassification = SystemMetadata;
         }
         field(3; "Balance (Prev. Year)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance (Prev. Year)';
             DataClassification = SystemMetadata;
         }

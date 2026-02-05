@@ -163,6 +163,7 @@ page 304 "Item Entry Statistics"
 #pragma warning restore AA0100
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total quantity of items in the entry.';
@@ -172,6 +173,7 @@ page 304 "Item Entry Statistics"
 #pragma warning restore AA0100
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total quantity of items in the entry.';
@@ -179,6 +181,7 @@ page 304 "Item Entry Statistics"
                         field("-ItemLedgEntry[4].Quantity"; -ItemLedgEntry[4].Quantity)
                         {
                             ApplicationArea = Basic, Suite;
+                            AutoFormatType = 0;
                             Caption = 'Quantity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total quantity of items in the entry.';
@@ -191,6 +194,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -198,6 +202,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -205,6 +210,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -212,6 +218,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -219,6 +226,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -226,6 +234,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Unit Amount';
                             ToolTip = 'Specifies the value per unit on the item ledger entry.';
                         }
@@ -266,6 +275,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Amount';
                             ToolTip = 'Specifies the net amount of all the lines in the item entry.';
                         }
@@ -275,6 +285,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Amount';
                             ToolTip = 'Specifies the net amount of all the lines in the item entry.';
                         }
@@ -284,6 +295,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Amount';
                             ToolTip = 'Specifies the net amount of all the lines in the item entry.';
                         }
@@ -342,6 +354,7 @@ page 304 "Item Entry Statistics"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             Caption = 'Amount';
                             ToolTip = 'Specifies the net amount of all the lines in the item entry.';
                         }

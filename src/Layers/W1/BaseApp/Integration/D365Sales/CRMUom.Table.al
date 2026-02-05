@@ -50,6 +50,7 @@ table 5361 "CRM Uom"
         }
         field(5; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Description = 'Unit quantity for the product.';
             ExternalName = 'quantity';

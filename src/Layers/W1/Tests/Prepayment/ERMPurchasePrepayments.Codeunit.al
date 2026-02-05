@@ -268,6 +268,84 @@ codeunit 134333 "ERM Purchase Prepayments"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CreateCorrectiveCreditMemoForPartialPurchaseInvoiceWithPrepayment()
+    var
+        GLAccount: Record "G/L Account";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedInvoiceNo: Code[20];
+        PrepaymentPercentage: Decimal;
+    begin
+        // [FEATURE] [Prepayment] [Purchase] [Corrective Credit Memo]
+        // [SCENARIO 615442] Creating corrective credit memo for a partial purchase invoice with prepayment should include prepayment reversal line
+        Initialize();
+
+        // [GIVEN] Setup prepayment posting with G/L accounts.
+        PrepaymentPercentage := LibraryRandom.RandIntInRange(5, 10);
+        PreparePrepaymentsPostingSetup(GLAccount);
+        PrepareItemAccordingToSetup(Item, GLAccount);
+        PrepareVendorAccordingToSetup(Vendor, GLAccount, PrepaymentPercentage);
+
+        // [GIVEN] Create Purchase Order with Vendor Invoice No.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] Create a Purchase Line.
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 2);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(1000, 1100));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Post prepayment invoice.
+        PurchasePostPrepayments.Invoice(PurchaseHeader);
+
+        // [GIVEN] Partially Receive One Quantity.
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandInt(1));
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Create and post invoice for partial receipt.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryPurchase.GegVendorLedgerEntryUniqueExternalDocNo());
+        PurchaseHeader.Modify(true);
+        PurchRcptLine.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchRcptLine.FindLast();
+        PurchGetReceipt.SetPurchHeader(PurchaseHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PurchaseHeader.CalcFields("Amount Including VAT");
+        PurchaseHeader.Validate("Doc. Amount Incl. VAT", PurchaseHeader."Amount Including VAT");
+        PurchaseHeader.Modify(true);
+
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Get prepayment account number from posting setup
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+
+        // [WHEN] Create corrective credit memo for the posted purchase invoice
+        PurchInvHeader.Get(PostedInvoiceNo);
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
+
+        // [THEN] Credit memo should contain a prepayment line
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        Assert.RecordIsNotEmpty(PurchaseLine);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('GetReceiptLinesPageHandler')]
     procedure OrderNoIsPopulatedInPostedPurchInvWhenGetRcptLinesAndPostPIForPOHavingPrePmtInv()
@@ -475,6 +553,12 @@ codeunit 134333 "ERM Purchase Prepayments"
     begin
         GetReceiptLines.Filter.SetFilter("Buy-from Vendor No.", LibraryVariableStorage.DequeueText());
         GetReceiptLines.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
 

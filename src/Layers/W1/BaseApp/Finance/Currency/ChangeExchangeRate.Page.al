@@ -39,6 +39,7 @@ page 511 "Change Exchange Rate"
                 field(CurrentExchRate; CurrentExchRate)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Exchange Rate Amount';
                     DecimalPlaces = 1 : 6;
                     Editable = CurrentExchRateEditable;
@@ -57,6 +58,7 @@ page 511 "Change Exchange Rate"
                 field(RefExchRate; RefExchRate)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Relational Exch. Rate Amount';
                     DecimalPlaces = 1 : 6;
                     Editable = RefExchRateEditable;
@@ -89,6 +91,7 @@ page 511 "Change Exchange Rate"
                 field(CurrentExchRate2; CurrentExchRate2)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Exchange Rate Amount';
                     DecimalPlaces = 1 : 6;
                     Editable = CurrentExchRate2Editable;
@@ -104,6 +107,7 @@ page 511 "Change Exchange Rate"
                 field(RefExchRate2; RefExchRate2)
                 {
                     ApplicationArea = Suite;
+                    AutoFormatType = 0;
                     Caption = 'Relational Exch. Rate Amount';
                     DecimalPlaces = 1 : 6;
                     Editable = RefExchRate2Editable;

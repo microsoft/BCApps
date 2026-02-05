@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+/// <summary>
+/// Displays a list of reminder automation execution history with status and completion information.
+/// </summary>
 page 6756 "Reminder Action History"
 {
     PageType = List;

@@ -378,6 +378,7 @@ report 10512 "VAT Audit"
                     }
                     field(LateInvoiceDelay; LateInvoiceDelay)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Late Invoice Delay (Days)';
                         DecimalPlaces = 0 : 0;

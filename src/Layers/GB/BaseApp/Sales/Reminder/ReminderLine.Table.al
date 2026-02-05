@@ -17,6 +17,9 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Stores individual line items on a reminder document including overdue entries, text, and fees.
+/// </summary>
 table 296 "Reminder Line"
 {
     Caption = 'Reminder Line';
@@ -24,22 +27,34 @@ table 296 "Reminder Line"
 
     fields
     {
+        /// <summary>
+        /// Specifies the reminder document to which this line belongs.
+        /// </summary>
         field(1; "Reminder No."; Code[20])
         {
             Caption = 'Reminder No.';
             TableRelation = "Reminder Header";
         }
+        /// <summary>
+        /// Specifies the sequential line number within the reminder document.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             NotBlank = true;
         }
+        /// <summary>
+        /// Specifies the line number to which this line is attached, such as for extended text.
+        /// </summary>
         field(3; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
             Editable = false;
             TableRelation = "Reminder Line"."Line No." where("Reminder No." = field("Reminder No."));
         }
+        /// <summary>
+        /// Specifies the type of content on this line: customer ledger entry, G/L account, text, or line fee.
+        /// </summary>
         field(4; Type; Enum "Reminder Source Type")
         {
             Caption = 'Type';
@@ -62,6 +77,9 @@ table 296 "Reminder Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the customer ledger entry number that this reminder line references.
+        /// </summary>
         field(5; "Entry No."; Integer)
         {
             BlankZero = true;
@@ -119,6 +137,9 @@ table 296 "Reminder Line"
                 CalcFinanceCharge();
             end;
         }
+        /// <summary>
+        /// Specifies how many times the customer has been reminded about this entry.
+        /// </summary>
         field(6; "No. of Reminders"; Integer)
         {
             Caption = 'No. of Reminders';
@@ -129,21 +150,33 @@ table 296 "Reminder Line"
                     Validate("Applies-to Document No.");
             end;
         }
+        /// <summary>
+        /// Specifies the posting date of the original document being reminded.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the document date of the original document being reminded.
+        /// </summary>
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the due date of the original document being reminded.
+        /// </summary>
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the document type of the original entry, such as invoice or credit memo.
+        /// </summary>
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
@@ -161,6 +194,9 @@ table 296 "Reminder Line"
                 Validate("Document No.");
             end;
         }
+        /// <summary>
+        /// Specifies the document number of the original entry being reminded.
+        /// </summary>
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
@@ -193,10 +229,16 @@ table 296 "Reminder Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies a description of the reminder line content.
+        /// </summary>
         field(12; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Specifies the original amount of the document being reminded.
+        /// </summary>
         field(13; "Original Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCodeFromHeader();
@@ -205,6 +247,9 @@ table 296 "Reminder Line"
             Caption = 'Original Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the amount still owed on the document being reminded.
+        /// </summary>
         field(14; "Remaining Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCodeFromHeader();
@@ -213,6 +258,9 @@ table 296 "Reminder Line"
             Caption = 'Remaining Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the number of the G/L account, standard text, or fee account for this line.
+        /// </summary>
         field(15; "No."; Code[20])
         {
             Caption = 'No.';
@@ -246,6 +294,9 @@ table 296 "Reminder Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the fee or interest amount calculated for this reminder line.
+        /// </summary>
         field(16; Amount; Decimal)
         {
             AutoFormatExpression = GetCurrencyCodeFromHeader();
@@ -287,8 +338,12 @@ table 296 "Reminder Line"
                 "VAT Amount" := Round("VAT Amount", Currency."Amount Rounding Precision");
             end;
         }
+        /// <summary>
+        /// Specifies the interest rate percentage used to calculate finance charges on this line.
+        /// </summary>
         field(17; "Interest Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Interest Rate';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -301,6 +356,9 @@ table 296 "Reminder Line"
                 CalcFinanceCharge();
             end;
         }
+        /// <summary>
+        /// Specifies the general product posting group for VAT and cost allocation.
+        /// </summary>
         field(18; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -313,17 +371,27 @@ table 296 "Reminder Line"
                         Validate("VAT Prod. Posting Group", GenProdPostingGrp."Def. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the VAT percentage applied to this line.
+        /// </summary>
         field(19; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies how VAT is calculated for this line.
+        /// </summary>
         field(20; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the VAT amount calculated for this line.
+        /// </summary>
         field(21; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCodeFromHeader();
@@ -332,6 +400,9 @@ table 296 "Reminder Line"
             Caption = 'VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the tax group code for sales tax calculation.
+        /// </summary>
         field(22; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
@@ -342,6 +413,9 @@ table 296 "Reminder Line"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Specifies the VAT product posting group for determining VAT rates and accounts.
+        /// </summary>
         field(23; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -380,20 +454,32 @@ table 296 "Reminder Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Specifies the VAT identifier for reporting and grouping VAT entries.
+        /// </summary>
         field(24; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the purpose of the line, such as beginning text, reminder line, or additional fee.
+        /// </summary>
         field(25; "Line Type"; Enum "Reminder Line Type")
         {
             Caption = 'Line Type';
         }
+        /// <summary>
+        /// Specifies a VAT clause code for special VAT treatments that must appear on documents.
+        /// </summary>
         field(26; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
         }
+        /// <summary>
+        /// Specifies the document type that the line fee applies to.
+        /// </summary>
         field(27; "Applies-to Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Document Type';
@@ -404,6 +490,9 @@ table 296 "Reminder Line"
                 Validate("Applies-to Document No.");
             end;
         }
+        /// <summary>
+        /// Specifies the document number that the line fee applies to.
+        /// </summary>
         field(28; "Applies-to Document No."; Code[20])
         {
             Caption = 'Applies-to Document No.';
@@ -487,10 +576,16 @@ table 296 "Reminder Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates whether this line contains detailed interest rate calculation information.
+        /// </summary>
         field(30; "Detailed Interest Rates Entry"; Boolean)
         {
             Caption = 'Detailed Interest Rates Entry';
         }
+        /// <summary>
+        /// Indicates whether this line was automatically created by the system during reminder generation.
+        /// </summary>
         field(101; "System-Created Entry"; Boolean)
         {
             Caption = 'System-Created Entry';
@@ -576,6 +671,9 @@ table 296 "Reminder Line"
         NotEnoughSpaceToInsertErr: Label 'There is not enough space to insert lines with additional interest rates.';
         InvalidInterestRateDateErr: Label 'Create interest rate with start date prior to %1.', Comment = '%1 - date';
 
+    /// <summary>
+    /// Calculates the finance charge amount for this reminder line based on overdue days and interest terms.
+    /// </summary>
     procedure CalcFinanceCharge()
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -745,6 +843,9 @@ table 296 "Reminder Line"
                 Validate("Entry No.", CustLedgEntry."Entry No.");
     end;
 
+    /// <summary>
+    /// Retrieves the reminder header for this line and validates required fields.
+    /// </summary>
     procedure GetReminderHeader()
     begin
         if "Reminder No." <> ReminderHeader."No." then begin
@@ -768,6 +869,10 @@ table 296 "Reminder Line"
         end;
     end;
 
+    /// <summary>
+    /// Gets the currency code from the associated reminder header.
+    /// </summary>
+    /// <returns>The currency code from the header, or blank if not found.</returns>
     procedure GetCurrencyCodeFromHeader(): Code[10]
     var
         ReminderHeader: Record "Reminder Header";
@@ -798,6 +903,11 @@ table 296 "Reminder Line"
         OnAfterFillLineWithGLAccountData(Rec, ReminderHeader, GLAcc);
     end;
 
+    /// <summary>
+    /// Gets the number of reminders that have been issued for a customer ledger entry.
+    /// </summary>
+    /// <param name="EntryNo">The customer ledger entry number.</param>
+    /// <returns>The count of issued reminders for the entry.</returns>
     procedure GetNoOfReminderForCustLedgEntry(EntryNo: Integer): Integer
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -849,6 +959,14 @@ table 296 "Reminder Line"
             ReminderLevel.Init();
     end;
 
+    /// <summary>
+    /// Calculates cumulative interest amount from detailed customer ledger entries.
+    /// </summary>
+    /// <param name="CumAmount">Returns the cumulative interest amount.</param>
+    /// <param name="UseDueDate">The due date to use for calculation.</param>
+    /// <param name="UseCalcDate">The calculation date to use.</param>
+    /// <param name="UseInterestRate">The interest rate to apply.</param>
+    /// <param name="UseInterestPeriod">The interest period in days.</param>
     procedure CumulateDetailedEntries(var CumAmount: Decimal; UseDueDate: Date; UseCalcDate: Date; UseInterestRate: Decimal; UseInterestPeriod: Decimal)
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
@@ -894,6 +1012,9 @@ table 296 "Reminder Line"
             CumAmount := 0;
     end;
 
+    /// <summary>
+    /// Opens a lookup page to select a document number from customer ledger entries.
+    /// </summary>
     procedure LookupDocNo()
     var
         IsHandled: Boolean;
@@ -918,6 +1039,13 @@ table 296 "Reminder Line"
         OnAfterLookupDocNo(Rec, xRec);
     end;
 
+    /// <summary>
+    /// Calculates the applicable finance charge interest rate based on the date range and terms.
+    /// </summary>
+    /// <param name="FinanceChargeInterestRate">The finance charge interest rate record to use.</param>
+    /// <param name="UseDueDate">Returns the due date to use for calculation.</param>
+    /// <param name="UseInterestRate">Returns the interest rate to apply.</param>
+    /// <param name="UseCalcDate">Returns the calculation date to use.</param>
     procedure CalcFinanceChargeInterestRate(var FinanceChargeInterestRate: Record "Finance Charge Interest Rate"; var UseDueDate: Date; var UseInterestRate: Decimal; var UseCalcDate: Date)
     var
         LastRateFound: Boolean;
@@ -958,6 +1086,15 @@ table 296 "Reminder Line"
         "Interest Rate" := UseInterestRate;
     end;
 
+    /// <summary>
+    /// Creates additional reminder lines for multiple interest rate periods when rates change over time.
+    /// </summary>
+    /// <param name="ExtraReminderLine">The extra reminder line record to create.</param>
+    /// <param name="FinanceChargeInterestRate">The finance charge interest rate record.</param>
+    /// <param name="UseDueDate">The due date to use for calculation.</param>
+    /// <param name="UseInterestRate">The interest rate to apply.</param>
+    /// <param name="UseCalcDate">The calculation date to use.</param>
+    /// <param name="CumAmount">The cumulative amount for interest calculation.</param>
     procedure CreateMulitplyInterestRateEntries(var ExtraReminderLine: Record "Reminder Line"; var FinanceChargeInterestRate: Record "Finance Charge Interest Rate"; var UseDueDate: Date; var UseInterestRate: Decimal; var UseCalcDate: Date; var CumAmount: Decimal)
     var
         LineSpacing: Integer;
@@ -1011,106 +1148,222 @@ table 296 "Reminder Line"
             until NrOfLinesToInsert = 0;
     end;
 
+    /// <summary>
+    /// Raised after copying values from a customer ledger entry to the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="CustLedgerEntry">The source customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromCustLedgEntry(var ReminderLine: Record "Reminder Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the finance charge for the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcFinChrg(var ReminderLine: Record "Reminder Line"; var ReminderHeader: Record "Reminder Header")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filling the reminder line with G/L account data.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="GLAccount">The source G/L account record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillLineWithGLAccountData(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header"; GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting the view filters on customer ledger entry for lookup.
+    /// </summary>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="CustLedgEntry">The customer ledger entry record with filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCustLedgEntryView(ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the finance charge for the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="IsHandled">Set to true to skip default calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcFinChrg(var ReminderLine: Record "Reminder Line"; var ReminderHeader: Record "Reminder Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the document number lookup on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="IsHandled">Set to true to skip default lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupDocNo(var ReminderLine: Record "Reminder Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before the entry number lookup on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="IsHandled">Set to true to skip default lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupEntryNo(var ReminderLine: Record "Reminder Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the document number on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="xReminderLine">The previous reminder line values.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDocumentNo(var ReminderLine: Record "Reminder Line"; var xReminderLine: Record "Reminder Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the document type on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDocumentType(var ReminderLine: Record "Reminder Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating the entry number on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="xReminderLine">The previous reminder line values.</param>
+    /// <param name="CurrentFieldNo">The current field number being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateEntryNo(var ReminderLine: Record "Reminder Line"; var xReminderLine: Record "Reminder Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after determining whether to skip finance charge calculation.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="CustLedgerEntry">The customer ledger entry.</param>
+    /// <param name="ShouldSkipCalcFinChrg">Indicates whether to skip calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterCalcShouldSkipCalcFinChrg(var ReminderLine: Record "Reminder Line"; var ReminderHeader: Record "Reminder Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ShouldSkipCalcFinChrg: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised before validating posting groups during finance charge calculation.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="Amount">The calculated finance charge amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnBeforeValidatePostingGroups(var ReminderLine: Record "Reminder Line"; var ReminderHeader: Record "Reminder Header"; var Amount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after retrieving the VAT posting setup during VAT product posting group validation.
+    /// </summary>
+    /// <param name="VATPostingSetup">The VAT posting setup record.</param>
+    /// <param name="ReminderLine">The reminder line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnAfterVATPostingSetupGet(var VATPostingSetup: Record "VAT Posting Setup"; ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder entries when counting reminders for a customer ledger entry.
+    /// </summary>
+    /// <param name="ReminderEntry">The reminder/finance charge entry record with filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetNoOfReminderForCustLedgEntryOnAfterReminderEntrySetFilters(var ReminderEntry: Record "Reminder/Fin. Charge Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the number of reminders for a customer ledger entry.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="NoOfReminders">Returns the number of reminders.</param>
+    /// <param name="EntryNo">The customer ledger entry number.</param>
+    /// <param name="IsHandled">Set to true to skip default counting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNoOfReminderForCustLedgEntry(var ReminderLine: Record "Reminder Line"; var NoOfReminders: Integer; EntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after the document number lookup on the reminder line.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="xRecReminderLine">The previous reminder line values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupDocNo(var ReminderLine: Record "Reminder Line"; xRecReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised before calculating the finance charge interest rate.
+    /// </summary>
+    /// <param name="ReminderLine">The reminder line record.</param>
+    /// <param name="ReminderHeader">The reminder header record.</param>
+    /// <param name="FinanceChargeTerms">The finance charge terms record.</param>
+    /// <param name="IsHandled">Set to true to skip default interest rate calculation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnBeforeCalcFinanceChargeInterestRate(var ReminderLine: Record "Reminder Line"; var ReminderHeader: Record "Reminder Header"; var FinanceChargeTerms: Record "Finance Charge Terms"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on detailed customer ledger entries during finance charge calculation.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry record with filters.</param>
+    /// <param name="ReminderLine">The reminder line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterDetailedCustLedgEntrySetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ReminderLine: Record "Reminder Line")
     begin
     end;
 
+    /// <summary>
+    /// Raised after setting filters on reminder/finance charge entries during finance charge calculation.
+    /// </summary>
+    /// <param name="ReminderFinChargeEntry">The reminder/finance charge entry record with filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterReminderEntrySetFilters(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the interest amount during finance charge calculation.
+    /// </summary>
+    /// <param name="FinanceChargeTerms">The finance charge terms record.</param>
+    /// <param name="Amount">The calculated interest amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcFinChrgOnAfterCalcInterest(var FinanceChargeTerms: Record "Finance Charge Terms"; var Amount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Raised after calculating the remaining amount during Applies-to Document No. validation.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry with calculated remaining amount.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAppliesToDocumentNoOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

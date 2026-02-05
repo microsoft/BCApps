@@ -27,6 +27,7 @@ table 6703 "Booking Service"
         }
         field(4; Price; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Price';
         }
         field(6; "Internal Notes"; Text[250])

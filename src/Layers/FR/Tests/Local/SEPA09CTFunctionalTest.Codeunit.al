@@ -1,7 +1,11 @@
+#if not CLEAN28
 codeunit 144078 "SEPA.09 CT Functional Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -488,4 +492,4 @@ codeunit 144078 "SEPA.09 CT Functional Test"
         Reply := true;
     end;
 }
-
+#endif

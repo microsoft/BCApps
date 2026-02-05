@@ -12,6 +12,7 @@ tableextension 12455 "Service Cr.Memo Line IT" extends "Service Cr.Memo Line"
     {
         field(12101; "Deductible %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Deductible %';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;

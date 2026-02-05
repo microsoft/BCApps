@@ -144,7 +144,7 @@ table 10721 "Historic G/L Account"
         }
         field(31; "Balance at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                         "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -155,7 +155,7 @@ table 10721 "Historic G/L Account"
         }
         field(32; "Net Change"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                         "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -166,7 +166,7 @@ table 10721 "Historic G/L Account"
         }
         field(33; "Budgeted Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Budget Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -189,7 +189,7 @@ table 10721 "Historic G/L Account"
         }
         field(36; Balance; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                         "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter")));
@@ -199,7 +199,7 @@ table 10721 "Historic G/L Account"
         }
         field(37; "Budget at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Budget Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -259,7 +259,7 @@ table 10721 "Historic G/L Account"
         }
         field(47; "Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("G/L Entry"."Debit Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                 "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -271,7 +271,7 @@ table 10721 "Historic G/L Account"
         }
         field(48; "Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("G/L Entry"."Credit Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                  "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -288,7 +288,7 @@ table 10721 "Historic G/L Account"
         }
         field(52; "Budgeted Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankNumbers = BlankNegAndZero;
             CalcFormula = sum("G/L Budget Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -301,7 +301,7 @@ table 10721 "Historic G/L Account"
         }
         field(53; "Budgeted Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             BlankNumbers = BlankNegAndZero;
             CalcFormula = - sum("G/L Budget Entry".Amount where("Business Unit Code" = field("Business Unit Filter"),
                                                                 "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
@@ -343,7 +343,7 @@ table 10721 "Historic G/L Account"
         }
         field(60; "Additional-Currency Net Change"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry"."Additional-Currency Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                               "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -354,7 +354,7 @@ table 10721 "Historic G/L Account"
         }
         field(61; "Add.-Currency Balance at Date"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry"."Additional-Currency Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                               "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -365,7 +365,7 @@ table 10721 "Historic G/L Account"
         }
         field(62; "Additional-Currency Balance"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry"."Additional-Currency Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                               "Global Dimension 2 Code" = field("Global Dimension 2 Filter")));
@@ -382,7 +382,7 @@ table 10721 "Historic G/L Account"
         }
         field(64; "Add.-Currency Debit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry"."Add.-Currency Debit Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                               "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -393,7 +393,7 @@ table 10721 "Historic G/L Account"
         }
         field(65; "Add.-Currency Credit Amount"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             CalcFormula = sum("G/L Entry"."Add.-Currency Credit Amount" where("Business Unit Code" = field("Business Unit Filter"),
                                                                                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
@@ -425,6 +425,7 @@ table 10721 "Historic G/L Account"
         }
         field(10720; "Old Balance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Old Balance';
         }
     }
@@ -442,5 +443,5 @@ table 10721 "Historic G/L Account"
     }
 }
 
- 
+
 #endif

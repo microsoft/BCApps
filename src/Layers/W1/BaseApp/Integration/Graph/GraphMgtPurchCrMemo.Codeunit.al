@@ -16,7 +16,7 @@ using System.Reflection;
 codeunit 5511 "Graph Mgt - Purch. Cr. Memo"
 {
     Permissions = tabledata "Purch. Cr. Memo Hdr." = rimd,
-                  tabledata "Purch. Cr. Memo Entity Buffer" = r;
+                  tabledata "Purch. Cr. Memo Entity Buffer" = rimd;
 
     trigger OnRun()
     begin

@@ -113,12 +113,14 @@ table 346 "Reservation Wksh. Line"
         }
         field(33; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(41; "Remaining Qty. to Reserve"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Remaining Qty. to Reserve';
             DecimalPlaces = 0 : 5;
 
@@ -130,6 +132,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(42; "Rem. Qty. to Reserve (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Rem. Qty. to Reserve (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -141,6 +144,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(43; "Qty. to Reserve"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Reserve';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -166,6 +170,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(44; "Qty. to Reserve (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Reserve (Base)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -191,6 +196,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(51; "Available Qty. to Reserve"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Available Qty. to Reserve';
             DecimalPlaces = 0 : 5;
 
@@ -202,6 +208,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(52; "Avail. Qty. to Reserve (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Avail. Qty. to Reserve (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -213,6 +220,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(61; "Qty. in Stock"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Stock';
             DecimalPlaces = 0 : 5;
 
@@ -224,6 +232,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(62; "Qty. in Stock (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Stock (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -235,6 +244,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(63; "Qty. Reserved in Stock"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Reserved from Stock';
             DecimalPlaces = 0 : 5;
 
@@ -246,6 +256,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(64; "Qty. Reserv. in Stock (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Reserved from Stock (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -257,6 +268,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(65; "Qty. in Whse. Handling"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Warehouse Handling';
             DecimalPlaces = 0 : 5;
 
@@ -268,6 +280,7 @@ table 346 "Reservation Wksh. Line"
         }
         field(66; "Qty. in Whse. Handling (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. in Warehouse Handling (Base)';
             DecimalPlaces = 0 : 5;
 

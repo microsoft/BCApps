@@ -13,6 +13,9 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides a temporary buffer for displaying combined sales prices and line discounts in a unified view.
+/// </summary>
 table 1304 "Sales Price and Line Disc Buff"
 {
     Caption = 'Sales Price and Line Disc Buff';
@@ -20,6 +23,9 @@ table 1304 "Sales Price and Line Disc Buff"
 
     fields
     {
+        /// <summary>
+        /// Specifies the item number or item discount group code for the buffer entry.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
@@ -69,6 +75,9 @@ table 1304 "Sales Price and Line Disc Buff"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies the customer, customer price group, or customer discount group that the buffer entry applies to.
+        /// </summary>
         field(2; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
@@ -111,12 +120,18 @@ table 1304 "Sales Price and Line Disc Buff"
                     end;
             end;
         }
+        /// <summary>
+        /// Specifies the currency that the buffer entry is valid for. A blank value indicates the local currency.
+        /// </summary>
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             DataClassification = SystemMetadata;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Specifies the date from which the buffer entry is valid.
+        /// </summary>
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
@@ -128,14 +143,20 @@ table 1304 "Sales Price and Line Disc Buff"
                     Error(EndDateErr, FieldCaption("Starting Date"), FieldCaption("Ending Date"));
             end;
         }
+        /// <summary>
+        /// Specifies the line discount percentage when the line type is Sales Line Discount.
+        /// </summary>
         field(5; "Line Discount %"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DataClassification = SystemMetadata;
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the unit price when the line type is Sales Price.
+        /// </summary>
         field(6; "Unit Price"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -144,23 +165,35 @@ table 1304 "Sales Price and Line Disc Buff"
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
+        /// <summary>
+        /// Indicates whether the unit price includes VAT.
+        /// </summary>
         field(7; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Indicates whether invoice discounts can be applied when this price is used.
+        /// </summary>
         field(10; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies the VAT business posting group used for price calculations when the price includes VAT.
+        /// </summary>
         field(11; "VAT Bus. Posting Gr. (Price)"; Code[20])
         {
             Caption = 'VAT Bus. Posting Gr. (Price)';
             DataClassification = SystemMetadata;
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// Specifies the type of sales target, such as customer, customer price/discount group, all customers, or campaign.
+        /// </summary>
         field(13; "Sales Type"; Option)
         {
             Caption = 'Sales Type';
@@ -196,12 +229,19 @@ table 1304 "Sales Price and Line Disc Buff"
                 UpdateValuesFromItem();
             end;
         }
+        /// <summary>
+        /// Specifies the minimum quantity that must be ordered to qualify for the price or discount.
+        /// </summary>
         field(14; "Minimum Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Minimum Quantity';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
+        /// <summary>
+        /// Specifies the last date on which the buffer entry is valid.
+        /// </summary>
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
@@ -212,6 +252,9 @@ table 1304 "Sales Price and Line Disc Buff"
                 Validate("Starting Date");
             end;
         }
+        /// <summary>
+        /// Specifies whether the buffer entry applies to an item or an item discount group.
+        /// </summary>
         field(21; Type; Enum "Sales Line Discount Type")
         {
             Caption = 'Type';
@@ -238,6 +281,9 @@ table 1304 "Sales Price and Line Disc Buff"
                 end;
             end;
         }
+        /// <summary>
+        /// Specifies whether the buffer entry represents a sales price or a sales line discount.
+        /// </summary>
         field(1300; "Line Type"; Option)
         {
             Caption = 'Line Type';
@@ -261,30 +307,45 @@ table 1304 "Sales Price and Line Disc Buff"
                 Validate(Type, Type);
             end;
         }
+        /// <summary>
+        /// Stores the item number that was used to load data into the buffer.
+        /// </summary>
         field(1301; "Loaded Item No."; Code[20])
         {
             Caption = 'Loaded Item No.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Stores the discount group code that was used to load data into the buffer.
+        /// </summary>
         field(1302; "Loaded Disc. Group"; Code[20])
         {
             Caption = 'Loaded Disc. Group';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Stores the customer number that was used to load data into the buffer.
+        /// </summary>
         field(1303; "Loaded Customer No."; Code[20])
         {
             Caption = 'Loaded Customer No.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Stores the customer price group code that was used to load data into the buffer.
+        /// </summary>
         field(1304; "Loaded Price Group"; Code[20])
         {
             Caption = 'Loaded Price Group';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unit of measure that the buffer entry applies to for the item.
+        /// </summary>
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
@@ -296,6 +357,9 @@ table 1304 "Sales Price and Line Disc Buff"
                 TestField(Type, Type::Item);
             end;
         }
+        /// <summary>
+        /// Specifies the item variant that the buffer entry applies to.
+        /// </summary>
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
@@ -307,6 +371,9 @@ table 1304 "Sales Price and Line Disc Buff"
                 TestField(Type, Type::Item);
             end;
         }
+        /// <summary>
+        /// Indicates whether line discounts can be applied when this price is used.
+        /// </summary>
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
@@ -389,6 +456,10 @@ table 1304 "Sales Price and Line Disc Buff"
         end;
     end;
 
+    /// <summary>
+    /// Loads sales prices and line discounts for the specified item into the buffer.
+    /// </summary>
+    /// <param name="Item">The item to load prices and discounts for.</param>
     procedure LoadDataForItem(Item: Record Item)
     var
         SalesPrice: Record "Sales Price";
@@ -415,11 +486,21 @@ table 1304 "Sales Price and Line Disc Buff"
         Session.LogMessage('0000AI4', StrSubstNo(PricesAndDiscountsCountMsg, Count), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PricesAndDiscountsCountLbl);
     end;
 
+    /// <summary>
+    /// Loads sales prices and line discounts for the specified customer into the buffer.
+    /// </summary>
+    /// <param name="Customer">The customer to load prices and discounts for.</param>
     procedure LoadDataForCustomer(Customer: Record Customer)
     begin
         LoadDataForCustomer(Customer, 0);
     end;
 
+    /// <summary>
+    /// Loads sales prices and line discounts for the specified customer into the buffer with a maximum number of lines.
+    /// </summary>
+    /// <param name="Customer">The customer to load prices and discounts for.</param>
+    /// <param name="MaxNoOfLines">The maximum number of lines to load. Use 0 for unlimited.</param>
+    /// <returns>The number of lines loaded.</returns>
     procedure LoadDataForCustomer(var Customer: Record Customer; MaxNoOfLines: Integer): Integer
     var
         LoadedLines: Integer;
@@ -687,6 +768,9 @@ table 1304 "Sales Price and Line Disc Buff"
         OnAfterSetFiltersOnSalesLineDiscountItemGroup(Rec, SalesLineDiscount);
     end;
 
+    /// <summary>
+    /// Filters the buffer to show only active records that have not expired.
+    /// </summary>
     procedure FilterToActualRecords()
     begin
         SetFilter("Ending Date", '%1|%2..', 0D, Today);
@@ -759,6 +843,11 @@ table 1304 "Sales Price and Line Disc Buff"
             InsertNewPriceLine();
     end;
 
+    /// <summary>
+    /// Checks whether any sales prices or line discounts exist for the specified customer.
+    /// </summary>
+    /// <param name="Cust">The customer to check for prices and discounts.</param>
+    /// <returns>True if the customer has any prices or discounts, otherwise false.</returns>
     procedure CustHasLines(Cust: Record Customer): Boolean
     var
         SalesLineDiscount: Record "Sales Line Discount";
@@ -802,6 +891,11 @@ table 1304 "Sales Price and Line Disc Buff"
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks whether any sales prices or line discounts exist for the specified item.
+    /// </summary>
+    /// <param name="Item">The item to check for prices and discounts.</param>
+    /// <returns>True if the item has any prices or discounts, otherwise false.</returns>
     procedure ItemHasLines(Item: Record Item): Boolean
     var
         SalesLineDiscount: Record "Sales Line Discount";
@@ -828,6 +922,11 @@ table 1304 "Sales Price and Line Disc Buff"
         exit(false);
     end;
 
+    /// <summary>
+    /// Updates the Price Includes VAT flag and recalculates unit prices for the item.
+    /// </summary>
+    /// <param name="Item">The item to update prices for.</param>
+    /// <param name="IncludesVat">True if prices should include VAT, otherwise false.</param>
     procedure UpdatePriceIncludesVatAndPrices(Item: Record Item; IncludesVat: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";

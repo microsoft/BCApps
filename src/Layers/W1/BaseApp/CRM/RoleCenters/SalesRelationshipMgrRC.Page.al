@@ -131,6 +131,7 @@ page 9026 "Sales & Relationship Mgr. RC"
             separator(Action17)
             {
             }
+#if not CLEAN28
             action("S&ales Statistics")
             {
                 ApplicationArea = RelationshipMgmt;
@@ -138,7 +139,11 @@ page 9026 "Sales & Relationship Mgr. RC"
                 Image = "Report";
                 RunObject = Report "Sales Statistics";
                 ToolTip = 'View detailed information about sales to your customers.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Salesperson - Sales &Statistics")
             {
                 ApplicationArea = Suite, RelationshipMgmt;

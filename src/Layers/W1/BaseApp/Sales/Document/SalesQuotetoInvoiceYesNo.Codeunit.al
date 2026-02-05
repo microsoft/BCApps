@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.CRM.Outlook;
 
+/// <summary>
+/// Prompts for confirmation before converting a sales quote to a sales invoice.
+/// </summary>
 codeunit 1304 "Sales-Quote to Invoice Yes/No"
 {
     TableNo = "Sales Header";

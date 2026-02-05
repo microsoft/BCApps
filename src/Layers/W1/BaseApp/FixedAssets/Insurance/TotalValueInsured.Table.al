@@ -29,7 +29,7 @@ table 5650 "Total Value Insured"
         }
         field(4; "Total Value Insured"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Total Value Insured';
         }
     }

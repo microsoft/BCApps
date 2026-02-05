@@ -76,6 +76,8 @@ table 32000001 "Ref. Payment - Imported"
         }
         field(17; Amount; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
         }
         field(18; "Correction Code"; Text[1])
@@ -96,14 +98,18 @@ table 32000001 "Ref. Payment - Imported"
         }
         field(22; "Payments Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payments Qty.';
         }
         field(23; "Corrections Qty."; Text[6])
         {
+            AutoFormatType = 0;
             Caption = 'Corrections Qty.';
         }
         field(24; "Corrections Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Corrections Amount';
         }
         field(25; "Failed Direct Debiting Qty."; Text[6])
@@ -112,6 +118,8 @@ table 32000001 "Ref. Payment - Imported"
         }
         field(26; "Failed Direct Debiting Amount"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Failed Direct Debiting Amount';
         }
         field(28; Matched; Boolean)

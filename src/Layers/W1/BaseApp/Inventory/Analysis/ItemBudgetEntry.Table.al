@@ -74,17 +74,20 @@ table 7134 "Item Budget Entry"
         }
         field(9; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(10; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Cost Amount';
         }
         field(11; "Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales Amount';
         }
         field(13; "User ID"; Code[50])

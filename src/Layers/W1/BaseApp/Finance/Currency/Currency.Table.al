@@ -499,6 +499,7 @@ table 4 Currency
         field(34; "Customer Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("Customer Filter"),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -516,6 +517,7 @@ table 4 Currency
         field(35; "Vendor Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("Vendor Filter"),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),

@@ -8,6 +8,9 @@ using Microsoft.CRM.Opportunity;
 using System.Integration;
 using System.Visualization;
 
+/// <summary>
+/// Displays a funnel chart visualization of the sales pipeline by sales cycle stage.
+/// </summary>
 page 781 "Sales Pipeline Chart"
 {
     Caption = 'Sales Pipeline';

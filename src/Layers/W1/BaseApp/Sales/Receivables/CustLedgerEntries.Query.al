@@ -6,6 +6,9 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Retrieves customer ledger entry data joined with customer information for reporting and analysis purposes.
+/// </summary>
 query 262 "Cust. Ledger Entries"
 {
     Caption = 'Cust. Ledger Entries';

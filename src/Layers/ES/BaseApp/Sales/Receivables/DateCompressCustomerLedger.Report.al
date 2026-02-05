@@ -13,6 +13,9 @@ using Microsoft.Sales.FinanceCharge;
 using System.DataAdministration;
 using System.Utilities;
 
+/// <summary>
+/// Compresses closed customer ledger entries within a date range to reduce database size while preserving summary totals and audit trails.
+/// </summary>
 report 198 "Date Compress Customer Ledger"
 {
     Caption = 'Date Compress Customer Ledger';
@@ -497,6 +500,10 @@ report 198 "Date Compress Customer Ledger"
         DimBufMgt.DeleteAllDimEntryNo();
     end;
 
+    /// <summary>
+    /// Initializes a new compressed customer ledger entry with values from the current entry being processed.
+    /// </summary>
+    /// <param name="NewCustLedgEntry">The new customer ledger entry to initialize.</param>
     procedure InitNewEntry(var NewCustLedgEntry: Record "Cust. Ledger Entry")
     begin
         LastEntryNo := LastEntryNo + 1;
@@ -675,6 +682,16 @@ report 198 "Date Compress Customer Ledger"
         RetainDimText := DimSelectionBuf.GetDimSelectionText(3, REPORT::"Date Compress Customer Ledger", '');
     end;
 
+    /// <summary>
+    /// Initializes the report with the specified compression parameters when running without the request page.
+    /// </summary>
+    /// <param name="StartingDate">The starting date for the compression period.</param>
+    /// <param name="EndingDate">The ending date for the compression period.</param>
+    /// <param name="PeriodLength">The period length option for grouping entries.</param>
+    /// <param name="Description">The description to use for compressed entries.</param>
+    /// <param name="NewDateComprRetainFields">The fields to retain during compression.</param>
+    /// <param name="RetainDimensionText">The dimensions to retain during compression.</param>
+    /// <param name="DoUseDataArchive">Indicates whether to archive deleted entries.</param>
     procedure InitializeRequest(StartingDate: Date; EndingDate: Date; PeriodLength: Option; Description: Text[100]; NewDateComprRetainFields: Record "Date Compr. Retain Fields"; RetainDimensionText: Text[250]; DoUseDataArchive: Boolean)
     begin
         InitializeParameter();
@@ -721,16 +738,35 @@ report 198 "Date Compress Customer Ledger"
         Session.LogMessage('0000F4L', StrSubstNo(EndDateCompressionTelemetryMsg, CurrReport.ObjectId(false), CurrReport.ObjectId(true)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
+    /// <summary>
+    /// Raised after filters have been set on the customer ledger entry for compression.
+    /// </summary>
+    /// <param name="ToCustLedgEntry">The customer ledger entry with filters applied.</param>
+    /// <param name="FromCustLedgEntry">The original customer ledger entry being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCustLedgEntry2SetFilters(var ToCustLedgEntry: Record "Cust. Ledger Entry"; FromCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after filters have been set on the detailed customer ledger entry buffer during summarization.
+    /// </summary>
+    /// <param name="DtldCustLedgEntryBuffer">The temporary detailed customer ledger entry buffer.</param>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry being summarized.</param>
+    /// <param name="OriginCustLedgEntry">The original customer ledger entry.</param>
+    /// <param name="NewCustLedgEntry">The new compressed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSummarizeDtldEntryOnAfterDtldCustLedgEntryBufferSetFilters(var DtldCustLedgEntryBuffer: Record "Detailed Cust. Ledg. Entry"; var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var OriginCustLedgEntry: Record "Cust. Ledger Entry"; var NewCustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised after initializing the detailed customer ledger entry buffer during summarization.
+    /// </summary>
+    /// <param name="DtldCustLedgEntryBuffer">The temporary detailed customer ledger entry buffer.</param>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry being summarized.</param>
+    /// <param name="OriginCustLedgEntry">The original customer ledger entry.</param>
+    /// <param name="NewCustLedgEntry">The new compressed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSummarizeDtldEntryOnAfterInitDtldCustLedgEntryBuffer(var DtldCustLedgEntryBuffer: Record "Detailed Cust. Ledg. Entry"; var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var OriginCustLedgEntry: Record "Cust. Ledger Entry"; var NewCustLedgEntry: Record "Cust. Ledger Entry")
     begin

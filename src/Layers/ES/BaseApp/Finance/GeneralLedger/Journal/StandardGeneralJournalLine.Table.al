@@ -346,6 +346,7 @@ table 751 "Standard General Journal Line"
         field(13; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -410,6 +411,7 @@ table 751 "Standard General Journal Line"
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
 
             trigger OnValidate()
@@ -426,6 +428,7 @@ table 751 "Standard General Journal Line"
         field(17; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Balance (LCY)';
             Editable = false;
         }
@@ -453,6 +456,7 @@ table 751 "Standard General Journal Line"
         field(19; "Sales/Purch. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Sales/Purch. (LCY)';
         }
         /// <summary>
@@ -461,6 +465,7 @@ table 751 "Standard General Journal Line"
         field(20; "Profit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Profit (LCY)';
         }
         /// <summary>
@@ -469,6 +474,7 @@ table 751 "Standard General Journal Line"
         field(21; "Inv. Discount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inv. Discount (LCY)';
         }
         /// <summary>

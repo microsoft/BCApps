@@ -102,6 +102,7 @@ table 28072 "Sales Tax Invoice Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -115,16 +116,19 @@ table 28072 "Sales Tax Invoice Line"
         field(23; "Unit Cost (LCY)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -155,21 +159,25 @@ table 28072 "Sales Tax Invoice Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -368,6 +376,7 @@ table 28072 "Sales Tax Invoice Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -381,6 +390,7 @@ table 28072 "Sales Tax Invoice Line"
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
         }
@@ -485,14 +495,20 @@ table 28072 "Sales Tax Invoice Line"
         }
         field(28042; "WHT Absorb Base"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
             Caption = 'WHT Absorb Base';
         }
         field(28070; "Paid Amount Incl. VAT"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
             Caption = 'Paid Amount Incl. VAT';
         }
         field(28071; "Paid VAT"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
             Caption = 'Paid VAT';
         }
         field(28073; "External Document No."; Code[35])

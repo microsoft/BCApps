@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+/// <summary>
+/// Prompts for confirmation before converting a blanket sales order to a regular sales order.
+/// </summary>
 codeunit 84 "Blnkt Sales Ord. to Ord. (Y/N)"
 {
     TableNo = "Sales Header";

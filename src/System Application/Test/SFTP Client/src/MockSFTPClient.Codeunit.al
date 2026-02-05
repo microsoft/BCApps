@@ -202,7 +202,7 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
 
         foreach FilePath in FilePaths do
             if FilePath.StartsWith(Path) then begin
-                MockSFTPFile.Initialize(FilePath, false, 100);
+                MockSFTPFile.Initialize(FilePath, false, 100, CreateDateTime(20260101D, 010000T));
                 Result.Add(MockSFTPFile);
             end;
 
@@ -270,7 +270,7 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
             exit(false);
 
         if FilesExist.ContainsKey(Path) and FilesExist.Get(Path) then begin
-            MockSFTPFile.Initialize(Path, false, 100);
+            MockSFTPFile.Initialize(Path, false, 100, CreateDateTime(20260101D, 010000T));
             Result := MockSFTPFile;
             exit(true);
         end;

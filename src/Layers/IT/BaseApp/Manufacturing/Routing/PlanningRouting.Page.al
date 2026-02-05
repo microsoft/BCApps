@@ -56,6 +56,12 @@ page 99000863 "Planning Routing"
                     ApplicationArea = Planning;
                     ToolTip = 'Specifies a description of the task related to this routing line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Specifies additional description text.';
+                    Visible = false;
+                }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Planning;

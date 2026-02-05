@@ -15,6 +15,9 @@ using Microsoft.Utilities;
 using System.Automation;
 using System.Utilities;
 
+/// <summary>
+/// Converts a sales quote into a sales order for order processing and fulfillment.
+/// </summary>
 codeunit 86 "Sales-Quote to Order"
 {
     TableNo = "Sales Header";
@@ -206,11 +209,19 @@ codeunit 86 "Sales-Quote to Order"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the created sales order header after conversion from a quote.
+    /// </summary>
+    /// <param name="SalesHeader2">Returns the sales order header that was created from the quote.</param>
     procedure GetSalesOrderHeader(var SalesHeader2: Record "Sales Header")
     begin
         SalesHeader2 := SalesOrderHeader;
     end;
 
+    /// <summary>
+    /// Specifies whether to hide validation dialogs during the conversion process.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">True to suppress validation dialogs; false to show them.</param>
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         if NewHideValidationDialog then

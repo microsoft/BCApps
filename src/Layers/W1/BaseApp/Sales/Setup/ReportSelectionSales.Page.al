@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+/// <summary>
+/// Configures default report selections for sales document types. Allows users to specify which reports to use for printing, emailing, and other output operations.
+/// </summary>
 page 306 "Report Selection - Sales"
 {
     ApplicationArea = Basic, Suite;

@@ -107,6 +107,7 @@ table 5821 "Item Statistics Buffer"
         }
         field(15; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Value Entry"."Invoiced Quantity" where("Item No." = field("Item Filter"),
                                                                        "Posting Date" = field("Date Filter"),
                                                                        "Variant Code" = field("Variant Filter"),
@@ -127,6 +128,7 @@ table 5821 "Item Statistics Buffer"
         field(16; "Sales Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Sales Amount (Actual)" where("Item No." = field("Item Filter"),
                                                                            "Posting Date" = field("Date Filter"),
                                                                            "Item Ledger Entry Type" = field("Item Ledger Entry Type Filter"),
@@ -146,6 +148,7 @@ table 5821 "Item Statistics Buffer"
         field(17; "Cost Amount (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where("Item No." = field("Item Filter"),
                                                                           "Posting Date" = field("Date Filter"),
                                                                           "Item Ledger Entry Type" = field("Item Ledger Entry Type Filter"),
@@ -165,6 +168,7 @@ table 5821 "Item Statistics Buffer"
         field(18; "Cost Amount (Non-Invtbl.)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Cost Amount (Non-Invtbl.)" where("Item No." = field("Item Filter"),
                                                                                "Posting Date" = field("Date Filter"),
                                                                                "Item Ledger Entry Type" = field("Item Ledger Entry Type Filter"),
@@ -270,6 +274,7 @@ table 5821 "Item Statistics Buffer"
 #pragma warning restore AS0070
         field(45; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item Filter"),
                                                                   "Source Type" = field("Source Type Filter"),
                                                                   "Source No." = field("Source No. Filter"),
@@ -287,6 +292,7 @@ table 5821 "Item Statistics Buffer"
         field(46; "Sales Amount (Expected)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Sales Amount (Expected)" where("Item No." = field("Item Filter"),
                                                                              "Source Type" = field("Source Type Filter"),
                                                                              "Source No." = field("Source No. Filter"),
@@ -306,6 +312,7 @@ table 5821 "Item Statistics Buffer"
         field(47; "Cost Amount (Expected)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Value Entry"."Cost Amount (Expected)" where("Item No." = field("Item Filter"),
                                                                             "Source Type" = field("Source Type Filter"),
                                                                             "Source No." = field("Source No. Filter"),
@@ -324,6 +331,7 @@ table 5821 "Item Statistics Buffer"
         }
         field(50; "Budgeted Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Budget Entry".Quantity where("Analysis Area" = field("Analysis Area Filter"),
                                                                   "Budget Name" = field("Budget Filter"),
                                                                   "Item No." = field("Item Filter"),
@@ -344,6 +352,7 @@ table 5821 "Item Statistics Buffer"
         field(51; "Budgeted Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Budget Entry"."Sales Amount" where("Analysis Area" = field("Analysis Area Filter"),
                                                                         "Budget Name" = field("Budget Filter"),
                                                                         "Item No." = field("Item Filter"),
@@ -363,6 +372,7 @@ table 5821 "Item Statistics Buffer"
         field(52; "Budgeted Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Budget Entry"."Cost Amount" where("Analysis Area" = field("Analysis Area Filter"),
                                                                        "Budget Name" = field("Budget Filter"),
                                                                        "Item No." = field("Item Filter"),
@@ -402,6 +412,7 @@ table 5821 "Item Statistics Buffer"
         }
         field(80; "Analysis - Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Analysis View Entry".Quantity where("Analysis Area" = field("Analysis Area Filter"),
                                                                          "Analysis View Code" = field("Analysis View Filter"),
                                                                          "Item No." = field("Item Filter"),
@@ -421,6 +432,7 @@ table 5821 "Item Statistics Buffer"
         }
         field(81; "Analysis - Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Analysis View Entry"."Invoiced Quantity" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                     "Analysis View Code" = field("Analysis View Filter"),
                                                                                     "Item No." = field("Item Filter"),
@@ -441,6 +453,7 @@ table 5821 "Item Statistics Buffer"
         field(82; "Analysis - Sales Amt. (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Entry"."Sales Amount (Actual)" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                         "Analysis View Code" = field("Analysis View Filter"),
                                                                                         "Item No." = field("Item Filter"),
@@ -460,6 +473,7 @@ table 5821 "Item Statistics Buffer"
         field(83; "Analysis - Sales Amt. (Exp)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Entry"."Sales Amount (Expected)" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                           "Analysis View Code" = field("Analysis View Filter"),
                                                                                           "Item No." = field("Item Filter"),
@@ -479,6 +493,7 @@ table 5821 "Item Statistics Buffer"
         field(84; "Analysis - Cost Amt. (Actual)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Entry"."Cost Amount (Actual)" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                        "Analysis View Code" = field("Analysis View Filter"),
                                                                                        "Item No." = field("Item Filter"),
@@ -498,6 +513,7 @@ table 5821 "Item Statistics Buffer"
         field(85; "Analysis - Cost Amt. (Exp)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Entry"."Cost Amount (Expected)" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                          "Analysis View Code" = field("Analysis View Filter"),
                                                                                          "Item No." = field("Item Filter"),
@@ -517,6 +533,7 @@ table 5821 "Item Statistics Buffer"
         field(86; "Analysis CostAmt.(Non-Invtbl.)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Entry"."Cost Amount (Non-Invtbl.)" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                             "Analysis View Code" = field("Analysis View Filter"),
                                                                                             "Item No." = field("Item Filter"),
@@ -535,6 +552,7 @@ table 5821 "Item Statistics Buffer"
         }
         field(91; "Analysis - Budgeted Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Item Analysis View Budg. Entry".Quantity where("Analysis Area" = field("Analysis Area Filter"),
                                                                                "Analysis View Code" = field("Analysis View Filter"),
                                                                                "Budget Name" = field("Budget Filter"),
@@ -554,6 +572,7 @@ table 5821 "Item Statistics Buffer"
         field(92; "Analysis - Budgeted Sales Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Budg. Entry"."Sales Amount" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                      "Analysis View Code" = field("Analysis View Filter"),
                                                                                      "Budget Name" = field("Budget Filter"),
@@ -572,6 +591,7 @@ table 5821 "Item Statistics Buffer"
         field(93; "Analysis - Budgeted Cost Amt."; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Item Analysis View Budg. Entry"."Cost Amount" where("Analysis Area" = field("Analysis Area Filter"),
                                                                                     "Analysis View Code" = field("Analysis View Filter"),
                                                                                     "Budget Name" = field("Budget Filter"),

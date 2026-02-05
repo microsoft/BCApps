@@ -14,6 +14,7 @@ table 7360 "Reservation Entry Buffer"
     {
         field(4; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;

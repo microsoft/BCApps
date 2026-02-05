@@ -447,7 +447,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         CreateReservEntry.UpdateItemTrackingAfterPosting(ReservationEntry);
     end;
 
-    [EventSubscriber(ObjectType::Page, PAGE::Reservation, 'OnGetQtyPerUOMFromSourceRecRef', '', false, false)]
+    [EventSubscriber(ObjectType::Page, PAGE::Reservation, 'OnGetQtyPerUOMFromSourceRecRef', '', true, false)]
     local procedure OnGetQtyPerUOMFromSourceRecRef(SourceRecRef: RecordRef; var QtyPerUOM: Decimal; var QtyReserved: Decimal; var QtyReservedBase: Decimal; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -489,14 +489,14 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         exit(TableID = Database::"Prod. Order Line");
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnSetReservSource', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnSetReservSource', '', true, false)]
     local procedure ReservationOnSetReservSource(SourceRecRef: RecordRef; var ReservEntry: Record "Reservation Entry"; var CaptionText: Text)
     begin
         if MatchThisTable(SourceRecRef.Number) then
             SetReservSourceFor(SourceRecRef, ReservEntry, CaptionText);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnDrillDownTotalQuantity', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnDrillDownTotalQuantity', '', true, false)]
     local procedure ReservationOnDrillDownTotalQuantity(SourceRecRef: RecordRef; ReservEntry: Record "Reservation Entry"; EntrySummary: Record "Entry Summary"; Location: Record Location; MaxQtyToReserve: Decimal)
     var
         AvailableProdOrderLines: page "Available - Prod. Order Lines";
@@ -509,7 +509,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnFilterReservEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnFilterReservEntry', '', true, false)]
     local procedure ReservationOnFilterReservEntry(var FilterReservEntry: Record "Reservation Entry"; ReservEntrySummary: Record "Entry Summary")
     begin
         if MatchThisEntry(ReservEntrySummary."Entry No.") then begin
@@ -518,7 +518,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnAfterRelatesToSummEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnAfterRelatesToSummEntry', '', true, false)]
     local procedure ReservationOnRelatesToEntrySummary(var FilterReservEntry: Record "Reservation Entry"; FromEntrySummary: Record "Entry Summary"; var IsHandled: Boolean)
     begin
         if MatchThisEntry(FromEntrySummary."Entry No.") then
@@ -527,7 +527,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
                 (FilterReservEntry."Source Subtype" = FromEntrySummary."Entry No." - EntryStartNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Ledger Entry-Reserve", 'OnDrillDownTotalQuantity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Ledger Entry-Reserve", 'OnDrillDownTotalQuantity', '', true, false)]
     local procedure OnDrillDownTotalQuantity(SourceRecRef: RecordRef; EntrySummary: Record "Entry Summary" temporary; ReservEntry: Record "Reservation Entry"; Location: Record Location; MaxQtyToReserve: Decimal; var IsHandled: Boolean; sender: Codeunit "Item Ledger Entry-Reserve")
     begin
         if MatchThisTable(ReservEntry."Source Type") then begin
@@ -536,7 +536,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnCreateReservation', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnCreateReservation', '', true, false)]
     local procedure OnCreateReservation(SourceRecRef: RecordRef; TrackingSpecification: Record "Tracking Specification"; ForReservEntry: Record "Reservation Entry"; Description: Text[100]; ExpectedDate: Date; Quantity: Decimal; QuantityBase: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -548,7 +548,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnLookupDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnLookupDocument', '', true, false)]
     local procedure OnLookupDocument(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20])
     var
         ProdOrder: Record "Production Order";
@@ -570,7 +570,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnLookupLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnLookupLine', '', true, false)]
     local procedure OnLookupLine(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceProdOrderLine: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -584,7 +584,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnFilterReservFor', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnFilterReservFor', '', true, false)]
     local procedure OnFilterReservFor(SourceRecRef: RecordRef; var ReservEntry: Record "Reservation Entry"; var CaptionText: Text)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -596,7 +596,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnCalculateRemainingQty', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnCalculateRemainingQty', '', true, false)]
     local procedure OnCalculateRemainingQty(SourceRecRef: RecordRef; var ReservEntry: Record "Reservation Entry"; var RemainingQty: Decimal; var RemainingQtyBase: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -622,7 +622,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         OnAfterGetSourceValue(ReservationEntry, SourceRecordRef, ReturnOption);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetSourceRecordValue', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetSourceRecordValue', '', true, false)]
     local procedure OnGetSourceRecordValue(var ReservEntry: Record "Reservation Entry"; ReturnOption: Option; var ReturnQty: Decimal; var SourceRecRef: RecordRef)
     begin
         if MatchThisTable(ReservEntry."Source Type") then
@@ -662,7 +662,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnUpdateStatistics', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnUpdateStatistics', '', true, false)]
     local procedure OnUpdateStatistics(CalcReservEntry: Record "Reservation Entry"; var ReservSummEntry: Record "Entry Summary"; AvailabilityDate: Date; Positive: Boolean; var TotalQuantity: Decimal; ReservationSummaryType: Integer)
     begin
         if ReservationSummaryType = Enum::"Reservation Summary Type"::"Item Tracking Line".AsInteger() then
@@ -674,7 +674,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
                 CalcReservEntry, ReservSummEntry, AvailabilityDate, Enum::"Production Order Status".FromInteger(ReservSummEntry."Entry No." - 61), Positive, TotalQuantity);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Reservation Entries", 'OnLookupReserved', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Reservation Entries", 'OnLookupReserved', '', true, false)]
     local procedure OnLookupReserved(var ReservationEntry: Record "Reservation Entry")
     begin
         if MatchThisTable(ReservationEntry."Source Type") then
@@ -692,7 +692,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         PAGE.RunModal(Page::"Prod. Order Line List", ProdOrderLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterAutoReserveOneLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterAutoReserveOneLine', '', true, false)]
     local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
     begin
         if MatchThisEntry(ReservSummEntryNo) then
@@ -813,7 +813,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoReserveOnBeforeStopReservation', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoReserveOnBeforeStopReservation', '', true, false)]
     local procedure OnAutoReserveOnBeforeStopReservation(var CalcReservEntry: Record "Reservation Entry"; var StopReservation: Boolean; SourceRecRef: RecordRef);
     begin
         if MatchThisTable(CalcReservEntry."Source Type") then
@@ -827,7 +827,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 #endif
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoTrackOnCheckSourceType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoTrackOnCheckSourceType', '', true, false)]
     local procedure OnAutoTrackOnCheckSourceType(var ReservationEntry: Record "Reservation Entry"; var ShouldExit: Boolean)
     begin
         if ReservationEntry."Source Type" = Database::"Prod. Order Line" then
@@ -835,7 +835,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
                 ShouldExit := true; // Not simulation
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnIssueActionMessageOnSetSourceTypeFromSKU', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnIssueActionMessageOnSetSourceTypeFromSKU', '', true, false)]
     local procedure OnIssueActionMessageOnSetSourceTypeFromSKU(var ActionMessageEntry: Record "Action Message Entry"; SKU: Record "Stockkeeping Unit")
     begin
         if SKU.IsMfgSKU() then
@@ -844,7 +844,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
 
     // codeunit Create Reserv. Entry
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Reserv. Entry", 'OnCheckSourceTypeSubtype', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Reserv. Entry", 'OnCheckSourceTypeSubtype', '', true, false)]
     local procedure CheckSourceTypeSubtype(var ReservationEntry: Record "Reservation Entry"; var IsError: Boolean)
     begin
         if MatchThisTable(ReservationEntry."Source Type") then
@@ -855,7 +855,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
 
     // codeunit Reservation Engine Mgt. subscribers
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnRevertDateToSourceDate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnRevertDateToSourceDate', '', true, false)]
     local procedure OnRevertDateToSourceDate(var ReservEntry: Record "Reservation Entry")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -867,7 +867,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnGetActivePointerFieldsOnBeforeAssignArrayValues', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnGetActivePointerFieldsOnBeforeAssignArrayValues', '', true, false)]
     local procedure OnGetActivePointerFieldsOnBeforeAssignArrayValues(TableID: Integer; var PointerFieldIsActive: array[6] of Boolean; var IsHandled: Boolean)
     begin
         if TableID = Database::"Prod. Order Line" then begin
@@ -878,7 +878,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnCreateText', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Engine Mgt.", 'OnCreateText', '', true, false)]
     local procedure OnAfterCreateText(ReservationEntry: Record "Reservation Entry"; var Description: Text[80])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -910,14 +910,14 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Reservation Entry", 'OnAfterSummEntryNo', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Reservation Entry", 'OnAfterSummEntryNo', '', true, false)]
     local procedure OnBeforeSummEntryNo(ReservationEntry: Record "Reservation Entry"; var ReturnValue: Integer)
     begin
         if MatchThisTable(ReservationEntry."Source Type") then
             ReturnValue := Enum::"Reservation Summary Type"::"Simulated Production Order".AsInteger() + ReservationEntry."Source Subtype";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Reservation Entry", 'OnUpdateSourceCost', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Reservation Entry", 'OnUpdateSourceCost', '', true, false)]
     local procedure ReservationEntryOnUpdateSourceCost(ReservationEntry: Record "Reservation Entry"; UnitCost: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -942,7 +942,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnSetSourceRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnSetSourceRecord', '', true, false)]
     local procedure OrderTrackingManagementOnSetSourceRecord(var SourceRecordVar: Variant; var ReservationEntry: Record "Reservation Entry"; var ItemLedgerEntry2: Record "Item Ledger Entry")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -974,7 +974,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnInsertOrderTrackingEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnInsertOrderTrackingEntry', '', true, false)]
     local procedure OnInsertOrderTrackingEntry(var OrderTrackingEntry: Record "Order Tracking Entry")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -985,7 +985,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         OrderTrackingEntry."Ending Date" := ProdOrderLine."Ending Date";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDrillOrdersUpCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDrillOrdersUpCaseElse', '', true, false)]
     local procedure OnDrillOrdersUpCaseElse(var ReservationEntry3: Record "Reservation Entry"; var ReservationEntry2: Record "Reservation Entry"; SearchUp: Boolean; var ContinueDrillUp: Boolean; var IncludePlanningFilter: Boolean)
     begin
         case ReservationEntry3."Source Type" of
@@ -996,7 +996,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDerivePlanningFilterOnSetRequisitionLineFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDerivePlanningFilterOnSetRequisitionLineFilters', '', true, false)]
     local procedure OnDerivePlanningFilterOnSetRequisitionLineFilters(var ToReservEntry: Record "Reservation Entry"; FilterReqLine: Record "Requisition Line"; var OK: Boolean);
     begin
         case FilterReqLine."Ref. Order Type" of
@@ -1024,7 +1024,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         ToReservationEntry.SetSourceFilter(FromReservationEntry."Source Batch Name", FromReservationEntry."Source Prod. Order Line");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDerivePlanningFilterOnSetToReservationFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::OrderTrackingManagement, 'OnDerivePlanningFilterOnSetToReservationFilter', '', true, false)]
     local procedure OnDerivePlanningFilterOnSetToReservationFilter(var ToReservEntry: Record "Reservation Entry"; FilterPlanningComponent: Record "Planning Component")
     begin
         case FilterPlanningComponent."Ref. Order Type" of
@@ -1073,7 +1073,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', true, false)]
     local procedure OnTransferToTrackingEntrySourceTypeElseCase(var InventoryProfile: Record "Inventory Profile"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
         if InventoryProfile."Source Type" = Database::"Prod. Order Line" then begin
@@ -1084,7 +1084,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', true, false)]
     local procedure OnAfterSetSupplyPriority(var InventoryProfile: Record "Inventory Profile")
     begin
         if InventoryProfile."Source Type" = Database::"Prod. Order Line" then
@@ -1102,7 +1102,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnSetSourceForProdOrderLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnSetSourceForProdOrderLine', '', true, false)]
     local procedure OnSetSourceForProdOrderLine(SourceRecRef: RecordRef; var CalcReservEntry: Record "Reservation Entry"; var EntryIsPositive: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -1124,7 +1124,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetDocumentReservationDeleteQstOnElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetDocumentReservationDeleteQstOnElseCase', '', true, false)]
     local procedure OnGetDocumentReservationDeleteQstOnElseCase(RecRef: RecordRef; FldRef: FieldRef; DocType: Integer; var Question: Text; DocNo: Code[20]; var IsHandled: Boolean)
     begin
         case RecRef.Number of
@@ -1136,7 +1136,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetDefaultDampenerPeriod', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnGetDefaultDampenerPeriod', '', true, false)]
     local procedure OnGetDefaultDampenerPeriod(var DampenerPeriod: DateFormula)
     var
         InventorySetup: Record "Inventory Setup";
@@ -1212,7 +1212,7 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Line-Reserve", 'OnSetReservationSourceFilterByRefOrderType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Line-Reserve", 'OnSetReservationSourceFilterByRefOrderType', '', true, false)]
     local procedure OnSetReservationSourceFilterByRefOrderType(var RequisitionLine: Record "Requisition Line"; var ReservationEntry: Record "Reservation Entry")
     begin
         case RequisitionLine."Ref. Order Type" of

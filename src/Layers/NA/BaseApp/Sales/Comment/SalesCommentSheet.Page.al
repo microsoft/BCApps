@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Comment;
 
+/// <summary>
+/// Allows entry and editing of comment lines for a sales document.
+/// </summary>
 page 67 "Sales Comment Sheet"
 {
     AutoSplitKey = true;

@@ -567,7 +567,7 @@ codeunit 5986 "Serv-Amounts Mgt."
                 end;
                 IsHandled := false;
                 OnSumServiceLines2OnBeforeInvoiceRounding(ServHeader, ServLine, OldServLine, TotalServiceLine, QtyType, LastLineRetrieved, IsHandled);
-                if not IsHandled then
+                if not IsHandled then begin
                     if RoundingLineInserted() then
                         LastLineRetrieved := true
                     else begin
@@ -577,6 +577,8 @@ codeunit 5986 "Serv-Amounts Mgt."
                             InvoiceRounding(ServHeader, ServLine, TotalServiceLine,
                               LastLineRetrieved, true, BiggestLineNo);
                     end;
+                    RunOnAfterUpdateInvoiceRounding(ServHeader, ServLine, TotalServiceLine, true, BiggestLineNo, LastLineRetrieved);
+                end;
             until LastLineRetrieved;
     end;
 
@@ -654,12 +656,15 @@ codeunit 5986 "Serv-Amounts Mgt."
         exit((Abs(Amount1 - Amount2)) > RoundingPrecision);
     end;
 
+    internal procedure RunOnAfterUpdateInvoiceRounding(ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var TotalServiceLine: Record "Service Line"; UseTempData: Boolean; var BiggestLineNo: Integer; var LastLineRetrieved: Boolean)
+    begin
+        OnAfterUpdateInvoiceRounding(ServiceHeader, ServiceLine, TotalServiceLine, Currency, UseTempData, BiggestLineNo, LastLineRetrieved, RoundingLineIsInserted, RoundingLineNo);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterDivideAmount(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; QtyType: Option General,Invoicing,Shipping; ServLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary)
     begin
     end;
-
-
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIncrAmount(var TotalServiceLine: Record "Service Line"; ServiceLine: Record "Service Line")
@@ -670,9 +675,6 @@ codeunit 5986 "Serv-Amounts Mgt."
     local procedure OnAfterReverseAmount(var ServiceLine: Record "Service Line")
     begin
     end;
-
-
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDivideAmount(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; QtyType: Option General,Invoicing,Shipping; ServLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary)
@@ -746,6 +748,11 @@ codeunit 5986 "Serv-Amounts Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitialize()
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterUpdateInvoiceRounding(ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var TotalServiceLine: Record "Service Line"; Currency: Record Currency; UseTempData: Boolean; var BiggestLineNo: Integer; var LastLineRetrieved: Boolean; var RoundingLineIsInserted: Boolean; var RoundingLineNo: Integer)
     begin
     end;
 }

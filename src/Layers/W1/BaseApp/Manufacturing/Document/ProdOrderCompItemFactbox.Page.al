@@ -36,6 +36,7 @@ page 874 "Prod. Order Comp. Item FactBox"
             }
             field("Required Quantity"; ShowRequiredQty())
             {
+                AutoFormatType = 0;
                 ApplicationArea = Manufacturing;
                 BlankZero = true;
                 Caption = 'Required Quantity';
@@ -53,6 +54,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Item Availability"; CalcAvailability(Rec))
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Item Availability';
@@ -70,6 +72,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Available Inventory"; CalcAvailableInventory())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
                     Caption = 'Available Inventory';
@@ -78,6 +81,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Scheduled Receipt"; CalcScheduledReceipt())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Scheduled Receipt';
@@ -86,6 +90,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Reserved Receipt"; CalcReservedReceipt())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Reserved Receipt';
@@ -94,6 +99,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Gross Requirement"; CalcGrossRequirement())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Gross Requirement';
@@ -102,6 +108,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Reserved Requirement"; CalcReservedRequirement())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Reservation;
                     BlankZero = true;
                     Caption = 'Reserved Requirement';
@@ -126,6 +133,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Qty. per Unit of Measure"; ShowQtyPerUoM())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Qty. per Unit of Measure';
@@ -133,6 +141,8 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Unit Price"; ShowUnitPrice())
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Unit Price';
@@ -140,6 +150,8 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Unit Cost"; ShowUnitCost())
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Unit Cost';
@@ -147,6 +159,8 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("Standard Cost"; ShowStandardCost())
                 {
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'Standard Cost';
@@ -154,6 +168,7 @@ page 874 "Prod. Order Comp. Item FactBox"
                 }
                 field("No. of Substitutes"; ShowNoOfSubstitutes())
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                     BlankZero = true;
                     Caption = 'No. of Substitutes';

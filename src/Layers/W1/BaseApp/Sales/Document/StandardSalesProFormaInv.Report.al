@@ -21,6 +21,9 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates a pro forma invoice document for sales orders before actual invoicing.
+/// </summary>
 report 1302 "Standard Sales - Pro Forma Inv"
 {
     Caption = 'Pro Forma Invoice';

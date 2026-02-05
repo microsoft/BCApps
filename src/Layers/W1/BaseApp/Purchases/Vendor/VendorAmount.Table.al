@@ -19,11 +19,13 @@ table 267 "Vendor Amount"
         field(2; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
         }
         field(3; "Amount 2 (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount 2 (LCY)';
         }
     }

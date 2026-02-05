@@ -29,26 +29,32 @@ table 5499 "Aged Report Entity"
         }
         field(5; Before; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Before';
         }
         field(6; "Period 1"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Period 1';
         }
         field(7; "Period 2"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Period 2';
         }
         field(8; "Period 3"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Period 3';
         }
         field(9; After; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'After';
         }
         field(10; Balance; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance';
         }
         field(11; "Period Start Date"; Date)

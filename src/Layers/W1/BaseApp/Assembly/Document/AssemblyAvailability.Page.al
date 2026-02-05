@@ -54,6 +54,7 @@ page 908 "Assembly Availability"
                 }
                 field(AbleToAssemble; QtyAvailToMake)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Able to Assemble';
                     DecimalPlaces = 0 : 5;
@@ -69,6 +70,7 @@ page 908 "Assembly Availability"
                 }
                 field(Inventory; Inventory)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Inventory';
                     DecimalPlaces = 0 : 5;
@@ -86,6 +88,7 @@ page 908 "Assembly Availability"
                 }
                 field(GrossRequirement; GrossRequirement)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Gross Requirement';
                     DecimalPlaces = 0 : 5;
@@ -93,11 +96,13 @@ page 908 "Assembly Availability"
                 }
                 field(ReservedRequirement; ReservedRequirement)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Planning;
                     Caption = 'Reserved Requirement';
                 }
                 field(ScheduledReceipts; ScheduledReceipts)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Assembly;
                     Caption = 'Scheduled Receipts';
                     DecimalPlaces = 0 : 5;
@@ -105,6 +110,7 @@ page 908 "Assembly Availability"
                 }
                 field(ReservedReceipts; ReservedReceipts)
                 {
+                    AutoFormatType = 0;
                     ApplicationArea = Planning;
                     Caption = 'Reserved Receipts';
                 }

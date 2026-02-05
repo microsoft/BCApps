@@ -232,6 +232,7 @@ table 1237 "Transformation Rule"
         }
         field(57; Precision; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Precision';
             DecimalPlaces = 0 : 10;
 

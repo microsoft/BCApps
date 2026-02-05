@@ -17,6 +17,9 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
+/// <summary>
+/// Generates customer statements with transaction history, aging bands, and overdue entries.
+/// </summary>
 report 116 Statement
 {
     DefaultLayout = RDLC;
@@ -1015,6 +1018,11 @@ report 116 Statement
         TempAgingBandBuf.Modify();
     end;
 
+    /// <summary>
+    /// Determines whether to skip a detailed customer ledger entry based on reversed and unapplied settings.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry to check.</param>
+    /// <returns>True if the entry should be skipped, false otherwise.</returns>
     procedure SkipReversedUnapplied(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"): Boolean
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -1032,6 +1040,20 @@ report 116 Statement
         exit(false);
     end;
 
+    /// <summary>
+    /// Initializes the report request with the specified parameters.
+    /// </summary>
+    /// <param name="NewPrintEntriesDue">Whether to print entries due.</param>
+    /// <param name="NewPrintAllHavingEntry">Whether to print all customers with entries.</param>
+    /// <param name="NewPrintAllHavingBal">Whether to print all customers with balance.</param>
+    /// <param name="NewPrintReversedEntries">Whether to print reversed entries.</param>
+    /// <param name="NewPrintUnappliedEntries">Whether to print unapplied entries.</param>
+    /// <param name="NewIncludeAgingBand">Whether to include aging band.</param>
+    /// <param name="NewPeriodLength">The period length for aging.</param>
+    /// <param name="NewDateChoice">The date type to use for aging.</param>
+    /// <param name="NewLogInteraction">Whether to log interaction.</param>
+    /// <param name="NewStartDate">The statement start date.</param>
+    /// <param name="NewEndDate">The statement end date.</param>
     procedure InitializeRequest(NewPrintEntriesDue: Boolean; NewPrintAllHavingEntry: Boolean; NewPrintAllHavingBal: Boolean; NewPrintReversedEntries: Boolean; NewPrintUnappliedEntries: Boolean; NewIncludeAgingBand: Boolean; NewPeriodLength: Text[30]; NewDateChoice: Option; NewLogInteraction: Boolean; NewStartDate: Date; NewEndDate: Date)
     begin
         InitRequestPageDataInternal();
@@ -1056,6 +1078,9 @@ report 116 Statement
         exit(CurrReport.Preview or MailManagement.IsHandlingGetEmailBody());
     end;
 
+    /// <summary>
+    /// Initializes the request page data with default values if not already initialized.
+    /// </summary>
     procedure InitRequestPageDataInternal()
     begin
         if isInitialized then

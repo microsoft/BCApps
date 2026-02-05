@@ -282,6 +282,7 @@ report 99000792 "Work/Machine Center Load"
                     }
                     field(MinCapEfficToPrint; MinCapEfficToPrint)
                     {
+                        AutoFormatType = 0;
                         ApplicationArea = Manufacturing;
                         Caption = 'Load bigger than (pct.)';
                         DecimalPlaces = 0 : 5;

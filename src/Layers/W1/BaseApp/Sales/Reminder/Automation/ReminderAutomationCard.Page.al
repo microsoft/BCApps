@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Reminder;
 using System.Telemetry;
 using System.Threading;
 
+/// <summary>
+/// Provides the card interface for configuring a reminder automation group including actions and scheduling.
+/// </summary>
 page 6752 "Reminder Automation Card"
 {
     PageType = Card;

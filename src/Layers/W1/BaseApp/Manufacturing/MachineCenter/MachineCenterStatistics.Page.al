@@ -36,6 +36,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrCapacity[1]"; WorkCtrCapacity[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Total Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total capacity of this machine center that is planned for the period in question.';
@@ -43,6 +44,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrEffCapacity[1]"; WorkCtrEffCapacity[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Effective Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total capacity multiplied by the efficiency.';
@@ -50,6 +52,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrExpEfficiency[1]"; WorkCtrExpEfficiency[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Efficiency %';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the efficiency % of this machine center that is planned for the period in question.';
@@ -57,6 +60,8 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrExpCost[1]"; WorkCtrExpCost[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total costs of this machine center that are planned for the period in question.';
@@ -69,6 +74,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActNeed[1]"; WorkCtrActNeed[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Need';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the actual need of this machine center for the period in question.';
@@ -76,6 +82,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActEfficiency[1]"; WorkCtrActEfficiency[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Efficiency %';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the efficiency % of this machine center that is planned for the period in question.';
@@ -83,6 +90,8 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActCost[1]"; WorkCtrActCost[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             Caption = 'Total Cost';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the total costs of this machine center that are planned for the period in question.';
@@ -99,6 +108,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrCapacity[2]"; WorkCtrCapacity[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -106,18 +116,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrEffCapacity[2]"; WorkCtrEffCapacity[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpEfficiency[2]"; WorkCtrExpEfficiency[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpCost[2]"; WorkCtrExpCost[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -129,18 +143,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActNeed[2]"; WorkCtrActNeed[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActEfficiency[2]"; WorkCtrActEfficiency[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActCost[2]"; WorkCtrActCost[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -156,6 +174,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrCapacity[3]"; WorkCtrCapacity[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -163,18 +182,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrEffCapacity[3]"; WorkCtrEffCapacity[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpEfficiency[3]"; WorkCtrExpEfficiency[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpCost[3]"; WorkCtrExpCost[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -186,18 +209,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActNeed[3]"; WorkCtrActNeed[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActEfficiency[3]"; WorkCtrActEfficiency[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActCost[3]"; WorkCtrActCost[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -213,6 +240,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrCapacity[4]"; WorkCtrCapacity[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -220,18 +248,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrEffCapacity[4]"; WorkCtrEffCapacity[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpEfficiency[4]"; WorkCtrExpEfficiency[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrExpCost[4]"; WorkCtrExpCost[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -243,18 +275,22 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrActNeed[4]"; WorkCtrActNeed[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActEfficiency[4]"; WorkCtrActEfficiency[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrActCost[4]"; WorkCtrActCost[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 2;
+                            AutoFormatExpression = '';
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -294,6 +330,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrOutputQty[1]"; WorkCtrOutputQty[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Output';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the produced quantity output for the period in question.';
@@ -301,6 +338,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrScrapQty[1]"; WorkCtrScrapQty[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Scrap';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the produced scrap quantity for the period in question.';
@@ -308,6 +346,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrScrapPct[1]"; WorkCtrScrapPct[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Scrap %';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the scrap % for the period in question.';
@@ -320,6 +359,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrRunTime[1]"; WorkCtrRunTime[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Run Time';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the run time for the period in question.';
@@ -327,6 +367,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrStopTime[1]"; WorkCtrStopTime[1])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Stop Time';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the stop time for the period in question.';
@@ -335,6 +376,7 @@ page 99000762 "Machine Center Statistics"
                         {
                             ApplicationArea = Manufacturing;
                             Caption = 'Stop %';
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the stop time in percentage of the total time for the period in question.';
                         }
@@ -350,6 +392,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrOutputQty[2]"; WorkCtrOutputQty[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -357,12 +400,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrScrapQty[2]"; WorkCtrScrapQty[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrScrapPct[2]"; WorkCtrScrapPct[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -374,6 +419,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrRunTime[2]"; WorkCtrRunTime[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -381,12 +427,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrStopTime[2]"; WorkCtrStopTime[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrStopPct[2]"; WorkCtrStopPct[2])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -402,6 +450,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrOutputQty[3]"; WorkCtrOutputQty[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -409,12 +458,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrScrapQty[3]"; WorkCtrScrapQty[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrScrapPct[3]"; WorkCtrScrapPct[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -426,6 +477,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrRunTime[3]"; WorkCtrRunTime[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -433,12 +485,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrStopTime[3]"; WorkCtrStopTime[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrStopPct[3]"; WorkCtrStopPct[3])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -454,6 +508,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrOutputQty[4]"; WorkCtrOutputQty[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -461,12 +516,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrScrapQty[4]"; WorkCtrScrapQty[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrScrapPct[4]"; WorkCtrScrapPct[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
@@ -478,6 +535,7 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrRunTime[4]"; WorkCtrRunTime[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             Caption = 'Capacity';
                             DecimalPlaces = 0 : 5;
                             ToolTip = 'Specifies the amount of work that can be done in a specified time period at this machine center.';
@@ -485,12 +543,14 @@ page 99000762 "Machine Center Statistics"
                         field("WorkCtrStopTime[4]"; WorkCtrStopTime[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }
                         field("WorkCtrStopPct[4]"; WorkCtrStopPct[4])
                         {
                             ApplicationArea = Manufacturing;
+                            AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = false;
                         }

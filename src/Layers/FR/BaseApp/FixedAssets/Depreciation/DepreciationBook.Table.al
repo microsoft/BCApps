@@ -155,6 +155,7 @@ table 5611 "Depreciation Book"
         }
         field(20; "Default Exchange Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Exchange Rate';
             DecimalPlaces = 4 : 4;
             MinValue = 0;
@@ -191,12 +192,14 @@ table 5611 "Depreciation Book"
         field(28; "Default Final Rounding Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Final Rounding Amount';
             MinValue = 0;
         }
         field(29; "Default Ending Book Value"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Ending Book Value';
             MinValue = 0;
         }
@@ -505,6 +508,11 @@ table 5611 "Depreciation Book"
     procedure IsDerogatoryBook(): Boolean
     begin
         exit("Derogatory Calculation" <> '');
+    end;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        exit('');
     end;
 }
 

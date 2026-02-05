@@ -1,0 +1,26 @@
+[
+    {
+        "bug":  "488813",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "CreateContainerSharedKeyTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "CreateContainerFailedTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "ListContainersTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "LeaseContainerTest"
+    }
+]

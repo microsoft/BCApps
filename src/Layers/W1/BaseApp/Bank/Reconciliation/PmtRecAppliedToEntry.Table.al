@@ -62,6 +62,7 @@ table 185 "Pmt. Rec. Applied-to Entry"
         }
         field(7; "Amount"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
     }

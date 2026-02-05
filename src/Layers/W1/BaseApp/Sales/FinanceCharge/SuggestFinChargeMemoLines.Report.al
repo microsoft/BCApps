@@ -7,6 +7,9 @@ namespace Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Populates finance charge memo lines from overdue customer ledger entries based on finance charge terms.
+/// </summary>
 report 192 "Suggest Fin. Charge Memo Lines"
 {
     Caption = 'Suggest Fin. Charge Memo Lines';

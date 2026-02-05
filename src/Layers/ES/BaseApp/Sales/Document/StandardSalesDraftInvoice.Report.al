@@ -29,6 +29,9 @@ using System.Globalization;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Generates a draft invoice document for unposted sales invoices.
+/// </summary>
 report 1303 "Standard Sales - Draft Invoice"
 {
     Caption = 'Draft Invoice';

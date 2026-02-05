@@ -36,42 +36,49 @@ table 12114 "Withholding Tax Payment"
         field(20; "Total Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Total Amount';
             Editable = false;
         }
         field(21; "Base - Excluded Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Base - Excluded Amount';
             Editable = false;
         }
         field(22; "Non Taxable Amount By Treaty"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount By Treaty';
             Editable = false;
         }
         field(23; "Non Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Non Taxable Amount';
             Editable = false;
         }
         field(24; "Taxable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Taxable Amount';
             Editable = false;
         }
         field(25; "Withholding Tax Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Withholding Tax Amount';
             Editable = false;
         }
         field(26; "Payable Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Payable Amount';
             Editable = false;
         }

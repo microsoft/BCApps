@@ -7,6 +7,9 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores user-specific favorite customers for quick access on the Role Center.
+/// </summary>
 table 9150 "My Customer"
 {
     Caption = 'My Customer';
@@ -14,6 +17,9 @@ table 9150 "My Customer"
 
     fields
     {
+        /// <summary>
+        /// Specifies the ID of the user who added this customer to their favorites list.
+        /// </summary>
         field(1; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -21,6 +27,9 @@ table 9150 "My Customer"
             TableRelation = User."User Name";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies the number of the customer that appears in the user's favorites list on the Role Center.
+        /// </summary>
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
@@ -33,21 +42,31 @@ table 9150 "My Customer"
                 SetCustomerFields();
             end;
         }
+        /// <summary>
+        /// Stores the customer's name for display purposes in the favorites list.
+        /// </summary>
         field(3; Name; Text[100])
         {
             Caption = 'Name';
             Editable = false;
             ToolTip = 'Specifies the name of the customer.';
         }
+        /// <summary>
+        /// Stores the customer's phone number for quick reference in the favorites list.
+        /// </summary>
         field(4; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
             Editable = false;
             ToolTip = 'Specifies the customer''s phone number.';
         }
+        /// <summary>
+        /// Contains the customer's current balance in local currency, calculated from customer ledger entries.
+        /// </summary>
         field(5; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("Customer No.")));
             Caption = 'Balance (LCY)';
             Editable = false;
@@ -74,6 +93,9 @@ table 9150 "My Customer"
     {
     }
 
+    /// <summary>
+    /// Populates the Name and Phone No. fields from the related Customer record.
+    /// </summary>
     procedure SetCustomerFields()
     var
         Customer: Record Customer;

@@ -348,6 +348,7 @@ table 83 "Item Journal Line"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -405,6 +406,7 @@ table 83 "Item Journal Line"
         }
         field(15; "Invoiced Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -412,6 +414,7 @@ table 83 "Item Journal Line"
         field(16; "Unit Amount"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Amount';
 
             trigger OnValidate()
@@ -471,6 +474,7 @@ table 83 "Item Journal Line"
         field(17; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost';
 
             trigger OnValidate()
@@ -519,6 +523,7 @@ table 83 "Item Journal Line"
         field(18; Amount; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Amount';
 
             trigger OnValidate()
@@ -540,6 +545,7 @@ table 83 "Item Journal Line"
         field(22; "Discount Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Discount Amount';
             Editable = false;
         }
@@ -665,6 +671,7 @@ table 83 "Item Journal Line"
         }
         field(37; "Indirect Cost %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -810,6 +817,7 @@ table 83 "Item Journal Line"
         }
         field(53; "Qty. (Calculated)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Calculated)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -821,10 +829,13 @@ table 83 "Item Journal Line"
         }
         field(54; "Qty. (Phys. Inventory)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. (Phys. Inventory)';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
+            var
+                SkipQuantityCheck: Boolean;
             begin
                 TestField("Phys. Inventory", true);
 
@@ -838,13 +849,16 @@ table 83 "Item Journal Line"
 
                 PhysInvtEntered := true;
                 Quantity := 0;
-                if "Qty. (Phys. Inventory)" >= "Qty. (Calculated)" then begin
-                    Validate("Entry Type", "Entry Type"::"Positive Adjmt.");
-                    Validate(Quantity, "Qty. (Phys. Inventory)" - "Qty. (Calculated)");
-                end else begin
-                    Validate("Entry Type", "Entry Type"::"Negative Adjmt.");
-                    Validate(Quantity, "Qty. (Calculated)" - "Qty. (Phys. Inventory)");
-                end;
+                SkipQuantityCheck := false;
+                OnValidateQtyPhysInventoryOnBeforeCheckQuantity(Rec, xRec, SkipQuantityCheck);
+                if not SkipQuantityCheck then
+                    if "Qty. (Phys. Inventory)" >= "Qty. (Calculated)" then begin
+                        Validate("Entry Type", "Entry Type"::"Positive Adjmt.");
+                        Validate(Quantity, "Qty. (Phys. Inventory)" - "Qty. (Calculated)");
+                    end else begin
+                        Validate("Entry Type", "Entry Type"::"Negative Adjmt.");
+                        Validate(Quantity, "Qty. (Calculated)" - "Qty. (Phys. Inventory)");
+                    end;
                 PhysInvtEntered := false;
             end;
         }
@@ -899,6 +913,7 @@ table 83 "Item Journal Line"
         }
         field(68; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             CalcFormula = sum("Reservation Entry".Quantity where("Source ID" = field("Journal Template Name"),
                                                                   "Source Ref. No." = field("Line No."),
@@ -979,6 +994,7 @@ table 83 "Item Journal Line"
         }
         field(101; "Applies-to Rem. Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Applies-to Remaining Quantity';
             Editable = false;
             FieldClass = FlowField;
@@ -1133,6 +1149,7 @@ table 83 "Item Journal Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1231,6 +1248,7 @@ table 83 "Item Journal Line"
         }
         field(5410; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -1240,6 +1258,7 @@ table 83 "Item Journal Line"
         }
         field(5411; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
             InitValue = 0;
             DecimalPlaces = 0 : 5;
@@ -1249,6 +1268,7 @@ table 83 "Item Journal Line"
         }
         field(5413; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1267,12 +1287,14 @@ table 83 "Item Journal Line"
         }
         field(5415; "Invoiced Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Invoiced Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5468; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             CalcFormula = sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Journal Template Name"),
                                                                            "Source Ref. No." = field("Line No."),
@@ -1386,6 +1408,7 @@ table 83 "Item Journal Line"
         field(5802; "Inventory Value (Calculated)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inventory Value (Calculated)';
             Editable = false;
 
@@ -1399,6 +1422,7 @@ table 83 "Item Journal Line"
         field(5803; "Inventory Value (Revalued)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Inventory Value (Revalued)';
             MinValue = 0;
 
@@ -1477,6 +1501,7 @@ table 83 "Item Journal Line"
         field(5809; "Unit Cost (Calculated)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (Calculated)';
             Editable = false;
 
@@ -1488,6 +1513,7 @@ table 83 "Item Journal Line"
         field(5810; "Unit Cost (Revalued)"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Unit Cost (Revalued)';
             MinValue = 0;
 
@@ -1505,6 +1531,7 @@ table 83 "Item Journal Line"
         field(5811; "Applied Amount"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Applied Amount';
             Editable = false;
         }
@@ -1609,6 +1636,7 @@ table 83 "Item Journal Line"
         }
         field(5859; "Qty. per Cap. Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Cap. Unit of Measure';
             DecimalPlaces = 0 : 5;
         }
@@ -1716,11 +1744,13 @@ table 83 "Item Journal Line"
         }
         field(28087; "Vendor Exchange Rate (ACY)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Vendor Exchange Rate (ACY)';
             DecimalPlaces = 0 : 15;
         }
         field(99000755; "Overhead Rate"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
 
@@ -1738,61 +1768,73 @@ table 83 "Item Journal Line"
         field(99000756; "Single-Level Material Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Cost';
         }
         field(99000757; "Single-Level Capacity Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Capacity Cost';
         }
         field(99000758; "Single-Level Subcontrd. Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Subcontrd. Cost';
         }
         field(99000759; "Single-Level Cap. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Cap. Ovhd Cost';
         }
         field(99000760; "Single-Level Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Mfg. Ovhd Cost';
         }
         field(99000761; "Rolled-up Material Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Cost';
         }
         field(99000762; "Rolled-up Capacity Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Capacity Cost';
         }
         field(99000763; "Rolled-up Subcontracted Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Subcontracted Cost';
         }
         field(99000764; "Rolled-up Mfg. Ovhd Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Mfg. Ovhd Cost';
         }
         field(99000765; "Rolled-up Cap. Overhead Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Overhead Cost';
         }
         field(99000766; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Single-Level Material Non-Inventory Cost';
         }
         field(99000767; "Rolled-up Mat. Non-Invt. Cost"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             Caption = 'Rolled-up Material Non-Inventory Cost';
         }
     }
@@ -2337,6 +2379,7 @@ table 83 "Item Journal Line"
     /// </summary>
     procedure OpenItemTrackingLines(IsReclass: Boolean)
     begin
+        OnBeforeOpenItemTrackingLines(Rec, IsReclass);
         ItemJnlLineReserve.CallItemTracking(Rec, IsReclass);
     end;
 
@@ -5204,9 +5247,19 @@ table 83 "Item Journal Line"
     local procedure OnCreateDimOnTransferOtherTableId(var ItemJournalLine: Record "Item Journal Line"; TableId: Integer)
     begin
     end;
-    
+
     [IntegrationEvent(false, false)]
     local procedure OnCreateNewDimOnBeforeUpdateGlobalDimFromDimSetID(var ItemJournalLine: Record "Item Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenItemTrackingLines(var ItemJournalLine: Record "Item Journal Line"; IsReclass: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateQtyPhysInventoryOnBeforeCheckQuantity(var ItemJournalLine: Record "Item Journal Line"; xItemJournalLine: Record "Item Journal Line"; var SkipQuantityCheck: Boolean)
     begin
     end;
 }

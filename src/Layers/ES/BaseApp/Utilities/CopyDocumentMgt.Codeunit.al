@@ -1892,6 +1892,8 @@ codeunit 6620 "Copy Document Mgt."
             ToSalesLine.Validate(Type, FromSalesLine.Type);
             ToSalesLine.Description := FromSalesLine.Description;
             ToSalesLine.Validate("Description 2", FromSalesLine."Description 2");
+            if FromSalesLine.Type = FromSalesLine.Type::Item then
+                ToSalesLine.ExcludeDefaultItemQuantity(true);
             OnUpdateSalesLine(ToSalesLine, FromSalesLine);
 
             if (FromSalesLine.Type <> FromSalesLine.Type::" ") and (FromSalesLine."No." <> '') then begin
@@ -1904,6 +1906,9 @@ codeunit 6620 "Copy Document Mgt."
                         ToSalesLine.Validate("No.", FromSalesLine."No.");
                 end else
                     ToSalesLine.Validate("No.", FromSalesLine."No.");
+
+                if FromSalesLine.Type = FromSalesLine.Type::Item then
+                    ToSalesLine.ExcludeDefaultItemQuantity(false);
 
                 OnRecalculateSalesLineOnAfterValidateNo(ToSalesLine, FromSalesLine);
 

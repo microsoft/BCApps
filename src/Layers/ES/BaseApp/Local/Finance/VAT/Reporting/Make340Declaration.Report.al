@@ -177,7 +177,8 @@ report 10743 "Make 340 Declaration"
                                                         Customer."VAT Registration No." := SalesCrMemoHeader."VAT Registration No.";
                                                         exit;
                                                     end
-                                                end else begin;
+                                                end else begin
+                                                    ;
                                                     ShouldExit := false;
                                                     OnGetCustomerDataFromServiceCrMemo(VATEntry, Customer, ShouldExit);
                                                     if ShouldExit then
@@ -376,6 +377,8 @@ report 10743 "Make 340 Declaration"
                     field(MinPaymentAmount; MinPaymentAmount)
                     {
                         ApplicationArea = Basic, Suite;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = '';
                         Caption = 'Min. Payment Amount';
                         ToolTip = 'Specifies the amount that you have received in cash. The amount that you have selected determines the sum of customer entries in the report. If the total invoiced amount for a customer for each year is less than the amount specified in the field, then the sum of the customer entries is not included in the report. If the total invoiced amount for a customer for each year is greater than the amount specified in the field, then the sum of customer entries is included in the report. When you export the data to a declaration file, the Amount Received in Cash field in the file contains the accumulated amount of customer entries in one line per year.';
 
@@ -926,7 +929,7 @@ report 10743 "Make 340 Declaration"
         CountryCode := Customer."Country/Region Code";
         CustVATNumber := GetVATNumber(Customer."Country/Region Code", Customer."VAT Registration No.");
         InitCountryResidentInfo(Customer."Country/Region Code", Customer."VAT Registration No.");
-        case VATEntry."Document Type" of 
+        case VATEntry."Document Type" of
             VATEntry."Document Type"::"Credit Memo":
                 begin
                     OperationDateText := FormatDate(VATEntry."Posting Date");

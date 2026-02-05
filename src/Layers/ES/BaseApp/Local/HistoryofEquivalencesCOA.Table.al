@@ -48,6 +48,7 @@ table 10724 "History of Equivalences COA"
         }
         field(7; Balance; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Balance';
         }
         field(8; "Balance date"; Date)
@@ -56,10 +57,12 @@ table 10724 "History of Equivalences COA"
         }
         field(9; "Old Acc. Pre Impl. Balance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Old Acc. Pre Impl. Balance';
         }
         field(10; "New Acc. Post Impl. Balance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'New Acc. Post Impl. Balance';
         }
     }
@@ -77,5 +80,5 @@ table 10724 "History of Equivalences COA"
     }
 }
 
- 
+
 #endif
