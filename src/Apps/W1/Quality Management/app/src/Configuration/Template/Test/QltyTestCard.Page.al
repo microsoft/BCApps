@@ -42,6 +42,21 @@ page 20479 "Qlty. Test Card"
                     AboutText = 'The friendly description for the test. You can enter a maximum of 100 characters, both numbers and letters.';
                     ShowMandatory = true;
                 }
+                field("Expression Formula"; Rec."Expression Formula")
+                {
+                    AboutTitle = 'Expression Formula';
+                    AboutText = 'Used with expression test value types, this contains the formula for the expression content.';
+                    MultiLine = true;
+                    Editable = IsExpressionFormulaEditable;
+
+                    trigger OnAssistEdit()
+                    begin
+                        if IsExpressionFormulaEditable then
+                            Rec.AssistEditExpressionFormula()
+                        else
+                            Message(StrSubstNo(NotEditableLbl, Rec.FieldCaption(Rec."Expression Formula"), Rec.FieldCaption(Rec."Test Value Type")));
+                    end;
+                }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
                     AboutTitle = 'Test Value Type';
@@ -548,6 +563,8 @@ page 20479 "Qlty. Test Card"
         IsLookupField: Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
+        IsExpressionFormulaEditable: Boolean;
+        NotEditableLbl: Label 'The %1 field is not editable for the selected %2.', Comment = '%1 = Expression Formula, %2 = Test Value Type';
 
     trigger OnOpenPage()
     begin
@@ -601,6 +618,8 @@ page 20479 "Qlty. Test Card"
         Visible10 := MatrixVisibleState[10];
 
         EditableResult := (Rec.Code <> '') and (CurrPage.Editable) and (Visible1) and (MatrixArrayCaptionSet[1] <> '');
+
+        IsExpressionFormulaEditable := (Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Text Expression");
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
