@@ -48,6 +48,32 @@ page 8066 "Billing Templates"
                 {
                     ToolTip = 'Specifies the option for grouping contract billing lines.';
                 }
+                field("Customer Document per"; Rec."Customer Document per")
+                {
+                }
+                field("Posting Date Formula"; Rec."Posting Date Formula")
+                {
+                }
+                field("Document Date Formula"; Rec."Document Date Formula")
+                {
+                }
+                field(Automation; Rec.Automation)
+                {
+                }
+                field("Minutes between runs"; Rec."Minutes between runs")
+                {
+                }
+                field("Batch Recurrent Job Id"; Rec."Batch Recurrent Job Id")
+                {
+                    Visible = false;
+                    trigger OnAssistEdit()
+                    begin
+                        Rec.LookupJobEntryQueue();
+                    end;
+                }
+                field("Batch Rec. Job Description"; Rec."Batch Rec. Job Description")
+                {
+                }
             }
         }
     }
@@ -79,6 +105,7 @@ page 8066 "Billing Templates"
                     BillingTemplate := Rec;
                     BillingTemplate.Code := NewCode;
                     BillingTemplate.Description := CopyStr(Rec.Description, 1, MaxStrLen(Rec.Description) - StrLen(CopyTxt)) + CopyTxt;
+                    BillingTemplate.ClearAutomationFields();
                     BillingTemplate.Insert(false);
                     Rec := BillingTemplate;
                 end;

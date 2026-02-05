@@ -113,12 +113,22 @@ table 8070 "Subscription Billing Cue"
             Editable = false;
             FieldClass = FlowFilter;
         }
+#if not CLEANSCHEMA30
         field(21; "Job No. Filter"; Code[20])
         {
             Caption = 'Date Filter';
             Editable = false;
             FieldClass = FlowFilter;
+            ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
+#if not CLEAN27
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
+#endif
         field(22; Overdue; Integer)
         {
             Caption = 'Overdue';
@@ -129,6 +139,14 @@ table 8070 "Subscription Billing Cue"
         {
             CalcFormula = count("Billing Line" where("Document No." = filter('')));
             Caption = 'Not invoiced';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(30; "Errors Automated Billing"; Integer)
+        {
+            CalcFormula = count("Contract Billing Err. Log");
+            Caption = 'Errors Automated Contract Billing';
+            ToolTip = 'Specifies the number of errors that occurred during the automated contract billing process.';
             Editable = false;
             FieldClass = FlowField;
         }
