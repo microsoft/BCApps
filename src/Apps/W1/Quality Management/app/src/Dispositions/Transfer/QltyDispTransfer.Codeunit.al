@@ -118,7 +118,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
     begin
         TransferLine."Document No." := TransferHeader."No.";
-        TransferLine."Line No." := 10000;
+        TransferLine."Line No." := DefaultLineNoIncrement();
         TransferLine.Validate("Item No.", QltyInspectionHeader."Source Item No.");
         if QltyInspectionHeader."Source Variant Code" <> '' then
             TransferLine.Validate("Variant Code", QltyInspectionHeader."Source Variant Code");
@@ -135,6 +135,11 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
 
         Created := true;
         OnAfterCreateTransferLineWithOutboundTracking(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, TransferHeader, TransferLine, Created);
+    end;
+
+    local procedure DefaultLineNoIncrement(): Integer
+    begin
+        exit(10000);
     end;
 
     /// <summary>

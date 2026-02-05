@@ -224,7 +224,7 @@ codeunit 20402 "Qlty. Auto Configure"
                 if not NoSeriesLine.FindFirst() then begin
                     NoSeriesLine.Init();
                     NoSeriesLine."Series Code" := NoSeries.Code;
-                    NoSeriesLine."Line No." := 10000;
+                    NoSeriesLine."Line No." := GetDefaultLineNoIncrement();
                     NoSeriesLine.Validate("Starting No.", DefaultSeriesStartingNoTok);
                     DidSomething := NoSeriesLine.Insert();
                 end else
@@ -1777,5 +1777,10 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSrcFldConf."Priority Test" := QltyConfigTestPriority;
             QltyInspectSrcFldConf.Insert();
         end;
+    end;
+
+    local procedure GetDefaultLineNoIncrement(): Integer
+    begin
+        exit(10000);
     end;
 }

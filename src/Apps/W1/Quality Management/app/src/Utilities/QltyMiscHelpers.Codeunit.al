@@ -95,7 +95,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         QltyManagementSetup: Record "Qlty. Management Setup";
         IsHandled: Boolean;
     begin
-        ResultRowsCount := 100;
+        ResultRowsCount := DefaultMaxRowsFieldLookup();
         OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, IsHandled);
         if IsHandled then
             exit;
@@ -105,6 +105,11 @@ codeunit 20599 "Qlty. Misc Helpers"
 
         if QltyManagementSetup."Max Rows Field Lookups" > 0 then
             ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
+    end;
+
+    local procedure DefaultMaxRowsFieldLookup(): Integer
+    begin
+        exit(100);
     end;
 
     /// <summary>
@@ -319,8 +324,8 @@ codeunit 20599 "Qlty. Misc Helpers"
             MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
-            if MaxCountRecords > 1000 then
-                MaxCountRecords := 1000;
+            if MaxCountRecords > MaxRecordsFetchLimit() then
+                MaxCountRecords := MaxRecordsFetchLimit();
         end;
 
         RemainingCountRecordsToAdd := MaxCountRecords;
@@ -330,7 +335,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TableFilter <> '' then
             RecordRefToFetch.SetView(TableFilter);
 
-        LoopSafety := 1000;
+        LoopSafety := MaxRecordsFetchLimit();
         if RecordRefToFetch.FindSet() then
             repeat
                 LoopSafety -= 1;
@@ -359,6 +364,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             until (RecordRefToFetch.Next() = 0) or (RemainingCountRecordsToAdd <= 0) or (LoopSafety <= 0);
 
         RecordRefToFetch.Close();
+    end;
+
+    local procedure MaxRecordsFetchLimit(): Integer
+    begin
+        exit(1000);
     end;
 
     /// <summary>

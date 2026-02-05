@@ -144,7 +144,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         if WhseWorksheetName.IsEmpty() then
             Error(NoWhseWkshErr, FromLocationCode);
 
-        LineNo := 10000;
+        LineNo := DefaultLineNoIncrement();
         WhseActivitySortMethod := WhseActivitySortMethod::None;
         WkshWhseWorksheetLine.SetUpNewLine(WhseWkshTemplateName, WhseWkshName, FromLocationCode, WhseActivitySortMethod, LineNo);
         WkshWhseWorksheetLine.Validate("Item No.", QltyInspectionHeader."Source Item No.");
@@ -177,6 +177,11 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         end;
         WorksheetLineCreated := true;
         OnAfterCreateWarehouseWorksheetLine(QltyInspectionHeader, FromLocationCode, FromBinCode, ToBinCode, Quantity, WorksheetLineCreated, TempWarehouseEntry, WkshWhseWorksheetLine);
+    end;
+
+    local procedure DefaultLineNoIncrement(): Integer
+    begin
+        exit(10000);
     end;
 
     #region Event Subscribers
