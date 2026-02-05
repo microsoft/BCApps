@@ -1853,7 +1853,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block assembly consumption
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Assembly Consumption" := ToLoadQltyInspectionResult."Lot Allow Assembly Consumption"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Finished inspection created for the component lot with blocking result
@@ -1927,7 +1927,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block purchase
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Purchase" := ToLoadQltyInspectionResult."Lot Allow Purchase"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Purchase" := ToLoadQltyInspectionResult."Item Tracking Allow Purchase"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection assigned the blocking result
@@ -2081,7 +2081,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block assembly output
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Assembly Output" := ToLoadQltyInspectionResult."Lot Allow Assembly Output"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2176,7 +2176,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Original inspection marked as finished with blocking result
@@ -2258,7 +2258,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Inspection marked as finished with blocking result
@@ -2350,7 +2350,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block inventory put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA" := ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2461,7 +2461,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block inventory movement
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Invt. Movement" := ToLoadQltyInspectionResult."Lot Allow Invt. Movement"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov." := ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2599,7 +2599,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block movement
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Movement" := ToLoadQltyInspectionResult."Lot Allow Movement"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Movement" := ToLoadQltyInspectionResult."Item Tracking Allow Movement"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result

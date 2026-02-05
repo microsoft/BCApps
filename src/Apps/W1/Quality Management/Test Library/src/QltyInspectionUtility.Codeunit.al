@@ -619,19 +619,19 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     internal procedure ClearResultLotSettings(var QltyInspectionResult: Record "Qlty. Inspection Result")
     begin
-        QltyInspectionResult."Lot Allow Sales" := QltyInspectionResult."Lot Allow Sales"::Allow;
-        QltyInspectionResult."Lot Allow Assembly Consumption" := QltyInspectionResult."Lot Allow Assembly Consumption"::Allow;
-        QltyInspectionResult."Lot Allow Assembly Output" := QltyInspectionResult."Lot Allow Assembly Output"::Allow;
-        QltyInspectionResult."Lot Allow Consumption" := QltyInspectionResult."Lot Allow Consumption"::Allow;
-        QltyInspectionResult."Lot Allow Invt. Movement" := QltyInspectionResult."Lot Allow Invt. Movement"::Allow;
-        QltyInspectionResult."Lot Allow Invt. Pick" := QltyInspectionResult."Lot Allow Invt. Pick"::Allow;
-        QltyInspectionResult."Lot Allow Invt. Put-Away" := QltyInspectionResult."Lot Allow Invt. Put-Away"::Allow;
-        QltyInspectionResult."Lot Allow Movement" := QltyInspectionResult."Lot Allow Movement"::Allow;
-        QltyInspectionResult."Lot Allow Output" := QltyInspectionResult."Lot Allow Output"::Allow;
-        QltyInspectionResult."Lot Allow Pick" := QltyInspectionResult."Lot Allow Pick"::Allow;
-        QltyInspectionResult."Lot Allow Purchase" := QltyInspectionResult."Lot Allow Purchase"::Allow;
-        QltyInspectionResult."Lot Allow Put-Away" := QltyInspectionResult."Lot Allow Put-Away"::Allow;
-        QltyInspectionResult."Lot Allow Transfer" := QltyInspectionResult."Lot Allow Transfer"::Allow;
+        QltyInspectionResult."Item Tracking Allow Sales" := QltyInspectionResult."Item Tracking Allow Sales"::Allow;
+        QltyInspectionResult."Item Tracking Allow Asm. Cons." := QltyInspectionResult."Item Tracking Allow Asm. Cons."::Allow;
+        QltyInspectionResult."Item Tracking Allow Asm. Out." := QltyInspectionResult."Item Tracking Allow Asm. Out."::Allow;
+        QltyInspectionResult."Item Tracking Allow Consump." := QltyInspectionResult."Item Tracking Allow Consump."::Allow;
+        QltyInspectionResult."Item Tracking Allow Invt. Mov." := QltyInspectionResult."Item Tracking Allow Invt. Mov."::Allow;
+        QltyInspectionResult."Item Tracking Allow Invt. Pick" := QltyInspectionResult."Item Tracking Allow Invt. Pick"::Allow;
+        QltyInspectionResult."Item Tracking Allow Invt. PA" := QltyInspectionResult."Item Tracking Allow Invt. PA"::Allow;
+        QltyInspectionResult."Item Tracking Allow Movement" := QltyInspectionResult."Item Tracking Allow Movement"::Allow;
+        QltyInspectionResult."Item Tracking Allow Output" := QltyInspectionResult."Item Tracking Allow Output"::Allow;
+        QltyInspectionResult."Item Tracking Allow Pick" := QltyInspectionResult."Item Tracking Allow Pick"::Allow;
+        QltyInspectionResult."Item Tracking Allow Purchase" := QltyInspectionResult."Item Tracking Allow Purchase"::Allow;
+        QltyInspectionResult."Item Tracking Allow Put-Away" := QltyInspectionResult."Item Tracking Allow Put-Away"::Allow;
+        QltyInspectionResult."Item Tracking Allow Transfer" := QltyInspectionResult."Item Tracking Allow Transfer"::Allow;
         QltyInspectionResult.Modify();
     end;
 

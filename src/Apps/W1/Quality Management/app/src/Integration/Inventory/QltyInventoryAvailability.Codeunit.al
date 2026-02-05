@@ -39,7 +39,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
 
     /// <summary>
-    /// GetCurrentLocationOfTrackedInventory gets the current location of the item+lot defined on the inspection.
+    /// GetCurrentLocationOfTrackedInventory gets the current location of the Item+Item tracking defined on the inspection.
     /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
     /// </summary>
     /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
@@ -213,6 +213,7 @@ codeunit 20445 "Qlty. Inventory Availability"
                         if ItemLedgerEntry."Package No." <> '' then
                             if ItemTrackingCode."Package Warehouse Tracking" then
                                 WarehouseEntry.SetRange("Package No.", ItemLedgerEntry."Package No.");
+
                         WarehouseEntry.SetRange("Source No.", ItemLedgerEntry."Document No.");
                         WarehouseEntry.SetRange("Registering Date", ItemLedgerEntry."Posting Date");
                         WarehouseEntry.SetRange("Quantity", ItemLedgerEntry."Quantity");
