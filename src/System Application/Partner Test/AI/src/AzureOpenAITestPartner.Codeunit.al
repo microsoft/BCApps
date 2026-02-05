@@ -29,7 +29,6 @@ codeunit 139021 "Azure OpenAI Test Partner"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MockHandlerForAccountVerification')]
     procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -107,7 +106,6 @@ codeunit 139021 "Azure OpenAI Test Partner"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MockHandlerForAccountVerification')]
     procedure GenerateChatCompletionBillingTypeAuthorizationErr()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -143,21 +141,5 @@ codeunit 139021 "Azure OpenAI Test Partner"
             exit;
 
         CopilotCapability.RegisterCapability(Capability, Availability, BillingType, LearMoreUrlLbl);
-    end;
-
-    // HttpClient Mock Handler
-    [HttpClientHandler]
-    procedure MockHandlerForAccountVerification(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
-    begin
-        if (Request.RequestType = HttpRequestType::Get) and ((Request.Path = 'https://account1.openai.azure.com/openai/models') or
-            (Request.Path = 'https://account2.openai.azure.com/openai/models')) then begin
-            // Populate the mocked response with 200 Success
-            response.HttpStatusCode := 200;
-            response.ReasonPhrase := 'Success';
-
-            exit(false); // Use the mocked response
-        end;
-
-        exit(true); // fall through and issue the original request in case of other requests
     end;
 }
