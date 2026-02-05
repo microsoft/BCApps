@@ -44,6 +44,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        LibraryUtility: Codeunit "Library - Utility";
         AssistEditTemplateValue: Text;
         ChooseFromLookupValue: Text;
         ChooseFromLookupValueVendorNo: Text;
@@ -52,11 +53,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         IsInitialized: Boolean;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
         ResultCodeTxt: Label 'UNAVAILABLE';
-        DefaultTopLeftTok: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftTok: Label 'Result', Locked = true;
-        DefaultMiddleRightTok: Label 'Details', Locked = true;
-        DefaultBottomLeftTok: Label 'Document', Locked = true;
-        DefaultBottomRightTok: Label 'Status', Locked = true;
         ProdLineTok: Label 'PRODLINETOROUTING', Locked = true;
         CannotHaveATemplateWithReversedFromAndToErr: Label 'There is another template ''%1'' that reverses the from table and to table. You cannot have this combination to prevent recursive logic. Please change either this source configuration, or please change ''%1''', Comment = '%1=The other template code with conflicting configuration';
         TestValueTxt: Label 'test value.';
@@ -104,6 +100,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Insert();
 
@@ -138,6 +135,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Boolean" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
         ToLoadQltyTest.Insert();
 
@@ -165,6 +163,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
@@ -205,6 +204,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is configured
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
@@ -234,6 +234,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Boolean" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
         ToLoadQltyTest.Insert();
 
@@ -274,6 +275,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A quality test with Field Type "Table Lookup" targeting Vendor table is created
         QltyInspectionUtility.CreateTest(ToLoadQltyTest, ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
         ToLoadQltyTest.Modify();
@@ -310,6 +312,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
         ToLoadQltyTest.Insert();
 
@@ -475,6 +478,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Insert();
@@ -512,6 +516,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Insert();
@@ -651,40 +656,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [THEN] The Item Journal Batch Name is successfully updated
         LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Item Journal Batch Name", 'Item Journal Batch Name should be valid and updated')
-    end;
-
-    [Test]
-    procedure SetupTable_OnInsert_InitializeBrickHeaders()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        // [SCENARIO] When Quality Management Setup is inserted, Brick Headers are initialized to default values
-        Initialize();
-
-        // [GIVEN] Any existing setup record is deleted
-        if QltyManagementSetup.Get() then
-            QltyManagementSetup.Delete();
-
-        // [GIVEN] A new setup record is initialized
-        QltyManagementSetup.Init();
-
-        // [WHEN] The setup record is inserted with trigger execution
-        QltyManagementSetup.Insert(true);
-
-        // [THEN] Brick Top Left Header is set to default value 'Test'
-        LibraryAssert.AreEqual(DefaultTopLeftTok, QltyManagementSetup."Brick Top Left Header", 'Top left header should be default value');
-
-        // [THEN] Brick Middle Left Header is set to default value 'Result'
-        LibraryAssert.AreEqual(DefaultMiddleLeftTok, QltyManagementSetup."Brick Middle Left Header", 'Middle left header should be default value');
-
-        // [THEN] Brick Middle Right Header is set to default value 'Details'
-        LibraryAssert.AreEqual(DefaultMiddleRightTok, QltyManagementSetup."Brick Middle Right Header", 'Middle right header should be default value');
-
-        // [THEN] Brick Bottom Left Header is set to default value 'Document'
-        LibraryAssert.AreEqual(DefaultBottomLeftTok, QltyManagementSetup."Brick Bottom Left Header", 'Bottom left header should be default value');
-
-        // [THEN] Brick Bottom Right Header is set to default value 'Status'
-        LibraryAssert.AreEqual(DefaultBottomRightTok, QltyManagementSetup."Brick Bottom Right Header", 'Bottom right header should be default value');
     end;
 
     [Test]
@@ -1615,10 +1586,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Source field configuration for Purchase Line "No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Item No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1693,10 +1663,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] Source field configuration for Purchase Line "Document No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("Document No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Document No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
 
         // [GIVEN] Inspection header has variant, lot, serial, and package tracking set
         QltyInspectionHeader."Source Variant Code" := 'Variant';

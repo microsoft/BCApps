@@ -17,7 +17,7 @@ report 20411 "Qlty. Create Purchase Return"
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AllowScheduling = false;
-    Description = 'Use this to create a Purchase Return Order from a Quality Inspection.';
+    ToolTip = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
     dataset
     {
