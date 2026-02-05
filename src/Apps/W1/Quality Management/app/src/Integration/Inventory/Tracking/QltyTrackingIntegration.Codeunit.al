@@ -49,7 +49,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Lot No.", TrackingSpecification."Lot No.");
         QltyInspectionHeader.SetRange("Source Serial No.", TrackingSpecification."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", TrackingSpecification."Package No.");
-        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, Handled);
+        OnCheckItemTrackingOnAfterSetFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
@@ -197,8 +197,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Lot No.", WarehouseActivityLine."Lot No.");
         QltyInspectionHeader.SetRange("Source Serial No.", WarehouseActivityLine."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", WarehouseActivityLine."Package No.");
-
-        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionHeader, Handled);
+        OnCheckWhseItemTrackingOnAfterSetFilters(WarehouseActivityLine, QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
@@ -437,7 +436,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnCheckItemTrackingOnAfterSetFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
@@ -465,7 +464,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnCheckWhseItemTrackingOnAfterSetFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 

@@ -78,6 +78,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(LocationFilterErr, GetLastErrorText());
                         end;
@@ -95,6 +96,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(FromBinFilterErr, GetLastErrorText());
                         end;
@@ -112,6 +114,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(ToBinFilterErr, GetLastErrorText());
                         end;
@@ -134,6 +137,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(RoutingNoFilterErr, GetLastErrorText());
                         end;
@@ -151,6 +155,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(OperationNoErr, GetLastErrorText());
                         end;
@@ -168,6 +173,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(WorkCenterNoErr, GetLastErrorText());
                         end;
@@ -185,6 +191,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(MachineNoFilterErr, GetLastErrorText());
                         end;
@@ -234,6 +241,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -251,6 +259,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -268,6 +277,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;

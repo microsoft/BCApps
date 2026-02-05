@@ -833,7 +833,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Vendor was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedVendor(var Vendor: Record Vendor; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedVendor(var Vendor: Record Vendor; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -912,7 +912,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Customer was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedCustomer(var Customer: Record Customer; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedCustomer(var Customer: Record Customer; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -991,7 +991,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Routing was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedRouting(var RoutingHeader: Record "Routing Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedRouting(var RoutingHeader: Record "Routing Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -1070,7 +1070,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Production BOM was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedBillOfMaterial(var ProductionBOMHeader: Record "Production BOM Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedBillOfMaterial(var ProductionBOMHeader: Record "Production BOM Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -1195,7 +1195,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to check (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to check (optional)</param>
     /// <returns>True if a Production Order Routing Line was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         RecordRefToProdOrderRoutingLine: RecordRef;
     begin

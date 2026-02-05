@@ -167,9 +167,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="WarehouseEntry"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="poptionalSourceVariant"></param>
+    /// <param name="OptionalSourceVariant"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; poptionalSourceVariant: Variant)
+    local procedure OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; OptionalSourceVariant: Variant)
     begin
     end;
 
