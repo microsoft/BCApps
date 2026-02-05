@@ -20,6 +20,7 @@ codeunit 4301 "Agent Impl."
     Permissions = tabledata Agent = rim,
                   tabledata "All Profile" = r,
                   tabledata Company = r,
+                  tabledata "Copilot Settings" = r,
                   tabledata "Agent Access Control" = d,
                   tabledata "Application User Settings" = rim,
                   tabledata User = r,
@@ -526,7 +527,6 @@ codeunit 4301 "Agent Impl."
         exit(true);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Copilot Settings", 'R')]
     procedure GetCopilotAvailabilityDisplayText(Agent: Record Agent) CopilotAvailabilityTxt: Text
     var
         CopilotSettings: Record "Copilot Settings";
@@ -543,7 +543,6 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
-        UnknownCopilotAvailabilityLbl: Label 'Unknown ';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;
@@ -552,4 +551,5 @@ codeunit 4301 "Agent Impl."
         SetupPageMissingSourceTableErr: Label 'Setup page with ID %1 must specify a source table.', Comment = '%1 = Setup page ID.';
         SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
         SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
+        UnknownCopilotAvailabilityLbl: Label 'Unknown';
 }

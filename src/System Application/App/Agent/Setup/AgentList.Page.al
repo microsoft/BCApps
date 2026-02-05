@@ -141,6 +141,11 @@ page 4316 "Agent List"
         UpdateControls();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
     local procedure UpdateControls()
     var
         AgentImpl: Codeunit "Agent Impl.";
