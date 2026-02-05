@@ -16,7 +16,7 @@ pageextension 6165 "E-Doc. Company Information" extends "Company Information"
 {
     layout
     {
-        addlast(General)
+        addafter(GLN)
         {
             field("E-Document Service Participation Ids"; ParticipantIdCount)
             {
@@ -25,6 +25,7 @@ pageextension 6165 "E-Doc. Company Information" extends "Company Information"
                 DrillDown = true;
                 Editable = false;
                 ToolTip = 'Specifies the company participation for the E-Document services.';
+                Visible = EDocumentServiceExists;
 
                 trigger OnDrillDown()
                 begin
@@ -38,10 +39,20 @@ pageextension 6165 "E-Doc. Company Information" extends "Company Information"
     var
         ServiceParticipant: Codeunit "Service Participant";
         ParticipantIdCount: Integer;
+        EDocumentServiceExists: Boolean;
 
 
     trigger OnAfterGetCurrRecord()
     begin
+        if TryGetEDocumentServiceParticipation() then;
+    end;
+
+    [TryFunction]
+    local procedure TryGetEDocumentServiceParticipation()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocumentServiceExists := not EDocumentService.IsEmpty();
         ParticipantIdCount := ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '');
     end;
 
