@@ -9,14 +9,10 @@ namespace Microsoft.QualityManagement.Utilities;
 /// </summary>
 page 20441 "Qlty. Edit Large Text"
 {
-    PageType = Card;
-    Caption = 'Quality Edit Large Text';
-    UsageCategory = None;
-    DataCaptionExpression = '';
-    DeleteAllowed = false;
-    InsertAllowed = false;
-    Extensible = true;
+    PageType = StandardDialog;
+    Caption = 'Edit Large Text';
     ApplicationArea = QualityManagement;
+    UsageCategory = None;
 
     layout
     {
@@ -31,7 +27,7 @@ page 20441 "Qlty. Edit Large Text"
                 {
                     Caption = 'HTML';
                     ShowCaption = false;
-                    ToolTip = 'Change the text.';
+                    ToolTip = 'Specifies the text to be displayed.';
                     MultiLine = true;
                 }
             }
@@ -41,7 +37,7 @@ page 20441 "Qlty. Edit Large Text"
     var
         ContentText: Text;
 
-    procedure RunModalWith(var ExistingText: Text) ResultAction: Action
+    internal procedure RunModalWith(var ExistingText: Text) ResultAction: Action
     begin
         ContentText := ExistingText;
         ResultAction := CurrPage.RunModal();

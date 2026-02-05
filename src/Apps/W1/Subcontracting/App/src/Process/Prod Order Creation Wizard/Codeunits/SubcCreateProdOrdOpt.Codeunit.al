@@ -608,7 +608,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure HandleSubcontractingAfterUpdate(var PurchaseLine: Record "Purchase Line")
     var
         RequisitionLine: Record "Requisition Line";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
         SubcontractingManagementExt: Codeunit "Subcontracting Management Ext.";
         NextLineNo: Integer;
     begin
@@ -620,7 +620,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
 
         NextLineNo := PurchaseLine."Line No." + 10000;
         BindSubscription(SubcontractingManagementExt);
-        SubcontractingManagement.TransferSubcontractingProdOrderComp(PurchaseLine, RequisitionLine, NextLineNo);
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderComp(PurchaseLine, RequisitionLine, NextLineNo);
         UnbindSubscription(SubcontractingManagementExt);
     end;
 

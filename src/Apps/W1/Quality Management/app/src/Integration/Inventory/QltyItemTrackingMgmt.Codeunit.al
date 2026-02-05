@@ -45,11 +45,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         CurrentSignFactor: Integer;
         ReservationStatus: Enum "Reservation Status";
         ReceiptDate: Date;
-        Handled: Boolean;
+        IsHandled: Boolean;
         ShipDate: Date;
     begin
-        OnBeforeCreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry, Handled);
-        if Handled then
+        OnBeforeCreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         if (ItemJournalLine."Serial No." = '') and (ItemJournalLine."Lot No." = '') and (ItemJournalLine."Package No." = '') then
@@ -301,7 +301,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="LocationCode"></param>
     /// <returns></returns>   
-    procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
+    internal procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
     begin
         exit(GetExpirationDate(
                 LocationCode,
@@ -349,7 +349,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="ItemNo"></param>
     /// <param name="ItemTrackingCode"></param>
     /// <returns></returns>
-    procedure GetItemTrackingCode(ItemNo: Code[20]; var ItemTrackingCode: Record "Item Tracking Code"): Boolean
+    internal procedure GetItemTrackingCode(ItemNo: Code[20]; var ItemTrackingCode: Record "Item Tracking Code"): Boolean
     var
         Item: Record Item;
     begin
@@ -496,7 +496,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="PackageNo"></param>
     /// <param name="ExpirationDate"></param>
     /// <param name="ChangeQty"></param>
-    procedure CreatePurchaseReturnReservationEntries(PurchPurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; PackageNo: Code[50]; ExpirationDate: Date; ChangeQty: Decimal)
+    internal procedure CreatePurchaseReturnReservationEntries(PurchPurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; PackageNo: Code[50]; ExpirationDate: Date; ChangeQty: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
         Item: Record Item;
@@ -504,10 +504,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         CreateReservEntry: Codeunit "Create Reserv. Entry";
         ReservationStatus: Enum "Reservation Status";
         ExistingQuantity: Decimal;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCreatePurchaseReturnReservationEntries(PurchPurchaseLine, SerialNo, LotNo, PackageNo, ExpirationDate, ChangeQty, Handled);
-        if Handled then
+        OnBeforeCreatePurchaseReturnReservationEntries(PurchPurchaseLine, SerialNo, LotNo, PackageNo, ExpirationDate, ChangeQty, IsHandled);
+        if IsHandled then
             exit;
 
         if ChangeQty = 0 then
@@ -592,15 +592,15 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="WhseItemTrackingLine"></param>
-    procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    internal procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         ExpirationDate: Date;
-        Handled: Boolean;
+        IsHandled: Boolean;
         NextEntryNo: Integer;
     begin
         Clear(WhseItemTrackingLine);
-        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, Handled);
-        if Handled then
+        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         ExpirationDate := 0D;
@@ -655,7 +655,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePurchaseReturnReservationEntries(var PurchPurchaseLine: Record "Purchase Line"; var SerialNo: Code[50]; var LotNo: Code[50]; var PackageNo: Code[50]; var ExpirationDate: Date; var ChangeQty: Decimal; var Handled: Boolean)
+    local procedure OnBeforeCreatePurchaseReturnReservationEntries(var PurchPurchaseLine: Record "Purchase Line"; var SerialNo: Code[50]; var LotNo: Code[50]; var PackageNo: Code[50]; var ExpirationDate: Date; var ChangeQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -665,9 +665,9 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WhseJnlWarehouseJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -677,9 +677,9 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="CreatedActualReservationEntry"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 

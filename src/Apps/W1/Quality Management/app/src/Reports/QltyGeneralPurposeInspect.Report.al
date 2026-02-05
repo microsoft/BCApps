@@ -19,7 +19,7 @@ report 20405 "Qlty. General Purpose Inspect."
     ApplicationArea = QualityManagement;
     UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - General Purpose Inspection Report';
-    Description = 'A printable general purpose inspection report.';
+    ToolTip = 'A printable general purpose inspection report.';
     DefaultRenderingLayout = QltyGeneralPurposeInspectionDefault;
     Extensible = true;
 

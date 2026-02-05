@@ -8,6 +8,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Telemetry;
 
@@ -38,7 +39,7 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
+                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
                 group(SettingsForInspections)
@@ -284,6 +285,17 @@ page 20400 "Qlty. Management Setup"
                 AboutTitle = 'Results';
                 AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 RunObject = Page "Qlty. Inspection Result List";
+                RunPageMode = Edit;
+            }
+            action(Tests)
+            {
+                ApplicationArea = All;
+                Caption = 'Tests';
+                ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                Image = TaskQualityMeasure;
+                AboutTitle = 'Tests';
+                AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
             }
         }

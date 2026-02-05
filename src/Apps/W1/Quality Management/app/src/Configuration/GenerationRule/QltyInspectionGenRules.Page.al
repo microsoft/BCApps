@@ -191,9 +191,53 @@ page 20405 "Qlty. Inspection Gen. Rules"
             actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
             {
             }
+            actionref(CreateNewGenerationRuleForAsmWizard_Promoted; CreateNewGenerationRuleForAsmWizard)
+            {
+            }
         }
         area(Processing)
         {
+            action(CreateNewGenerationRuleForAsmWizard)
+            {
+                Caption = 'Create Assembly Rule';
+                ToolTip = 'Specifies to create a rule for assembly.';
+                Image = Receipt;
+                ApplicationArea = Assembly;
+
+                trigger OnAction()
+                var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    RecQltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                begin
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(EditGenerationRuleForAsmWizard)
+            {
+                ApplicationArea = Assembly;
+                Caption = 'Edit Assembly Rule';
+                ToolTip = 'Edit a Rule for assembly.';
+                Image = Receipt;
+                Scope = Repeater;
+                Visible = ShowEditWizardAssemblyRule;
+
+                trigger OnAction()
+                var
+                    QltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                    PreviousEntryNo: Integer;
+                begin
+                    PreviousEntryNo := Rec."Entry No.";
+                    QltyAsmGenRuleWizard.RunModalWithGenerationRule(Rec);
+
+                    CurrPage.Update(false);
+                    Rec.Reset();
+                    Rec.SetRange("Entry No.", PreviousEntryNo);
+                    if Rec.FindSet() then;
+                    Rec.SetRange("Entry No.");
+                end;
+            }
             action(CreateNewGenerationRuleForProdWizard)
             {
                 Caption = 'Create Production Rule';
@@ -203,9 +247,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
                     RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -242,9 +288,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
                     QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
                 begin
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -281,9 +329,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    RecQltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
                 begin
-                    RecQltyWhseGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -365,6 +415,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
         ShowEditWizardProductionRule: Boolean;
+        ShowEditWizardAssemblyRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
         ShowProductionTrigger: Boolean;
@@ -459,6 +510,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ShowEditWizardProductionRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
+                ShowEditWizardAssemblyRule := true;
                 EditAssemblyTrigger := true;
                 EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
@@ -480,7 +532,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         case KnownOrInferredIntent of
             Rec.Intent::Assembly:
                 begin
-                    ShowEditWizardProductionRule := true;
+                    ShowEditWizardAssemblyRule := true;
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
@@ -527,6 +579,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
     begin
         ShowEditWizardReceivingRule := false;
         ShowEditWizardProductionRule := false;
+        ShowEditWizardAssemblyRule := false;
         ShowEditWizardMovementRule := false;
         EditProductionTrigger := false;
         EditAssemblyTrigger := false;
