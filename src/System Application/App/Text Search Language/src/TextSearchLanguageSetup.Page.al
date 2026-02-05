@@ -15,7 +15,7 @@ page 9234 "Text Search Language Setup"
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Optimized Text Search Language Picker';
+    Caption = 'Text Search Language Optimizer';
 
     layout
     {
