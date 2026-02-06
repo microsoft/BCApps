@@ -23,6 +23,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
 
     var
         NoVendorInformationErr: Label 'There is no vendor information in the source document. Verify that the source document is an invoice, and if it''s not, consider deleting this E-Document.';
+        PurchaseOrderNoTruncatedMsg: Label 'Purchase Order No. was truncated because it exceeded the maximum length of 20 characters.', Locked = true;
 
 
     procedure GetVendor(EDocument: Record "E-Document") Vendor: Record Vendor
@@ -132,8 +133,13 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
     end;
 
     procedure GetPurchaseOrder(EDocumentPurchaseHeader: Record "E-Document Purchase Header") PurchaseHeader: Record "Purchase Header"
+    var
+        PurchaseOrderNo: Code[20];
     begin
-        if PurchaseHeader.Get("Purchase Document Type"::Order, EDocumentPurchaseHeader."Purchase Order No.") then;
+        PurchaseOrderNo := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseOrderNo));
+        if StrLen(EDocumentPurchaseHeader."Purchase Order No.") > MaxStrLen(PurchaseOrderNo) then
+            Session.LogMessage('0000QQK', PurchaseOrderNoTruncatedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+        if PurchaseHeader.Get("Purchase Document Type"::Order, PurchaseOrderNo) then;
     end;
 
     local procedure GetPurchaseLineItemRef(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var ItemReference: Record "Item Reference"): Boolean
