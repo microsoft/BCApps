@@ -74,7 +74,7 @@ codeunit 20426 "Qlty. Start Workflow"
         Temp := Format(CurrentDateTime());
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', QltyInspectionHeader."No.");
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', Temp);
-        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetInspectionHasChangedEvent(), 1, WorkflowCodeMaxLength()), QltyInspectionHeader, xQltyInspectionHeader);
+        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetInspectionHasChangedEvent(), 1, 128), QltyInspectionHeader, xQltyInspectionHeader);
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', '');
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', '');
     end;
@@ -82,10 +82,5 @@ codeunit 20426 "Qlty. Start Workflow"
     local procedure RecursionThrottleMilliseconds(): Integer
     begin
         exit(5000);
-    end;
-
-    local procedure WorkflowCodeMaxLength(): Integer
-    begin
-        exit(128);
     end;
 }
