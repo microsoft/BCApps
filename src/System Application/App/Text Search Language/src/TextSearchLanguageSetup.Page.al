@@ -9,7 +9,6 @@ using System.Database;
 using System.Globalization;
 
 /// <summary>This page allows users to select the optimized text search language, triggering re-indexing to improve full-text search performance for the chosen language.</summary>
-
 page 9234 "Text Search Language Setup"
 {
     PageType = Card;
