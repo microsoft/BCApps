@@ -26,7 +26,20 @@ codeunit 4318 "Agent System Permissions Impl."
 
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
-        // exit(CurrentUserHasExecuteSystemPermission(9667)); // "Create Custom Agent", not supported yet.
+        exit(CurrentUserHasExecuteSystemPermission(9667)); // "Create Custom Agent"
+    end;
+
+    procedure CurrentUserCanConfigureAgent(AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if (CurrentUserHasCanManageAllAgentsPermission()) then
+            exit(true);
+
+        if Agent.Get(AgentUserSecurityId) then
+            if Agent."Can Curr. User Configure Agent" then
+                exit(true);
+
         exit(false);
     end;
 
