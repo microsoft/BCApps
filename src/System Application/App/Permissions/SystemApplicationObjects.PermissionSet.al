@@ -63,6 +63,5 @@ permissionset 219 "System Application - Objects"
                              "User Selection - Objects",
                              "User Settings - Objects",
                              "Web Service Management - Obj.",
-                             "Word Templates - Objects",
-                             "Text Search Language - Objects";
+                             "Word Templates - Objects";
 }

@@ -16,6 +16,9 @@ page 9234 "Text Search Language Setup"
     ApplicationArea = All;
     UsageCategory = Administration;
     Caption = 'Text Search Language Optimizer';
+    Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {
@@ -33,7 +36,7 @@ page 9234 "Text Search Language Setup"
                     IndexManagement: Codeunit "Index Management";
                     TextSearchLanguageLookup: Page "Text Search Language Lookup";
                 begin
-                    clear(TextSearchLanguageLookup);
+                    Clear(TextSearchLanguageLookup);
                     TextSearchLanguageLookup.LookupMode(true);
                     if TextSearchLanguageLookup.RunModal() = Action::LookupOK then
                         if Confirm(ConfirmLanguageChangeQst) then begin

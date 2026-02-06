@@ -15,6 +15,9 @@ page 9235 "Text Search Language Lookup"
     SourceTable = "Windows Language";
     Caption = 'Select Text Search Language';
     SourceTableTemporary = true;
+    Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {
@@ -44,13 +47,10 @@ page 9235 "Text Search Language Lookup"
             if WindowsLanguage.Get(LanguageId) then begin
                 Rec.Init();
                 Rec."Language ID" := LanguageId;
-                Rec.Name := WindowsLanguage.Name;
-                Rec.Insert();
-            end
-            else begin
-                Rec.Init();
-                Rec."Language ID" := LanguageId;
-                Rec.Name := CopyStr(SupportedLanguages.Get(LanguageId), 1, MaxStrLen(Rec.Name));
+                if WindowsLanguage.Get(LanguageId) then
+                    Rec.Name := WindowsLanguage.Name
+                else
+                    Rec.Name := CopyStr(SupportedLanguages.Get(LanguageId), 1, MaxStrLen(Rec.Name));
                 Rec.Insert();
             end;
     end;
