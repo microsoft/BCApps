@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.Agents.Troubleshooting;
 
-#pragma warning disable AS0125
+using System.Agents;
+
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
@@ -130,6 +131,9 @@ page 4303 "Agent Task Log Entry List"
     {
         area(Promoted)
         {
+            actionref(ViewDetails_Promoted; ViewDetails)
+            {
+            }
             actionref(Refresh_Promoted; Refresh)
             {
             }
@@ -166,6 +170,22 @@ page 4303 "Agent Task Log Entry List"
                 begin
                     ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
                     AgentUserFeedback.RequestFeedback('Agent Task Log Entries', ContextProperties);
+                end;
+            }
+        }
+        area(Processing)
+        {
+            action(ViewDetails)
+            {
+                ApplicationArea = All;
+                Caption = 'View details';
+                ToolTip = 'View details of the selected log entry.';
+                Image = View;
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    Page.Run(Page::"Agent Task Log Entry", Rec);
                 end;
             }
         }
@@ -207,4 +227,3 @@ page 4303 "Agent Task Log Entry List"
         DetailsTxt: Text;
         TypeStyle: Text;
 }
-#pragma warning restore AS0125

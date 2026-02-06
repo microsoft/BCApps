@@ -12,7 +12,7 @@ pageextension 20423 "Qlty. Transfer Order" extends "Transfer Order"
     {
         addlast(General)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 ShowCaption = false;
                 Visible = (Rec."Qlty. Inspection No." <> '');

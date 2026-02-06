@@ -142,7 +142,7 @@ page 8351 "MCP Config Card"
                 {
                     Caption = 'Connection String';
                     ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
-                    Image = Export;
+                    Image = Link;
 
                     trigger OnAction()
                     begin

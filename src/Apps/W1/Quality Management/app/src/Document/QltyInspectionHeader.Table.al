@@ -23,6 +23,7 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
+using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
@@ -79,27 +80,11 @@ table 20405 "Qlty. Inspection Header"
             ToolTip = 'Specifies the status of the inspection. No additional changes can be made to a finished Quality Inspection.';
 
             trigger OnValidate()
-            var
-                QltyInspectionResult: Record "Qlty. Inspection Result";
-                QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
             begin
-                if Rec.Status = Rec.Status::Finished then begin
-                    if QltyInspectionResult.Get(Rec."Result Code") then
-                        if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
-                            Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
-
-                    Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
-                    Rec."Finished Date" := CurrentDateTime();
-                    Rec.Modify(false);
-                    OnInspectionFinished(Rec);
-
-                    QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
-                end else
-                    if (xRec.Status = xRec.Status::Finished) and (Rec.Status = Rec.Status::Open) then begin
-                        Rec.Modify(false);
-                        OnInspectionReopen(Rec);
-                        QltyStartWorkflow.StartWorkflowInspectionReopens(Rec);
-                    end
+                if Rec.Status = Rec.Status::Finished then
+                    ProcessFinishInspection()
+                else
+                    ProcessReopenInspection();
             end;
         }
         field(11; "Source Quantity (Base)"; Decimal)
@@ -125,10 +110,8 @@ table 20405 "Qlty. Inspection Header"
         field(13; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that passed inspection.';
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -146,10 +129,8 @@ table 20405 "Qlty. Inspection Header"
         field(15; "Fail Quantity"; Decimal)
         {
             Caption = 'Fail Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that failed inspection.';
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -185,7 +166,6 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
-            ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to.';
 
@@ -266,7 +246,7 @@ table 20405 "Qlty. Inspection Header"
         field(41; "Most Recent Picture"; Media)
         {
             Caption = 'Most Recent Picture';
-            ToolTip = 'Specifies the most recent picture. Pictures can also be uploaded to document attachments and OneDrive automatically.';
+            ToolTip = 'Specifies the most recent picture. Additionally, pictures can be uploaded to document attachments and OneDrive automatically.';
         }
         field(45; "Existing Inspections This Rec."; Integer)
         {
@@ -301,7 +281,7 @@ table 20405 "Qlty. Inspection Header"
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
             BlankZero = true;
             Editable = false;
-            ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
+            ToolTip = 'Specifies a reference to the table that the quality inspection is for.';
         }
         field(52; "Source Table Name"; Text[249])
         {
@@ -602,7 +582,7 @@ table 20405 "Qlty. Inspection Header"
         ShouldPreventAutoAssignment: Boolean;
     begin
         if not IsChangingStatus then
-            Rec.TestField(Status, Status::Open);
+            TestStatusOpen();
 
         ShouldPreventAutoAssignment := Rec.GetPreventAutoAssignment();
 
@@ -642,7 +622,7 @@ table 20405 "Qlty. Inspection Header"
         QltySessionHelper: Codeunit "Qlty. Session Helper";
         IsChangingStatus: Boolean;
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
-        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
@@ -675,6 +655,8 @@ table 20405 "Qlty. Inspection Header"
         CannotFinishInspectionBecauseTheInspectionIsInResultErr: Label 'Cannot finish the inspection %1 because the inspection currently has the result %2, which is configured to disallow finishing.', Comment = '%1=the inspection, %2=the result code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
+        PictureFileFilterTok: Label 'Pictures |*.jpg;*.png;*.jpeg;*.bmp', Locked = true;
+        ImageTok: Label 'Image', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
     local procedure UpdateMostRecentReinspection()
@@ -694,8 +676,7 @@ table 20405 "Qlty. Inspection Header"
         PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
         PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
         PrecedingQltyInspectionHeader.SetRange("Most Recent Re-inspection", true);
-        if not PrecedingQltyInspectionHeader.IsEmpty() then
-            PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
+        PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
     end;
 
     /// <summary>
@@ -746,14 +727,14 @@ table 20405 "Qlty. Inspection Header"
     procedure UpdateResultFromLines()
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetFilter("Test Value Type", '<>%1', QltyInspectionLine."Test Value Type"::"Value Type Label");
         QltyInspectionLine.SetCurrentKey("Evaluation Sequence");
-        OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
-        if Handled then
+        OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, IsHandled);
+        if IsHandled then
             exit;
 
         QltyInspectionLine.SetRange("Failure State", QltyInspectionLine."Failure State"::"Failed from Acceptable Quality Level");
@@ -771,7 +752,7 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// InitInspectionNumber will initialize the document no. on the Quality Inspection if it's needed. If it's already set then this will not be altered.
     /// </summary>
-    procedure InitInspectionNumber()
+    internal procedure InitInspectionNumber()
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -788,7 +769,7 @@ table 20405 "Qlty. Inspection Header"
     /// Decision decision: because we're passing this around as a recordref everywhere and we need that flag, we're storing in the session state instead.
     /// </summary>
     /// <param name="IsCreating"></param>
-    procedure SetIsCreating(IsCreating: Boolean)
+    internal procedure SetIsCreating(IsCreating: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetIsCreatingKey(), Format(IsCreating));
     end;
@@ -797,7 +778,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if this record is in the middle of being created.
     /// </summary>
     /// <returns></returns>
-    procedure GetIsCreating(): Boolean
+    internal procedure GetIsCreating(): Boolean
     begin
         exit(QltySessionHelper.GetSessionValue(GetIsCreatingKey()) = Format(true));
     end;
@@ -828,7 +809,7 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Proceed: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyPermissionMgmt.VerifyCanReopenInspection();
         if HasMoreRecentReinspection() then
@@ -842,8 +823,8 @@ table 20405 "Qlty. Inspection Header"
 
             if Proceed then begin
                 IsChangingStatus := true;
-                OnBeforeReopenInspection(Rec, Handled);
-                if Handled then
+                OnBeforeReopenInspection(Rec, IsHandled);
+                if IsHandled then
                     exit;
 
                 Rec.Validate(Status, Rec.Status::Open);
@@ -868,7 +849,7 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Proceed: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         SourceDetails: Text;
     begin
         QltyPermissionMgmt.VerifyCanFinishInspection();
@@ -884,8 +865,8 @@ table 20405 "Qlty. Inspection Header"
 
             if Proceed then begin
                 IsChangingStatus := true;
-                OnBeforeFinishInspection(Rec, Handled);
-                if Handled then
+                OnBeforeFinishInspection(Rec, IsHandled);
+                if IsHandled then
                     exit;
 
                 Rec.Validate(Status, Rec.Status::Finished);
@@ -957,7 +938,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns the posted inventory for the item/variant
     /// </summary>
     /// <returns></returns>
-    procedure GetPostedInventory() PostedInventory: Decimal
+    internal procedure GetPostedInventory() PostedInventory: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -980,7 +961,7 @@ table 20405 "Qlty. Inspection Header"
         PostedInventory := ItemLedgerEntry.Quantity;
     end;
 
-    procedure GetReservedInventory() ReservedInventory: Decimal
+    internal procedure GetReservedInventory() ReservedInventory: Decimal
     var
         ReservationEntry: Record "Reservation Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1032,7 +1013,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if there is a more recent re-inspection than the current inspection.
     /// </summary>
     /// <returns></returns>
-    procedure HasMoreRecentReinspection(): Boolean
+    internal procedure HasMoreRecentReinspection(): Boolean
     var
         SucceedingQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -1276,82 +1257,46 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
-    /// <summary>
-    /// This will use the camera to take a picture and add it to the inspection.
-    /// </summary>
-    /// <returns></returns>
-    [TryFunction]
-    procedure TakeNewPicture()
-    var
-        Camera: Codeunit Camera;
-        PictureInStream: InStream;
-        Handled: Boolean;
-        PictureName: Text;
+    local procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Rec.Status::Open);
-
-        QltyManagementSetup.Get();
-        QltyManagementSetup.SanityCheckPictureAndCameraSettings();
-        OnBeforeTakePicture(Rec, Handled);
-        if Handled then
-            exit;
-
-        if not Camera.IsAvailable() then
-            Error(CameraNotAvailableErr);
-
-        if not Camera.GetPicture(PictureInStream, PictureName) then
-            Error(UnableToSavePictureErr);
-        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Re-inspection No.", CurrentDateTime());
-        PictureName := DelChr(PictureName, '=', ' ><{}.@!`~''"|\/?&*():');
-
-        AddPicture(PictureInStream, PictureName, FileExtensionTok);
-
-        OnAfterTakePicture(Rec);
     end;
 
-    /// <summary>
-    /// Adds the supplied instream to the inspection.
-    /// </summary>
-    /// <param name="PictureInStream"></param>
-    /// <param name="PictureName"></param>
-    /// <param name="FileExtension"></param>
-    /// <returns></returns>
-    [TryFunction]
-    procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
+    local procedure ProcessFinishInspection()
     var
-        DocumentAttachment: Record "Document Attachment";
-
-        DocumentServiceManagement: Codeunit "Document Service Management";
-        RecordRefToInspection: RecordRef;
-        FullFileNameWithExtension: Text;
-        Handled: Boolean;
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
     begin
-        Rec.TestField(Status, Rec.Status::Open);
-
-        FullFileNameWithExtension := PictureName;
-        if not FullFileNameWithExtension.Contains('.') then
-            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtension);
-
-        OnBeforeAddPicture(Rec, PictureInStream, PictureName, FileExtension, FullFileNameWithExtension, Handled);
-        if Handled then
+        if Rec.Status <> Rec.Status::Finished then
             exit;
 
-        Clear(Rec."Most Recent Picture");
-        Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName, MimeTypeTok);
-        Rec.Modify(true);
+        if QltyInspectionResult.Get(Rec."Result Code") then
+            if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
+                Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
 
-        QltyManagementSetup.Get();
-        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
-            RecordRefToInspection.GetTable(Rec);
-            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToInspection, FullFileNameWithExtension);
-            RecordRefToInspection.Modify(true);
-        end;
+        Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
+        Rec."Finished Date" := CurrentDateTime();
+        Rec.Modify(false);
 
-        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
-            if DocumentServiceManagement.IsConfigured() then
-                DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
+        OnInspectionFinished(Rec);
 
-        OnAfterAddPicture(Rec, PictureInStream, PictureName, FileExtension, FullFileNameWithExtension);
+        QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
+    end;
+
+    local procedure ProcessReopenInspection()
+    var
+        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
+    begin
+        if xRec.Status <> xRec.Status::Finished then
+            exit;
+        if Rec.Status <> Rec.Status::Open then
+            exit;
+
+        Rec.Modify(false);
+
+        OnInspectionReopen(Rec);
+
+        QltyStartWorkflow.StartWorkflowInspectionReopens(Rec);
     end;
 
     /// <summary>
@@ -1367,10 +1312,10 @@ table 20405 "Qlty. Inspection Header"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, Handled);
-        if Handled then
+        OnBeforeSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, IsHandled);
+        if IsHandled then
             exit;
 
         if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
@@ -1410,7 +1355,7 @@ table 20405 "Qlty. Inspection Header"
         OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
-    procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
+    internal procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
         Rec.SetCurrentKey("No.", "Re-inspection No.");
@@ -1418,21 +1363,21 @@ table 20405 "Qlty. Inspection Header"
         Success := Rec.FindFirst();
     end;
 
-    procedure PrintCertificateOfAnalysis()
+    internal procedure PrintCertificateOfAnalysis()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintCertificateOfAnalysis(Rec);
     end;
 
-    procedure PrintNonConformance()
+    internal procedure PrintNonConformance()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintNonConformance(Rec);
     end;
 
-    procedure PrintGeneralPurposeInspection()
+    internal procedure PrintGeneralPurposeInspection()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
@@ -1505,7 +1450,7 @@ table 20405 "Qlty. Inspection Header"
     /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this inspection
     /// </summary>
     /// <param name="ShouldPrevent"></param>
-    procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
+    internal procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetPreventAutoAssignmentKey(), Format(ShouldPrevent));
     end;
@@ -1596,7 +1541,7 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if all measures are acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetPassSampleQuantity() PassQuantity: Decimal
+    internal procedure GetPassSampleQuantity() PassQuantity: Decimal
     begin
     end;
 
@@ -1605,14 +1550,14 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if any measures are not acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetFailedSampleQuantity() FailQuantity: Decimal
+    internal procedure GetFailedSampleQuantity() FailQuantity: Decimal
     begin
     end;
 
     /// <summary>
     /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
-    procedure RunModalRelatedTransfers()
+    internal procedure RunModalRelatedTransfers()
     var
         QltyRelatedTransferOrders: Page "Qlty. Related Transfer Orders";
     begin
@@ -1639,6 +1584,105 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    #region Most Recent Picture Management
+    /// <summary>
+    /// This will use the camera to take a picture and add it to the Inspection document.
+    /// </summary>
+    /// <returns></returns>
+    internal procedure TakeNewMostRecentPicture()
+    var
+        Camera: Codeunit Camera;
+        PictureInStream: InStream;
+        PictureName, FullFileNameWithExtension : Text;
+    begin
+        TestStatusOpen();
+
+        QltyManagementSetup.GetRecordOnce();
+        QltyManagementSetup.SanityCheckPictureAndCameraSettings();
+
+        if not Camera.IsAvailable() then
+            Error(CameraNotAvailableErr);
+
+        if not Camera.GetPicture(PictureInStream, PictureName) then
+            Error(UnableToSavePictureErr);
+
+        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Re-inspection No.", CurrentDateTime());
+        PictureName := DelChr(PictureName, '=', ' ><{}.@!`~''"|\/?&*():');
+
+        FullFileNameWithExtension := PictureName;
+        if not FullFileNameWithExtension.Contains('.') then
+            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtensionTok);
+
+        AddMostRecentPicture(PictureInStream, PictureName, MimeTypeTok);
+        ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtensionTok, FullFileNameWithExtension);
+    end;
+
+    internal procedure ImportMostRecentPicture()
+    var
+        FileManagement: Codeunit "File Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        PictureInStream: InStream;
+        PictureName, FileExtension, FullFileNameWithExtension : Text;
+    begin
+        TestStatusOpen();
+
+        if not QltyMiscHelpers.PromptAndImportIntoInStream(PictureFileFilterTok, PictureInStream, FullFileNameWithExtension) then
+            exit;
+
+        if not FullFileNameWithExtension.Contains('.') then begin
+            PictureName := FileManagement.GetFileName(FullFileNameWithExtension);
+            FileExtension := FileExtensionTok;
+            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtensionTok);
+        end else begin
+            PictureName := FileManagement.GetFileName(FullFileNameWithExtension);
+            FileExtension := FileManagement.GetExtension(FullFileNameWithExtension);
+        end;
+
+        AddMostRecentPicture(PictureInStream, ImageTok, '');
+        ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtension, FullFileNameWithExtension);
+    end;
+
+    internal procedure DeleteMostRecentPicture()
+    begin
+        Clear(Rec."Most Recent Picture");
+        Rec.Modify(true);
+    end;
+
+    /// <summary>
+    /// Adds the supplied InStream to the Inspection document as "Most Recent Picture".
+    /// </summary>
+    /// <param name="PictureInStream"></param>
+    /// <param name="PictureName"></param>
+    /// <param name="MimeType"></param>
+    /// <returns></returns>
+    local procedure AddMostRecentPicture(var PictureInStream: InStream; PictureName: Text; MimeType: Text)
+    begin
+        Clear(Rec."Most Recent Picture");
+        if MimeType <> '' then
+            Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName, MimeType)
+        else
+            Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName);
+        Rec.Modify();
+    end;
+
+    local procedure ProcessAdditionalPictureHandling(var PictureInStream: InStream; PictureName: Text; FileExtension: Text; FullFileNameWithExtension: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentServiceManagement: Codeunit "Document Service Management";
+        RecordRefToQltyInspectionHeader: RecordRef;
+    begin
+        QltyManagementSetup.GetRecordOnce();
+        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
+            RecordRefToQltyInspectionHeader.GetTable(Rec);
+            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToQltyInspectionHeader, FullFileNameWithExtension);
+        end;
+
+        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
+            if DocumentServiceManagement.IsConfigured() then
+                DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
+    end;
+    #endregion Most Recent Picture Management
+
     /// <summary>
     /// Use to supplement or replace default system behavior of finding related inspections.
     /// </summary>
@@ -1648,9 +1692,9 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="UseItem"></param>
     /// <param name="UseTracking"></param>
     /// <param name="UseDocument"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
+    local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -1690,9 +1734,9 @@ table 20405 "Qlty. Inspection Header"
     /// OnBeforeReopenInspection is called before an inspection is Reopened.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReopenInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnBeforeReopenInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1700,57 +1744,9 @@ table 20405 "Qlty. Inspection Header"
     /// OnBeforeFinishInspection is called before an inspection is finished.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeTakePicture occurs before a picture has been taken.
-    /// Use this to replace with your own picture taking dialog.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnAfterTakePicture occurs after a picture has been taken.
-    /// Picture storage will depend on the "Picture Upload Behavior" setting.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header")
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeAddPicture occurs before the supplied picture instream is added to the inspection.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
-    /// <param name="PictureInStream">var InStream</param>
-    /// <param name="PictureName">var Text</param>
-    /// <param name="FileExtension">var Text</param>
-    /// <param name="FullFileNameWithExtension">var Text</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnAfterAddPicture occurs after the supplied picture instream is added to the inspection.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
-    /// <param name="PictureInStream">var InStream</param>
-    /// <param name="PictureName">var Text</param>
-    /// <param name="FileExtension">var Text</param>
-    /// <param name="FullFileNameWithExtension">var Text</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
+    local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1775,9 +1771,9 @@ table 20405 "Qlty. Inspection Header"
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="QltyInspectionLine"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
+    local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var IsHandled: Boolean)
     begin
     end;
 }

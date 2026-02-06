@@ -82,7 +82,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="Template">The template</param>
     /// <param name="LineNo">The template line</param>
     /// <param name="OptionalSpecificResult">Leave empty to copy all applicable results</param>
-    procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
+    internal procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
     begin
         CopyResultConditionsFromTestToTemplateLine(Template, LineNo, OptionalSpecificResult, OverwriteConditionIfExisting, '', '');
     end;
@@ -437,7 +437,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
     /// <param name="MatrixArrayToSetCaptionSet"></param>
     /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetDefaultPromotedResults(
+    internal procedure GetDefaultPromotedResults(
         AllPromoted: Boolean;
         var MatrixArraySourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;

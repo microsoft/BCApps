@@ -40,15 +40,15 @@ codeunit 20454 "Qlty. Item Journal Management"
         LastWhseJnlWarehouseJournalLine: Record "Warehouse Journal Line";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         ManagementNoSeries: Codeunit "No. Series";
-        Handled: Boolean;
+        IsHandled: Boolean;
         ExpirationDate: Date;
         WhseTracked: Boolean;
     begin
         QltyManagementSetup.Get();
         WarehouseJournalLine.Reset();
 
-        OnBeforeGenericCreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine, Handled);
-        if Handled then
+        OnBeforeGenericCreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         WarehouseJournalLine.Reset();
@@ -171,10 +171,10 @@ codeunit 20454 "Qlty. Item Journal Management"
         ErroredLinesErrorMessages: List of [Text];
         ErrorMessage: Text;
         ErrorStack: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforePostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine, AllLinesPosted, Handled);
-        if Handled then
+        OnBeforePostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine, AllLinesPosted, IsHandled);
+        if IsHandled then
             exit;
 
         if WarehouseJournalLine."Line No." <> 0 then
@@ -189,6 +189,7 @@ codeunit 20454 "Qlty. Item Journal Management"
                 ToPostWarehouseJournalLine.SetRecFilter();
                 if not ConsideredLines.Contains(Format(ToPostWarehouseJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not WhseJnlRegisterBatch.Run(ToPostWarehouseJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
@@ -218,10 +219,10 @@ codeunit 20454 "Qlty. Item Journal Management"
         LastJnlItemJournalLine: Record "Item Journal Line";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         ManagementNoSeries: Codeunit "No. Series";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeGenericCreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry, Handled);
-        if Handled then
+        OnBeforeGenericCreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         QltyManagementSetup.Get();
@@ -335,10 +336,10 @@ codeunit 20454 "Qlty. Item Journal Management"
         ErroredLinesErrorMessages: List of [Text];
         ErrorMessage: Text;
         ErrorStack: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforePostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine, AllLinesPosted, Handled);
-        if Handled then
+        OnBeforePostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine, AllLinesPosted, IsHandled);
+        if IsHandled then
             exit;
 
         if ItemJournalLine."Line No." <> 0 then
@@ -354,6 +355,7 @@ codeunit 20454 "Qlty. Item Journal Management"
 
                 if not ConsideredLines.Contains(Format(ToPostItemJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not ItemJnlPostBatch.Run(ToPostItemJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
@@ -376,9 +378,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalBatch"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenericCreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean);
+    local procedure OnBeforeGenericCreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean);
     begin
     end;
 
@@ -402,9 +404,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="ItemJournalBatch"></param>
     /// <param name="ItemJournalLine"></param>
     /// <param name="ReservationEntry"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenericCreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeGenericCreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
@@ -428,10 +430,10 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
-    /// <param name="Handled"></param>
+    /// <param name="AllLinesPosted"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -441,9 +443,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 
@@ -453,10 +455,10 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
-    /// <param name="Handled"></param>
+    /// <param name="AllLinesPosted"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -466,9 +468,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 }

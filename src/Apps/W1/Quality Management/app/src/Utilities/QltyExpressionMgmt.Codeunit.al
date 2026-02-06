@@ -255,7 +255,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="SearchFor">The text to search for</param>
     /// <param name="ReplaceWith">The text to replace matches with</param>
     /// <returns>The text with all occurrences replaced</returns>
-    procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text): Text
+    internal procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text): Text
     begin
         exit(TextReplace(Input, SearchFor, ReplaceWith, "Qlty. Case Sensitivity"::Sensitive));
     end;
@@ -275,7 +275,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="ReplaceWith">The text to replace matches with</param>
     /// <param name="QltyCaseSensitivity">Sensitive for exact matching; Insensitive for case-insensitive matching</param>
     /// <returns>The text with all occurrences replaced</returns>
-    procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") ResultText: Text
+    internal procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") ResultText: Text
     var
         InputLen: Integer;
         SearchLen: Integer;
@@ -402,7 +402,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         ConvertedAsIntParameter2: Integer;
         ConvertedAsIntParameter3: Integer;
         ConvertedAsDecParameter1: Decimal;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Result := Input;
         Clear(TempRegexMatches);
@@ -423,9 +423,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
                     RawParameter2 := TempRegexGroups.ReadValue();
                     TempRegexGroups.Next();
                     RawParameter3 := TempRegexGroups.ReadValue();
-                    Handled := false;
-                    OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(Result, StringFunctionName, RawParameter1, RawParameter2, RawParameter3, EntireFindText, ValueToReplaceWith, Handled);
-                    if not Handled then begin
+                    IsHandled := false;
+                    OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(Result, StringFunctionName, RawParameter1, RawParameter2, RawParameter3, EntireFindText, ValueToReplaceWith, IsHandled);
+                    if not IsHandled then begin
                         case StringFunctionName.ToUpper() of
                             SpecialStringFunctionReplaceTok, SpecialStringFunctionReplaceStrTok:
                                 ValueToReplaceWith := RawParameter1.Replace(RawParameter2, RawParameter3);
@@ -501,11 +501,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
         FieldName: Text;
         ValueToReplaceWith: Text;
         EntireFindText: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
         FormatKind: Integer;
     begin
-        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, Handled);
-        if Handled then
+        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, IsHandled);
+        if IsHandled then
             exit;
 
         Result := Input;
@@ -523,9 +523,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
                     TableName := TempRegexGroups.ReadValue();
                     TempRegexGroups.Next();
                     FieldName := TempRegexGroups.ReadValue();
-                    Handled := false;
-                    OnBeforeEvaluateTableFieldInExpression(Result, TableName, FieldName, EntireFindText, ValueToReplaceWith, Handled);
-                    if not Handled then begin
+                    IsHandled := false;
+                    OnBeforeEvaluateTableFieldInExpression(Result, TableName, FieldName, EntireFindText, ValueToReplaceWith, IsHandled);
+                    if not IsHandled then begin
                         FormatKind := 1;
                         case true of
                             TableName.EndsWith(SpecialTableFormattedSuffixTok) and (StrLen(TableName) > 1):
@@ -585,7 +585,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Common usage: Displaying help text in UI, documenting expression capabilities, validation reference.
     /// </summary>
     /// <returns>Comma-separated list of available text formula patterns and functions</returns>
-    procedure GetTextFormulaOptions(): Text
+    internal procedure GetTextFormulaOptions(): Text
     begin
         exit(SpecialTextFormulaOptionsTok);
     end;
@@ -610,9 +610,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="CurrentQltyInspectionHeader"></param>
     /// <param name="CurrentQltyInspectionLine"></param>
     /// <param name="Result"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var Result: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 
@@ -643,9 +643,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="NumberOrNameOfFieldName">fieldname in [specialtable:fieldname]</param>
     /// <param name="EntireFindText">[specialtable:fieldname] in [specialtable:fieldname]</param>
     /// <param name="EntireReplaceText">your replacement</param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateTableFieldInExpression(var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateTableFieldInExpression(var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text; var IsHandled: Boolean)
     begin
     end;
 
@@ -662,9 +662,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="Param3"></param>
     /// <param name="EntireFindText"></param>
     /// <param name="EntireReplaceText"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text; var IsHandled: Boolean)
     begin
     end;
 

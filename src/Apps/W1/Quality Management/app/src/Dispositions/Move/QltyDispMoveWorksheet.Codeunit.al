@@ -135,7 +135,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         WhseWorksheetName: Record "Whse. Worksheet Name";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         LineNo: Integer;
-        Handled: Boolean;
+        IsHandled: Boolean;
         WhseActivitySortMethod: Enum "Whse. Activity Sorting Method";
     begin
         WhseWorksheetName.SetRange("Worksheet Template Name", WhseWkshTemplateName);
@@ -170,8 +170,8 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             TempWarehouseEntry."Package No." := QltyInspectionHeader."Source Package No.";
             TempWarehouseEntry."Expiration Date" := QltyItemTrackingMgmt.GetExpirationDate(QltyInspectionHeader, FromLocationCode);
             TempWarehouseEntry."Location Code" := FromLocationCode;
-            OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader, FromLocationCode, FromBinCode, ToBinCode, Quantity, WorksheetLineCreated, WkshWhseWorksheetLine, TempWarehouseEntry, Handled);
-            if not Handled then
+            OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader, FromLocationCode, FromBinCode, ToBinCode, Quantity, WorksheetLineCreated, WkshWhseWorksheetLine, TempWarehouseEntry, IsHandled);
+            if not IsHandled then
                 if (TempWarehouseEntry."Lot No." <> '') or (TempWarehouseEntry."Serial No." <> '') or (TempWarehouseEntry."Package No." <> '') then
                     WkshWhseWorksheetLine.SetItemTrackingLines(TempWarehouseEntry, Quantity);
         end;
@@ -216,9 +216,9 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     /// <param name="WorksheetLineCreated"></param>
     /// <param name="lrecWhseWkshLine"></param>
     /// <param name="ltrecWarehouseEntry"></param>
-    /// <param name="lbHandled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; Handled: Boolean)
+    local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 }

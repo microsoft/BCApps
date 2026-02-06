@@ -164,7 +164,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to quarantine a license plate
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseQuarantineLicensePlate(): Text
+    internal procedure GetWorkflowResponseQuarantineLicensePlate(): Text
     begin
         exit(QMWorkflowResponseQuarantineLicensePlateTok);
     end;
@@ -173,7 +173,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to un-quarantine a license plate.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnQuarantineLicensePlate(): Text
+    internal procedure GetWorkflowResponseUnQuarantineLicensePlate(): Text
     begin
         exit(QMWorkflowResponseUnQuarantineLicensePlateTok);
     end;
@@ -236,7 +236,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the generic quality inspection workflow prefix.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetQualityInspectionPrefix(): Text
+    internal procedure GetQualityInspectionPrefix(): Text
     begin
         exit(QltyPrefixTok);
     end;
@@ -245,7 +245,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been created.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionCreatedEvent(): Code[128]
+    internal procedure GetInspectionCreatedEvent(): Code[128]
     begin
         exit(InspectionCreatedEventTok);
     end;
@@ -281,7 +281,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been rejected in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionRejectEventTok(): Code[128]
+    internal procedure GetInspectionRejectEventTok(): Code[128]
     begin
         exit(QltyInspectionRejectWorkflowEventTok);
     end;
@@ -290,7 +290,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been approved in an approval system.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionApproveEventTok(): Code[128]
+    internal procedure GetInspectionApproveEventTok(): Code[128]
     begin
         exit(QltyInspectionApproveWorkflowEventTok);
     end;
@@ -299,7 +299,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been delegated in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionDelegateEventTok(): Code[128]
+    internal procedure GetInspectionDelegateEventTok(): Code[128]
     begin
         exit(QltyInspectionDelegateWorkflowEventTok);
     end;
