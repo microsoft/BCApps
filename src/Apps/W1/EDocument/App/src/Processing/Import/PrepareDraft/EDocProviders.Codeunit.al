@@ -138,7 +138,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
     begin
         PurchaseOrderNo := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseOrderNo));
         if StrLen(EDocumentPurchaseHeader."Purchase Order No.") > MaxStrLen(PurchaseOrderNo) then
-            Session.LogMessage('', PurchaseOrderNoTruncatedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('0000RJ0', PurchaseOrderNoTruncatedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
         if PurchaseHeader.Get("Purchase Document Type"::Order, PurchaseOrderNo) then;
     end;
 
