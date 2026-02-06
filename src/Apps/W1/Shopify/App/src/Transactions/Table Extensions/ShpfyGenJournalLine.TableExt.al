@@ -17,5 +17,10 @@ tableextension 30202 "Shpfy Gen. Journal Line" extends "Gen. Journal Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(30101; "Automatically Posted"; Boolean)
+        {
+            Caption = 'Automatically Posted';
+            DataClassification = SystemMetadata;
+        }
     }
 }

@@ -137,6 +137,11 @@ page 30134 "Shpfy Transactions"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Posted Invoice number to which the transaction relates.';
                 }
+                field("Auto-Post Enabled"; Rec."Auto-Post Enabled")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether auto-posting is enabled for the transaction.';
+                }
             }
         }
     }
