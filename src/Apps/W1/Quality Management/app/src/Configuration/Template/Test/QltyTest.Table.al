@@ -54,6 +54,11 @@ table 20401 "Qlty. Test"
         {
             Caption = 'Allowable Values';
             ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+            trigger OnValidate()
+            begin
+                if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Option", Rec."Test Value Type"::"Value Type Table Lookup"] then
+                    Rec."Allowable Values" := CopyStr(Rec."Allowable Values".Replace(', ', ','), 1, MaxStrLen(Rec."Allowable Values"));
+            end;
         }
         field(6; "Lookup Table No."; Integer)
         {

@@ -396,6 +396,8 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyTestValueType::"Value Type Option",
                 QltyTestValueType::"Value Type Table Lookup":
                 begin
+                    TextToValidate := CopyStr(TextToValidate.Trim(), 1, MaxStrLen(TextToValidate));
+
                     TempBufferQltyLookupCode.Reset();
                     TempBufferQltyLookupCode.SetRange("Custom 1", TextToValidate);
                     if TempBufferQltyLookupCode.IsEmpty() and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
