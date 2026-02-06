@@ -111,7 +111,7 @@ page 4312 "Agent Task Log Entry"
                     Importance = Additional;
                 }
             }
-            group("General - Other")
+            group(GeneralOther)
             {
                 Caption = 'What happened';
                 AboutTitle = 'General information';
@@ -119,12 +119,12 @@ page 4312 "Agent Task Log Entry"
                 Editable = false;
                 Visible = not IsAgentAction;
 
-                field("Description - Other"; Rec.Description)
+                field(DescriptionOther; Rec.Description)
                 {
                     Caption = 'Description';
                     Importance = Promoted;
                 }
-                field("Details - Other"; LogEntryDetailsTxt)
+                field(DetailsOther; LogEntryDetailsTxt)
                 {
                     Caption = 'Details';
                     ToolTip = 'Specifies the details of the log entry.';
@@ -135,18 +135,18 @@ page 4312 "Agent Task Log Entry"
                         Message(LogEntryDetailsTxt);
                     end;
                 }
-                field("Type - Other"; Rec.Type)
+                field(TypeOther; Rec.Type)
                 {
                     Caption = 'Type';
                     Importance = Additional;
                 }
-                field("Timestamp - Other"; Rec.SystemCreatedAt)
+                field(TimestampOther; Rec.SystemCreatedAt)
                 {
                     Caption = 'Timestamp';
                     ToolTip = 'Specifies the date and time when the log entry was created.';
                     Importance = Additional;
                 }
-                field("Name - Other"; Rec."User Full Name")
+                field(NameOther; Rec."User Full Name")
                 {
                     Caption = 'User full name';
                     Tooltip = 'Specifies the full name of the user that took the decision.';
@@ -173,10 +173,10 @@ page 4312 "Agent Task Log Entry"
             }
             part(LogsPart; "Agent Task Log Entry ListPart")
             {
-                Caption = 'What other actions were decided at the same time';
+                Caption = 'WhatOther actions were decided at the same time';
                 Visible = IsLogPageVisible;
                 SubPageLink = "Task ID" = field("Task ID");
-                AboutTitle = 'What other actions were decided at the same time';
+                AboutTitle = 'WhatOther actions were decided at the same time';
                 AboutText = 'The agent can take multiple actions from the same decision. This lists the log entries related to the actions taken by the agent for this particular entry.';
             }
             group(PageContentGroup)
