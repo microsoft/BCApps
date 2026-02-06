@@ -89,10 +89,10 @@ page 20408 "Qlty. Inspection List"
                 {
                     Visible = false;
                 }
-                field("Serial No."; Rec."Source Serial No.")
+                field("Lot No."; Rec."Source Lot No.")
                 {
                 }
-                field("Lot No."; Rec."Source Lot No.")
+                field("Serial No."; Rec."Source Serial No.")
                 {
                 }
                 field("Package No."; Rec."Source Package No.")

@@ -24,7 +24,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
+        WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         CannotGetJournalBatchErr: Label 'Could not get journal batch %1,%2%3. Check the adjustment batch on the Quality Management Setup page.', Comment = '%1=template,%2=batch name,%3=location';
         LocationLbl: Label ' Location: %1', Comment = '%1=location';
         DocumentTypeLbl: Label 'Negative Adjustment';
@@ -89,7 +89,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
             if not QltyInspectionHeader.IsItemTrackingUsed() then
-                Error(WriteOffEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
+                Error(WriteOffEntireItemTrackingErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
