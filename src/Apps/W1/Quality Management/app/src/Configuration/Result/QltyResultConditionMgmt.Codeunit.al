@@ -447,12 +447,16 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArraySourceRecordId);
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
         if not AllPromoted then
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
@@ -473,7 +477,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
                 MatrixArraySourceRecordId[Iterator] := QltyInspectionResult.RecordId();
-            until (QltyInspectionResult.Next() = 0) or (Iterator >= 10);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
         end;
     end;
 
@@ -540,11 +544,15 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
         QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
@@ -552,7 +560,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             repeat
                 if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
                     Iterator += 1;
-                    if Iterator <= 10 then begin
+                    if Iterator <= GetMaxResultConditions() then begin
                         MatrixVisibleStateToSet[Iterator] := true;
                         if QltyInspectionResult.Description <> '' then
                             MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
@@ -571,6 +579,11 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     end else
                         break;
                 end;
-            until (QltyIResultConditConf.Next() = 0) or (Iterator >= 10);
+            until (QltyIResultConditConf.Next() = 0) or (Iterator >= MaxResultConditions);
+    end;
+
+    local procedure GetMaxResultConditions(): Integer
+    begin
+        exit(10);
     end;
 }
