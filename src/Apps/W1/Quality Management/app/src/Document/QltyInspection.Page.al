@@ -41,6 +41,7 @@ page 20406 "Qlty. Inspection"
             group(General)
             {
                 Caption = 'General';
+                Editable = IsOpen;
 
                 field("No."; Rec."No.")
                 {
@@ -57,7 +58,6 @@ page 20406 "Qlty. Inspection"
                 }
                 field("Template Code"; Rec."Template Code")
                 {
-                    Editable = false;
                 }
                 field(Description; Rec.Description)
                 {
@@ -218,6 +218,7 @@ page 20406 "Qlty. Inspection"
             }
             part(Lines; "Qlty. Inspection Subform")
             {
+                Editable = IsOpen;
                 Caption = 'Lines';
                 SubPageLink = "Inspection No." = field("No."),
                               "Re-inspection No." = field("Re-inspection No.");
@@ -225,7 +226,6 @@ page 20406 "Qlty. Inspection"
             group(ControlInfo)
             {
                 Caption = 'Control Information';
-
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
@@ -819,6 +819,7 @@ page 20406 "Qlty. Inspection"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
         CameraAvailable: Boolean;
+        IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanCreateReinspection: Boolean;
@@ -859,6 +860,7 @@ page 20406 "Qlty. Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
+        IsOpen := Rec.Status = Rec.Status::Open;
         CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
         CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
         CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
