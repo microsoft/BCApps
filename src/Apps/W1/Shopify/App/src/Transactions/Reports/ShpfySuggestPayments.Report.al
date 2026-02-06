@@ -45,7 +45,7 @@ report 30118 "Shpfy Suggest Payments"
 
             trigger OnPostDataItem()
             begin
-                CreateGeneralJournalLines();
+                CreateGeneralJournalLines(false);
             end;
         }
     }
@@ -210,6 +210,21 @@ report 30118 "Shpfy Suggest Payments"
         IgnorePostedTransactions := NewIgnorePostedTransactions;
     end;
 
+    internal procedure SetOrderTransaction(NewOrderTransaction: Record "Shpfy Order Transaction")
+    begin
+        OrderTransaction := NewOrderTransaction;
+    end;
+
+    internal procedure SetJournalParameters(NewTemplateName: Code[10]; NewBatchName: Code[10]; NewPostingDate: Date)
+    begin
+        GeneralJournalTemplateName := NewTemplateName;
+        GeneralJournalBatchName := NewBatchName;
+        GenJournalLine."Journal Template Name" := NewTemplateName;
+        GenJournalLine."Journal Batch Name" := NewBatchName;
+        PostingDate := NewPostingDate;
+        ValidatePostingDate();
+    end;
+
     local procedure ValidatePostingDate()
     var
         NoSeries: Codeunit "No. Series";
@@ -252,7 +267,7 @@ report 30118 "Shpfy Suggest Payments"
                         repeat
                             if SalesInvoiceHeader.Closed then
                                 continue;
-                            ApplyCustomerLedgerEntries(SalesInvoiceHeader."No.", "Gen. Journal Document Type"::Invoice, AmountToApply, Applied);
+                            ApplyCustomerLedgerEntries(OrderTransaction, SalesInvoiceHeader."No.", "Gen. Journal Document Type"::Invoice, AmountToApply, Applied);
                         until SalesInvoiceHeader.Next() = 0
                     else begin
                         DocLinkToDoc.SetRange("Shopify Document Type", DocLinkToDoc."Shopify Document Type"::"Shopify Shop Order");
@@ -263,12 +278,12 @@ report 30118 "Shpfy Suggest Payments"
                                 SalesInvoiceHeader.Get(DocLinkToDoc."Document No.");
                                 if SalesInvoiceHeader.Closed then
                                     continue;
-                                ApplyCustomerLedgerEntries(SalesInvoiceHeader."No.", "Gen. Journal Document Type"::Invoice, AmountToApply, Applied);
+                                ApplyCustomerLedgerEntries(OrderTransaction, SalesInvoiceHeader."No.", "Gen. Journal Document Type"::Invoice, AmountToApply, Applied);
                             until DocLinkToDoc.Next() = 0;
                     end;
 
                     if Applied and (AmountToApply > 0) then
-                        CreateSuggestPaymentGLAccount(AmountToApply, true);
+                        CreateSuggestPaymentGLAccount(OrderTransaction, AmountToApply, true);
                 end;
             OrderTransaction.Type::Refund:
                 begin
@@ -283,18 +298,18 @@ report 30118 "Shpfy Suggest Payments"
                                 repeat
                                     if SalesCreditMemoHeader.Paid then
                                         continue;
-                                    ApplyCustomerLedgerEntries(SalesCreditMemoHeader."No.", "Gen. Journal Document Type"::"Credit Memo", AmountToApply, Applied);
+                                    ApplyCustomerLedgerEntries(OrderTransaction, SalesCreditMemoHeader."No.", "Gen. Journal Document Type"::"Credit Memo", AmountToApply, Applied);
                                 until SalesCreditMemoHeader.Next() = 0;
                         until RefundHeader.Next() = 0;
 
                         if Applied and (AmountToApply > 0) then
-                            CreateSuggestPaymentGLAccount(AmountToApply, false);
+                            CreateSuggestPaymentGLAccount(OrderTransaction, AmountToApply, false);
                     end;
                 end;
         end;
     end;
 
-    local procedure ApplyCustomerLedgerEntries(DocumentNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; var AmountToApply: Decimal; var Applied: Boolean)
+    local procedure ApplyCustomerLedgerEntries(OrderTransaction: Record "Shpfy Order Transaction"; DocumentNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; var AmountToApply: Decimal; var Applied: Boolean)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -307,12 +322,12 @@ report 30118 "Shpfy Suggest Payments"
         if CustLedgerEntry.FindSet() then begin
             Applied := true;
             repeat
-                CreateSuggestPaymentDocument(CustLedgerEntry, AmountToApply, DocumentType = "Gen. Journal Document Type"::Invoice);
+                CreateSuggestPaymentDocument(CustLedgerEntry, OrderTransaction, AmountToApply, DocumentType = "Gen. Journal Document Type"::Invoice);
             until CustLedgerEntry.Next() = 0;
         end;
     end;
 
-    local procedure CreateSuggestPaymentDocument(var CustLedgerEntry: Record "Cust. Ledger Entry"; var AmountToApply: Decimal; IsInvoice: Boolean)
+    local procedure CreateSuggestPaymentDocument(var CustLedgerEntry: Record "Cust. Ledger Entry"; OrderTransaction: Record "Shpfy Order Transaction"; var AmountToApply: Decimal; IsInvoice: Boolean)
     begin
         TempSuggestPayment.Init();
         EntryNo += 1;
@@ -346,7 +361,7 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Insert();
     end;
 
-    local procedure CreateSuggestPaymentGLAccount(AmountToApply: Decimal; IsInvoice: Boolean)
+    local procedure CreateSuggestPaymentGLAccount(OrderTransaction: Record "Shpfy Order Transaction"; AmountToApply: Decimal; IsInvoice: Boolean)
     begin
         TempSuggestPayment.Init();
         EntryNo += 1;
@@ -363,7 +378,7 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Insert();
     end;
 
-    internal procedure CreateGeneralJournalLines()
+    internal procedure CreateGeneralJournalLines(AutomaticallyPosted: Boolean)
     var
         NoSeriesBatch: Codeunit "No. Series - Batch";
         LastLineNo: Integer;
@@ -418,6 +433,7 @@ report 30118 "Shpfy Suggest Payments"
                     GenJournalLine.Validate("Applies-to Doc. No.", TempSuggestPayment."Credit Memo No.");
                 end;
                 GenJournalLine."Shpfy Transaction Id" := TempSuggestPayment."Shpfy Transaction Id";
+                GenJournalLine."Automatically Posted" := AutomaticallyPosted;
                 GenJournalLine.SetSuppressCommit(false);
                 GenJournalLine.Insert(true);
 
