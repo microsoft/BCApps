@@ -23,12 +23,12 @@ reportextension 6172 "PostedServiceCrMemoWithQR" extends "Service - Credit Memo"
 
     rendering
     {
-        layout("StandardServiceCrMemo.docx")
+        layout("ServiceCreditMemoWithQR.rdlc")
         {
-            Type = Word;
-            LayoutFile = './.resources/Template/StandardServiceCreditMemowithQR.docx';
-            Caption = 'Service Credit Memo - E-Document (Word)';
-            Summary = 'The Service Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
+            Type = RDLC;
+            LayoutFile = './.resources/Template/ServiceCreditMemoWithQR.rdlc';
+            Caption = 'Service Credit Memo - E-Document (RDLC)';
+            Summary = 'The Service Credit Memo - E-Document (RDLC) provides the layout including E-Document QR code support.';
         }
     }
 }

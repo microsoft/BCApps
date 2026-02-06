@@ -23,12 +23,12 @@ reportextension 6170 "PostedServiceInvoiceWithQR" extends "Service - Invoice"
 
     rendering
     {
-        layout("StandardServiceInvoice.docx")
+        layout("ServiceInvoiceWithQR.rdlc")
         {
-            Type = Word;
-            LayoutFile = './.resources/Template/StandardServiceInvoicewithQR.docx';
-            Caption = 'Service Invoice - E-Document (Word)';
-            Summary = 'The Service Invoice - E-Document (Word) provides the layout including E-Document QR code support.';
+            Type = RDLC;
+            LayoutFile = './.resources/Template/ServiceInvoiceWithQR.rdlc';
+            Caption = 'Service Invoice - E-Document (RDLC)';
+            Summary = 'The Service Invoice - E-Document (RDLC) provides the layout including E-Document QR code support.';
         }
     }
 }
