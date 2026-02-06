@@ -127,9 +127,16 @@ page 4303 "Agent Task Log Entry List"
                 AboutText = 'Shows context information such as the agent name, task ID, and company name.';
                 SubPageLink = ID = field("Task ID");
             }
+            part(TaskLogEntryDetails; "Agent Task Log Entry Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Log entry details';
+                AboutTitle = 'Details of the selected log entry';
+                AboutText = 'Shows details of the selected log entry, including the reason and description provided by the agent.';
+                SubPageLink = "Task ID" = field("Task ID"), ID = field(ID);
+            }
         }
     }
-
     actions
     {
         area(Promoted)
