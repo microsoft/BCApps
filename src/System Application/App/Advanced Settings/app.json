@@ -28,6 +28,12 @@
       "name": "Guided Experience",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
+    },
+    {
+      "id": "f3d8a1b7-4c92-4e6f-b5a0-9d7e2c8f1a64",
+      "name": "Text Search Language",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
     }
   ],
   "internalsVisibleTo": [
