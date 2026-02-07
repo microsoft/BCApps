@@ -29,13 +29,13 @@ queryGroup 'Parameters and Functions\Functions'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Item Ledger Entries","Warehouse Entries","Item","Location","Customer","Vendor","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Working Days","Date Table Setup","Purchase Lines","Zone","Bin","Dimension Sets","Sales Lines","Assembly Lines","Assembly Headers","Project Planning Lines","Warehouse Journal Lines (To Bin)","Warehouse Journal Lines (From Bin)","Warehouse Activity Lines","Production Order Lines","Prod Order Component Lines","Service Lines","Transfer Lines","Requisition Line","Planning Component Lines","Lot No","Serial No","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Item Category"]
+annotation PBI_QueryOrder = ["Item Ledger Entries","Warehouse Entries","Item","Location","Customer","Vendor","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Working Days","Date Table Setup","Purchase Lines","Zone","Bin","Dimension Sets","Sales Lines","Assembly Lines","Assembly Headers","Project Planning Lines","Warehouse Journal Lines (To Bin)","Warehouse Journal Lines (From Bin)","Warehouse Activity Lines","Production Order Lines","Prod Order Component Lines","Service Lines","Transfer Lines","Requisition Line","Planning Component Lines","Lot No","Serial No","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Item Category","ABC ANALYSIS","ABC Classes"]
 
 annotation __TEdtr = 1
 
-annotation PBI_ProTooling = ["DevMode","CalcGroup"]
+annotation PBI_ProTooling = ["DevMode","CalcGroup","DaxQueryView_Desktop"]
 
-annotation TranslationsBuilder = Version:2.2-Updated:2025-05-16
+annotation TranslationsBuilder = Version:2.2-Updated:2026-01-07
 
 ref table Item
 ref table Location
@@ -71,6 +71,8 @@ ref table 'Localized Labels'
 ref table COMPANY
 ref table ENVIRONMENT
 ref table 'Item Category'
+ref table 'ABC Classes'
+ref table 'ABC Classification'
 ref table 'Translated Localized Labels'
 
 ref perspective 'Fiscal Calendar'
