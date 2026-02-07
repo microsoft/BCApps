@@ -149,7 +149,7 @@ report 4405 "EXR Trial Balance Excel"
         TrialBalanceData.SecurityFiltering(SecurityFilter::Filtered);
         CompanyInformation.Get();
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Trial Balance Excel");
-        TrialBalance.ConfigureTrialBalance(true, false);
+        TrialBalance.ConfigureTrialBalance(true, false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceData);
     end;
 
