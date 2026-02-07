@@ -7,6 +7,10 @@
 		{
 			"name": "Tests",
 			"path": "Test"
+		},
+		{	
+			"name": "App - BE",
+			"path": "../../BE/Peppol/App"
 		}
 	],
 	"settings": {}
