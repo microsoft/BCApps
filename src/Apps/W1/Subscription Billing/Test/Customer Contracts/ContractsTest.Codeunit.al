@@ -33,6 +33,7 @@ codeunit 148155 "Contracts Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
+        CustShipToCodeErr: Label 'Ship-to Code should be the same as Sell-to Customer';
 
     #region Tests
 
@@ -1909,6 +1910,33 @@ codeunit 148155 "Contracts Test"
         CustomerContract.Validate("Contract Type", '');
         CustomerContract.Modify(false);
         ContractType.Delete(true);
+    end;
+
+    [Test]
+    procedure ShipToCodeNotSetWhenBillToDiffersFromSellTo()
+    var
+        CustomerSellTo: Record Customer;
+        CustomerBillTo: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        // [SCENARIO 620800] Ship-to Code is not set when Bill-to Customer No. differs from Sell-to Customer No.
+        Initialize();
+
+        // [GIVEN] Create Sell-to and Bill-to Customers, set different Ship-to Address for Bill-to Customer
+        ContractTestLibrary.CreateCustomer(CustomerSellTo);
+        ContractTestLibrary.CreateCustomer(CustomerBillTo);
+        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerBillTo."No.");
+        CustomerSellTo.Validate("Bill-to Customer No.", CustomerBillTo."No.");
+        CustomerSellTo.Modify(true);
+        CustomerBillTo.Validate("Ship-to Code", ShipToAddress.Code);
+        CustomerBillTo.Modify(true);
+
+        // [WHEN] Create contract for CustomerSellTo, set Bill-to Customer No. to CustomerBillTo
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, CustomerSellTo."No.");
+
+        // [THEN] Ship-to Code should not be set from Sell-to Customer
+        Assert.AreEqual(CustomerSellTo."Ship-to Code", CustomerContract."Ship-to Code", CustShipToCodeErr);
     end;
 
     #endregion Tests
