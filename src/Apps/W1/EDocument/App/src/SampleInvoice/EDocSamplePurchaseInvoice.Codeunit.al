@@ -247,6 +247,8 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
                             VATPostingSetup.Init();
                     end;
             end;
+            if VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT" then
+                VATPostingSetup."VAT %" := 0;
             TotalVATAmount += Round(EDocPurchaseLine."Sub Total" * VATPostingSetup."VAT %" / 100);
         until EDocPurchaseLine.Next() = 0;
         EDocPurchaseHeader."Total VAT" := TotalVATAmount;
