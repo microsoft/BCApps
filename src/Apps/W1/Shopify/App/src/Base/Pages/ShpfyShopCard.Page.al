@@ -960,7 +960,6 @@ page 30101 "Shpfy Shop Card"
                         ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
                     end;
                 }
-
             }
             group(Sync)
             {
