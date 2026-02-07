@@ -6,12 +6,13 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
-tableextension 6370 "E-Doc. Service" extends "E-Document Service"
+tableextension 6375 "E-Doc. Service" extends "E-Document Service"
 {
     fields
     {
         field(6360; "Avalara Mandate"; Code[50])
         {
+            Caption = 'Avalara Mandate';
             DataClassification = SystemMetadata;
             Editable = false;
         }
