@@ -23,10 +23,6 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
         QltySessionHelper: Codeunit "Qlty. Session Helper";
-        PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent inspection being updated.', Comment = '%1:User ID';
-        ProductionRegisteredLogEventIDTok: Label 'QMERR0002', Locked = true;
-        TargetDetailRecordTok: Label 'Target', Locked = true;
-        UnknownRecordTok: Label 'Unknown record', Locked = true;
 
     /// <summary>
     /// We subscribe to OnAfterPostOutput to see if we need to create an inspection related to the output.
@@ -184,50 +180,37 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProductionOrder"></param>
     /// <param name="NewProductionOrder"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
     local procedure UpdateReferencesForProductionOrder(OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProductionOrder);
-        if not QltyInspectionHeader.WritePermission() then begin
-            LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
-            exit;
-        end;
 
+        // Use filter groups to find records where any of the Source RecordId fields match
+        QltyInspectionHeader.FilterGroup(-1); // Cross-column filtering
         QltyInspectionHeader.SetRange("Source RecordId", OldProductionOrder.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 2", OldProductionOrder.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 3", OldProductionOrder.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 4", OldProductionOrder.RecordId());
+        QltyInspectionHeader.FilterGroup(0);
+
         if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionHeader."Source RecordId" := NewProductionOrder.RecordId();
+                if QltyInspectionHeader."Source RecordId" = OldProductionOrder.RecordId() then
+                    QltyInspectionHeader."Source RecordId" := NewProductionOrder.RecordId()
+                else
+                    if QltyInspectionHeader."Source RecordId 2" = OldProductionOrder.RecordId() then
+                        QltyInspectionHeader."Source RecordId 2" := NewProductionOrder.RecordId()
+                    else
+                        if QltyInspectionHeader."Source RecordId 3" = OldProductionOrder.RecordId() then
+                            QltyInspectionHeader."Source RecordId 3" := NewProductionOrder.RecordId()
+                        else
+                            if QltyInspectionHeader."Source RecordId 4" = OldProductionOrder.RecordId() then
+                                QltyInspectionHeader."Source RecordId 4" := NewProductionOrder.RecordId();
                 UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-            until QltyInspectionHeader.Next() = 0
-        else begin
-            QltyInspectionHeader.Reset();
-            QltyInspectionHeader.SetRange("Source RecordId 2", OldProductionOrder.RecordId());
-            if QltyInspectionHeader.FindSet(true) then
-                repeat
-                    QltyInspectionHeader."Source RecordId 2" := NewProductionOrder.RecordId();
-                    UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                until QltyInspectionHeader.Next() = 0
-            else begin
-                QltyInspectionHeader.Reset();
-                QltyInspectionHeader.SetRange("Source RecordId 3", OldProductionOrder.RecordId());
-                if QltyInspectionHeader.FindSet(true) then
-                    repeat
-                        QltyInspectionHeader."Source RecordId 3" := NewProductionOrder.RecordId();
-                        UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                    until QltyInspectionHeader.Next() = 0
-                else begin
-                    QltyInspectionHeader.Reset();
-                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProductionOrder.RecordId());
-                    if QltyInspectionHeader.FindSet(true) then
-                        repeat
-                            QltyInspectionHeader."Source RecordId 4" := NewProductionOrder.RecordId();
-                            UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                        until QltyInspectionHeader.Next() = 0;
-                end;
-            end;
-        end;
+            until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
@@ -235,16 +218,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProdOrderLine"></param>
     /// <param name="NewProdOrderLine"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
     local procedure UpdateReferencesForProductionOrderLine(OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProdOrderLine);
-        if not QltyInspectionHeader.WritePermission() then begin
-            LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
-            exit;
-        end;
 
         // Use filter groups to find records where any of the Source RecordId fields match
         QltyInspectionHeader.FilterGroup(-1); // Cross-column filtering
@@ -276,19 +256,16 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProdOrderRoutingLine"></param>
     /// <param name="NewProdOrderRoutingLine"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
     local procedure UpdateReferencesForProductionOrderRoutingLine(OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProdOrderRoutingLine);
-        if not QltyInspectionHeader.WritePermission() then begin
-            LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
-            exit;
-        end;
 
         // Use filter groups to find records where any of the Source RecordId fields match
-        QltyInspectionHeader.FilterGroup(-1); // OR filtering
+        QltyInspectionHeader.FilterGroup(-1); // Cross-column filtering
         QltyInspectionHeader.SetRange("Source RecordId", OldProdOrderRoutingLine.RecordId());
         QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderRoutingLine.RecordId());
         QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderRoutingLine.RecordId());
@@ -513,30 +490,6 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         OnAfterProductionAttemptCreateAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
-    end;
-
-    /// <summary>
-    /// Use this to log QMERR0002
-    /// </summary>
-    /// <param name="ContextVariant"></param>
-    /// <param name="Input"></param>
-    local procedure LogProductionProblem(ContextVariant: Variant; Input: Text)
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        ContextRecordRef: RecordRef;
-        DetailRecord: Text;
-    begin
-        if QltyMiscHelpers.GetRecordRefFromVariant(ContextVariant, ContextRecordRef) then
-            DetailRecord := Format(ContextRecordRef.RecordId())
-        else
-            DetailRecord := UnknownRecordTok;
-
-        LogMessage(ProductionRegisteredLogEventIDTok, Input, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TargetDetailRecordTok, DetailRecord);
-    end;
-
-    local procedure LogProductionProblemWith1(ContextVariant: Variant; Input: Text; Variable1: Text)
-    begin
-        LogProductionProblem(ContextVariant, StrSubstNo(Input, Variable1));
     end;
 
     /// <summary>

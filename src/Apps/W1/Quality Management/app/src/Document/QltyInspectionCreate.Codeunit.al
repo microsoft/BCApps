@@ -37,11 +37,11 @@ codeunit 20404 "Qlty. Inspection - Create"
         PreventShowingGeneratedInspectionEvenIfConfigured: Boolean;
         AvoidThrowingErrorWhenPossible: Boolean;
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
-        CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match  %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
+        CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         UnableToCreateInspectionForErr: Label 'Unable to create an inspection for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have an inspection created for.';
         NoSpecificTemplateTok: Label '', Locked = true;
         MultiRecordInspectionSourceFieldErr: Label 'Inspection %1 has been created, however neither %2 nor %4 had applicable source fields to map to the inspection. Navigate to the Quality Source Configuration for table %3 and apply source field mapping.', Comment = '%1=the inspection, %2=target record,  %3=the number to set configuration for,%4=triggering record';
-        RegisteredLogEventIDTok: Label 'QIERR0001', Locked = true;
+        RegisteredLogEventIDTok: Label 'QMERR0001', Locked = true;
         DetailRecordTok: Label 'Target', Locked = true;
         UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
@@ -784,7 +784,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this to log QIERR0001
+    /// Use this to log QMERR0001
     /// </summary>
     /// <param name="ContextRecordRef"></param>
     /// <param name="Input"></param>
