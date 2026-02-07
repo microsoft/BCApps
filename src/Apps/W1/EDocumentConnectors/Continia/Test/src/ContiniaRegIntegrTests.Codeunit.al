@@ -978,6 +978,558 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         EDocServicePage.Close();
     end;
 
+    /// <summary>
+    /// Scenario: This test case focuses on the advanced setup step of the onboarding wizard for the Peppol network.
+    /// It ensures that the advanced setup page is displayed correctly when registering for the Peppol network and that
+    /// correct data is passed to the integration procedures.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure Registration_AdvancedSetup_Peppol()
+    var
+        EDocServicePage: TestPage "E-Document Service";
+        OnboardingGuide: TestPage "Continia Onboarding Guide";
+        ExtConnectionSetup: TestPage "Continia Ext. Connection Setup";
+        Participations: TestPage "Continia Participations";
+    begin
+        Initialize();
+
+        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        LibraryPermission.SetTeamMember();
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+
+        // [When] Open eDocument Service
+        EDocServicePage.OpenView();
+        EDocServicePage.GoToRecord(EDocumentService);
+
+        // [When] Open Setup Service Integration
+        ExtConnectionSetup.Trap();
+        EDocServicePage.SetupServiceIntegration.Invoke();
+
+        // [Then] Validate No Of Participations is 0
+        Assert.AreEqual('0', ExtConnectionSetup.NoOfParticipations.Value, IncorrectValueErr);
+
+        // [When] Click on Register New Participation and on CDN Onboarding Click Next
+        OnboardingGuide.Trap();
+        ExtConnectionSetup.RegisterNewParticipation.Invoke();
+        OnboardingGuide.ActionNext.Invoke();
+        Commit();
+
+        // [When] set Credential Click Next and expect Credentials are correct
+        OnboardingGuide.PartnerUserName.SetValue('PartnerUserName@contoso.com');
+        OnboardingGuide.PartnerPassword.SetValue('PartnerPassword');
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.PartnerAccessTokenUrl(),
+            200,
+            GetMockResponseContent('PartnerZoneLogin200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.ClientEnvironmentInitializeUrl(),
+            200,
+            GetMockResponseContent('InitializeClient200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.PartnerZoneUrl(),
+            200,
+            GetMockResponseContent('PartnerZoneConnect200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.NetworkIdentifiersUrl(Enum::"Continia E-Delivery Network"::Peppol, 1, 100),
+            200,
+            GetMockResponseContent('PeppolNetworkIdTypes200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.NetworkIdentifiersUrl(Enum::"Continia E-Delivery Network"::Nemhandel, 1, 100),
+            200,
+            GetMockResponseContent('NemhandelNetworkIdTypes200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.NetworkProfilesUrl(Enum::"Continia E-Delivery Network"::Peppol, 1, 100),
+            200,
+            GetMockResponseContent('PeppolNetworkProfiles200.txt')
+        );
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.NetworkProfilesUrl(Enum::"Continia E-Delivery Network"::Nemhandel, 1, 100),
+            200,
+            GetMockResponseContent('NemhandelNetworkProfiles200.txt')
+        );
+
+        OnboardingGuide.ActionNext.Invoke();
+        Commit();
+
+        // [When] fill mandatory information
+        OnboardingGuide."Signatory Name".SetValue('Signatory Name');
+        OnboardingGuide."Signatory Email".SetValue('signatory@email.address');
+        OnboardingGuide.LicenseTerms.SetValue(true);
+
+        // [When] click Next
+        OnboardingGuide.ActionNext.Invoke();
+        Commit();
+
+        // [When] fill mandatory information
+        OnboardingGuide.CompanyContactName.SetValue('Company Contact Name');
+        OnboardingGuide.CompanyContactVAT.SetValue('123456789');
+        OnboardingGuide.CompanyContactAddress.SetValue('CompanyContact Address');
+        OnboardingGuide.CompanyContactPostCode.SetValue('111222');
+        OnboardingGuide.CompanyContactCounty.SetValue('Company Contact County');
+        OnboardingGuide.CompanyContactCountryRegion.SetValue(CompanyInformation."Country/Region Code");
+        OnboardingGuide.CompanyContactPersonName.SetValue('Contact Name');
+        OnboardingGuide.CompanyContactPersonEmail.SetValue('contact@email.address');
+        OnboardingGuide.CompanyContactPersonPhoneNo.SetValue('999888777');
+
+        // [When] click Next
+        OnboardingGuide.ActionNext.Invoke();
+        Commit();
+
+        // [Then] Participation Network registration details step opens
+        Assert.AreEqual(false, OnboardingGuide.CompanyContactName.Visible(), 'Company company information should not be visible');
+        Assert.AreEqual(true, OnboardingGuide.Network.Visible(), 'Participation Network registration details should be visible');
+
+        // [When] click Next
+        OnboardingGuide.ActionNext.Invoke();
+        Commit();
+
+        // [Then] Document Types selection step opens
+        Assert.AreEqual(false, OnboardingGuide.Network.Visible(), 'Participation Network registration details should not be visible');
+        Assert.AreEqual(true, OnboardingGuide.SendInvoiceCreditMemo.Visible(), 'Document Types selection should be visible');
+
+
+        // [When] Open Advanced Setup
+        OnboardingGuide.ActionAdvancedSetup.Invoke();
+
+        // [Then] Advanced Setup step opens
+        Assert.AreEqual(false, OnboardingGuide.SendInvoiceCreditMemo.Visible(), 'Document Types selection should not be visible');
+        Assert.AreEqual(true, OnboardingGuide.SelectProfilesPeppol."Profile Name".Visible(), 'Advanced Setup should be visible');
+
+        // [When] Press Back to Document Types
+
+        OnboardingGuide.ActionBack.Invoke();
+
+        // [Then] Document Types selection step opens
+        Assert.AreEqual(false, OnboardingGuide.SelectProfilesPeppol."Profile Name".Visible(), 'Advanced Setup should not be visible');
+        Assert.AreEqual(true, OnboardingGuide.SendInvoiceCreditMemo.Visible(), 'Document Types selection should be visible');
+
+        // [When] Select profiles and press Next
+        OnboardingGuide.SendInvoiceCreditMemo.SetValue(true);
+        OnboardingGuide.ReceiveInvoiceResponse.SetValue(true);
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(
+                Enum::"Continia E-Delivery Network"::Peppol,
+                CopyStr(OnboardingGuide.IdentifierTypeDesc.Value, 1, 4),
+                CopyStr(OnboardingGuide.CompanyIdentifierValue.Value, 1, 50)),
+            200,
+            GetMockResponseContent('ParticipationLookup200.txt'));
+        OnboardingGuide.ActionNext.Invoke();
+
+        // [Then] Last step opens
+        Assert.AreEqual(false, OnboardingGuide.SelectProfilesPeppol."Profile Name".Visible(), 'Advanced Setup should not be visible');
+        Assert.AreEqual(false, OnboardingGuide.ActionNext.Enabled(), 'Next must be disabled');
+        Assert.AreEqual(true, OnboardingGuide.ActionFinish.Enabled(), 'Finish must be enabled');
+
+        // [When] click Finish
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.UpdateSubscriptionUrl(),
+            200,
+            GetMockResponseContent('UpdateSubscription200.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.GetAcceptCompanyLicenseUrl(),
+            200,
+            GetMockResponseContent('AcceptCompanyLicense200.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.ParticipationUrl(Enum::"Continia E-Delivery Network"::Peppol),
+            200,
+            GetMockResponseContent('Participation200-Draft.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Post,
+            ContiniaApiUrlMgt.ParticipationProfilesUrl(Enum::"Continia E-Delivery Network"::Peppol, ConnectorLibrary.ParticipationId(true)),
+            200,
+            GetMockResponseContent('ParticipationProfile200-randomId.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Patch,
+            ContiniaApiUrlMgt.SingleParticipationUrl(Enum::"Continia E-Delivery Network"::Peppol, ConnectorLibrary.ParticipationId(true)),
+            200,
+            GetMockResponseContent('Participation200-InProcess.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.SingleParticipationUrl(Enum::"Continia E-Delivery Network"::Peppol, ConnectorLibrary.ParticipationId(true)),
+            200,
+            GetMockResponseContent('Participation200-InProcess.txt'));
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationProfilesUrl(Enum::"Continia E-Delivery Network"::Peppol, ConnectorLibrary.ParticipationId(true), 1, 100),
+            200,
+            GetMockResponseContent('ParticipationProfile200-randomId.txt'));
+        OnboardingGuide.ActionFinish.Invoke();
+        Commit();
+
+        // [Then] Participation is created in pending state
+        Assert.AreEqual('1', ExtConnectionSetup.NoOfParticipations.Value, IncorrectValueErr);
+        Participations.Trap();
+        ExtConnectionSetup.NoOfParticipations.Drilldown();
+        Participations.First();
+        Assert.AreEqual(Format(ConnectorLibrary.ParticipationId(true)).ToLower(), Participations.Id.Value, IncorrectValueErr);
+        Assert.AreEqual(Format(Enum::"Continia Registration Status"::InProcess), Participations.RegistrationStatus.Value, IncorrectValueErr);
+
+        // [Then] Activated network profiles created
+        ValidateActivatedNetworkProfiles();
+
+        ExtConnectionSetup.Close();
+        EDocServicePage.Close();
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies that CheckParticipationExternalRegistration always checks for registration
+    /// when the network is not Peppol (e.g., Nemhandel). It ensures the API is called regardless of profile direction.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_NonPeppolNetwork_CallsCheck()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Nemhandel Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Nemhandel);
+
+        // [Given] A Nemhandel participation with outbound-only profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Nemhandel;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '12345678';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Outbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and participation is already registered externaly
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200-external.txt'));
+        asserterror OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+
+        // [Then] An error is thrown because the check was performed
+        Assert.ExpectedError('There is already a registration');
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies that CheckParticipationExternalRegistration calls the external check
+    /// for Peppol network when profiles include inbound or bidirectional directions.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_PeppolWithInbound_CallsCheck()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Peppol Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Peppol);
+
+        // [Given] A Peppol participation with inbound profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Peppol;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '987654321';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Inbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and participation is already registered
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200-external.txt'));
+
+        // [Then] An error is thrown because the check was performed
+        asserterror OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+        Assert.ExpectedError('There is already a registration');
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies that CheckParticipationExternalRegistration calls the external check
+    /// for Peppol network when profiles include bidirectional (Both) direction.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_PeppolWithBoth_CallsCheck()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Peppol Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Peppol);
+
+        // [Given] A Peppol participation with bidirectional profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Peppol;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '987654321';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Both;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and participation is already registered
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200-external.txt'));
+        asserterror OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+
+        // [Then] An error is thrown because the check was performed
+        Assert.ExpectedError('There is already a registration');
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies the exception case where CheckParticipationExternalRegistration
+    /// does NOT check for external registration when all profiles are outbound-only in Peppol network.
+    /// This is allowed because outbound-only registrations don't conflict with existing inbound registrations.
+    /// </summary>
+    [Test]
+    procedure CheckParticipationExternalRegistration_PeppolOutboundOnly_SkipsCheck()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Peppol Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Peppol);
+
+        // [Given] A Peppol participation with only outbound profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Peppol;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '987654321';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Outbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called
+        // Note: No mock HTTP response is configured - if the check is called, it will fail
+        ContiniaMockHttpHandler.ClearHandler();
+        OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+
+        // [Then] No error is thrown because the check was skipped for outbound-only profiles
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies that CheckParticipationExternalRegistration calls the external check
+    /// for Peppol network when there are mixed profiles (some outbound, some non-outbound).
+    /// The presence of any non-outbound profile should trigger the check.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_PeppolMixedProfiles_CallsCheck()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Peppol Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Peppol);
+
+        // [Given] A Peppol participation with mixed profile directions
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Peppol;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '987654321';
+        TempParticipation.Insert();
+
+        // Add outbound profile
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Outbound;
+        TempActivatedProfiles.Insert();
+
+        // Add inbound profile
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Inbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and participation is already registered
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200-external.txt'));
+        asserterror OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+
+        // [Then] An error is thrown because the check was performed due to non-outbound profile
+        Assert.ExpectedError('There is already a registration');
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies successful validation when CheckParticipationExternalRegistration
+    /// is called for a Peppol participation with inbound profiles and no existing registration is found.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_PeppolInbound_NoExistingRegistration_Success()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Peppol Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Peppol);
+
+        // [Given] A Peppol participation with inbound profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Peppol;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '0192:987654321';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Inbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and no existing registration found
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200.txt'));
+
+        // [Then] No error is thrown - validation passes
+        OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+    end;
+
+    /// <summary>
+    /// Scenario: This test verifies successful validation when CheckParticipationExternalRegistration
+    /// is called for a Nemhandel participation with outbound-only profiles and no existing registration is found.
+    /// </summary>
+    [Test]
+    [HandlerFunctions('HttpClientHandler')]
+    procedure CheckParticipationExternalRegistration_Nemhandel_NoExistingRegistration_Success()
+    var
+        TempParticipation: Record "Continia Participation" temporary;
+        TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
+        NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
+    begin
+        Initialize();
+        // [Given] A Nemhandel Identifier Type
+        NetworkIdentifier := CreateNetworkIdentifier(Enum::"Continia E-Delivery Network"::Nemhandel);
+        // [Given] A Nemhandel participation with outbound-only profiles
+        TempParticipation.Init();
+        TempParticipation.Network := Enum::"Continia E-Delivery Network"::Nemhandel;
+        TempParticipation."Identifier Type Id" := NetworkIdentifier.Id;
+        TempParticipation."Identifier Value" := '12345678';
+        TempParticipation.Insert();
+
+        TempActivatedProfiles.Init();
+        TempActivatedProfiles.Network := TempParticipation.Network;
+        TempActivatedProfiles."Identifier Type Id" := TempParticipation."Identifier Type Id";
+        TempActivatedProfiles."Identifier Value" := TempParticipation."Identifier Value";
+        TempActivatedProfiles."Network Profile Id" := CreateGuid();
+        TempActivatedProfiles."Profile Direction" := Enum::"Continia Profile Direction"::Outbound;
+        TempActivatedProfiles.Insert();
+
+        // [When] Set Participation in the Onboarding Guide
+        OnboardingGuide.SetParticipation(TempParticipation);
+
+        // [When] CheckParticipationExternalRegistration is called and no existing registration found
+        ContiniaMockHttpHandler.ClearHandler();
+        ContiniaMockHttpHandler.AddResponse(
+            HttpRequestType::Get,
+            ContiniaApiUrlMgt.ParticipationLookupUrl(TempParticipation.Network, NetworkIdentifier."Identifier Type Id", TempParticipation."Identifier Value"),
+            200,
+            GetMockResponseContent('ParticipationLookup200.txt'));
+        OnboardingGuide.CheckParticipationExternalRegistration(TempActivatedProfiles);
+
+        // [Then] No error is thrown - validation passes
+    end;
+
     local procedure TestActivatedNetworkProfiles(Participation: Record "Continia Participation"; NetworkProfileIds: List of [Guid]; Disabled: Boolean)
     var
         ActivatedNetProf: Record "Continia Activated Net. Prof.";
@@ -1059,6 +1611,20 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     local procedure GetMockResponseContent(ResourceFileName: Text): Text
     begin
         exit(NavApp.GetResourceAsText(ResourceFileName, TextEncoding::UTF8));
+    end;
+
+    local procedure CreateNetworkIdentifier(ContiniaEDeliveryNetwork: Enum "Continia E-Delivery Network") NetworkIdentifier: Record "Continia Network Identifier"
+    var
+        LibraryRandom: Codeunit "Library - Random";
+    begin
+        LibraryRandom.Init();
+
+        NetworkIdentifier.Init();
+        NetworkIdentifier.Network := ContiniaEDeliveryNetwork;
+        NetworkIdentifier.Id := CreateGuid();
+        NetworkIdentifier."Identifier Type Id" := Format(LibraryRandom.RandInt(4));
+        NetworkIdentifier.Insert();
+        exit(NetworkIdentifier);
     end;
 
     [HttpClientHandler]
