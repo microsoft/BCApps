@@ -258,6 +258,21 @@ codeunit 6109 "E-Document Import Helper"
 
     /// <summary>
     /// Use it to check if receiving company information is in line with Company Information.
+    /// Also checks if the Receiving Company Id matches a Company Service Participant.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
+    begin
+        // First, check if the Receiving Company Id matches a Company Service Participant
+        if MatchCompanyByServiceParticipant(EDocument, EDocService) then
+            exit;
+
+        ValidateReceivingCompanyInfo(EDocument);
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information is in line with Company Information.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
@@ -279,6 +294,25 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information matches a Company Service Participant for a specific service.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    /// <returns>True if a matching Company Service Participant is found.</returns>
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; EDocService: Record "E-Document Service"): Boolean
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        if EDocument."Receiving Company Id" = '' then
+            exit(false);
+
+        ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
+        ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
+        ServiceParticipant.SetRange(Service, EDocService.Code);
+        exit(not ServiceParticipant.IsEmpty());
     end;
 
     /// <summary>
