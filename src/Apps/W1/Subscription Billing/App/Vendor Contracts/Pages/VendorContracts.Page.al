@@ -14,6 +14,9 @@ page 8071 "Vendor Contracts"
     RefreshOnActivate = true;
     SourceTable = "Vendor Subscription Contract";
     UsageCategory = Lists;
+    AdditionalSearchTerms = 'Vendor Contracts, Subscription Contracts, Contract List, Purchase Contracts, Vendor Subscriptions, Contract Overview';
+    AboutTitle = 'About Vendor Subscription Contracts';
+    AboutText = 'Use vendor subscription contracts to combine subscriptions you are receiving invoices for.';
     layout
     {
         area(content)

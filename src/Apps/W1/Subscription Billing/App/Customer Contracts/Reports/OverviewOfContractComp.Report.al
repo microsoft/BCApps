@@ -7,6 +7,7 @@ report 8004 "Overview Of Contract Comp"
     Caption = 'Overview of Subscription Contract components';
     DefaultRenderingLayout = "OverviewOfContractComponents.xlsx";
     ExcelLayoutMultipleDataSheets = true;
+    AdditionalSearchTerms = 'Contract Components, Contract Overview, Subscription Elements, Contract Report, Contract Analysis, Contract Details';
 
     dataset
     {
@@ -61,6 +62,9 @@ report 8004 "Overview Of Contract Comp"
 
     requestpage
     {
+        AboutTitle = 'About Overview of Subscription Contract components';
+        AboutText = 'Show the contract elements filtered based on your own criteria.';
+
         layout
         {
             area(Content)

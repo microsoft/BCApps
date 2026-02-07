@@ -9,6 +9,9 @@ page 8081 "Vendor Contract Deferrals"
     Editable = false;
     SourceTable = "Vend. Sub. Contract Deferral";
     UsageCategory = History;
+    AdditionalSearchTerms = 'Vendor Deferrals, Contract Deferrals, Deferred Costs, Deferral Release, Cost Deferral, Contract Costs';
+    AboutTitle = 'About Vendor Subscription Contract Deferrals';
+    AboutText = 'Details to deferred costs per contract are shown here. This page also provides insights into which deferrals have been released and which have not.';
 
     layout
     {

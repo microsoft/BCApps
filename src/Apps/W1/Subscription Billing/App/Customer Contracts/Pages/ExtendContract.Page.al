@@ -12,6 +12,9 @@ page 8002 "Extend Contract"
     PageType = Card;
     UsageCategory = Tasks;
     SaveValues = true;
+    AdditionalSearchTerms = 'Extend Contract, Add Subscription, Contract Extension, Subscription Item, Assign Subscription, Contract Management';
+    AboutTitle = 'About Extend Subscription Contract';
+    AboutText = 'Extend the chosen subscription contract(s) with the selected subscription item. By performing the extension, a new subscription is created and the subscriptions line(s) are assigned to the contract(s) accordingly.';
 
     layout
     {

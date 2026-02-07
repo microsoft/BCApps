@@ -9,6 +9,9 @@ page 8037 "Usage Data Customers"
     PageType = List;
     LinksAllowed = false;
     DelayedInsert = true;
+    AdditionalSearchTerms = 'Usage Data Customer, Supplier Customer, Usage Data Reference, Customer Data, Supplier Reference';
+    AboutTitle = 'About Usage Data Supp. Customers';
+    AboutText = 'Here, customer data based on the suppliers'' usage data is displayed. It may differ from customer master data, though. Each row belongs to a Usage Data Supplier. You can create links to master data, but this page is for reference only and not required for processing or billing.';
     layout
     {
         area(content)
