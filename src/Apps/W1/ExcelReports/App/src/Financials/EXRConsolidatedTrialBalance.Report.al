@@ -145,7 +145,7 @@ report 4410 "EXR Consolidated Trial Balance"
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Consolidated Trial Balance");
         GLAccounts.SetRange("Date Filter", StartingDate, EndingDate);
 
-        TrialBalance.ConfigureTrialBalance(true, true);
+        TrialBalance.ConfigureTrialBalance(true, true, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceData);
     end;
 
