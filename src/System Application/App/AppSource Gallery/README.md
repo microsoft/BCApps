@@ -1,7 +1,7 @@
-This module provides functionality for listing AppSource apps.
+This module provides functionality for listing Marketplace apps.
 
 Use this module to do the following:
-- list AppSource products
-- view AppSource product details
-- start installation of AppSource product
+- list Marketplace products
+- view Marketplace product details
+- start installation of Marketplace product
 
