@@ -20,7 +20,7 @@ report 20409 "Qlty. Change Item Tracking"
     UsageCategory = Tasks;
     AllowScheduling = false;
     Extensible = true;
-    AdditionalSearchTerms = 'Change lot number, Change serial number, Change package, Change Expiration Date';
+    AdditionalSearchTerms = 'Change lot number, Change serial number, Change package number, Change Expiration Date';
     ToolTip = 'Use this to update item tracking information.';
 
     dataset
@@ -268,9 +268,7 @@ report 20409 "Qlty. Change Item Tracking"
 
     var
         QltyQuantityBehavior: Enum "Qlty. Quantity Behavior";
-        NewLotNo: Code[50];
-        NewSerialNo: Code[50];
-        NewPackageNo: Code[50];
+        NewLotNo, NewSerialNo, NewPackageNo : Code[50];
         NewExpirationDate: Date;
         SpecificQuantity: Decimal;
         FilterOfSourceLocationCode: Code[100];

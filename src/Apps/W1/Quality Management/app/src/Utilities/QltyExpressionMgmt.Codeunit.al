@@ -374,17 +374,22 @@ codeunit 20416 "Qlty. Expression Mgmt."
     var
         Continue: Boolean;
         Previous: Text;
-        Safety: Integer;
+        SafetyLimit: Integer;
     begin
         Result := Input;
         Previous := Result;
-        Safety := 100;
+        SafetyLimit := DefaultMaxRowsFieldLookup();
         repeat
-            Safety -= 1;
+            SafetyLimit -= 1;
             Result := EvaluateFirstStringOnlyFunctions(Result);
-            Continue := (Safety > 0) and (Result <> Previous);
+            Continue := (SafetyLimit > 0) and (Result <> Previous);
             Previous := Result;
         until not Continue;
+    end;
+
+    local procedure DefaultMaxRowsFieldLookup(): Integer
+    begin
+        exit(100);
     end;
 
     local procedure EvaluateFirstStringOnlyFunctions(Input: Text) Result: Text

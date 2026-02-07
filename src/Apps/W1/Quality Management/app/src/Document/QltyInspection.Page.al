@@ -137,22 +137,22 @@ page 20406 "Qlty. Inspection"
                     {
                         Editable = false;
                     }
-                    field("Serial No."; Rec."Source Serial No.")
-                    {
-                        Editable = CanChangeSerialTracking;
-
-                        trigger OnAssistEdit()
-                        begin
-                            Rec.AssistEditSerialNo();
-                        end;
-                    }
-                    field("Lot No."; Rec."Source Lot No.")
+                    field("Source Lot No."; Rec."Source Lot No.")
                     {
                         Editable = CanChangeLotTracking;
 
                         trigger OnAssistEdit()
                         begin
                             Rec.AssistEditLotNo();
+                        end;
+                    }
+                    field("Source Serial No."; Rec."Source Serial No.")
+                    {
+                        Editable = CanChangeSerialTracking;
+
+                        trigger OnAssistEdit()
+                        begin
+                            Rec.AssistEditSerialNo();
                         end;
                     }
                     field("Source Package No."; Rec."Source Package No.")
@@ -822,9 +822,7 @@ page 20406 "Qlty. Inspection"
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanCreateReinspection: Boolean;
-        CanChangeLotTracking: Boolean;
-        CanChangeSerialTracking: Boolean;
-        CanChangePackageTracking: Boolean;
+        CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
         VisibleCustom10: Boolean;
         VisibleCustom9: Boolean;
         VisibleCustom8: Boolean;

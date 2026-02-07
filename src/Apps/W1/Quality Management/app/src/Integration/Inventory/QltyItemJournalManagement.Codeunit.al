@@ -126,7 +126,7 @@ codeunit 20454 "Qlty. Item Journal Management"
             WarehouseJournalLine."Item No.");
 
         if WhseTracked then
-            if ((QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
+            if ((QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
                ((TempQuantityToActQltyDispositionBuffer."New Expiration Date" = 0D) and (ExpirationDate <> TempQuantityToActQltyDispositionBuffer."New Expiration Date")))
             then
                 QltyItemTrackingMgmt.CreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, WhseItemTrackingLine);
@@ -287,12 +287,9 @@ codeunit 20454 "Qlty. Item Journal Management"
         if ((QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
            ((TempQuantityToActQltyDispositionBuffer."New Expiration Date" <> 0D) and (ItemJournalLine."Expiration Date" <> TempQuantityToActQltyDispositionBuffer."New Expiration Date")))
         then begin
-            ItemJournalLine."Serial No." := QltyInspectionHeader."Source Serial No.";
             ItemJournalLine."Lot No." := QltyInspectionHeader."Source Lot No.";
+            ItemJournalLine."Serial No." := QltyInspectionHeader."Source Serial No.";
             ItemJournalLine."Package No." := QltyInspectionHeader."Source Package No.";
-
-            if TempQuantityToActQltyDispositionBuffer."New Package No." <> '' then
-                ItemJournalLine."New Package No." := TempQuantityToActQltyDispositionBuffer."New Package No.";
 
             if TempQuantityToActQltyDispositionBuffer."New Expiration Date" <> 0D then
                 ItemJournalLine."New Item Expiration Date" := TempQuantityToActQltyDispositionBuffer."New Expiration Date"
@@ -304,6 +301,10 @@ codeunit 20454 "Qlty. Item Journal Management"
 
             if TempQuantityToActQltyDispositionBuffer."New Serial No." <> '' then
                 ItemJournalLine."New Serial No." := TempQuantityToActQltyDispositionBuffer."New Serial No.";
+
+            if TempQuantityToActQltyDispositionBuffer."New Package No." <> '' then
+                ItemJournalLine."New Package No." := TempQuantityToActQltyDispositionBuffer."New Package No.";
+
             if ItemJournalBatch."Item Tracking on Lines" then
                 ItemJournalLine.Modify();
 

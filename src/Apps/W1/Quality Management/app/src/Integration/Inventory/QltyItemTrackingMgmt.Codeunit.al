@@ -71,13 +71,15 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
 
         EntryType := ItemJournalLine."Entry Type".AsInteger();
         ReservationStatus := ReservationStatus::Prospect;
-        InstructionForReservationEntry."Serial No." := ItemJournalLine."Serial No.";
-        if ItemJournalLine."New Serial No." <> '' then
-            InstructionForReservationEntry."New Serial No." := ItemJournalLine."New Serial No.";
 
         InstructionForReservationEntry."Lot No." := ItemJournalLine."Lot No.";
         if ItemJournalLine."New Lot No." <> '' then
             InstructionForReservationEntry."New Lot No." := ItemJournalLine."New Lot No.";
+
+        InstructionForReservationEntry."Serial No." := ItemJournalLine."Serial No.";
+        if ItemJournalLine."New Serial No." <> '' then
+            InstructionForReservationEntry."New Serial No." := ItemJournalLine."New Serial No.";
+
         InstructionForReservationEntry."Package No." := ItemJournalLine."Package No.";
         if ItemJournalLine."New Package No." <> '' then
             InstructionForReservationEntry."New Package No." := ItemJournalLine."New Package No.";
@@ -114,70 +116,45 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         UnbindSubscription(this);
         CreateReservEntry.GetLastEntry(CreatedActualReservationEntry);
 
-        CopyReservationEntryInstructions(InstructionForReservationEntry, CreatedActualReservationEntry);
+        CopyReservationEntryItemTracking(InstructionForReservationEntry, CreatedActualReservationEntry);
 
         OnAfterCreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry);
     end;
 
     /// <summary>
-    /// Helps work around issues in base BC where the package no.
-    /// is not set and the expiration date can not fill in by default.
+    /// Copy item tracking information.
     /// </summary>
     /// <param name="InstructionForReservationEntry"></param>
     /// <param name="CreatedActualReservationEntry"></param>
-    local procedure CopyReservationEntryInstructions(var InstructionForReservationEntry: Record "Reservation Entry"; var CreatedActualReservationEntry: Record "Reservation Entry")
+    local procedure CopyReservationEntryItemTracking(var InstructionForReservationEntry: Record "Reservation Entry"; var CreatedActualReservationEntry: Record "Reservation Entry")
     begin
         if (InstructionForReservationEntry."Expiration Date" <> 0D) and (CreatedActualReservationEntry."Expiration Date" = 0D) then
             CreatedActualReservationEntry."Expiration Date" := InstructionForReservationEntry."Expiration Date";
-        if InstructionForReservationEntry."New Serial No." <> '' then
-            CreatedActualReservationEntry."New Serial No." := InstructionForReservationEntry."New Serial No.";
 
         if InstructionForReservationEntry."New Lot No." <> '' then
             CreatedActualReservationEntry."New Lot No." := InstructionForReservationEntry."New Lot No.";
-        if InstructionForReservationEntry."Package No." <> '' then
-            CreatedActualReservationEntry."Package No." := InstructionForReservationEntry."Package No.";
+
+        if InstructionForReservationEntry."New Serial No." <> '' then
+            CreatedActualReservationEntry."New Serial No." := InstructionForReservationEntry."New Serial No.";
 
         if InstructionForReservationEntry."New Package No." <> '' then
             CreatedActualReservationEntry."New Package No." := InstructionForReservationEntry."New Package No.";
+
         if InstructionForReservationEntry."New Expiration Date" <> 0D then
             CreatedActualReservationEntry."New Expiration Date" := InstructionForReservationEntry."New Expiration Date";
         CreatedActualReservationEntry.Modify();
     end;
 
     /// <summary>
-    /// Sets the "Item Tracking" flag on the reservation entry based on the state of the lot,serial,package on the item journal line.
+    /// Sets the "Item Tracking" flag on the reservation entry based on the state of the item tracking on the item journal line.
     /// </summary>
     /// <param name="ReservationEntry"></param>
     local procedure SetItemTrackingFlag(var ReservationEntry: Record "Reservation Entry")
     var
-        HasLotNo: Boolean;
-        HasSerialNo: Boolean;
-        HasPackageNo: Boolean;
+        ItemTrackingEntryType: Enum "Item Tracking Entry Type";
     begin
-        if ReservationEntry."Lot No." <> '' then
-            HasLotNo := true;
-        if ReservationEntry."Serial No." <> '' then
-            HasSerialNo := true;
-        if ReservationEntry."Package No." <> '' then
-            HasPackageNo := true;
-        case true of
-            HasLotNo and HasSerialNo and HasPackageNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot and Serial and Package No.";
-            HasLotNo and HasPackageNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot and Package No.";
-            HasPackageNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Package No.";
-            HasSerialNo and HasPackageNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Serial and Package No.";
-            HasLotNo and HasSerialNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot and Serial No.";
-            HasLotNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
-            HasSerialNo:
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Serial No.";
-            else
-                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::None;
-        end;
+        ItemTrackingEntryType := ReservationEntry.GetItemTrackingEntryType();
+        ReservationEntry."Item Tracking" := ItemTrackingEntryType;
     end;
 
     /// <summary>
@@ -296,7 +273,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Gets the most recent expiration date for the given item,lot,serial/lot.
+    /// Gets the most recent expiration date for the given item, variant, item tracking.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="LocationCode"></param>
@@ -321,8 +298,8 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         if LocationCode <> '' then
             Location.Get(LocationCode);
 
-        TempItemTrackingSetup."Serial No." := SerialNo;
         TempItemTrackingSetup."Lot No." := LotNo;
+        TempItemTrackingSetup."Serial No." := SerialNo;
         TempItemTrackingSetup."Package No." := PackageNo;
 
         ItemTrackingManagement.GetWhseExpirationDate(ItemNo, VariantCode, Location, TempItemTrackingSetup, ExpirationDate);
@@ -452,8 +429,8 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         if ExpirationDate <> 0D then
             CreateReservEntry.SetNewExpirationDate(ExpirationDate);
 
-        InstructionForReservationEntry."Serial No." := QltyInspectionHeader."Source Serial No.";
         InstructionForReservationEntry."Lot No." := QltyInspectionHeader."Source Lot No.";
+        InstructionForReservationEntry."Serial No." := QltyInspectionHeader."Source Serial No.";
         InstructionForReservationEntry."Package No." := QltyInspectionHeader."Source Package No.";
         if ExpirationDate <> 0D then
             InstructionForReservationEntry."Expiration Date" := ExpirationDate;
@@ -484,7 +461,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         UnbindSubscription(this);
         CreateReservEntry.GetLastEntry(CreatedActualReservationEntry);
 
-        CopyReservationEntryInstructions(InstructionForReservationEntry, CreatedActualReservationEntry);
+        CopyReservationEntryItemTracking(InstructionForReservationEntry, CreatedActualReservationEntry);
     end;
 
     /// <summary>
@@ -557,8 +534,8 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         if (ChangeQty > 1) and (SerialNo <> '') then
             Error(SerialNumberAlreadyEnteredErr, SerialNo);
 
-        ReservForReservationEntry."Serial No." := SerialNo;
         ReservForReservationEntry."Lot No." := LotNo;
+        ReservForReservationEntry."Serial No." := SerialNo;
 
         CreateReservEntry.CreateReservEntryFor(Database::"Purchase Line", 5, PurchPurchaseLine."Document No.", '', 0, PurchPurchaseLine."Line No.", PurchPurchaseLine."Qty. per Unit of Measure", ChangeQty / PurchPurchaseLine."Qty. per Unit of Measure", ChangeQty, ReservForReservationEntry);
 
@@ -607,7 +584,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         if (QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') then
             ExpirationDate := GetExpirationDate(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
 
-        if (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Package No." = '') then
+        if (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit;
 
         if TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
@@ -632,7 +609,6 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         WhseItemTrackingLine.Validate("Variant Code", WarehouseJournalLine."Variant Code");
         WhseItemTrackingLine.Validate("Lot No.", QltyInspectionHeader."Source Lot No.");
         WhseItemTrackingLine.Validate("Serial No.", QltyInspectionHeader."Source Serial No.");
-
         WhseItemTrackingLine.Validate("Package No.", QltyInspectionHeader."Source Package No.");
         if ExpirationDate <> 0D then
             WhseItemTrackingLine.Validate("Expiration Date", ExpirationDate);

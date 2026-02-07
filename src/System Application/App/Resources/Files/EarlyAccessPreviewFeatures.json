@@ -75,5 +75,12 @@
       "Category": "Shopify",
       "HelpURL": "",
       "VideoURL": ""
+    },
+    {
+      "FeatureName": "Match purchase invoices to multiple order and receipt lines",
+      "Description": "Improve invoice accuracy by matching each invoice line to all relevant purchase order lines and receipts, even when receipts don't yet exist. To get started, open a purchase invoice and use the \"Get Order Lines\" action to select received or unreceived order lines. Review and adjust matches on the \"Matched Order Lines\" page, and explore the \"Receipt on Invoice\" toggle on purchase orders if you want receipts created automatically during posting.",
+      "Category": "Purchase",
+      "HelpURL": "",
+      "VideoURL": ""
     }
 ]

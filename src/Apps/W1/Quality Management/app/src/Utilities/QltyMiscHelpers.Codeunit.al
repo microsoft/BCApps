@@ -33,10 +33,12 @@ codeunit 20599 "Qlty. Misc Helpers"
         YesNoKeyword3Txt: Label 'Is the';
         YesNoKeyword4Txt: Label 'Did you';
         YesNoKeyword5Txt: Label 'Have you';
-        TrackingKeyword1Txt: Label 'serial #';
-        TrackingKeyword2Txt: Label 'lot #';
-        TrackingKeyword3Txt: Label 'serial number';
+        TrackingKeyword1Txt: Label 'lot #';
+        TrackingKeyword2Txt: Label 'serial #';
+        TrackingKeyword3Txt: Label 'package #';
         TrackingKeyword4Txt: Label 'lot number';
+        TrackingKeyword5Txt: Label 'serial number';
+        TrackingKeyword6Txt: Label 'package number';
         UnableToSetTableValueTableNotFoundErr: Label 'Unable to set a value because the table [%1] was not found.', Comment = '%1=the table name';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
@@ -95,7 +97,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         QltyManagementSetup: Record "Qlty. Management Setup";
         IsHandled: Boolean;
     begin
-        ResultRowsCount := 100;
+        ResultRowsCount := DefaultMaxRowsFieldLookup();
         OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, IsHandled);
         if IsHandled then
             exit;
@@ -105,6 +107,11 @@ codeunit 20599 "Qlty. Misc Helpers"
 
         if QltyManagementSetup."Max Rows Field Lookups" > 0 then
             ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
+    end;
+
+    local procedure DefaultMaxRowsFieldLookup(): Integer
+    begin
+        exit(100);
     end;
 
     /// <summary>
@@ -319,8 +326,8 @@ codeunit 20599 "Qlty. Misc Helpers"
             MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
-            if MaxCountRecords > 1000 then
-                MaxCountRecords := 1000;
+            if MaxCountRecords > MaxRecordsFetchLimit() then
+                MaxCountRecords := MaxRecordsFetchLimit();
         end;
 
         RemainingCountRecordsToAdd := MaxCountRecords;
@@ -330,7 +337,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TableFilter <> '' then
             RecordRefToFetch.SetView(TableFilter);
 
-        LoopSafety := 1000;
+        LoopSafety := MaxRecordsFetchLimit();
         if RecordRefToFetch.FindSet() then
             repeat
                 LoopSafety -= 1;
@@ -359,6 +366,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             until (RecordRefToFetch.Next() = 0) or (RemainingCountRecordsToAdd <= 0) or (LoopSafety <= 0);
 
         RecordRefToFetch.Close();
+    end;
+
+    local procedure MaxRecordsFetchLimit(): Integer
+    begin
+        exit(1000);
     end;
 
     /// <summary>
@@ -701,7 +713,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     ///    - DateTime format → Field Type DateTime
     /// 2. Description-based detection (keywords):
     ///    - Contains "date" → Field Type Date
-    ///    - Contains tracking keywords ("lot", "serial") → Field Type Text
+    ///    - Contains tracking keywords ("lot", "serial", "package") → Field Type Text
     ///    - Starts with yes/no keywords → Field Type Boolean
     /// 3. Default fallback → Field Type Text
     /// 
@@ -741,7 +753,9 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Description.Contains(UpperCase(TrackingKeyword1Txt)),
                 Description.Contains(UpperCase(TrackingKeyword2Txt)),
                 Description.Contains(UpperCase(TrackingKeyword3Txt)),
-                Description.Contains(UpperCase(TrackingKeyword4Txt)):
+                Description.Contains(UpperCase(TrackingKeyword4Txt)),
+                Description.Contains(UpperCase(TrackingKeyword5Txt)),
+                Description.Contains(UpperCase(TrackingKeyword6Txt)):
                     QltyTestValueType := QltyTestValueType::"Value Type Text";
 
                 Description.StartsWith(UpperCase(YesNoKeyword1Txt)),
