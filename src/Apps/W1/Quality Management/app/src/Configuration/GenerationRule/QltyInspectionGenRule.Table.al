@@ -54,7 +54,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         }
         field(4; "Schedule Group"; Code[20])
         {
-            Description = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
             Caption = 'Schedule Group';
             ToolTip = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
 
@@ -102,10 +101,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     SetIntentAndDefaultTriggerValuesFromSetup();
             end;
         }
-        field(13; "Condition Filter"; Text[400])
+        field(13; "Condition Filter"; Text[2048])
         {
             Caption = 'Condition Filter';
-            Description = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
             ToolTip = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
         }
         field(14; Description; Text[100])
@@ -127,15 +125,15 @@ table 20404 "Qlty. Inspection Gen. Rule"
             FieldClass = FlowFilter;
             Caption = 'Table ID Filter';
         }
-        field(19; "Item Filter"; Text[400])
+        field(19; "Item Filter"; Text[2048])
         {
             Caption = 'Item Filter';
-            ToolTip = 'Specifies the item specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item specific criteria for defining when to use this template.';
         }
-        field(20; "Item Attribute Filter"; Text[400])
+        field(20; "Item Attribute Filter"; Text[2048])
         {
             Caption = 'Attribute Filter';
-            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template.';
         }
         field(21; "Activation Trigger"; Enum "Qlty. Gen. Rule Act. Trigger")
         {
@@ -376,7 +374,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
-        QltyFilterHelpers.BuildItemAttributeFilter400(Rec."Item Attribute Filter");
+        QltyFilterHelpers.BuildItemAttributeFilter2048(Rec."Item Attribute Filter");
     end;
 
     /// <summary>
@@ -404,7 +402,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
-    procedure SetIntentAndDefaultTriggerValuesFromSetup()
+    internal procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         InferredIntent: Enum "Qlty. Gen. Rule Intent";
@@ -421,7 +419,14 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if Certainty = Certainty::Yes then begin
             Rec.Intent := InferredIntent;
             SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then
+            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
+                Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
+                Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
+                Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
+                Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
+                Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
+                Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
+                Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
@@ -438,6 +443,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     InferredIntent::"Warehouse Receipt":
                         Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
                 end;
+            end;
         end;
     end;
 
@@ -465,7 +471,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     [TryFunction]
-    procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    internal procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
     begin
         InferGenerationRuleIntent(QltyGenRuleIntent, QltyCertainty);
     end;

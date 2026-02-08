@@ -21,7 +21,7 @@ using Microsoft.Warehouse.Structure;
 using System.Device;
 
 /// <summary>
-/// Primary location to enter Quality Inspection information.
+/// Quality Inspection document.
 /// </summary>
 page 20406 "Qlty. Inspection"
 {
@@ -49,6 +49,11 @@ page 20406 "Qlty. Inspection"
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                     Editable = false;
+                }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Editable = false;
+                    Importance = Additional;
                 }
                 field("Template Code"; Rec."Template Code")
                 {
@@ -132,22 +137,22 @@ page 20406 "Qlty. Inspection"
                     {
                         Editable = false;
                     }
-                    field("Serial No."; Rec."Source Serial No.")
-                    {
-                        Editable = CanChangeSerialTracking;
-
-                        trigger OnAssistEdit()
-                        begin
-                            Rec.AssistEditSerialNo();
-                        end;
-                    }
-                    field("Lot No."; Rec."Source Lot No.")
+                    field("Source Lot No."; Rec."Source Lot No.")
                     {
                         Editable = CanChangeLotTracking;
 
                         trigger OnAssistEdit()
                         begin
                             Rec.AssistEditLotNo();
+                        end;
+                    }
+                    field("Source Serial No."; Rec."Source Serial No.")
+                    {
+                        Editable = CanChangeSerialTracking;
+
+                        trigger OnAssistEdit()
+                        begin
+                            Rec.AssistEditSerialNo();
                         end;
                     }
                     field("Source Package No."; Rec."Source Package No.")
@@ -226,7 +231,7 @@ page 20406 "Qlty. Inspection"
                     Editable = false;
                     Importance = Additional;
                 }
-                field("Table Name"; Rec."Table Name")
+                field("Table Name"; Rec."Source Table Name")
                 {
                     Editable = false;
                     Importance = Additional;
@@ -518,7 +523,7 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(MoveToBin)
@@ -817,9 +822,7 @@ page 20406 "Qlty. Inspection"
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanCreateReinspection: Boolean;
-        CanChangeLotTracking: Boolean;
-        CanChangeSerialTracking: Boolean;
-        CanChangePackageTracking: Boolean;
+        CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
         VisibleCustom10: Boolean;
         VisibleCustom9: Boolean;
         VisibleCustom8: Boolean;
@@ -871,7 +874,7 @@ page 20406 "Qlty. Inspection"
             end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
-        Rec.CalcFields("Table Name");
+        Rec.CalcFields("Source Table Name");
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 1"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 2"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 3"));
@@ -916,7 +919,7 @@ page 20406 "Qlty. Inspection"
             if Rec."Source Item No." <> '' then
                 exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Item No." + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status))
             else
-                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
+                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
         end else begin
             DataCaptionExpression := QltyExpressionMgmt.EvaluateTextExpression(DataCaptionExpression, Rec);
             exit(DataCaptionExpression);

@@ -13,7 +13,7 @@ page 4316 "Agent List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent";
-    Caption = 'Agents (Preview)';
+    Caption = 'Agents';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
@@ -35,6 +35,15 @@ page 4316 "Agent List"
                 field(DisplayName; Rec."Display Name")
                 {
                     Caption = 'Display Name';
+                }
+                field(AgentType; Rec."Agent Metadata Provider")
+                {
+                    Caption = 'Agent type';
+                }
+                field(Availability; CopilotAvailabilityTxt)
+                {
+                    Caption = 'Availability';
+                    ToolTip = 'Specifies the availability of the agent.';
                 }
                 field(State; Rec.State)
                 {
@@ -69,7 +78,7 @@ page 4316 "Agent List"
             action(AgentTasks)
             {
                 ApplicationArea = All;
-                Caption = 'Agent Tasks';
+                Caption = 'View tasks';
                 ToolTip = 'View agent tasks';
                 Image = Log;
 
@@ -127,6 +136,24 @@ page 4316 "Agent List"
             AgentImpl.ShowNoAgentsAvailableNotification();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
     var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+    end;
+
+    var
+        CopilotAvailabilityTxt: Text;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
 }

@@ -41,6 +41,8 @@ page 8352 "MCP Config Tool List"
                             exit;
 
                         repeat
+                            if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
+                                continue;
                             MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
                         until PageMetadata.Next() = 0;
 
@@ -129,6 +131,8 @@ page 8352 "MCP Config Tool List"
                         exit;
 
                     repeat
+                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
+                            continue;
                         MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
                     until PageMetadata.Next() = 0;
 

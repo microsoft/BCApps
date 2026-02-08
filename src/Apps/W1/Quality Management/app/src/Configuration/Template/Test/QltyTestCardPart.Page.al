@@ -176,7 +176,7 @@ page 20437 "Qlty. Test Card Part"
             Rec."Test Value Type"::"Value Type Text"]);
         IsNumber := Rec.IsNumericFieldType();
 
-        OnUpdateControlVisibilityState(Rec);
+        OnAfterUpdateControlVisibilityState(Rec);
     end;
 
     /// <summary>
@@ -184,7 +184,7 @@ page 20437 "Qlty. Test Card Part"
     /// </summary>
     /// <param name="QltyTest"></param>
     [IntegrationEvent(true, false)]
-    local procedure OnUpdateControlVisibilityState(var QltyTest: Record "Qlty. Test")
+    local procedure OnAfterUpdateControlVisibilityState(var QltyTest: Record "Qlty. Test")
     begin
     end;
 }
