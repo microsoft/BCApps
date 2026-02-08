@@ -171,6 +171,11 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
         NewTaxRegistrationId := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
         // [GIVEN] Customer with empty VAT Registration No.
         CreateCustomerWithVATRegNo(Customer, '');
+        if CompanyInformation."Country/Region Code" = 'BE' then begin
+            Customer."Country/Region Code" := 'DE'; // VAT Reg No. not allowed for BE Customers
+            Customer.Modify();
+            NewTaxRegistrationId := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
+        end;
         // [GIVEN] TaxRegistrationIdMapping interface is "VAT Registration No."
         TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"VAT Registration No.";
 
