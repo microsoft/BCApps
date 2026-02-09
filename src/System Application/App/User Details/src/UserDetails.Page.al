@@ -124,17 +124,17 @@ page 774 "User Details"
         view("7 Days")
         {
             Caption = 'Inactive 7 days';
-            Filters = where("Inactive Days Date Filter" = const("7Days"));
+            Filters = where("Inactive Days Date Filter" = const("7 Days"));
         }
         view("30 Days")
         {
             Caption = 'Inactive 30 days';
-            Filters = where("Inactive Days Date Filter" = const("30Days"));
+            Filters = where("Inactive Days Date Filter" = const("30 Days"));
         }
         view("90 Days")
         {
             Caption = 'Inactive 90 days';
-            Filters = where("Inactive Days Date Filter" = const("90Days"));
+            Filters = where("Inactive Days Date Filter" = const("90 Days"));
         }
     }
 
