@@ -5,11 +5,15 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
+#if not CLEAN27
 using Microsoft.Finance.Consolidation;
+#endif
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
+#if not CLEAN27
 using System.Environment.Configuration;
+#endif
 
 codeunit 4410 "Trial Balance"
 {
