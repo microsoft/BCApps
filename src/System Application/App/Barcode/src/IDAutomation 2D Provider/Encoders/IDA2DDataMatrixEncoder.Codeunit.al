@@ -23,6 +23,6 @@ codeunit 9217 "IDA 2D Data Matrix Encoder" implements "Barcode Font Encoder 2D"
         DotNetFontEncoder := DotNetFontEncoder.DataMatrix();
 
         // default options to encode for the fonts we provide.
-        exit(DotNetFontEncoder.EncodeDM(InputText, true, EncodingModes::ASCII, -1, OutputTypes::IDA2DFont, NullString));
+        exit(DotNetFontEncoder.EncodeDM(InputText, true, EncodingModes::Ascii, -1, OutputTypes::IDA2DFont, NullString));
     end;
 }
