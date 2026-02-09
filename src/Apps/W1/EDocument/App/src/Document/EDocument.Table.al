@@ -283,6 +283,11 @@ table 6121 "E-Document"
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
         #endregion
+        field(45; Description; Text[250])
+        {
+            Caption = 'Description';
+            ToolTip = 'Specifies a description of the E-Document.';
+        }
 
         #region Clearance Model
         field(60; "Clearance Date"; DateTime)

@@ -117,6 +117,10 @@ page 6121 "E-Document"
                 {
                     ToolTip = 'Specifies the customer/vendor name of the electronic document.';
                 }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies a description of the electronic document.';
+                }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     Importance = Additional;

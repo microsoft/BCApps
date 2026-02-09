@@ -55,6 +55,10 @@ page 6122 "E-Documents"
                 {
                     ToolTip = 'Specifies the document date.';
                 }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies a description of the electronic document.';
+                }
                 field(Status; Rec.Status)
                 {
                     ToolTip = 'Specifies the status of the electronic document.';
