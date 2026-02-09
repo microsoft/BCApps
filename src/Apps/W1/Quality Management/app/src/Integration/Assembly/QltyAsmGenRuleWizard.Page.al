@@ -32,7 +32,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                 group(SettingsFor_iStepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Define a rule for lot or serial related tests when products are assembled.';
+                    InstructionalText = 'Define a rule for item tracking related tests when products are assembled.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
@@ -75,6 +75,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(LocationFilterErr, GetLastErrorText());
                     end;
@@ -92,6 +93,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ToBinFilterErr, GetLastErrorText());
                     end;
@@ -140,6 +142,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -157,6 +160,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -174,6 +178,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;

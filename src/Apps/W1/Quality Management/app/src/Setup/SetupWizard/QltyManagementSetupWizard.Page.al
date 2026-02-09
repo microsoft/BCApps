@@ -360,7 +360,7 @@ page 20438 "Qlty. Management Setup Wizard"
         StepProductionConfig: Integer;
         StepDone: Integer;
         MaxStep: Integer;
-        ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
+        ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central Administrator to grant additional permissions.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
         QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;

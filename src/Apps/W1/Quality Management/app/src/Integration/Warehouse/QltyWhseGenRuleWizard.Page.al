@@ -33,7 +33,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                 group(SettingsFor_StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Use this feature with lot warehouse tracked items or serial warehouse tracked items, allowing you to define a rule for lot or serial related inspections when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Generation Rule will be made or updated.';
+                    InstructionalText = 'Use this feature with lot/serial/package warehouse tracked items, allowing you to define a rule for lot/serial/package related inspections when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Generation Rule will be made or updated.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
@@ -74,6 +74,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(LocationFilterErr, GetLastErrorText());
                     end;
@@ -90,6 +91,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ToZoneFilterErr, GetLastErrorText());
                     end;
@@ -106,6 +108,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ToBinFilterErr, GetLastErrorText());
                     end;
@@ -153,6 +156,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -170,6 +174,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -187,6 +192,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupFilterErr, GetLastErrorText());
                     end;
@@ -204,6 +210,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(VendorFilterErr, GetLastErrorText());
                     end;
