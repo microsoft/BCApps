@@ -862,7 +862,7 @@ table 30102 "Shpfy Shop"
     begin
         Store := GetStoreName();
         if Store <> '' then
-            AuthenticationMgt.InstallShopifyApp(Store);
+            AuthenticationMgt.InstallShopifyApp(Store, Rec);
     end;
 
     internal procedure HasAccessToken(): Boolean
@@ -890,6 +890,11 @@ table 30102 "Shpfy Shop"
         if Store.Contains(':') then
             Store := Store.Split(':').Get(2);
         Store := Store.TrimStart('/').TrimEnd('/');
+    end;
+
+    internal procedure SetStoreName(Store: Text)
+    begin
+        Rec.Validate("Shopify URL", Store);
     end;
 
     /// <summary>
