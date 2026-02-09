@@ -1,7 +1,7 @@
 ---
 name: Build-Fix Agent
 description: Builds code, catches build errors, and automatically fixes them
-model: GPT-4.1 (copilot)
+model: Opus 4.6
 argument-hint: "Please build this PR and fix any build errors"
 ---
 
