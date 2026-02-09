@@ -57,15 +57,7 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AOAI Resource Utilization"::"Self-Managed":
                 exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-#if CLEAN26
-                if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
-                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
-#else
-                if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
-                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
-                else
-                    exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> ''));
-#endif
+                exit(ManagedResourceDeployment <> '')
         end;
 
         exit(false);
@@ -207,7 +199,9 @@ codeunit 7767 "AOAI Authorization"
         exit(HostName.EndsWith(TrustedDomain));
     end;
 
+#pragma warning disable AA0228
     local procedure VerifyAOAIAccount(AccountName: Text; NewApiKey: SecretText): Boolean
+#pragma warning restore AA0228
     var
         AccountVerified: Boolean;
         GracePeriod: Duration;
