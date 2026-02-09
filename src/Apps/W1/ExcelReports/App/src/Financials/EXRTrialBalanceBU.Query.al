@@ -22,6 +22,9 @@ query 4407 "EXR Trial Balance BU"
             column(AccountNumber; "No.")
             {
             }
+            filter(AccountNo; "No.")
+            {
+            }
             dataitem(GLEntry; "G/L Entry")
             {
                 DataItemLink = "G/L Account No." = GLAccount."No.";
