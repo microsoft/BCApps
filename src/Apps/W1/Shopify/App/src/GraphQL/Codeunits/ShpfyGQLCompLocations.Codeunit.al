@@ -27,6 +27,6 @@ codeunit 30168 "Shpfy GQL CompLocations" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(24);
+        exit(22);
     end;
 }

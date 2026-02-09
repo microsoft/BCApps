@@ -10,25 +10,68 @@
     "tabOrder": 5
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "lineChart",
     "query": {
       "queryState": {
         "Category": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "HierarchyLevel": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "Date"
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
                     }
                   },
-                  "Property": "Fiscal Month Year"
+                  "Level": "Fiscal Year"
                 }
               },
-              "queryRef": "Date.Fiscal Month Year",
-              "nativeQueryRef": "Fiscal Month Year",
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Year",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Month Year",
               "active": true
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Total Contract Value Δ vs. PY"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Total Contract Value Δ vs. PY",
+              "nativeQueryRef": "Total Contract Value Δ vs. PY"
             }
           ]
         },
@@ -45,7 +88,7 @@
                   "Property": "Total Contract Value"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.TCV",
+              "queryRef": "Subscription Billing KPIs.Total Contract Value",
               "nativeQueryRef": "Total Contract Value1"
             },
             {
@@ -59,7 +102,7 @@
                   "Property": "Total Contract Value PY"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.TCV PY",
+              "queryRef": "Subscription Billing KPIs.Total Contract Value PY",
               "nativeQueryRef": "Total Contract Value PY1"
             }
           ]
@@ -73,21 +116,7 @@
             "concatenateLabels": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
+                  "Value": "false"
                 }
               }
             }
@@ -97,13 +126,6 @@
       "legend": [
         {
           "properties": {
-            "showGradientLegend": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
             "show": {
               "expr": {
                 "Literal": {
@@ -155,5 +177,89 @@
         }
       ]
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "943e19233e9695e9c450",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Month"
+              }
+            },
+            "Level": "Fiscal Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "28a0684a4a28a8b5c489",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Month"
+              }
+            },
+            "Level": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "69deb4fc9960c266c059",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "6ee060bf819207d49107",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value PY"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "21024f60c1d446b5d528",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value Δ vs. PY"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

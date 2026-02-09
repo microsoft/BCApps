@@ -23,13 +23,13 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Activity;
@@ -41,7 +41,7 @@ using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
-codeunit 139964 "Qlty. Tests - Misc"
+codeunit 139964 "Qlty. Tests - Misc."
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -51,23 +51,18 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Any: Codeunit Any;
-        TestNotification: Notification;
-        NotificationMsg: Text;
-        NotificationOptions: Dictionary of [Text, Text];
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
-        NotificationDataTestRecordIdTok: Label 'TestRecordId', Locked = true;
-        AssignToSelfExpectedMessageLbl: Label 'You have altered test %1, would you like to assign it to yourself?', Comment = '%1=the test number';
-        AssignToSelfLbl: Label 'Assign to myself';
-        IgnoreLbl: Label 'Ignore';
+        NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
-        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
+        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
+        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
-        TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
+        LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
         IsInitialized: Boolean;
@@ -75,7 +70,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -86,7 +80,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the range string
         // [THEN] The function returns true and sets Min to 1 and Max to 2
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1, Min, 'simple integer min');
         LibraryAssert.AreEqual(2, Max, 'simple integer max');
     end;
@@ -94,7 +88,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerNegativeValues()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -105,7 +98,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the negative range
         // [THEN] The function returns true and sets Min to -5 and Max to -1
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
         LibraryAssert.AreEqual(-5, Min, 'simple integer min');
         LibraryAssert.AreEqual(-1, Max, 'simple integer max');
     end;
@@ -113,7 +106,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -124,7 +116,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the decimal range
         // [THEN] The function returns true and sets Min to 1.00000001 and Max to 2.999999999999
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'simple decimal min');
         LibraryAssert.AreEqual(2.999999999999, Max, 'simple decimal max');
     end;
@@ -132,7 +124,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalThousands()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -143,15 +134,13 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the formatted range
         // [THEN] The function returns true and correctly parses Min and Max values
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
         LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
     end;
 
     [Test]
     procedure GetArbitraryMaximumRecursion()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Verify the maximum recursion depth limit
 
@@ -160,13 +149,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] GetArbitraryMaximumRecursion is called
         // [THEN] The function returns 20 as the maximum recursion depth
         Initialize();
-        LibraryAssert.AreEqual(20, QltyMiscHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
+        LibraryAssert.AreEqual(20, QltyInspectionUtility.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
     end;
 
     [Test]
     procedure GetBasicPersonDetails_DoesNotExist()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         OutSourceRecord: RecordId;
         FullName: Text;
         OutJobTitle: Text;
@@ -181,7 +169,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the non-existent identifier
         // [THEN] The function returns false and all output parameters remain empty
-        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetails('Does not exist', FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be no match');
+        LibraryAssert.AreEqual(false, QltyInspectionUtility.GetBasicPersonDetails('Does not exist', FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be no match');
         LibraryAssert.AreEqual('', FullName, 'FullName should have been empty');
         LibraryAssert.AreEqual('', OutJobTitle, 'OutJobTitle should have been empty');
         LibraryAssert.AreEqual('', Email, 'Email should have been empty');
@@ -194,7 +182,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         Contact: Record Contact;
         SalesPersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryMarketing: Codeunit "Library - Marketing";
         LibrarySales: Codeunit "Library - Sales";
         OutSourceRecord: RecordId;
@@ -219,7 +206,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the Contact number
         // [THEN] The function returns true and populates all contact details correctly
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Contact."No.", FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(Contact."No.", FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(Contact.Name, FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(Contact."Job Title", OutJobTitle, 'OutJobTitle should have been supplied');
@@ -233,7 +220,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetBasicPersonDetails_Employee()
     var
         Employee: Record Employee;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryHumanResource: Codeunit "Library - Human Resource";
         OutSourceRecord: RecordId;
         FullName: Text;
@@ -255,7 +241,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the Employee number
         // [THEN] The function returns true and populates all employee details correctly
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Employee."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(Employee."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(Employee.FullName(), FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(Employee."Job Title", JobTitle, 'OutJobTitle should have been supplied');
@@ -269,7 +255,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetBasicPersonDetails_Resource()
     var
         Resource: Record Resource;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryResource: Codeunit "Library - Resource";
         OutSourceRecord: RecordId;
         FullName: Text;
@@ -288,7 +273,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the Resource number
         // [THEN] The function returns true with name and job title populated, but email and phone blank
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Resource."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(Resource."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(Resource.Name, FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(Resource."Job Title", JobTitle, 'OutJobTitle should have been supplied');
@@ -302,7 +287,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetBasicPersonDetails_User()
     var
         User: Record User;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         OutSourceRecord: RecordId;
         FullName: Text;
@@ -322,7 +306,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the User name
         // [THEN] The function returns true with full name and email populated, but job title and phone blank
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(User."User Name", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(User."User Name", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(User."Full Name", FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been blank');
@@ -337,7 +321,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         User: Record User;
         UserSetup: Record "User Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         OutSourceRecord: RecordId;
@@ -366,7 +349,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the User ID
         // [THEN] The function returns true with details from User Setup (email, phone) and User (full name)
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(User."Full Name", FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been blank');
@@ -382,7 +365,6 @@ codeunit 139964 "Qlty. Tests - Misc"
         User: Record User;
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         UserSetup: Record "User Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
@@ -419,7 +401,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBasicPersonDetails is called with the User ID
         // [THEN] The function returns true with details from the linked Salesperson/Purchaser record
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(SalespersonPurchaser.Name, FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", JobTitle, 'OutJobTitle should have been set');
@@ -430,12 +412,12 @@ codeunit 139964 "Qlty. Tests - Misc"
     end;
 
     [Test]
-    procedure GetBasicPersonDetailsFromTestLine()
+    procedure GetBasicPersonDetailsFromInspectionLine()
     var
         User: Record User;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -443,13 +425,11 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         OutSourceRecord: RecordId;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -458,7 +438,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         Email: Text;
         OutPhone: Text;
     begin
-        // [SCENARIO] Get person details from a test line with table lookup field
+        // [SCENARIO] Get person details from an inspection line with table lookup field
 
         Initialize();
 
@@ -481,17 +461,17 @@ codeunit 139964 "Qlty. Tests - Misc"
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An inspection template with a table lookup field for Salesperson/Purchaser
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A production order with routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
@@ -503,25 +483,25 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
         Item.Get(ProdProductionOrder."Source No.");
 
-        QltyInspectionTestHeader.Reset();
+        QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] A test line with a Salesperson/Purchaser code value
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        // [GIVEN] An inspection line with a Salesperson/Purchaser code value
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", SalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
+        LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", SalespersonPurchaser.Code);
+        QltyInspectionLine.Modify();
 
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the test line
+        // [WHEN] GetBasicPersonDetailsFromInspectionLine is called with the inspection line
         // [THEN] The function returns true and populates person details from the linked Salesperson/Purchaser
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(QltyInspectionTestLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(SalespersonPurchaser.Name, FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", JobTitle, 'OutJobTitle should have been set');
@@ -532,26 +512,25 @@ codeunit 139964 "Qlty. Tests - Misc"
     end;
 
     [Test]
-    procedure GetBasicPersonDetailsFromTestLine_EmptyRecord()
+    procedure GetBasicPersonDetailsFromInspectionLine_EmptyRecord()
     var
-        TempEmptyQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        TempEmptyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         OutSourceRecord: RecordId;
         FullName: Text;
         JobTitle: Text;
         Email: Text;
         OutPhone: Text;
     begin
-        // [SCENARIO] Attempt to get person details from an empty test line
+        // [SCENARIO] Attempt to get person details from an empty inspection line
 
         Initialize();
 
-        // [GIVEN] An empty test line record
+        // [GIVEN] An empty inspection line record
 
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the empty record
+        // [WHEN] GetBasicPersonDetailsFromInspectionLine is called with the empty record
         // [THEN] The function returns false and all output parameters remain empty
-        Clear(TempEmptyQltyInspectionTestLine);
-        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(TempEmptyQltyInspectionTestLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'should be nothing.');
+        Clear(TempEmptyQltyInspectionLine);
+        LibraryAssert.AreEqual(false, QltyInspectionUtility.GetBasicPersonDetailsFromInspectionLine(TempEmptyQltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'should be nothing.');
 
         LibraryAssert.AreEqual('', FullName, 'FullName should have been empty');
         LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been empty');
@@ -562,8 +541,6 @@ codeunit 139964 "Qlty. Tests - Misc"
 
     [Test]
     procedure GetBooleanFor()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Convert various text values to boolean
 
@@ -573,34 +550,34 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetBooleanFor is called with positive values (true, 1, yes, ok, pass, etc.)
         // [THEN] The function returns true for all positive boolean representations
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('true'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('TRUE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('1'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('Yes'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('Y'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('T'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('OK'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('GOOD'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('PASS'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('V'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('true'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('TRUE'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('1'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('Yes'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('Y'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('T'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('OK'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('GOOD'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('PASS'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('POSITIVE'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor(':SELECTED:'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('CHECK'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('CHECKED'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetBooleanFor('V'), 'document intelligence/form recognizer selected check.');
 
         // [WHEN] GetBooleanFor is called with negative values (false, no, fail, etc.)
         // [THEN] The function returns false for all negative boolean representations
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('false'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('FALSE'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('N'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('No'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('F'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('Fail'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('Failed'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('BAD'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('disabled'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('false'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('FALSE'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('N'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('No'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('F'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('Fail'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('Failed'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('BAD'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('disabled'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor('unacceptable'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.GetBooleanFor(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
     end;
 
     [Test]
@@ -628,7 +605,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] GetCSVOfValuesFromRecord is called without filter
         // [THEN] The function returns a comma-separated list of all codes
         OutputOne := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '', 0);
-        OutputTwo := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '');
+        OutputTwo := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '');
         LibraryAssert.AreEqual(OutputOne, OutputTwo, 'different approaches should be identical');
 
         Count := FirstSalespersonPurchaser.Count();
@@ -667,7 +644,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [WHEN] GetCSVOfValuesFromRecord is called with a filter view
         // [THEN] The function returns only the single filtered code value
         Output1 := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(true), 0);
-        Output2 := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(false));
+        Output2 := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(false));
         LibraryAssert.AreEqual(Output1, Output2, 'different approaches should be identical');
 
         CountOfCommas := StrLen(Output1) - strlen(DelChr(Output1, '=', ','));
@@ -741,15 +718,13 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetDefaultMaximumRowsFieldLookup_Defined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when configured
 
         Initialize();
 
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 2
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Max Rows Field Lookups" := 2;
@@ -757,22 +732,20 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the configured value of 2
-        LibraryAssert.AreEqual(2, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(2, QltyInspectionUtility.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]
     procedure GetDefaultMaximumRowsFieldLookup_Undefined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when not configured
 
         Initialize();
 
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 0
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Max Rows Field Lookups" := 0;
@@ -780,7 +753,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the default value of 100
-        LibraryAssert.AreEqual(100, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(100, QltyInspectionUtility.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]
@@ -811,10 +784,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetRecordsForTableField_One()
     var
         User: Record User;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -822,13 +795,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
     begin
@@ -858,20 +830,20 @@ codeunit 139964 "Qlty. Tests - Misc"
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A test template with table lookup field for Salesperson/Purchaser filtered to one record
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered to one record
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
-        // [GIVEN] A production order with routing line and inspection test created
+        // [GIVEN] A production order with routing line and inspection created
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
@@ -883,24 +855,24 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
         Item.Get(ProdProductionOrder."Source No.");
 
-        QltyInspectionTestHeader.Reset();
+        QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] A test line with the lookup field and test value set to the Salesperson/Purchaser code
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", SalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
+        LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", SalespersonPurchaser.Code);
+        QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionTestLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
 
         // [THEN] The function returns exactly one matching record
         LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
@@ -913,10 +885,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetRecordsForTableField_Multiple()
     var
         User: Record User;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         FirstSalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -927,13 +899,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
     begin
@@ -975,20 +946,20 @@ codeunit 139964 "Qlty. Tests - Misc"
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A test template with table lookup field for Salesperson/Purchaser filtered by email
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered by email
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
-        // [GIVEN] A production order with routing line and inspection test created
+        // [GIVEN] A production order with routing line and inspection created
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
@@ -1000,24 +971,24 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
         Item.Get(ProdProductionOrder."Source No.");
 
-        QltyInspectionTestHeader.Reset();
+        QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] A test line with the lookup field and test value set to the first Salesperson/Purchaser code
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", FirstSalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
+        LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should be exactly one inspection line that matches.');
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", FirstSalespersonPurchaser.Code);
+        QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionTestLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
 
         // [THEN] The function returns all three matching records
         LibraryAssert.AreEqual(3, TempBufferQltyLookupCode.Count(), 'should have been 3 sales people with that email.');
@@ -1027,11 +998,11 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetRecordsForTableField_WithOverrides()
     var
         User: Record User;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyField: Record "Qlty. Field";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyTest: Record "Qlty. Test";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -1039,13 +1010,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
     begin
@@ -1075,20 +1045,20 @@ codeunit 139964 "Qlty. Tests - Misc"
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A test template with table lookup field for Salesperson/Purchaser
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
-        // [GIVEN] A production order with routing line and inspection test created
+        // [GIVEN] A production order with routing line and inspection created
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
@@ -1100,27 +1070,27 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
         Item.Get(ProdProductionOrder."Source No.");
 
-        QltyInspectionTestHeader.Reset();
+        QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] A test line with the lookup field and test value set to the Salesperson/Purchaser code
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", SalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
+        LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", SalespersonPurchaser.Code);
+        QltyInspectionLine.Modify();
 
-        // [GIVEN] The quality field record retrieved
-        QltyField.Get(QltyInspectionTestLine."Field Code");
+        // [GIVEN] The quality test record retrieved
+        QltyTest.Get(QltyInspectionLine."Test Code");
 
         // [WHEN] GetRecordsForTableField is called with different parameter combinations (field+header+line, field+header)
-        QltyMiscHelpers.GetRecordsForTableField(QltyField, QltyInspectionTestHeader, QltyInspectionTestLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
 
         // [THEN] The function returns the correct record using all parameter overloads
         LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
@@ -1128,7 +1098,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         TempBufferQltyLookupCode.FindFirst();
         LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyLookupCode.Code, 'first key should have been set');
 
-        QltyMiscHelpers.GetRecordsForTableField(QltyField, QltyInspectionTestHeader, TempBufferQltyLookupCode);
+        QltyInspectionUtility.GetRecordsForTableField(QltyTest, QltyInspectionHeader, TempBufferQltyLookupCode);
         LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
 
         TempBufferQltyLookupCode.FindFirst();
@@ -1140,9 +1110,9 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         User: Record User;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         FirstSalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -1153,13 +1123,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
         Output1: Text;
@@ -1204,25 +1173,25 @@ codeunit 139964 "Qlty. Tests - Misc"
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Quality Management Setup with max rows field lookups set to 0 (unlimited)
         QltyManagementSetup.Get();
         QltyManagementSetup."Max Rows Field Lookups" := 0;
         QltyManagementSetup.Modify(false);
 
-        // [GIVEN] A test template with table lookup field for Salesperson/Purchaser filtered by email
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered by email
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
-        // [GIVEN] A production order with routing line and inspection test created
+        // [GIVEN] A production order with routing line and inspection created
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
@@ -1234,24 +1203,24 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
         Item.Get(ProdProductionOrder."Source No.");
 
-        QltyInspectionTestHeader.Reset();
+        QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] A test line with the lookup field and test value set to the first Salesperson/Purchaser code
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", FirstSalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
+        LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", FirstSalespersonPurchaser.Code);
+        QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableFieldAsCSV is called
-        Output1 := QltyMiscHelpers.GetRecordsForTableFieldAsCSV(QltyInspectionTestLine);
+        Output1 := QltyMiscHelpers.GetRecordsForTableFieldAsCSV(QltyInspectionLine);
 
         // [THEN] The function returns a comma-separated list of all matching codes with correct count
         Count := FilterSalespersonPurchaser.Count();
@@ -1266,8 +1235,6 @@ codeunit 139964 "Qlty. Tests - Misc"
 
     [Test]
     procedure GetTranslatedYes250()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Get translated "Yes" text value
 
@@ -1275,13 +1242,11 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetTranslatedYes250 is called
         // [THEN] The function returns the translated string "Yes"
-        LibraryAssert.AreEqual('Yes', QltyMiscHelpers.GetTranslatedYes250(), 'locked yes.');
+        LibraryAssert.AreEqual('Yes', QltyInspectionUtility.GetTranslatedYes250(), 'locked yes.');
     end;
 
     [Test]
     procedure GetTranslatedNo250()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Get translated "No" text value
 
@@ -1289,14 +1254,14 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetTranslatedNo250 is called
         // [THEN] The function returns the translated string "No"
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyInspectionUtility.GetTranslatedNo250(), 'locked no.');
     end;
 
     [Test]
     procedure GuessDataTypeFromDescriptionAndValue_Description()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyFieldType: Enum "Qlty. Field Type";
+        QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from description text
 
@@ -1305,26 +1270,26 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Various field descriptions with question words, keywords, or phrases
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with description (empty value)
         // [THEN] The function infers the correct data type from description patterns
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
     end;
 
     [Test]
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyFieldType: Enum "Qlty. Field Type";
+        QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from actual values
 
@@ -1333,28 +1298,26 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Various sample values (boolean, numeric, date, text)
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with value (empty description)
         // [THEN] The function infers the correct data type from value patterns
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyInspectionUtility.GetTranslatedNo250(), 'locked no.');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
     end;
 
     [Test]
     procedure IsNumericText()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Validate if text contains numeric values
 
@@ -1363,14 +1326,14 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Various text values (numbers, text, mixed content)
         // [WHEN] IsNumericText is called with each value
         // [THEN] The function returns true for numeric text, false for non-numeric text
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsNumericText('0'), 'zero');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsNumericText('-1'), 'simple negative');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsNumericText('1'), 'simple positive');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsNumericText(format(123456789.1234)), 'lcoale format');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsNumericText(format(123456789.1234, 0, 9)), 'ISO format');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsNumericText('not a hot dog'), 'simple text');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsNumericText('A1B2C3'), 'mixed');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsNumericText('1+2+3=4'), 'formula');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsNumericText('0'), 'zero');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsNumericText('-1'), 'simple negative');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsNumericText('1'), 'simple positive');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsNumericText(format(123456789.1234)), 'lcoale format');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsNumericText(format(123456789.1234, 0, 9)), 'ISO format');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsNumericText('not a hot dog'), 'simple text');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsNumericText('A1B2C3'), 'mixed');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsNumericText('1+2+3=4'), 'formula');
     end;
 
     [Test]
@@ -1413,14 +1376,12 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
 
         LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('not a hot dog'), 'not a hot dog');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
         LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('1234'), 'a number');
     end;
 
     [Test]
     procedure IsTextValuePositiveBoolean()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Identify positive boolean text values
 
@@ -1429,59 +1390,58 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Various text values representing positive and negative boolean states
         // [WHEN] IsTextValuePositiveBoolean is called with each value
         // [THEN] The function returns true for positive values, false for negative values
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('true'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('TRUE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('1'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('Yes'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('Y'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('T'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('OK'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('GOOD'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('PASS'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('V'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('true'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('TRUE'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('1'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('Yes'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('Y'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('T'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('OK'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('GOOD'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('PASS'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('POSITIVE'), 'simple bool true.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValuePositiveBoolean('V'), 'document intelligence/form recognizer selected check.');
 
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('false'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('FALSE'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('N'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('No'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('F'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Fail'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Failed'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('BAD'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('disabled'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('false'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('FALSE'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('N'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('No'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('F'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('Fail'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('Failed'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('BAD'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('disabled'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('unacceptable'), 'simple bool false.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
 
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('not a hot dog'), 'not a hot dog');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('1234'), 'a number');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('not a hot dog'), 'not a hot dog');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('1234'), 'a number');
     end;
 
     [Test]
     procedure NavigateToFindEntries()
     var
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         Navigate: TestPage Navigate;
     begin
-        // [SCENARIO] Navigate to find entries from test header
+        // [SCENARIO] Navigate to find entries from inspection header
 
         Initialize();
 
-        // [GIVEN] A temporary test header with source document, item, lot, and serial number
-        TempQltyInspectionTestHeader."No." := 'TESTSOURCE';
-        TempQltyInspectionTestHeader."Source Document No." := 'MYDOC123';
-        TempQltyInspectionTestHeader."Source Item No." := 'ITEMABC';
-        TempQltyInspectionTestHeader."Source Lot No." := 'LOTDEF';
-        TempQltyInspectionTestHeader."Source Serial No." := 'SERIALGHI';
+        // [GIVEN] A temporary inspection header with source document, item, lot, and serial number
+        TempQltyInspectionHeader."No." := 'INSPECTSOURCE';
+        TempQltyInspectionHeader."Source Document No." := 'MYDOC123';
+        TempQltyInspectionHeader."Source Item No." := 'ITEMABC';
+        TempQltyInspectionHeader."Source Lot No." := 'LOTDEF';
+        TempQltyInspectionHeader."Source Serial No." := 'SERIALGHI';
 
         // [WHEN] NavigateToFindEntries is called
         Navigate.Trap();
-        QltyMiscHelpers.NavigateToFindEntries(TempQltyInspectionTestHeader);
+        QltyInspectionUtility.NavigateToFindEntries(TempQltyInspectionHeader);
 
         // [THEN] The Navigate page opens with lot and serial number filters applied
         LibraryAssert.AreEqual('SERIALGHI', Navigate.SerialNoFilter.Value, 'serial filter got set');
@@ -1587,35 +1547,35 @@ codeunit 139964 "Qlty. Tests - Misc"
     [HandlerFunctions('HandleModalPage_TestNavigateToSourceDocument')]
     procedure NavigateToSourceDocument()
     var
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         LibrarySales: Codeunit "Library - Sales";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         SalespersonPurchaserCard: TestPage "Salesperson/Purchaser Card";
     begin
-        // [SCENARIO] Navigate to source document from test header
+        // [SCENARIO] Navigate to source document from inspection header
 
         Initialize();
 
-        // [GIVEN] A temporary test header with source RecordId pointing to a Salesperson/Purchaser
+        // [GIVEN] A temporary inspection header with source RecordId pointing to a Salesperson/Purchaser
         LibrarySales.CreateSalesperson(SalespersonPurchaser);
 
-        TempQltyInspectionTestHeader."Source RecordId" := SalespersonPurchaser.RecordId();
+        TempQltyInspectionHeader."Source RecordId" := SalespersonPurchaser.RecordId();
 
         // [WHEN] NavigateToSourceDocument is called
         SalespersonPurchaserCard.Trap();
-        QltyMiscHelpers.NavigateToSourceDocument(TempQltyInspectionTestHeader);
+        QltyMiscHelpers.NavigateToSourceDocument(TempQltyInspectionHeader);
 
         // [THEN] The Salesperson/Purchaser card page opens and the handler validates the correct record
         LibraryAssert.AreEqual(FlagTestNavigateToSourceDocument, SalespersonPurchaser.Code, 'testing if a simple lookup page worked');
     end;
 
     [Test]
-    procedure BlockTrackingTransaction_NoTests_ShouldNotPreventPosting()
+    procedure BlockTrackingTransaction_NoInspections_ShouldNotPreventPosting()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
@@ -1624,25 +1584,24 @@ codeunit 139964 "Qlty. Tests - Misc"
         ReservationEntry: Record "Reservation Entry";
         NoSeries: Codeunit "No. Series";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LotNo: Code[20];
     begin
-        // [SCENARIO] Block tracking transaction with no tests should not prevent posting
+        // [SCENARIO] Block tracking transaction with no inspections should not prevent posting
 
         Initialize();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Location created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
 
         // [GIVEN] Lot-tracked item with number series created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] Item journal template and batch configured
         if ItemJournalTemplate.Count() > 1 then
@@ -1661,15 +1620,15 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'Any' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::Any;
+        // [GIVEN] Quality Management setup configured with 'Any' inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any inspection that matches";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist in the system
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist in the system
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'Any' behavior and no tests
+        // [WHEN] Posting with 'Any' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1687,15 +1646,15 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'AnyFinished' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        // [GIVEN] Quality Management setup configured with "Any finished inspection that matches" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'AnyFinished' behavior and no tests
+        // [WHEN] Posting with "Any finished inspection that matches" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1713,15 +1672,15 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'HighestFinishedRetestNumber' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber;
+        // [GIVEN] Quality Management setup configured with "Only the newest finished inspection/re-inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestFinishedRetestNumber' behavior and no tests
+        // [WHEN] Posting with "Only the newest finished inspection/re-inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1739,15 +1698,15 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'HighestRetestNumber' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber;
+        // [GIVEN] Quality Management setup configured with "Only the newest inspection/re-inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestRetestNumber' behavior and no tests
+        // [WHEN] Posting with "Only the newest inspection/re-inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1765,15 +1724,15 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'MostRecentFinishedModified' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified finished inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentFinishedModified' behavior and no tests
+        // [WHEN] Posting with "Only the most recently modified finished inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1791,18 +1750,18 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'MostRecentModified' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] No inspection tests exist
-        if not QltyInspectionTestHeader.IsEmpty() then
-            QltyInspectionTestHeader.DeleteAll();
+        // [GIVEN] No inspections exist
+        if not QltyInspectionHeader.IsEmpty() then
+            QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentModified' behavior and no tests
+        // [WHEN] Posting with "Only the most recently modified inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
-        // [THEN] Posting succeeds without error - all 6 behaviors allow posting when no tests exist
+        // [THEN] Posting succeeds without error - all 6 behaviors allow posting when no inspections exist
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Location Code", Location.Code);
         ItemLedgerEntry.SetRange("Lot No.", LotNo);
@@ -1814,8 +1773,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         AssemblyItem: Record Item;
         ComponentItem: Record Item;
         ItemJournalTemplate: Record "Item Journal Template";
@@ -1828,7 +1787,6 @@ codeunit 139964 "Qlty. Tests - Misc"
         ToUseNoSeries: Record "No. Series";
         ToUseNoSeriesLine: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -1836,7 +1794,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryUtility: Codeunit "Library - Utility";
         LotNo: Code[20];
     begin
-        // [SCENARIO] Block assembly consumption with AnyFinished behavior should error
+        // [SCENARIO] Block assembly consumption with "Any finished inspection that matches" behavior should error
 
         Initialize();
 
@@ -1849,14 +1807,14 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Location created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
 
-        // [GIVEN] Quality Management setup with AnyFinished conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Assembly item with one lot-tracked component created
@@ -1892,105 +1850,104 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Assembly line linked to the lot via item tracking
         LibraryItemTracking.CreateAssemblyLineItemTracking(ReservationEntry, AssemblyLine, '', LotNo, AssemblyLine."Quantity (Base)");
 
-        // [GIVEN] Inspection grade configured to block assembly consumption
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Assembly Consumption" := ToLoadQltyInspectionGrade."Lot Allow Assembly Consumption"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block assembly consumption
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons."::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Finished inspection test created for the component lot with blocking grade
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source Item No." := ComponentItem."No.";
-        QltyInspectionTestHeader."Source Lot No." := LotNo;
-        QltyInspectionTestHeader."Source Quantity (Base)" := AssemblyLine."Quantity (Base)";
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] Finished inspection created for the component lot with blocking result
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source Item No." := ComponentItem."No.";
+        QltyInspectionHeader."Source Lot No." := LotNo;
+        QltyInspectionHeader."Source Quantity (Base)" := AssemblyLine."Quantity (Base)";
+        QltyInspectionHeader.Insert(true);
 
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
         // [WHEN] Posting the assembly order
-        // [THEN] An error is raised indicating assembly consumption is blocked by the grade
+        // [THEN] An error is raised indicating assembly consumption is blocked by the result
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, StrSubstNo(
-            EntryTypeBlocked2Err,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            EntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Consumption",
             ComponentItem."No.",
             LotNo));
     end;
 
     [Test]
-    procedure BlockTrackingTransaction_Purchase_HighestRetestNumber_ShouldError()
+    procedure BlockTrackingTransaction_Purchase_NewestReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block purchase with HighestRetestNumber behavior should error
+        // [SCENARIO] Block purchase with "Only the newest inspection/re-inspection" behavior should error
 
         Initialize();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Package-tracked item with no series created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with package tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Retest created from original inspection test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block purchase
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Purchase" := ToLoadQltyInspectionGrade."Lot Allow Purchase"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block purchase
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Purchase" := ToLoadQltyInspectionResult."Item Tracking Allow Purchase"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Retest assigned the blocking grade
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Modify();
+        // [GIVEN] Re-inspection assigned the blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with HighestRetestNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Test generation rule deleted to prevent new test creation
-        QltyInTestGenerationRule.Delete();
+        // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
+        QltyInspectionGenRule.Delete();
 
         // [WHEN] Posting the purchase document
-        // [THEN] An error is raised indicating purchase is blocked by the grade on the highest retest
+        // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-        LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlocked2Err,
-            ReQltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+        LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlockedErr,
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::Purchase,
             PurchaseLine."No.",
             ReservationEntry."Package No."));
@@ -2001,11 +1958,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         AssemblyHeader: Record "Assembly Header";
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -2019,8 +1975,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
         NoSeries: Codeunit "No. Series";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -2030,9 +1985,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         UnusedVariant2: Variant;
         LotNo: Code[50];
         SerialNo: Code[50];
-        ConfigCode: Text;
     begin
-        // [SCENARIO] Block assembly output with MostRecentFinishedModified behavior should error
+        // [SCENARIO] Block assembly output with "Only the most recently modified finished inspection" behavior should error
 
         Initialize();
 
@@ -2053,66 +2007,48 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Inspection template with 3 characteristics created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 3);
 
-        // [GIVEN] Prioritized test generation rule for Assembly Header created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Assembly Header", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Assembly Header created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Assembly Header", QltyInspectionGenRule);
 
-        // [GIVEN] Custom inspection source configuration for Assembly Header to Test created
-        SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
-        SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Header");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
-        SpecificQltyInspectSourceConfig.Insert();
+        // [GIVEN] Custom inspection source configuration for Assembly Header to Inspection created
+        QltyInspectionUtility.CreateSourceConfig(SpecificQltyInspectSourceConfig, Database::"Assembly Header", Enum::"Qlty. Target Type"::Inspection, Database::"Qlty. Inspection Header");
 
-        SpecificQltyInspectSrcFldConf.Init();
-        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-        SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Item No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Item No.");
-        SpecificQltyInspectSrcFldConf.Insert();
+        QltyInspectionUtility.CreateSourceFieldConfig(
+            SpecificQltyInspectSourceConfig.Code,
+            SpecificQltyInspectSourceConfig."From Table No.",
+            AssemblyHeader.FieldNo("Item No."),
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header",
+            QltyInspectionHeader.FieldNo("Source Item No."));
 
-        Clear(SpecificQltyInspectSrcFldConf);
-        SpecificQltyInspectSrcFldConf.Init();
-        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-        SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
-        SpecificQltyInspectSrcFldConf.Insert();
+        QltyInspectionUtility.CreateSourceFieldConfig(
+            SpecificQltyInspectSourceConfig.Code,
+            SpecificQltyInspectSourceConfig."From Table No.",
+            AssemblyHeader.FieldNo("No."),
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header",
+            QltyInspectionHeader.FieldNo("Source Document No."));
 
-        Clear(SpecificQltyInspectSrcFldConf);
-        SpecificQltyInspectSrcFldConf.Init();
-        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-        SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Document Type");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Type");
-        SpecificQltyInspectSrcFldConf.Insert();
+        QltyInspectionUtility.CreateSourceFieldConfig(
+            SpecificQltyInspectSourceConfig.Code,
+            SpecificQltyInspectSourceConfig."From Table No.",
+            AssemblyHeader.FieldNo("Document Type"),
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header",
+            QltyInspectionHeader.FieldNo("Source Type"));
 
-        Clear(SpecificQltyInspectSrcFldConf);
-        SpecificQltyInspectSrcFldConf.Init();
-        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-        SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Quantity to Assemble (Base)");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Quantity (Base)");
-        SpecificQltyInspectSrcFldConf.Insert();
+        QltyInspectionUtility.CreateSourceFieldConfig(
+            SpecificQltyInspectSourceConfig.Code,
+            SpecificQltyInspectSourceConfig."From Table No.",
+            AssemblyHeader.FieldNo("Quantity to Assemble (Base)"),
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header",
+            QltyInspectionHeader.FieldNo("Source Quantity (Base)"));
 
         // [GIVEN] Location created
         LibraryWarehouse.CreateLocation(Location);
@@ -2133,65 +2069,65 @@ codeunit 139964 "Qlty. Tests - Misc"
         ItemJournalBatch.Modify();
         LibraryAssembly.AddCompInventory(AssemblyHeader, WorkDate(), 0);
 
-        // [GIVEN] Inspection test created from assembly header with tracking
+        // [GIVEN] Inspection created from assembly header with tracking
         RecordRef.GetTable(AssemblyHeader);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] Retest created from original test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block assembly output
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Assembly Output" := ToLoadQltyInspectionGrade."Lot Allow Assembly Output"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block assembly output
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out."::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Retest marked as finished with blocking grade
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Status := ReQltyInspectionTestHeader.Status::Finished;
-        ReQltyInspectionTestHeader.Modify();
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
+        // [GIVEN] Re-inspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
+        ReQltyInspectionHeader.Modify();
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
         // [GIVEN] Sleep to ensure modified timestamp is different
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with MostRecentFinishedModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Test generation rule deleted to prevent new test creation
-        QltyInTestGenerationRule.Delete();
+        // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] Original test also marked as finished with blocking grade (most recent modified)
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
         // [WHEN] Posting the assembly header
-        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified test grade
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified inspection result
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlocked2Err,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            EntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Output",
             AssemblyHeader."Item No.",
-            StrSubstNo(TrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
+            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
     end;
 
     [Test]
-    procedure BlockTrackingWarehouseTransaction_Putaway_HighestFinishedRetest_ShouldError()
+    procedure BlockTrackingWarehouseTransaction_Putaway_HighestFinishedReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Location: Record Location;
@@ -2200,85 +2136,85 @@ codeunit 139964 "Qlty. Tests - Misc"
         ReservationEntry: Record "Reservation Entry";
         ToUseNoSeries: Record "No. Series";
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse put-away with HighestFinishedRetest behavior should error
+        // [SCENARIO] Block warehouse put-away with HighestFinishedReinspection behavior should error
 
         Initialize();
 
-        // [GIVEN] Test generation rules cleared
-        QltyInTestGenerationRule.DeleteAll();
+        // [GIVEN] Inspection generation rules cleared
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Full WMS location with 1 zone created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Retest created from original inspection test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Original test marked as finished with blocking grade
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Original inspection marked as finished with blocking result
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
-        // [GIVEN] Retest assigned the blocking grade (highest finished retest)
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Modify();
+        // [GIVEN] Re-inspection assigned the blocking result (highest finished re-inspection)
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with HighestFinishedRetestNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest finished inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating put-away is blocked by the highest finished retest grade
+        // [THEN] An error is raised indicating put-away is blocked by the highest finished re-inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            WarehouseEntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
     procedure BlockTrackingWarehouseTransaction_Putaway_AnyFinished_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Location: Record Location;
@@ -2287,68 +2223,68 @@ codeunit 139964 "Qlty. Tests - Misc"
         ReservationEntry: Record "Reservation Entry";
         ToUseNoSeries: Record "No. Series";
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse put-away with AnyFinished behavior should error
+        // [SCENARIO] Block warehouse put-away with "Any finished inspection that matches" behavior should error
 
         Initialize();
 
-        // [GIVEN] Test generation rules cleared
-        QltyInTestGenerationRule.DeleteAll();
+        // [GIVEN] Inspection generation rules cleared
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Full WMS location with 1 zone created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Inspection test marked as finished with blocking grade
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Inspection marked as finished with blocking result
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with AnyFinished conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating put-away is blocked by any finished test grade
+        // [THEN] An error is raised indicating put-away is blocked by any finished inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            WarehouseEntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2356,10 +2292,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure BlockTrackingWarehouseTransaction_InvPutaway_MostRecentFinishedModified_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Location: Record Location;
@@ -2369,29 +2305,28 @@ codeunit 139964 "Qlty. Tests - Misc"
         ReservationEntry: Record "Reservation Entry";
         ToUseNoSeries: Record "No. Series";
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse inventory put-away with MostRecentFinishedModified behavior should error
+        // [SCENARIO] Block warehouse inventory put-away with "Only the most recently modified finished inspection" behavior should error
 
         Initialize();
 
-        // [GIVEN] Test generation rules cleared
-        QltyInTestGenerationRule.DeleteAll();
+        // [GIVEN] Inspection generation rules cleared
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created (then cleared)
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created (then cleared)
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] WMS location with bins created
         LibraryWarehouse.CreateLocationWMS(Location, true, true, false, false, false);
@@ -2399,70 +2334,71 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateBin(Bin, Location.Code, 'Bin', '', '');
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] Purchase line with bin code assigned
         PurchaseLine."Bin Code" := Bin.Code;
         PurchaseLine.Modify();
 
-        // [GIVEN] Retest created from original inspection test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block inventory put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Invt. Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block inventory put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA" := ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Retest marked as finished with blocking grade
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        ReQltyInspectionTestHeader.Modify();
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
+        // [GIVEN] Re-inspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        ReQltyInspectionHeader.Modify();
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
-        // [GIVEN] Quality Management setup with MostRecentFinishedModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
 
         // [GIVEN] Setup trigger defaults cleared
-        QltyTestsUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Original test also marked as finished with blocking grade (most recent modified)
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified test grade
+        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            WarehouseEntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure BlockTrackingWarehouseTransaction_InvMovement_HighestRetest_ShouldError()
+    procedure BlockTrackingWarehouseTransaction_InvMovement_HighestReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Location: Record Location;
@@ -2474,42 +2410,41 @@ codeunit 139964 "Qlty. Tests - Misc"
         InventorySetup: Record "Inventory Setup";
         InventoryMovementWarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse inventory movement with HighestRetest behavior should error
+        // [SCENARIO] Block warehouse inventory movement with HighestReinspection behavior should error
 
         Initialize();
 
-        // [GIVEN] Test generation rules cleared
-        QltyInTestGenerationRule.DeleteAll();
+        // [GIVEN] Inspection generation rules cleared
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] WMS location with bins created
         LibraryWarehouse.CreateLocationWMS(Location, true, true, false, false, false);
 
         // [GIVEN] Current warehouse employee set for the location
-        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         // [GIVEN] Two bins created (Bin1 and Bin2)
         LibraryWarehouse.CreateBin(Bin, Location.Code, Bin1Tok, '', '');
         LibraryWarehouse.CreateBin(Bin, Location.Code, Bin2Tok, '', '');
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created and assigned to Bin1
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2520,28 +2455,28 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Retest created from original inspection test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block inventory movement
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Invt. Movement" := ToLoadQltyInspectionGrade."Lot Allow Invt. Movement"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block inventory movement
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov." := ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov."::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Retest marked as finished with blocking grade
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        ReQltyInspectionTestHeader.Modify();
+        // [GIVEN] Re-inspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        ReQltyInspectionHeader.Modify();
         Commit();
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with HighestRetestNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inventory setup with no series configured
@@ -2577,23 +2512,24 @@ codeunit 139964 "Qlty. Tests - Misc"
         WarehouseActivityLine.Validate(Quantity, PurchaseLine.Quantity);
         WarehouseActivityLine.Insert();
 
-        // [GIVEN] Original test also marked as finished with blocking grade
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Original inspection also marked as finished with blocking result
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
         // [WHEN] Registering the warehouse inventory movement
-        // [THEN] An error is raised indicating inventory movement is blocked by the highest retest grade
+        // [THEN] An error is raised indicating inventory movement is blocked by the highest re-inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
-            ReQltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            WarehouseEntryTypeBlockedErr,
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Movement",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2601,10 +2537,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure BlockTrackingWarehouseTransaction_Movement_MostRecentModified_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Location: Record Location;
@@ -2620,62 +2556,61 @@ codeunit 139964 "Qlty. Tests - Misc"
         ToUseNoSeries: Record "No. Series";
         WhseMovementWarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         WhseWorksheetTemplateToUse: Text;
     begin
-        // [SCENARIO] Block warehouse movement with MostRecentModified behavior should error
+        // [SCENARIO] Block warehouse movement with "Only the most recently modified inspection" behavior should error
 
         Initialize();
 
-        // [GIVEN] Test generation rules cleared
-        QltyInTestGenerationRule.DeleteAll();
+        // [GIVEN] Inspection generation rules cleared
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Prioritized test generation rule for Purchase Line created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        // [GIVEN] Prioritized inspection generation rule for Purchase Line created
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Full WMS location with 2 zones created
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
 
         // [GIVEN] Current warehouse employee set for the location
-        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created, released and received
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] Inspection test created for purchase line with tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] Inspection created for purchase line with tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Retest created from original inspection test
-        QltyInspectionTestCreate.CreateRetest(QltyInspectionTestHeader, ReQltyInspectionTestHeader);
+        // [GIVEN] Re-inspection created from original inspection
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block movement
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyTestsUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Movement" := ToLoadQltyInspectionGrade."Lot Allow Movement"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block movement
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Item Tracking Allow Movement" := ToLoadQltyInspectionResult."Item Tracking Allow Movement"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Retest marked as finished with blocking grade
-        ReQltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ReQltyInspectionTestHeader.Status := ReQltyInspectionTestHeader.Status::Finished;
-        ReQltyInspectionTestHeader.Modify();
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
+        // [GIVEN] Re-inspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
+        ReQltyInspectionHeader.Modify();
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
         // [GIVEN] Warehouse entry identified (Movement type, not in RECEIVE zone)
@@ -2694,19 +2629,19 @@ codeunit 139964 "Qlty. Tests - Misc"
         DestinationBin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         DestinationBin.FindFirst();
 
-        // [GIVEN] Quality Management setup with MostRecentModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Original test assigned the blocking grade (most recent modified)
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Original inspection assigned the blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Modify();
 
         // [GIVEN] Warehouse worksheet template for Movement type ensured
         WhseWorksheetTemplate.SetRange(Type, WhseWorksheetTemplate.Type::Movement);
         if WhseWorksheetTemplate.IsEmpty() then begin
-            QltyTestsUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUse);
+            QltyInspectionUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUse);
             WhseWorksheetTemplate.Name := CopyStr(WhseWorksheetTemplateToUse, 1, MaxStrLen(WhseWorksheetTemplate.Name));
             WhseWorksheetTemplate.Type := WhseWorksheetTemplate.Type::Movement;
             WhseWorksheetTemplate."Page ID" := Page::"Movement Worksheet";
@@ -2726,16 +2661,17 @@ codeunit 139964 "Qlty. Tests - Misc"
         WhseMovementWarehouseActivityHeader.FindFirst();
 
         // [WHEN] Registering the warehouse movement
-        // [THEN] An error is raised indicating movement is blocked by the most recent modified test grade
+        // [THEN] An error is raised indicating movement is blocked by the most recent modified inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
-            QltyInspectionTestHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            WarehouseEntryTypeBlockedErr,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::Movement,
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2758,23 +2694,20 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         Notification: Notification;
         WhseWorksheetTemplateToUse: Text;
     begin
         // [SCENARIO] Notification management handles opening warehouse movement document
-
         Initialize();
 
         // [GIVEN] Quality Management setup ensured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Full WMS location with 3 zones created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] Current warehouse employee set for the location
-        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         // [GIVEN] Cleared warehouse worksheet lines, names, and templates
         if not WhseWorksheetLine.IsEmpty() then
@@ -2786,7 +2719,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [GIVEN] Warehouse worksheet template for Movement with page ID assigned
         WhseWorksheetTemplate.Init();
-        QltyTestsUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUse);
+        QltyInspectionUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUse);
         WhseWorksheetTemplate.Name := CopyStr(WhseWorksheetTemplateToUse, 1, MaxStrLen(WhseWorksheetTemplate.Name));
         WhseWorksheetTemplate.Type := WhseWorksheetTemplate.Type::Movement;
         WhseWorksheetTemplate."Page ID" := Page::"Movement Worksheet";
@@ -2844,148 +2777,92 @@ codeunit 139964 "Qlty. Tests - Misc"
         Notification.SetData(NotificationDataRelatedRecordIdTok, Format(WhseMovementWarehouseActivityHeader.RecordId()));
 
         // [WHEN] HandleOpenDocument is called on the notification
-        QltyNotificationMgmt.HandleOpenDocument(Notification);
+        QltyInspectionUtility.HandleOpenDocument(Notification);
 
         // [THEN] The warehouse movement document page opens and the handler validates the correct document number
         LibraryAssert.AreEqual(WhseMovementWarehouseActivityHeader."No.", DocumentNo, 'Should navigate to the movement document');
     end;
 
-    [Test]
-    procedure NotifyDoYouWantToAssignToYourself()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        Location: Record Location;
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-    begin
-        // [SCENARIO] Notification system prompts user to assign quality inspection test to themselves with correct message and action options
-
-        // [GIVEN] Quality management setup with location, item, and inspection template are configured
-        Initialize();
-
-        QltyTestsUtility.EnsureSetup();
-        LibraryWarehouse.CreateLocation(Location);
-        LibraryInventory.CreateItem(Item);
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
-
-        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
-        QltyInTestGenerationRule.Delete();
-
-        // [GIVEN] Notification capture variables are cleared and subscription is set up
-        NotificationMsg := '';
-        Clear(NotificationOptions);
-        Clear(TestNotification);
-
-        BindSubscription(this);
-
-        // [WHEN] The notification to assign test to yourself is triggered
-        QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(QltyInspectionTestHeader);
-        UnbindSubscription(this);
-
-        // [THEN] The notification contains the correct message with test number, action options, and test record ID data
-        LibraryAssert.AreEqual(StrSubstNo(AssignToSelfExpectedMessageLbl, QltyInspectionTestHeader."No."), NotificationMsg, 'Notification message should match expected pattern with test number');
-
-        LibraryAssert.IsTrue(NotificationOptions.ContainsKey(AssignToSelfLbl), 'Notification should contain "Assign to myself" action');
-        LibraryAssert.IsTrue(NotificationOptions.ContainsKey(IgnoreLbl), 'Notification should contain "Ignore" action');
-
-        LibraryAssert.AreEqual(Format(QltyInspectionTestHeader.RecordId), TestNotification.GetData(NotificationDataTestRecordIdTok), 'Notification should contain the correct test record ID in data');
-
-        LibraryAssert.IsTrue(StrPos(NotificationMsg, QltyInspectionTestHeader."No.") > 0, 'Notification message should contain the test number');
-    end;
 
     [Test]
     procedure HandleNotificationActionAssignToSelf()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        IWXQltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
         MockNotification: Notification;
     begin
-        // [SCENARIO] Notification action handler successfully assigns quality inspection test to the current user
+        // [SCENARIO] Notification action handler successfully assigns quality inspection to the current user
 
         // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
-        QltyInTestGenerationRule.Delete();
+        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A mock notification with the test record ID is prepared
-        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId));
+        // [GIVEN] A mock notification with the inspection record ID is prepared
+        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId));
 
         // [WHEN] The assign to self notification action is handled
-        IWXQltyNotificationMgmt.HandleNotificationActionAssignToSelf(MockNotification);
+        QltyInspectionUtility.HandleNotificationActionAssignToSelf(MockNotification);
 
-        // [THEN] The quality inspection test is assigned to the current user
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."Assigned User Id", UserId(), 'Test should be assigned to the current user');
+        // [THEN] The quality inspection is assigned to the current user
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(QltyInspectionHeader."Assigned User Id", UserId(), 'Inspection should be assigned to the current user');
     end;
 
     [Test]
     procedure HandleNotificationActionIgnore()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
         MockNotification: Notification;
     begin
-        // [SCENARIO] Notification action handler successfully sets quality inspection test to prevent auto assignment when ignored
+        // [SCENARIO] Notification action handler successfully sets quality inspection to prevent auto assignment when ignored
 
         // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
-        QltyInTestGenerationRule.Delete();
+        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A mock notification with the test record ID is prepared
-        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId()));
+        // [GIVEN] A mock notification with the inspection record ID is prepared
+        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         // [WHEN] The ignore notification action is handled
-        QltyNotificationMgmt.HandleNotificationActionIgnore(MockNotification);
+        QltyInspectionUtility.HandleNotificationActionIgnore(MockNotification);
 
-        // [THEN] The quality inspection test is marked to prevent auto assignment
-        LibraryAssert.IsTrue(QltyInspectionTestHeader.GetPreventAutoAssignment(), 'Test should be ignored');
+        // [THEN] The quality inspection is marked to prevent auto assignment
+        LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
     end;
 
     local procedure Initialize()
@@ -2993,10 +2870,11 @@ codeunit 139964 "Qlty. Tests - Misc"
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
         IsInitialized := true;
     end;
 
-    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")
     var
         AssemblyLine: Record "Assembly Line";
         GeneralPostingSetup: Record "General Posting Setup";
@@ -3030,14 +2908,5 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure HandleModalPage_NavigateToMovementDocument(var WarehouseMovement: TestPage "Warehouse Movement")
     begin
         DocumentNo := WarehouseMovement."No.".Value();
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Qlty. Notification Mgmt.", 'OnBeforeCreateActionNotification', '', true, true)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
-    begin
-        NotificationMsg := CurrentMessage;
-        NotificationOptions := AvailableOptions;
-        TestNotification := NotificationToShow;
-        Handled := true;
     end;
 }

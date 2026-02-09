@@ -29,7 +29,12 @@
     },
     {
       "id": "00155c68-8cdd-4d60-a451-2034ad094223",
-      "name": "Business Central Agent Builder",
+      "name": "Agent Design Experience",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "87bd596c-2473-4c29-b666-c97ef8760ddd",
+      "name": "Agent Designer Test",
       "publisher": "Microsoft"
     },
     {

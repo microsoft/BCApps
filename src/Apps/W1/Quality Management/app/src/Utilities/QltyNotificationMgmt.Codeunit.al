@@ -9,6 +9,7 @@ using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
+using System.Environment.Configuration;
 using System.Reflection;
 
 /// <summary>
@@ -25,20 +26,20 @@ codeunit 20437 "Qlty. Notification Mgmt."
         HandleOpenDocumentTok: Label 'HandleOpenDocument', Locked = true;
         IgnoreLbl: Label 'Ignore';
         HandleNotificationActionIgnoreTok: Label 'HandleNotificationActionIgnore', Locked = true;
-        NotificationDataTestRecordIdTok: Label 'TestRecordId', Locked = true;
+        NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
-        YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered test %1, would you like to assign it to yourself?', Comment = '%1=the test number';
-        DocumentCreatedAMsg: Label 'A %1 %2 has been created for test %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the test';
-        DocumentCreatedAnMsg: Label 'An %1 %2 has been created for test %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the test';
-        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for test %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the test has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the test, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
-        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for test %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the test has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the test, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
-        ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection Test %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=retest no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
-        ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection Test %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=retest no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
+        YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
+        DocumentCreatedAMsg: Label 'A %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
+        DocumentCreatedAnMsg: Label 'An %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
+        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
+        ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
         ChangeTrackingFailMsg: Label 'Unable to update tracking information to%1%2. Check batch setup on the Quality Management Setup page.', Comment = '%1=new item tracking information,%2=optional location';
         ExpDateMsg: Label ' Expiration Date: %1', Comment = '%1=expiration date';
         InLocationMsg: Label ' in location %1', Comment = '%1=the location';
-        MoveEntryCreatedMsg: Label 'The Quality Inspection Test %1,%2 created a %10 to move %3 %12 of item %4 from %5 %6 to %7 %8 in %11 %9.', Comment = '%1=test no., %2=retest no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=the batch or document, %10=the type of journal, %11=the type of the document or batch, %12=uom';
-        MoveEntryPostedMsg: Label 'The Quality Inspection Test %1,%2 moved %3 %9 of item %4 from %5 %6 to %7 %8.', Comment = '%1=test no., %2=retest no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=uom';
+        MoveEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a %10 to move %3 %12 of item %4 from %5 %6 to %7 %8 in %11 %9.', Comment = '%1=inspection no., %2=re-inspection no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=the batch or document, %10=the type of journal, %11=the type of the document or batch, %12=uom';
+        MoveEntryPostedMsg: Label 'The Quality Inspection %1,%2 moved %3 %9 of item %4 from %5 %6 to %7 %8.', Comment = '%1=inspection no., %2=re-inspection no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=uom';
         TypeJournalEntryLbl: Label 'journal entry';
         TypeWorksheetEntryLbl: Label 'worksheet entry';
         TypeMovementDocumentLbl: Label 'movement document';
@@ -46,11 +47,11 @@ codeunit 20437 "Qlty. Notification Mgmt."
         TypeJournalEntryBatchLbl: Label 'batch';
         LocationLbl: Label 'Location: %1', Comment = '%1= the location';
         BinLbl: Label ' Bin: %1', Comment = '%1= the bin';
-        NegativeEntriesCreatedMsg: Label 'The Quality Inspection Test %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=test no., %2=retest no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
-        MoveEntriesPostedMsg: Label 'The Quality Inspection Test %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=test no., %2=retest no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
-        BlockedStateChangedLbl: Label 'Test %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the test number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
+        NegativeEntriesCreatedMsg: Label 'The Quality Inspection %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=inspection no., %2=re-inspection no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
+        MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=inspection no., %2=re-inspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
+        BlockedStateChangedLbl: Label 'Inspection %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the inspection number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
         BlockedLbl: Label 'blocked';
-        UnBlockedLbl: Label 'un-blocked';
+        UnblockedLbl: Label 'un-blocked';
         OpenTheInfoCardLbl: Label 'Open the %1 No. Information.', Comment = '%1 =the info type.';
         VariantTok: Label ':%1', Comment = '%1=variant';
         LotTok: Label ' Lot: %1', Comment = '%1=lot no.';
@@ -60,33 +61,107 @@ codeunit 20437 "Qlty. Notification Mgmt."
         SerialMsg: Label ' Serial: %1', Comment = '%1=serial no.';
         PackageMsg: Label ' Package: %1', Comment = '%1=package no.';
         OriginTok: Label 'origin', Locked = true;
+        InspectionCreatedMsg: Label 'Quality Inspection %1 has been created.', Comment = '%1=the test friendly identifier';
+        MultipleInspectionsCreatedMsg: Label '%1 Quality Inspections have been created.', Comment = '%1=the number of inspections';
+        ViewTheInspectionsPageLbl: Label 'View the created inspections';
+        MultipleInspectionsNotificationDataFilterTok: Label 'InspectionsFilter', Locked = true;
+        HandleOpenMultipleInspectionsTok: Label 'HandleOpenMultipleInspections', Locked = true;
+        OpenTheInspectionPageLbl: Label 'Open the inspection';
+        AssignToYourselfTok: Label 'Assign Quality Inspection to yourself', Locked = true;
+        AssignToYourselfDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
+        InspectionCreatedNameTok: Label 'Quality Inspection created', Locked = true;
+        InspectionCreatedDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
+
+    /// <summary>
+    /// Ensures that configurable notifications are inserted.
+    /// </summary>
+    internal procedure EnsureDefaultNotifications()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetAssignToYourselfNotificationId(), AssignToYourselfTok, AssignToYourselfDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNameTok, InspectionCreatedDescriptionTxt, true);
+    end;
+
+    /// <summary>
+    /// Creates a notification that an inspection has been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    internal procedure NotifyInspectionCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationInspectionCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(InspectionCreatedMsg, QltyInspectionHeader.GetFriendlyIdentifier());
+        NotificationOptions.Add(OpenTheInspectionPageLbl, HandleOpenDocumentTok);
+        NotificationInspectionCreated.SetData(NotificationDataRelatedRecordIdTok, Format(QltyInspectionHeader.RecordId));
+        CreateActionNotification(NotificationInspectionCreated, Message, NotificationOptions);
+    end;
+
+    /// <summary>
+    /// Creates a notification that multiple inspections have been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationTestCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(
+            MultipleInspectionsCreatedMsg,
+            QltyInspectionHeader.Count()
+        );
+        NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
+        NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
+        CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
+    end;
 
     /// <summary>
     /// Call this to create a notification if you want to assign to yourself.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
-    procedure NotifyDoYouWantToAssignToYourself(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    /// <param name="QltyInspectionHeader"></param>
+    procedure NotifyDoYouWantToAssignToYourself(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
+        MyNotifications: Record "My Notifications";
         AssignToSelfNotification: Notification;
         AvailableOptions: Dictionary of [Text, Text];
     begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetAssignToYourselfNotificationId()) then
+            exit;
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
         AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
-        AssignToSelfNotification.Id := QltyInspectionTestHeader.SystemId;
-        AssignToSelfNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId()));
-        CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionTestHeader."No."), AvailableOptions);
+        AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
+        AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
     end;
 
     /// <summary>
     /// Creates a notification that a document has been created.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentType">Used to display in the action.</param>
     /// <param name="DocumentNo"></param>
     /// <param name="RelatedDocumentVariant">a variant referring to the document</param>
     internal procedure NotifyDocumentCreated(
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         DocumentType: Text;
         DocumentNo: Text;
@@ -100,7 +175,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         CurrentMessage: Text;
         AvailableOptions: Dictionary of [Text, Text];
     begin
-        Source := GetSourceSummaryText(QltyInspectionTestHeader);
+        Source := GetSourceSummaryText(QltyInspectionHeader);
 
         if QltyMiscHelpers.GetRecordRefFromVariant(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
             RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
@@ -110,17 +185,17 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 DocumentCreatedAnMsg,
                 DocumentType,
                 DocumentNo,
-                QltyInspectionTestHeader."No.")
+                QltyInspectionHeader."No.")
         else
             CurrentMessage := StrSubstNo(
                 DocumentCreatedAMsg,
                 DocumentType,
                 DocumentNo,
-                QltyInspectionTestHeader."No.");
+                QltyInspectionHeader."No.");
 
         AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
 
-        DocumentCreatedNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId()));
+        DocumentCreatedNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         DocumentCreatedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
 
@@ -130,25 +205,25 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Creates a notification that a document was not able to be created.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentType">Used to display in the action.</param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
     var
         DummyVariant: Variant;
     begin
-        NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentType, '', DummyVariant);
+        NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentType, '', DummyVariant);
     end;
 
     /// <summary>
     /// Creates a notification that the document creation has failed.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentType"></param>
     /// <param name="OptionalAdditionalMessageContext"></param>
     /// <param name="OptionalRelatedDocumentVariant"></param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -158,25 +233,25 @@ codeunit 20437 "Qlty. Notification Mgmt."
         CurrentMessage: Text;
         AvailableOptions: Dictionary of [Text, Text];
     begin
-        if QltyInspectionTestHeader."Source Item No." <> '' then
-            if Item.Get(QltyInspectionTestHeader."Source Item No.") then;
+        if QltyInspectionHeader."Source Item No." <> '' then
+            if Item.Get(QltyInspectionHeader."Source Item No.") then;
 
         if (DocumentType <> '') and (DocumentType[1] in ['A', 'E', 'I', 'O', 'U', 'a', 'e', 'i', 'o', 'u']) then
             CurrentMessage := StrSubstNo(
                 DocumentNotAbleToBeCreatedAnMsg,
                 DocumentType,
-                QltyInspectionTestHeader."No.",
+                QltyInspectionHeader."No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
-                GetSourceSummaryText(QltyInspectionTestHeader),
+                GetSourceSummaryText(QltyInspectionHeader),
                 OptionalAdditionalMessageContext,
                 Item."Base Unit of Measure")
         else
             CurrentMessage := StrSubstNo(
                 DocumentNotAbleToBeCreatedAMsg,
                 DocumentType,
-                QltyInspectionTestHeader."No.",
+                QltyInspectionHeader."No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
-                GetSourceSummaryText(QltyInspectionTestHeader),
+                GetSourceSummaryText(QltyInspectionHeader),
                 OptionalAdditionalMessageContext,
                 Item."Base Unit of Measure");
 
@@ -193,13 +268,13 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Creates a notification that an item tracking change occurred.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="LineCreated"></param>
     /// <param name="Success"></param>
     /// <param name="ChangedBaseQuantity"></param>
     /// <param name="DocumentOrBatchName"></param>
-    procedure NotifyItemTrackingChanged(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
+    internal procedure NotifyItemTrackingChanged(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
     var
         Item: Record Item;
         Source: Text;
@@ -209,9 +284,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         New := GetTargetSummaryText(TempInstructionQltyDispositionBuffer);
         if LineCreated then begin
-            if Item.Get(QltyInspectionTestHeader."Source Item No.") then;
+            if Item.Get(QltyInspectionHeader."Source Item No.") then;
 
-            Source := GetSourceSummaryText(QltyInspectionTestHeader);
+            Source := GetSourceSummaryText(QltyInspectionHeader);
             if (OptionalSourceExpirationDate <> 0D) and (OptionalSourceExpirationDate <> TempInstructionQltyDispositionBuffer."New Expiration Date") then
                 Source := Source + StrSubstNo(ExpDateMsg, OptionalSourceExpirationDate);
 
@@ -219,9 +294,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 OptionalLocation := StrSubstNo(InLocationMsg, TempInstructionQltyDispositionBuffer.GetFromLocationCode());
 
             if (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) and Success then
-                CurrentMessage := StrSubstNo(ChangeTrackingEntryPostedMsg, QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation)
+                CurrentMessage := StrSubstNo(ChangeTrackingEntryPostedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation)
             else
-                CurrentMessage := StrSubstNo(ChangeTrackingEntryCreatedMsg, QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation);
+                CurrentMessage := StrSubstNo(ChangeTrackingEntryCreatedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation);
         end else
             CurrentMessage := StrSubstNo(ChangeTrackingFailMsg, New, OptionalLocation);
 
@@ -231,10 +306,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Creates a notification that a movement has occurred.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentOrBatchName"></param>   
-    procedure NotifyMovementOccurred(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
+    internal procedure NotifyMovementOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
     var
         Item: Record Item;
         Source: Text;
@@ -242,10 +317,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
         TypeOfJournal: Text;
         TypeOfEntity: Text;
     begin
-        if QltyInspectionTestHeader."Source Item No." <> '' then
-            if Item.Get(QltyInspectionTestHeader."Source Item No.") then;
+        if QltyInspectionHeader."Source Item No." <> '' then
+            if Item.Get(QltyInspectionHeader."Source Item No.") then;
 
-        Source := GetSourceSummaryText(QltyInspectionTestHeader);
+        Source := GetSourceSummaryText(QltyInspectionHeader);
         case TempInstructionQltyDispositionBuffer."Disposition Action" of
             TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Internal Movement":
                 begin
@@ -265,8 +340,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post then
             CurrentMessage := StrSubstNo(
                 MoveEntryPostedMsg,
-                QltyInspectionTestHeader."No.",
-                QltyInspectionTestHeader."Retest No.",
+                QltyInspectionHeader."No.",
+                QltyInspectionHeader."Re-inspection No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                 Source,
                 TempInstructionQltyDispositionBuffer."Location Filter",
@@ -276,8 +351,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 Item."Base Unit of Measure")
         else
             CurrentMessage := StrSubstNo(MoveEntryCreatedMsg,
-                QltyInspectionTestHeader."No.",
-                QltyInspectionTestHeader."Retest No.",
+                QltyInspectionHeader."No.",
+                QltyInspectionHeader."Re-inspection No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                 Source,
                 TempInstructionQltyDispositionBuffer."Location Filter",
@@ -295,19 +370,19 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Creates a notification that a negative adjustment occurred.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentOrBatchName"></param>
-    internal procedure NotifyNegativeAdjustmentOccurred(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
+    internal procedure NotifyNegativeAdjustmentOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
     var
         Item: Record Item;
         Source: Text;
         CurrentMessage: Text;
         LocationAndBinDetails: Text;
     begin
-        Source := GetSourceSummaryText(QltyInspectionTestHeader);
-        if QltyInspectionTestHeader."Source Item No." <> '' then
-            if Item.Get(QltyInspectionTestHeader."Source Item No.") then;
+        Source := GetSourceSummaryText(QltyInspectionHeader);
+        if QltyInspectionHeader."Source Item No." <> '' then
+            if Item.Get(QltyInspectionHeader."Source Item No.") then;
 
         if TempInstructionQltyDispositionBuffer."Location Filter" <> '' then
             LocationAndBinDetails += StrSubstNo(LocationLbl, TempInstructionQltyDispositionBuffer."Location Filter");
@@ -318,8 +393,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post then
             CurrentMessage := StrSubstNo(
                 MoveEntriesPostedMsg,
-                QltyInspectionTestHeader."No.",
-                QltyInspectionTestHeader."Retest No.",
+                QltyInspectionHeader."No.",
+                QltyInspectionHeader."Re-inspection No.",
                 Source,
                 Abs(TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)"),
                 LocationAndBinDetails,
@@ -327,8 +402,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         else
             CurrentMessage := StrSubstNo(
                 NegativeEntriesCreatedMsg,
-                QltyInspectionTestHeader."No.",
-                QltyInspectionTestHeader."Retest No.",
+                QltyInspectionHeader."No.",
+                QltyInspectionHeader."Re-inspection No.",
                 Source,
                 Abs(TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)"),
                 DocumentOrBatchName,
@@ -348,7 +423,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// procedure name *must* mah tcHandleOpenDocumentTok 
+    /// procedure name *must* match HandleOpenDocumentTok 
     /// This is the event handle for the 'open the document' 
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
@@ -392,21 +467,33 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
+    /// procedure name must match HandleOpenMultipleInspectionsTok.
+    /// </summary>
+    /// <param name="pNotification"></param>
+    internal procedure HandleOpenMultipleInspections(pNotification: Notification)
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        QltyInspectionHeader.SetView(pNotification.GetData(MultipleInspectionsNotificationDataFilterTok));
+        Page.RunModal(Page::"Qlty. Inspection List", QltyInspectionHeader);
+    end;
+
+    /// <summary>
     /// procedure name *must* match tcHandleNotificationActionAssignToSelf 
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
     internal procedure HandleNotificationActionAssignToSelf(NotificationToShow: Notification)
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        TestRecordId: RecordId;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        InspectionRecordId: RecordId;
         RecordIdData: Text;
     begin
-        RecordIdData := NotificationToShow.GetData(NotificationDataTestRecordIdTok);
-        if Evaluate(TestRecordId, RecordIdData) then
-            if QltyInspectionTestHeader.Get(TestRecordId) then begin
-                QltyInspectionTestHeader.AssignToSelf();
+        RecordIdData := NotificationToShow.GetData(NotificationDataInspectionRecordIdTok);
+        if Evaluate(InspectionRecordId, RecordIdData) then
+            if QltyInspectionHeader.Get(InspectionRecordId) then begin
+                QltyInspectionHeader.AssignToSelf();
 #pragma warning disable AA0214
-                if QltyInspectionTestHeader.Modify() then;
+                QltyInspectionHeader.Modify();
 #pragma warning restore AA0214
             end;
     end;
@@ -417,26 +504,26 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
     internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        TestRecordId: RecordId;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        InspectionRecordId: RecordId;
         RecordIdData: Text;
     begin
-        RecordIdData := NotificationToShow.GetData(NotificationDataTestRecordIdTok);
-        if Evaluate(TestRecordId, RecordIdData) then
-            if QltyInspectionTestHeader.Get(TestRecordId) then
-                QltyInspectionTestHeader.SetPreventAutoAssignment(true);
+        RecordIdData := NotificationToShow.GetData(NotificationDataInspectionRecordIdTok);
+        if Evaluate(InspectionRecordId, RecordIdData) then
+            if QltyInspectionHeader.Get(InspectionRecordId) then
+                QltyInspectionHeader.SetPreventAutoAssignment(true);
     end;
 
     /// <summary>
     /// Creates a notification that the tracking state has changed.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="InformationType">The lot no information card, or serial no information card, or package no information card.</param>
     /// <param name="Type">The label for Lot or Serial or Package</param>
     /// <param name="ItemTrackingDetail">The content for Lot or Serial or Package</param>
     /// <param name="BlockedState"></param>
-    procedure NotifyItemTrackingBlockStateChanged(
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+    internal procedure NotifyItemTrackingBlockStateChanged(
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         InformationType: RecordId;
         Type: Text;
         ItemTrackingDetail: Text;
@@ -450,18 +537,18 @@ codeunit 20437 "Qlty. Notification Mgmt."
         if BlockedState then
             BlockOrUnblock := BlockedLbl
         else
-            BlockOrUnblock := UnBlockedLbl;
+            BlockOrUnblock := UnblockedLbl;
         CurrentMessage := StrSubstNo(
             BlockedStateChangedLbl,
-            QltyInspectionTestHeader."No.",
+            QltyInspectionHeader."No.",
             Type,
             ItemTrackingDetail,
-            QltyInspectionTestHeader."Source Item No.",
+            QltyInspectionHeader."Source Item No.",
             BlockOrUnblock);
 
         AvailableOptions.Add(StrSubstNo(OpenTheInfoCardLbl, Type), HandleOpenDocumentTok);
 
-        ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId()));
+        ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(InformationType));
 
@@ -478,10 +565,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
     var
         ActionMessage: Text;
         ActionProcedureCallback: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, Handled);
-        if Handled then
+        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, IsHandled);
+        if IsHandled then
             exit;
 
         NotificationToShow.Message(CurrentMessage);
@@ -512,27 +599,27 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Used to help build a consistent 'source' tracking details.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <returns></returns>   
-    procedure GetSourceSummaryText(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"): Text
+    internal procedure GetSourceSummaryText(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
         TextBuilder: TextBuilder;
     begin
-        if QltyInspectionTestHeader."Source Item No." = '' then
-            if QltyInspectionTestHeader."Source Document No." <> '' then
-                TextBuilder.Append(QltyInspectionTestHeader."Source Document No.")
+        if QltyInspectionHeader."Source Item No." = '' then
+            if QltyInspectionHeader."Source Document No." <> '' then
+                TextBuilder.Append(QltyInspectionHeader."Source Document No.")
             else
-                TextBuilder.Append(QltyInspectionTestHeader."Source Custom 1")
+                TextBuilder.Append(QltyInspectionHeader."Source Custom 1")
         else begin
-            TextBuilder.Append(QltyInspectionTestHeader."Source Item No.");
-            if QltyInspectionTestHeader."Source Variant Code" <> '' then
-                TextBuilder.Append(StrSubstNo(VariantTok, QltyInspectionTestHeader."Source Variant Code"));
-            if QltyInspectionTestHeader."Source Lot No." <> '' then
-                TextBuilder.Append(StrSubstNo(LotTok, QltyInspectionTestHeader."Source Lot No."));
-            if QltyInspectionTestHeader."Source Serial No." <> '' then
-                TextBuilder.Append(StrSubstNo(SerialTok, QltyInspectionTestHeader."Source Serial No."));
-            if QltyInspectionTestHeader."Source Package No." <> '' then
-                TextBuilder.Append(StrSubstNo(PackageTok, QltyInspectionTestHeader."Source Package No."));
+            TextBuilder.Append(QltyInspectionHeader."Source Item No.");
+            if QltyInspectionHeader."Source Variant Code" <> '' then
+                TextBuilder.Append(StrSubstNo(VariantTok, QltyInspectionHeader."Source Variant Code"));
+            if QltyInspectionHeader."Source Lot No." <> '' then
+                TextBuilder.Append(StrSubstNo(LotTok, QltyInspectionHeader."Source Lot No."));
+            if QltyInspectionHeader."Source Serial No." <> '' then
+                TextBuilder.Append(StrSubstNo(SerialTok, QltyInspectionHeader."Source Serial No."));
+            if QltyInspectionHeader."Source Package No." <> '' then
+                TextBuilder.Append(StrSubstNo(PackageTok, QltyInspectionHeader."Source Package No."));
         end;
         exit(TextBuilder.ToText());
     end;
@@ -558,15 +645,25 @@ codeunit 20437 "Qlty. Notification Mgmt."
         exit(TextBuilder.ToText());
     end;
 
+    local procedure GetAssignToYourselfNotificationId(): Guid
+    begin
+        exit('de535e9b-2727-4d23-8be4-e2ff33a2c586');
+    end;
+
+    local procedure GetInspectionCreatedNotificationId(): Guid
+    begin
+        exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
+    end;
+
     /// <summary>
     /// Use this to supplment, extend, or replace base action handling.
     /// </summary>
     /// <param name="NotificationToShow"></param>
     /// <param name="CurrentMessage"></param>
     /// <param name="Options"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
+    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var IsHandled: Boolean)
     begin
     end;
 }

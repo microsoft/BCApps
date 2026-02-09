@@ -21,7 +21,7 @@ codeunit 30281 "Shpfy Bulk UpdateProductPrice" implements "Shpfy IBulk Operation
 
     procedure GetInput(): Text
     begin
-        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "price": "%3", "compareAtPrice": "%4" }]}');
+        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "price": "%3", "compareAtPrice": "%4", "inventoryItem": { "cost": "%5" }}]}');
     end;
 
     procedure GetName(): Text[250]
@@ -85,6 +85,7 @@ codeunit 30281 "Shpfy Bulk UpdateProductPrice" implements "Shpfy IBulk Operation
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
+                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
         end;

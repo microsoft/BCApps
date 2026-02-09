@@ -138,28 +138,6 @@ table 30115 "Shpfy Log Entry"
     {
     }
 
-    var
-        DeleteLogEntriesLbl: Label 'Are you sure that you want to delete Shopify log entries?';
-
-    /// <summary> 
-    /// Delete Entries.
-    /// </summary>
-    /// <param name="DaysOld">Parameter of type Integer.</param>
-    internal procedure DeleteEntries(DaysOld: Integer);
-    begin
-        if not Confirm(DeleteLogEntriesLbl) then
-            exit;
-
-        if DaysOld > 0 then begin
-            SetFilter("Date and Time", '<=%1', CreateDateTime(Today - DaysOld, Time));
-            if not IsEmpty then
-                DeleteAll(false);
-            SetRange("Date and Time");
-        end else
-            if not IsEmpty then
-                DeleteAll(false);
-    end;
-
     /// <summary> 
     /// Get Request.
     /// </summary>

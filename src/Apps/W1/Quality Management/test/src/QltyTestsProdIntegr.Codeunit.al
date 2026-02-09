@@ -18,7 +18,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
 
@@ -31,20 +31,22 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     var
         ReUsedProdOrderLine: Record "Prod. Order Line";
         LibraryAssert: Codeunit "Library Assert";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        IsInitialized: Boolean;
         Msg: Label 'Copy to Quality Inspection now and I intend on removing Quality Measures later (copy the min/max values).,Copy to Quality Inspection and keep the conditions synchronized to Business Central Quality Measures (make a reference to these values)';
         CreateQltyInspectionTemplateMsg: Label 'Create or Update a Quality Inspection Template from these quality measures.';
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_Output()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -54,17 +56,18 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with AnyOutput configuration
+        // [SCENARIO] Inspection is created when output journal is posted with AnyOutput configuration
+        Initialize();
 
         // [GIVEN] Setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with 3 fields is created
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        // [GIVEN] A template with 3 tests is created
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All existing generation rules are deleted and an output prioritized rule is created
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order with routing are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -73,17 +76,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with 5 units of output quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
@@ -92,28 +95,28 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The output journal is posted
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses the correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses the correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -123,12 +126,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with AnyOutput configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with AnyOutput configuration using prod line quantity
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order with quantity 10 are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -137,15 +141,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine.Validate("Scrap Quantity", 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -154,31 +158,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -188,12 +192,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities fails to post with AnyOutput configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities fails to post with AnyOutput configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -202,15 +207,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -218,23 +223,23 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] Attempting to post the output journal with no quantities
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] No inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -244,13 +249,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with output quantity when both output and scrap are posted with AnyOutput configuration
+        // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with AnyOutput configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -259,15 +265,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -276,31 +282,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output quantity (5, not scrap 3)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output quantity (5, not scrap 3)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_Output()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -310,12 +316,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with AnyQuantity configuration
+        // [SCENARIO] Inspection is created when output journal is posted with AnyQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -324,15 +331,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with 5 units of output quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -340,31 +347,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -374,12 +381,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order with quantity 10 are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -388,15 +396,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine.Validate("Scrap Quantity", 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -405,31 +413,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -439,13 +447,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
+        // [SCENARIO] Inspection is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -454,15 +463,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -471,30 +480,30 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template and source quantity matches output quantity (5)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template and source quantity matches output quantity (5)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoTest()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoInspection()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -504,12 +513,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -518,15 +528,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -534,23 +544,23 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] Attempting to post the output journal with no quantities
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] No inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -560,12 +570,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when only scrap is posted with OnlyWithQuantity configuration
+        // [SCENARIO] No inspection is created when only scrap is posted with OnlyWithQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -574,15 +585,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with only scrap quantity of 5
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine.Validate("Scrap Quantity", 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -591,23 +602,23 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created (OnlyWithQuantity ignores scrap-only)
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] No inspection is created (OnlyWithQuantity ignores scrap-only)
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_Output()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -617,13 +628,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with OnlyWithQuantity configuration
+        // [SCENARIO] Inspection is created when output journal is posted with OnlyWithQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -632,15 +644,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity of 5
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -648,31 +660,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -682,13 +694,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
+        // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -697,15 +710,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -714,31 +727,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output (5, not scrap)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output (5, not scrap)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -748,12 +761,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -762,15 +776,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -778,23 +792,23 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] Attempting to post the output journal with no quantities
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] No inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_Output()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -804,12 +818,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when only output is posted with OnlyWithScrap configuration
+        // [SCENARIO] No inspection is created when only output is posted with OnlyWithScrap configuration
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -818,15 +833,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithScrap
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with only output quantity of 5
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
@@ -834,23 +849,23 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created (OnlyWithScrap ignores output-only)
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] No inspection is created (OnlyWithScrap ignores output-only)
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -860,12 +875,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
+        Initialize();
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        // [GIVEN] Setup exists and a template with 3 tests is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and released production order with quantity 10 are created
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -874,15 +890,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithScrap
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine.Validate("Scrap Quantity", 5);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -891,31 +907,31 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine.Modify();
 
         // [WHEN] The output journal is posted
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
-        AfterCount := QltyInspectionTestHeader.Count();
-        QltyInTestGenerationRule.Delete();
+        // [THEN] One inspection is created
+        AfterCount := QltyInspectionHeader.Count();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -925,15 +941,16 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal with both output and scrap is posted with OnlyWithScrap configuration using output quantity
+        // [SCENARIO] Inspection is created when output journal with both output and scrap is posted with OnlyWithScrap configuration using output quantity
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] A production order is created with quantity 10
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -941,15 +958,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] Quality management setup has Auto Output Configuration set to OnlyWithScrap
+        // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -957,34 +974,34 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The output journal is posted
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-        AfterCount := QltyInspectionTestHeader.Count();
+        AfterCount := QltyInspectionHeader.Count();
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One test is created
-        QltyInspectionTestHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
-        QltyInspectionTestHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
-        QltyInspectionTestHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        // [THEN] One inspection is created
+        QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
+        QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
+        QltyInspectionHeader.FindLast();
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output quantity (5)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionTestHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output quantity (5)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ProdProductionOrder: Record "Production Order";
@@ -994,14 +1011,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no output or scrap quantity fails to post with OnlyWithScrap configuration
+        // [SCENARIO] No inspection is created when output journal with no output or scrap quantity fails to post with OnlyWithScrap configuration
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] A production order is created with quantity 10
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -1009,43 +1027,43 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] Quality management setup has Auto Output Configuration set to OnlyWithScrap
+        // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost;
-        QltyInTestGenerationRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule.Modify();
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 0);
         ItemJournalLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ItemJournalLine."No." := ProdOrderRoutingLine."No.";
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The output journal posting is attempted (and fails due to no quantities)
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-        AfterCount := QltyInspectionTestHeader.Count();
+        AfterCount := QltyInspectionHeader.Count();
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] No test is created
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        // [THEN] No inspection is created
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderRoutingLine()
+    procedure CreateInspectionOnAfterRelease_ProdOrderRoutingLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ManufacturingSetup: Record "Manufacturing Setup";
         ToUseNoSeries: Record "No. Series";
         ToUseNoSeriesLine: Record "No. Series Line";
-        CreatedQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1053,14 +1071,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryUtility: Codeunit "Library - Utility";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order is released with routing lines available
+        // [SCENARIO] Inspection is created when production order is released with routing lines available
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item is created and a firm planned production order is created and refreshed with routing lines
         GenQltyProdOrderGenerator.Init(100);
@@ -1083,28 +1102,28 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
+        QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the item
-        CreatedQltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.IsTrue(not CreatedQltyInspectionTestHeader.IsEmpty(), 'One test should be created and should match item.');
+        // [THEN] One inspection is created for the item
+        CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One inspection should be created and should match item.');
     end;
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderLine()
+    procedure CreateInspectionOnAfterRelease_ProdOrderLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ManufacturingSetup: Record "Manufacturing Setup";
         ToUseNoSeries: Record "No. Series";
         ToUseNoSeriesLine: Record "No. Series Line";
-        CreatedQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1113,14 +1132,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryUtility: Codeunit "Library - Utility";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order is released without routing lines
+        // [SCENARIO] Inspection is created when production order is released without routing lines
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item is created and a firm planned production order is created and refreshed
         GenQltyProdOrderGenerator.CreateItem(Item);
@@ -1148,28 +1168,28 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
+        QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the item
-        CreatedQltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.AreEqual(1, CreatedQltyInspectionTestHeader.Count(), 'Test should match item.');
+        // [THEN] One inspection is created for the item
+        CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'Inspection should match item.');
     end;
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderRoutingLine_TrackedItem()
+    procedure CreateInspectionOnAfterRelease_ProdOrderRoutingLine_TrackedItem()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ManufacturingSetup: Record "Manufacturing Setup";
         ToUseNoSeries: Record "No. Series";
         ToUseNoSeriesLine: Record "No. Series Line";
-        CreatedQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1179,14 +1199,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order with lot-tracked item is released with routing lines available
+        // [SCENARIO] Inspection is created when production order with lot-tracked item is released with routing lines available
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item and firm planned production order are created with routing lines
         GenQltyProdOrderGenerator.CreateLotTrackedItemAndProductionOrder(ProdOrderStatus::"Firm Planned", Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -1207,28 +1228,28 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
+        QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the lot-tracked item
-        CreatedQltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.IsTrue(not CreatedQltyInspectionTestHeader.IsEmpty(), 'One test should be created and match item.');
+        // [THEN] One inspection is created for the lot-tracked item
+        CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One inspection should be created and match item.');
     end;
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderLine_TrackedItem()
+    procedure CreateInspectionOnAfterRelease_ProdOrderLine_TrackedItem()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ManufacturingSetup: Record "Manufacturing Setup";
         ToUseNoSeries: Record "No. Series";
         ToUseNoSeriesLine: Record "No. Series Line";
-        CreatedQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1238,14 +1259,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order with lot-tracked item is released without routing lines
+        // [SCENARIO] Inspection is created when production order with lot-tracked item is released without routing lines
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item and firm planned production order are created
         GenQltyProdOrderGenerator.CreateLotTrackedItemAndProductionOrder(ProdOrderStatus::"Firm Planned", Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -1272,16 +1294,16 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
+        QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the lot-tracked item
-        CreatedQltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.AreEqual(1, CreatedQltyInspectionTestHeader.Count(), 'One test should be created and should match item.');
+        // [THEN] One inspection is created for the lot-tracked item
+        CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'One inspection should be created and should match item.');
     end;
 
     [Test]
@@ -1289,9 +1311,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences1()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1302,14 +1324,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1318,14 +1341,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
@@ -1339,17 +1362,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1358,9 +1381,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences2()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1371,14 +1394,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1387,14 +1411,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
@@ -1408,17 +1432,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1427,9 +1451,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences3()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1440,14 +1464,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1456,14 +1481,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
@@ -1477,16 +1502,16 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1495,9 +1520,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences4()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1508,14 +1533,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with routing line-based test and source order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1524,14 +1550,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
@@ -1545,17 +1571,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1564,9 +1590,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences5()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -1577,14 +1603,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with routing line-based test and source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1593,14 +1620,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
@@ -1614,17 +1641,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordId := Format(QltyInspectionTestHeader."Source RecordId");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1633,9 +1660,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences6()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
@@ -1647,14 +1674,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1664,7 +1692,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
 
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
@@ -1673,14 +1701,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Released') > 0, 'The source record ID 3 should have the "released" status.');
@@ -1694,17 +1722,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdFourth.IndexOf('Finished') > 0, 'The source record ID 4 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1713,9 +1741,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences7()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
@@ -1727,14 +1755,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1744,7 +1773,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
 
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
@@ -1753,14 +1782,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Released') > 0, 'The source record ID 3 should have the "released" status.');
@@ -1774,17 +1803,17 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdFourth.IndexOf('Finished') > 0, 'The source record ID 4 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1793,9 +1822,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences8()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
@@ -1807,14 +1836,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         // [GIVEN] Production order line quantity is set to 10
@@ -1824,7 +1854,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
-        QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
 
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, 5);
         ItemJournalLine.Validate("Scrap Quantity", 3);
@@ -1833,14 +1863,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Released') > 0, 'The source record ID 2 should have the "released" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Released') > 0, 'The source record ID 3 should have the "released" status.');
@@ -1854,26 +1884,26 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        RecordIdSecond := Format(QltyInspectionTestHeader."Source RecordId 2");
-        RecordIdThird := Format(QltyInspectionTestHeader."Source RecordId 3");
-        RecordIdFourth := Format(QltyInspectionTestHeader."Source RecordId 4");
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
+        RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
+        RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
 
         LibraryAssert.IsTrue(RecordIdSecond.IndexOf('Finished') > 0, 'The source record ID 2 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdThird.IndexOf('Finished') > 0, 'The source record ID 3 should have the "finished" status.');
         LibraryAssert.IsTrue(RecordIdFourth.IndexOf('Finished') > 0, 'The source record ID 4 should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CreateTestOnAfterPost_Assembly_TrackedItem()
+    procedure CreateInspectionOnAfterPost_Assembly_TrackedItem()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         AssemblyHeader: Record "Assembly Header";
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1893,7 +1923,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LotNo2: Code[50];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Two tests are created when assembly order with lot-tracked item is posted with two lot numbers
+        // [SCENARIO] Two inspections are created when assembly order with lot-tracked item is posted with two lot numbers
+        Initialize();
 
         // [GIVEN] A no. series is created for test setup
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
@@ -1911,13 +1942,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
-        // [GIVEN] A test generation rule is created for Posted Assembly Header table
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInTestGenerationRule);
+        // [GIVEN] An inspection generation rule is created for Posted Assembly Header table
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1940,36 +1971,36 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalBatch.Modify();
         LibraryAssembly.AddCompInventory(AssemblyHeader, WorkDate(), 0);
 
-        // [GIVEN] Test generation rule has Assembly Trigger set to OnAssemblyOutputPost
-        QltyInTestGenerationRule."Assembly Trigger" := QltyInTestGenerationRule."Assembly Trigger"::OnAssemblyOutputPost;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Assembly Trigger set to OnAssemblyOutputPost
+        QltyInspectionGenRule."Assembly Trigger" := QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The assembly order is posted
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
-        // [THEN] Two tests are created (one for each lot number)
-        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionTestHeader.Count(), 'Should be two new tests.');
+        // [THEN] Two inspections are created (one for each lot number)
+        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionHeader.Count(), 'Should be two new inspections.');
 
-        // [THEN] Each test uses correct template, location, quantity (5), and lot number
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        if QltyInspectionTestHeader.FindSet() then
+        // [THEN] Each inspection uses correct template, location, quantity (5), and lot number
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        if QltyInspectionHeader.FindSet() then
             repeat
-                LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Should be same template.');
-                LibraryAssert.AreEqual(Location.Code, QltyInspectionTestHeader."Location Code", 'Should be same location.');
-                LibraryAssert.AreEqual(5, QltyInspectionTestHeader."Source Quantity (Base)", 'Should be same quantity.');
-                LibraryAssert.IsTrue((QltyInspectionTestHeader."Source Lot No." = LotNo1) or (QltyInspectionTestHeader."Source Lot No." = LotNo2), 'Should be same lot no.');
-            until QltyInspectionTestHeader.Next() = 0;
+                LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Should be same template.');
+                LibraryAssert.AreEqual(Location.Code, QltyInspectionHeader."Location Code", 'Should be same location.');
+                LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'Should be same quantity.');
+                LibraryAssert.IsTrue((QltyInspectionHeader."Source Lot No." = LotNo1) or (QltyInspectionHeader."Source Lot No." = LotNo2), 'Should be same lot no.');
+            until QltyInspectionHeader.Next() = 0;
     end;
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CreateTestOnAfterPost_Assembly_UntrackedItem()
+    procedure CreateInspectionOnAfterPost_Assembly_UntrackedItem()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         AssemblyHeader: Record "Assembly Header";
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1983,7 +2014,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         NoSeries: Codeunit "No. Series";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] One test is created when assembly order with untracked item is posted
+        // [SCENARIO] One inspection is created when assembly order with untracked item is posted
+        Initialize();
 
         // [GIVEN] A no. series is created for test setup
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
@@ -2002,13 +2034,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
-        // [GIVEN] A test generation rule is created for Posted Assembly Header table
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInTestGenerationRule);
+        // [GIVEN] An inspection generation rule is created for Posted Assembly Header table
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2017,52 +2049,53 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.CreateAssemblyOrder(AssemblyHeader, WorkDate(), Location.Code, 2);
         LibraryAssembly.AddCompInventory(AssemblyHeader, WorkDate(), 0);
 
-        // [GIVEN] Test generation rule has Assembly Trigger set to OnAssemblyOutputPost
-        QltyInTestGenerationRule."Assembly Trigger" := QltyInTestGenerationRule."Assembly Trigger"::OnAssemblyOutputPost;
-        QltyInTestGenerationRule.Modify();
+        // [GIVEN] Inspection generation rule has Assembly Trigger set to OnAssemblyOutputPost
+        QltyInspectionGenRule."Assembly Trigger" := QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The assembly order is posted
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
-        // [THEN] One test is created
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one new test.');
+        // [THEN] One inspection is created
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one new inspection.');
 
-        // [THEN] Test uses correct template, location, and quantity matches assembly order quantity
-        QltyInspectionTestHeader.SetRange("Source Item No.", AssemblyHeader."Item No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Should be same template.');
-        LibraryAssert.AreEqual(Location.Code, QltyInspectionTestHeader."Location Code", 'Should be same location.');
-        LibraryAssert.AreEqual(AssemblyHeader."Quantity (Base)", QltyInspectionTestHeader."Source Quantity (Base)", 'Should be same quantity.');
+        // [THEN] Inspection uses correct template, location, and quantity matches assembly order quantity
+        QltyInspectionHeader.SetRange("Source Item No.", AssemblyHeader."Item No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Should be same template.');
+        LibraryAssert.AreEqual(Location.Code, QltyInspectionHeader."Location Code", 'Should be same location.');
+        LibraryAssert.AreEqual(AssemblyHeader."Quantity (Base)", QltyInspectionHeader."Source Quantity (Base)", 'Should be same quantity.');
     end;
 
     [Test]
-    procedure CreateTestOnAfterRefreshProdOrder()
+    procedure CreateInspectionOnAfterRefreshProdOrder()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         BeforeCount: Integer;
         CountOfRoutingLines: Integer;
     begin
-        // [SCENARIO] Quality inspection tests are created for all routing lines when production order is refreshed with OnReleasedProductionOrderRefresh trigger
+        // [SCENARIO] Quality inspections are created for all routing lines when production order is refreshed with OnReleasedProductionOrderRefresh trigger
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] A test generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
-        QltyInTestGenerationRule.Validate("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnReleasedProductionOrderRefresh);
-        QltyInTestGenerationRule.Modify(true);
+        // [GIVEN] An inspection generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] An item and production order are created with routing lines
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -2071,18 +2104,18 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdProductionOrder."No.");
         CountOfRoutingLines := ProdOrderRoutingLine.Count();
 
-        // [GIVEN] The current count of inspection test headers is recorded
-        BeforeCount := QltyInspectionTestHeader.Count();
+        // [GIVEN] The current count of inspection headers is recorded
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The production order is refreshed
         ProdProductionOrder.SetRecFilter();
         Report.Run(Report::"Refresh Production Order", false, false, ProdProductionOrder);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] Tests are created for each routing line
-        LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionTestHeader.Count(), 'Test(s) was not created.');
+        // [THEN] Inspections are created for each routing line
+        LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionHeader.Count(), 'Inspection(s) was not created.');
     end;
 
     [Test]
@@ -2090,9 +2123,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrder_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -2101,14 +2134,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Production Order", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Production Order", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -2116,11 +2150,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order with Released status
+        // [GIVEN] A quality inspection is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
-        QltyInspectionTestCreate.CreateTest(RecordRef, false);
-        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2135,13 +2169,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -2150,9 +2184,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrderLine_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -2161,14 +2195,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -2176,11 +2211,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order line with Released status
+        // [GIVEN] A quality inspection is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionTestCreate.CreateTest(RecordRef, false);
-        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2195,13 +2230,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
@@ -2210,9 +2245,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrderRoutingLine_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
@@ -2221,14 +2256,15 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
+        Initialize();
 
         // [GIVEN] Quality management setup exists
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] An item and production order are created with routing line
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -2236,11 +2272,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order routing line with Released status
+        // [GIVEN] A quality inspection is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionTestCreate.CreateTest(RecordRef, false);
-        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2255,33 +2291,42 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
     end;
 
-    local procedure CreateOutputPrioritizedRule(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
-    var
-        FindLowestQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+    local procedure Initialize()
     begin
-        FindLowestQltyInTestGenerationRule.Reset();
-        FindLowestQltyInTestGenerationRule.SetCurrentKey("Sort Order");
+        if IsInitialized then
+            exit;
 
-        QltyInTestGenerationRule.Init();
-        if FindLowestQltyInTestGenerationRule.FindFirst() then
-            QltyInTestGenerationRule."Sort Order" := FindLowestQltyInTestGenerationRule."Sort Order" - 1;
-
-        QltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule.Insert(true);
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        IsInitialized := true;
     end;
 
-    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    local procedure CreateOutputPrioritizedRule(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    var
+        FindLowestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+    begin
+        FindLowestQltyInspectionGenRule.Reset();
+        FindLowestQltyInspectionGenRule.SetCurrentKey("Sort Order");
+
+        QltyInspectionGenRule.Init();
+        if FindLowestQltyInspectionGenRule.FindFirst() then
+            QltyInspectionGenRule."Sort Order" := FindLowestQltyInspectionGenRule."Sort Order" - 1;
+
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule.Insert(true);
+    end;
+
+    local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")
     var
         AssemblyLine: Record "Assembly Line";
         GeneralPostingSetup: Record "General Posting Setup";
@@ -2369,7 +2414,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [ModalPageHandler]
-    procedure AutomatedTestTemplateModalPageHandler(var QltyInspectionTemplate: TestPage "Qlty. Inspection Template")
+    procedure AutomatedInspectionTemplateModalPageHandler(var QltyInspectionTemplate: TestPage "Qlty. Inspection Template")
     begin
     end;
 }

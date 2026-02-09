@@ -105,6 +105,11 @@
   "screenshots": [],
   "internalsVisibleTo": [
     {
+      "id": "95f7c0f8-d9b8-4538-80f9-6e17f6f7b91a",
+      "name": "Agent",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "f2d92a20-33a7-4174-a82f-666e8e2ad69e",
       "name": "AI Test Library",
       "publisher": "Microsoft"
