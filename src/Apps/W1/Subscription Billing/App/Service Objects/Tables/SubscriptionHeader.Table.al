@@ -960,7 +960,6 @@ table 8057 "Subscription Header"
             Caption = 'Vendor Name 2';
             FieldClass = Normal;
             ToolTip = 'Specifies an additional part of the name of the default vendor of this item.';
-            Editable = false;
         }
         field(8003; "Vendor Item No."; Text[50])
         {
