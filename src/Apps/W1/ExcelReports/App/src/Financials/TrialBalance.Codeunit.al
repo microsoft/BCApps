@@ -8,8 +8,8 @@ namespace Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-using System.Environment.Configuration;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using System.Environment.Configuration;
 
 codeunit 4410 "Trial Balance"
 {
@@ -27,9 +27,6 @@ codeunit 4410 "Trial Balance"
     end;
 
     internal procedure InsertTrialBalanceReportData(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
-    var
-        DimensionValue: Record "Dimension Value";
-        BusinessUnitFilters, Dimension1Filters, Dimension2Filters : List of [Code[20]];
     begin
         Session.LogMessage('0000PYA', 'Started collecting trial balance data', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'Excel Reports');
         InsertTBReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
@@ -350,7 +347,7 @@ codeunit 4410 "Trial Balance"
 
     local procedure InsertTotalAccountsFromBuffer(var TotalAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
     var
-        DimCombinations: Record "EXR Trial Balance Buffer" temporary;
+        TempDimCombinations: Record "EXR Trial Balance Buffer" temporary;
     begin
         Clear(TrialBalanceData);
         TrialBalanceData.SetFilter("G/L Account No.", TotalAccount.Totaling);
@@ -361,21 +358,21 @@ codeunit 4410 "Trial Balance"
 
         // Collect distinct (Dimension 1, Dimension 2, Business Unit Code) combinations from the loaded records in the totaling range
         repeat
-            DimCombinations."G/L Account No." := TotalAccount."No.";
-            DimCombinations."Dimension 1 Code" := TrialBalanceData."Dimension 1 Code";
-            DimCombinations."Dimension 2 Code" := TrialBalanceData."Dimension 2 Code";
-            DimCombinations."Business Unit Code" := TrialBalanceData."Business Unit Code";
-            if not DimCombinations.Insert() then;
+            TempDimCombinations."G/L Account No." := TotalAccount."No.";
+            TempDimCombinations."Dimension 1 Code" := TrialBalanceData."Dimension 1 Code";
+            TempDimCombinations."Dimension 2 Code" := TrialBalanceData."Dimension 2 Code";
+            TempDimCombinations."Business Unit Code" := TrialBalanceData."Business Unit Code";
+            if not TempDimCombinations.Insert() then;
         until TrialBalanceData.Next() = 0;
 
         // For each combination, compute the sums (in memory) and insert an total record
-        if DimCombinations.FindSet() then
+        if TempDimCombinations.FindSet() then
             repeat
                 Clear(TrialBalanceData);
                 TrialBalanceData.SetFilter("G/L Account No.", TotalAccount.Totaling);
-                TrialBalanceData.SetRange("Dimension 1 Code", DimCombinations."Dimension 1 Code");
-                TrialBalanceData.SetRange("Dimension 2 Code", DimCombinations."Dimension 2 Code");
-                TrialBalanceData.SetRange("Business Unit Code", DimCombinations."Business Unit Code");
+                TrialBalanceData.SetRange("Dimension 1 Code", TempDimCombinations."Dimension 1 Code");
+                TrialBalanceData.SetRange("Dimension 2 Code", TempDimCombinations."Dimension 2 Code");
+                TrialBalanceData.SetRange("Business Unit Code", TempDimCombinations."Business Unit Code");
                 TrialBalanceData.CalcSums(
                     // LCY
                     "Net Change", "Net Change (Debit)", "Net Change (Credit)",
@@ -389,14 +386,14 @@ codeunit 4410 "Trial Balance"
                     "Budget (Net)", "Budget (Bal. at Date)"
                 );
                 TrialBalanceData."G/L Account No." := TotalAccount."No.";
-                TrialBalanceData."Dimension 1 Code" := DimCombinations."Dimension 1 Code";
-                TrialBalanceData."Dimension 2 Code" := DimCombinations."Dimension 2 Code";
-                TrialBalanceData."Business Unit Code" := DimCombinations."Business Unit Code";
+                TrialBalanceData."Dimension 1 Code" := TempDimCombinations."Dimension 1 Code";
+                TrialBalanceData."Dimension 2 Code" := TempDimCombinations."Dimension 2 Code";
+                TrialBalanceData."Business Unit Code" := TempDimCombinations."Business Unit Code";
                 TrialBalanceData.CalculateBudgetComparisons();
                 TrialBalanceData.CheckAllZero();
                 if not TrialBalanceData."All Zero" then
                     TrialBalanceData.Insert(true);
-            until DimCombinations.Next() = 0;
+            until TempDimCombinations.Next() = 0;
 
         Clear(TrialBalanceData);
     end;
