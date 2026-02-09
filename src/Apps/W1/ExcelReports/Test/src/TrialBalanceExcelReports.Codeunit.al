@@ -766,11 +766,13 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
 #if not CLEAN27
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Trial Balance", OnIsPerformantTrialBalanceFeatureActive, '', false, false)]
     local procedure OnIsPerformantTrialBalanceFeatureActive(var Active: Boolean)
     begin
         Active := true;
     end;
+#pragma warning restore AL0432
 #endif
 
 }
