@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup.SetupWizard;
+namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -31,7 +31,7 @@ codeunit 20401 "Qlty. Assisted Setup"
         Exists: Boolean;
     begin
         CurrentAppID := QltyManagementSetup.GetAppGuid();
-        Exists := GuidedExperience.Exists("Guided Experience Type"::"Assisted Setup", ObjectType::Page, Page::"Qlty. Management Setup Wizard");
+        Exists := GuidedExperience.Exists("Guided Experience Type"::"Assisted Setup", ObjectType::Page, Page::"Qlty. Management Setup Guide");
 
         if not QltyApplicationAreaMgmt.IsQualityManagementApplicationAreaEnabled() then
             exit;
@@ -43,7 +43,7 @@ codeunit 20401 "Qlty. Assisted Setup"
                 CopyStr(AssistedSetupDescriptionTxt, 1, 1024),
                 3,
                 ObjectType::Page,
-                Page::"Qlty. Management Setup Wizard",
+                Page::"Qlty. Management Setup Guide",
                 "Assisted Setup Group"::DoMoreWithBC,
                 '',
                 "Video Category"::Extensions,
