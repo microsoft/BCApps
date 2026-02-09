@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Apps;
 using System.Privacy;
 
 /// <summary>
@@ -52,6 +53,11 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
             ValuesAllowed = "Not Billed", "Microsoft Billed", "Custom Billed";
+        }
+        field(9; "App Installed"; Boolean)
+        {
+            FieldClass = FlowField;
+            CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id"), Publisher = field(Publisher)));
         }
     }
 
