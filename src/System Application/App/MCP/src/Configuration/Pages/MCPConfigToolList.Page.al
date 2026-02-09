@@ -5,7 +5,6 @@
 
 namespace System.MCP;
 
-using System.Environment;
 using System.Reflection;
 
 page 8352 "MCP Config Tool List"
@@ -42,6 +41,8 @@ page 8352 "MCP Config Tool List"
                             exit;
 
                         repeat
+                            if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
+                                continue;
                             MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
                         until PageMetadata.Next() = 0;
 
@@ -65,19 +66,19 @@ page 8352 "MCP Config Tool List"
                 field("Allow Read"; Rec."Allow Read") { }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    Editable = AllowCreateEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
+                    Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    Editable = AllowModifyEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
+                    Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    Editable = AllowDeleteEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
+                    Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
-                    Editable = IsSandbox or AllowCreateUpdateDeleteTools;
+                    Editable = AllowCreateUpdateDeleteTools;
                 }
             }
         }
@@ -87,11 +88,38 @@ page 8352 "MCP Config Tool List"
     {
         area(Processing)
         {
+            action(SelectTools)
+            {
+                Caption = 'Select Tools';
+                Ellipsis = true;
+                Image = Resource;
+                ToolTip = 'Opens a lookup to select API tools to add to this configuration.';
+
+                trigger OnAction()
+                var
+                    PageMetadata: Record "Page Metadata";
+                begin
+                    if not MCPConfigImplementation.LookupAPITools(PageMetadata) then
+                        exit;
+
+                    if not PageMetadata.FindSet() then
+                        exit;
+
+                    repeat
+                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
+                            continue;
+                        MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
+                    until PageMetadata.Next() = 0;
+
+                    CurrPage.Update();
+                end;
+            }
             action(AddToolsByAPIGroup)
             {
                 Caption = 'Add Tools by API Group';
                 Image = NewResourceGroup;
                 ToolTip = 'Adds tools to the configuration by API publisher and group.';
+                Enabled = not IsConfigActive;
 
                 trigger OnAction()
                 begin
@@ -104,6 +132,7 @@ page 8352 "MCP Config Tool List"
                 Caption = 'Add All Standard APIs as Tools';
                 Image = ResourceGroup;
                 ToolTip = 'Adds tools for all standard API v2.0 to the configuration.';
+                Enabled = not IsConfigActive;
 
                 trigger OnAction()
                 begin
@@ -127,11 +156,9 @@ page 8352 "MCP Config Tool List"
     end;
 
     trigger OnOpenPage()
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        IsSandbox := EnvironmentInformation.IsSandbox();
         GetAllowCreateUpdateDeleteTools();
+        IsConfigActive := MCPConfigImplementation.IsConfigurationActive(Rec.ID);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -142,11 +169,11 @@ page 8352 "MCP Config Tool List"
     var
         MCPConfig: Codeunit "MCP Config";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        IsSandbox: Boolean;
         AllowCreateEditable: Boolean;
         AllowModifyEditable: Boolean;
         AllowDeleteEditable: Boolean;
         AllowCreateUpdateDeleteTools: Boolean;
+        IsConfigActive: Boolean;
 
     local procedure SetPermissions()
     var

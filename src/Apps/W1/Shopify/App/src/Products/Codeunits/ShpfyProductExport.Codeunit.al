@@ -358,7 +358,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
@@ -415,7 +414,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
             if ShopifyVariant."Option 1 Name" = '' then
@@ -428,6 +426,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, Shop);
         end;
     end;
 
@@ -469,7 +468,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := 'Variant';
@@ -480,6 +478,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantDataFromVariant(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 
@@ -869,6 +868,7 @@ codeunit 30178 "Shpfy Product Export"
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
+                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
                 exit;

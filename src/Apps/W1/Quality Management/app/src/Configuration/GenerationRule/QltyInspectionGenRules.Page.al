@@ -18,7 +18,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
-    AdditionalSearchTerms = 'Assignments, Test Generation Parameters, Test Creation Criteria, Inspection Template Test Conditions, Quality Control Test Specification, Test Generation Guidelines, Test Triggering Parameters,Inspection Generation Rules';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Quality Inspection Generation Rule';
@@ -57,7 +56,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                     trigger OnAssistEdit()
                     begin
-                        Rec.HandleOnLookupSourceTable();
+                        Rec.HandleOnAssistEditSourceTable();
                         CurrPage.Update();
                     end;
                 }
@@ -72,7 +71,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                             if Rec.Insert(true) then;
                             Commit();
                         end;
-                        Rec.HandleOnLookupSourceTable();
+                        Rec.HandleOnAssistEditSourceTable();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
                     end;
@@ -110,13 +109,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                field("Production Trigger"; Rec."Production Trigger")
+                field("Production Order Trigger"; Rec."Production Order Trigger")
                 {
                     Visible = ShowProductionTrigger;
                     Editable = EditProductionTrigger;
                     StyleExpr = ProductionStyle;
                 }
-                field("Purchase Trigger"; Rec."Purchase Trigger")
+                field("Purchase Order Trigger"; Rec."Purchase Order Trigger")
                 {
                     Visible = ShowPurchaseTrigger;
                     Editable = EditPurchaseTrigger;
@@ -128,13 +127,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Editable = EditSalesReturnTrigger;
                     StyleExpr = SalesReturnStyle;
                 }
-                field("Transfer Trigger"; Rec."Transfer Trigger")
+                field("Transfer Order Trigger"; Rec."Transfer Order Trigger")
                 {
                     Visible = ShowTransferTrigger;
                     Editable = EditTransferTrigger;
                     StyleExpr = TransferStyle;
                 }
-                field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
+                field("Warehouse Receipt Trigger"; Rec."Warehouse Receipt Trigger")
                 {
                     Visible = ShowWarehouseReceiveTrigger;
                     Editable = EditWarehouseReceiveTrigger;
@@ -148,6 +147,19 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 }
                 field("Schedule Group"; Rec."Schedule Group")
                 {
+                    trigger OnDrillDown()
+                    var
+                        QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
+                    begin
+                        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
+                        if GuiAllowed() then
+                            if Rec."Schedule Group" = '' then begin
+                                Rec."Schedule Group" := DefaultScheduleGroupLbl;
+                                Rec.Modify(false);
+                                QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
+                            end else
+                                QltyJobQueueManagement.RunPageLookupJobQueueEntriesForScheduleGroup(Rec."Schedule Group")
+                    end;
                 }
             }
         }
@@ -179,9 +191,53 @@ page 20405 "Qlty. Inspection Gen. Rules"
             actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
             {
             }
+            actionref(CreateNewGenerationRuleForAsmWizard_Promoted; CreateNewGenerationRuleForAsmWizard)
+            {
+            }
         }
         area(Processing)
         {
+            action(CreateNewGenerationRuleForAsmWizard)
+            {
+                Caption = 'Create Assembly Rule';
+                ToolTip = 'Specifies to create a rule for assembly.';
+                Image = Receipt;
+                ApplicationArea = Assembly;
+
+                trigger OnAction()
+                var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    RecQltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                begin
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(EditGenerationRuleForAsmWizard)
+            {
+                ApplicationArea = Assembly;
+                Caption = 'Edit Assembly Rule';
+                ToolTip = 'Edit a Rule for assembly.';
+                Image = Receipt;
+                Scope = Repeater;
+                Visible = ShowEditWizardAssemblyRule;
+
+                trigger OnAction()
+                var
+                    QltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                    PreviousEntryNo: Integer;
+                begin
+                    PreviousEntryNo := Rec."Entry No.";
+                    QltyAsmGenRuleWizard.RunModalWithGenerationRule(Rec);
+
+                    CurrPage.Update(false);
+                    Rec.Reset();
+                    Rec.SetRange("Entry No.", PreviousEntryNo);
+                    if Rec.FindSet() then;
+                    Rec.SetRange("Entry No.");
+                end;
+            }
             action(CreateNewGenerationRuleForProdWizard)
             {
                 Caption = 'Create Production Rule';
@@ -191,9 +247,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
                     RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -230,9 +288,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
                     QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
                 begin
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -269,9 +329,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    RecQltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
+                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
                 begin
-                    RecQltyWhseGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInspectionGenRule.CopyFilters(Rec);
+                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -353,6 +415,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
         ShowEditWizardProductionRule: Boolean;
+        ShowEditWizardAssemblyRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
         ShowProductionTrigger: Boolean;
@@ -379,6 +442,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
+        DefaultScheduleGroupLbl: Label 'QM', Locked = true;
 
     trigger OnInit()
     begin
@@ -446,6 +510,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ShowEditWizardProductionRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
+                ShowEditWizardAssemblyRule := true;
                 EditAssemblyTrigger := true;
                 EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
@@ -467,7 +532,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         case KnownOrInferredIntent of
             Rec.Intent::Assembly:
                 begin
-                    ShowEditWizardProductionRule := true;
+                    ShowEditWizardAssemblyRule := true;
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
@@ -514,6 +579,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
     begin
         ShowEditWizardReceivingRule := false;
         ShowEditWizardProductionRule := false;
+        ShowEditWizardAssemblyRule := false;
         ShowEditWizardMovementRule := false;
         EditProductionTrigger := false;
         EditAssemblyTrigger := false;
@@ -601,15 +667,15 @@ page 20405 "Qlty. Inspection Gen. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
+        if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger then
             ShowProductionTrigger := true;
-        if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then
+        if QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;
         if QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger then
             ShowSalesReturnTrigger := true;
-        if QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger then
+        if QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger then
             ShowTransferTrigger := true;
-        if QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger then
+        if QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger then
             ShowWarehouseReceiveTrigger := true;
         if QltyManagementSetup."Warehouse Trigger" <> QltyManagementSetup."Warehouse Trigger"::NoTrigger then
             ShowWarehouseMovementTrigger := true;
@@ -627,7 +693,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             if QltyInspectionGenRule.FindSet() then
                 repeat
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    if QltyInspectionGenRule.Modify() then;
+                    QltyInspectionGenRule.Modify();
                 until QltyInspectionGenRule.Next() = 0;
     end;
 }

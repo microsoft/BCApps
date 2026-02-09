@@ -5,11 +5,15 @@
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
 using Microsoft.QualityManagement.Configuration;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Utilities;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
+using System.Utilities;
 
 /// <summary>
 /// This setup wizard is used to help configure the system initially.
@@ -31,6 +35,30 @@ page 20438 "Qlty. Management Setup Wizard"
                 ShowCaption = false;
                 Visible = false;
             }
+            group(StandardBanner)
+            {
+                Caption = '';
+                Editable = false;
+                Visible = TopBannerVisible and not (StepDone = CurrentStepCounter);
+                field(MediaResourcesStd; MediaResourcesStandard."Media Reference")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ShowCaption = false;
+                }
+            }
+            group(FinishedBanner)
+            {
+                Caption = '';
+                Editable = false;
+                Visible = TopBannerVisible and (StepDone = CurrentStepCounter);
+                field(MediaResourcesDone; MediaResourcesDone."Media Reference")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ShowCaption = false;
+                }
+            }
             group(SettingsFor_StepWelcome)
             {
                 Visible = (CurrentStepCounter = StepWelcome);
@@ -42,25 +70,20 @@ page 20438 "Qlty. Management Setup Wizard"
                     InstructionalText = 'This wizard will guide you through the initial setup required to perform quality inspections.';
                 }
             }
-            group(SettingsFor_StepGettingStarted)
+            group(DemoData)
             {
-                Caption = 'Apply Getting Started Data?';
-                Visible = (StepGettingStarted = CurrentStepCounter);
-                InstructionalText = 'Would you like to apply getting started data?';
+                Caption = 'Demo data for Quality Management';
+                Visible = (StepDemoData = CurrentStepCounter);
 
-                group(SettingsFor_ApplyConfigurationPackage)
+                group(DemoDataIntroduction)
                 {
-                    Caption = 'What Is Getting Started Data?';
-                    InstructionalText = 'Getting started data for Quality Management will include basic setup data and also some useful examples or other demonstration data. Getting Started data can help you get running quickly, or help you with evaluating if the application is a fit more quickly. Very basic setup data for common integration scenarios will still be applied if you choose not to apply the getting started data. If you do not want this data, or if you have been previously set up then do not apply this configuration.';
-
-                    field(ChooseApplyConfigurationPackage; ApplyConfigurationPackage)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        OptionCaption = 'Apply Getting Started Data,Do Not Apply Configuration';
-                        Caption = 'Getting Started Data?';
-                        ShowCaption = false;
-                        ToolTip = 'Specifies a configuration package of getting-started data is available to automatically apply.';
-                    }
+                    Caption = 'Demo data for Quality Management';
+                    InstructionalText = 'The Quality Management application includes demo data available through the Contoso Coffee Demo Dataset application.';
+                }
+                group(DemoDataInstructions)
+                {
+                    Caption = 'Install demo data';
+                    InstructionalText = 'To install demo data, go to the Contoso Demo Tool page and select the Quality Management module.';
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
@@ -208,153 +231,47 @@ page 20438 "Qlty. Management Setup Wizard"
                     }
                 }
             }
-            group(SettingsFor_StepShowInspections_detectAuto)
-            {
-                Caption = 'Show Automatic Inspections?';
-                Visible = (StepShowInspections = CurrentStepCounter) and (
-                    ProductionCreateInspectionsAutomatically or
-                    ReceiveCreateInspectionsAutomaticallyPurchase or
-                    ReceiveCreateInspectionsAutomaticallyTransfer or
-                    ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
-                    ReceiveCreateInspectionsAutomaticallySalesReturn);
-                InstructionalText = 'When inspections are created automatically, should the inspection immediately show?';
-
-                group(SettingsFor_detectAuto__Show_AutoAndManual)
-                {
-                    Caption = 'Yes';
-                    InstructionalText = 'Yes, because the person doing the activity (such as posting) is also the person collecting the inspection results. Activities that trigger an inspection without direct interaction in Business Central, such as background posting or through a web service integration such as Power Automate will still create an inspection but it will not immediately be shown.';
-
-                    field(ChoosedetectAuto_Show_AutoAndManual; ShowAutoAndManual)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'Yes';
-                        ToolTip = 'Yes, because the person doing the activity (such as posting) is also the person collecting the inspection results. Activities that trigger an inspection without direct interaction in Business Central, such as background posting or through a web service integration such as Power Automate will still create an inspection but it will not immediately be shown.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowOnlyManual := not ShowAutoAndManual;
-                            ShowNever := not ShowAutoAndManual;
-                        end;
-                    }
-                }
-                group(SettingsFor_detectAuto__Show_OnlyManual)
-                {
-                    Caption = 'No';
-                    InstructionalText = 'No, because the person doing the activity is not the person collecting the inspection results. Just make the inspection and do not show it.';
-
-                    field(ChoosedetectAuto_Show_OnlyManual; ShowOnlyManual)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'No';
-                        ToolTip = 'No, because the person doing the activity is not the person collecting the inspection results. Just make the inspection and do not show it.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowAutoAndManual := not ShowOnlyManual;
-                            ShowNever := not ShowOnlyManual;
-                        end;
-                    }
-                }
-                group(SettingsFor_detectAuto__Show_Never)
-                {
-                    Caption = 'No, not even manually created inspections.';
-                    InstructionalText = 'No, not even inspections created by clicking a button. The person creating the inspection is not involved in completing the inspection.';
-
-                    field(ChoosedetectAuto_Show_Never; ShowNever)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'No, not even manually created inspections.';
-                        ToolTip = 'No, not even inspections created by clicking a button. The person creating the inspection is not involved in completing the inspection.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowAutoAndManual := not ShowNever;
-                            ShowOnlyManual := not ShowNever;
-                        end;
-                    }
-                }
-            }
-            group(SettingsFor_StepShowInspections_DetectManualOnly)
-            {
-                Caption = 'Show Inspections As They Are Created';
-                Visible = (StepShowInspections = CurrentStepCounter) and not
-                    (ProductionCreateInspectionsAutomatically or
-                    ReceiveCreateInspectionsAutomaticallyPurchase or
-                    ReceiveCreateInspectionsAutomaticallyTransfer or
-                    ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
-                    ReceiveCreateInspectionsAutomaticallySalesReturn);
-                InstructionalText = 'When inspections are created, should they show up immediately?';
-
-                group(SettingsFor__Show_AutoAndManual)
-                {
-                    Caption = 'Show Automatic and manually created inspections';
-                    InstructionalText = 'Use this when you want an inspection shown to the person who triggered the inspection. For example if you are creating inspections automatically when posting then the inspection would show to the person who posted. Do not use this option if the person doing the activity triggering the inspection is not the person recording the data.';
-
-                    field(ChooseShow_AutoAndManual; ShowAutoAndManual)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'Show Automatic and manually created inspections';
-                        ToolTip = 'Use this when you want an inspection shown to the person who triggered the inspection. For example if you are creating inspections automatically when posting then the inspection would show to the person who posted. Do not use this option if the person doing the activity triggering the inspection is not the person recording the data.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowOnlyManual := not ShowAutoAndManual;
-                            ShowNever := not ShowAutoAndManual;
-                        end;
-                    }
-                }
-                group(SettingsFor__Show_OnlyManual)
-                {
-                    Caption = 'Only manually created inspections';
-                    InstructionalText = 'Use this when you want inspections that were created automatically to not show up immediately. If someone presses a button to create an inspection to make sure that those show up.';
-
-                    field(ChooseShow_OnlyManual; ShowOnlyManual)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'Only manually created inspections';
-                        ToolTip = 'Use this when you want inspections that were created automatically to not show up immediately, however if someone presses a button to create an inspection to make sure that those show up.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowAutoAndManual := not ShowOnlyManual;
-                            ShowNever := not ShowOnlyManual;
-                        end;
-                    }
-                }
-                group(SettingsFor__Show_Never)
-                {
-                    Caption = 'Never';
-                    InstructionalText = 'Use this to always make resulting inspections hidden. Use this when other people need to trigger inspections but should not be editing them.';
-
-                    field(ChooseShow_Never; ShowNever)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'Never immediately show.';
-                        ToolTip = 'Never immediately show.';
-
-                        trigger OnValidate()
-                        begin
-                            ShowAutoAndManual := not ShowNever;
-                            ShowOnlyManual := not ShowNever;
-                        end;
-                    }
-                }
-            }
             group(SettingsFor_StepDone)
             {
                 Visible = (StepDone = CurrentStepCounter);
 
                 group(SettingsFor_StepDone_Header_ExpressOnly)
                 {
-                    ShowCaption = false;
+                    Caption = 'You''re all set!';
                     Visible = ShowHTMLHeader;
-                    InstructionalText = 'Thank you for installing Quality Management. Get started by navigating to Quality Inspection Templates and Inspection Generation Rules.';
+                    InstructionalText = 'Thank you for installing Quality Management.';
+                }
+
+                group(Control18)
+                {
+                    Caption = 'Get Started';
+                    InstructionalText = 'Get started by navigating to Quality Inspections and Quality Inspection Generation Rules.';
+                    ShowCaption = false;
+
+                    field(QualityInspections; QualityInspectionsLbl)
+                    {
+                        Caption = 'Quality Inspections';
+                        ShowCaption = false;
+                        Editable = false;
+                        ApplicationArea = All;
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.RunModal(Page::"Qlty. Inspection List");
+                        end;
+                    }
+                    field(QualityInspectionGenerationRulesLbl; QualityInspectionGenerationRulesLbl)
+                    {
+                        Caption = 'Quality Inspection Generation Rules';
+                        ShowCaption = false;
+                        Editable = false;
+                        ApplicationArea = All;
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.RunModal(Page::"Qlty. Inspection Gen. Rules");
+                        end;
+                    }
                 }
             }
         }
@@ -412,6 +329,10 @@ page 20438 "Qlty. Management Setup Wizard"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempRecPreviousQltyManagementSetup: Record "Qlty. Management Setup" temporary;
+        MediaRepositoryDone: Record "Media Repository";
+        MediaRepositoryStandard: Record "Media Repository";
+        MediaResourcesDone: Record "Media Resources";
+        MediaResourcesStandard: Record "Media Resources";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CurrentStepCounter: Integer;
@@ -429,36 +350,34 @@ page 20438 "Qlty. Management Setup Wizard"
         ReceiveCreateInspectionsAutomaticallySalesReturn: Boolean;
         ReceiveCreateInspectionsAutomaticallyWarehouseReceipt: Boolean;
         ReceiveCreateInspectionsManually: Boolean;
-        ShowAutoAndManual: Boolean;
-        ShowOnlyManual: Boolean;
-        ShowNever: Boolean;
         ShowHTMLHeader: Boolean;
         IsPremiumExperienceEnabled: Boolean;
+        TopBannerVisible: Boolean;
         StepWelcome: Integer;
-        StepGettingStarted: Integer;
+        StepDemoData: Integer;
         StepReceivingConfig: Integer;
         StepWhatAreYouMakingQltyInspectionsFor: Integer;
         StepProductionConfig: Integer;
-        StepShowInspections: Integer;
         StepDone: Integer;
         MaxStep: Integer;
-        ApplyConfigurationPackage: Option "Apply Getting Started Data","Do Not Apply Configuration.";
-        ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
+        ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central Administrator to grant additional permissions.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;
+        QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
 
     trigger OnInit();
     begin
+        LoadTopBanners();
         ShowHTMLHeader := true;
         CopyPreviousSetup();
 
         StepWelcome := 1;
-        StepGettingStarted := 2;
+        StepDemoData := 2;
         StepWhatAreYouMakingQltyInspectionsFor := 3;
         StepProductionConfig := 4;
         StepReceivingConfig := 5;
-        StepShowInspections := 6;
-        StepDone := 7;
+        StepDone := 6;
 
         MaxStep := StepDone;
     end;
@@ -488,8 +407,6 @@ page 20438 "Qlty. Management Setup Wizard"
     end;
 
     local procedure ChangeToStep(Step: Integer);
-    var
-        GuidedExperience: Codeunit "Guided Experience";
     begin
         if Step < 1 then
             Step := 1;
@@ -513,13 +430,6 @@ page 20438 "Qlty. Management Setup Wizard"
                     Commit();
 
                     QltyAutoConfigure.EnsureBasicSetupExists(false);
-                    if GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Qlty. Management Setup Wizard") or
-                       QltyAutoConfigure.GuessDoesAppearToBeSetup() or
-                       QltyAutoConfigure.GuessDoesAppearToBeUsed()
-                    then
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Do Not Apply Configuration."
-                    else
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Apply Getting Started Data";
                 end;
             StepWhatAreYouMakingQltyInspectionsFor:
                 begin
@@ -534,12 +444,6 @@ page 20438 "Qlty. Management Setup Wizard"
                     IsFinishEnabled := false;
                 end;
             StepReceivingConfig:
-                begin
-                    IsBackEnabled := true;
-                    IsNextEnabled := true;
-                    IsFinishEnabled := false;
-                end;
-            StepShowInspections:
                 begin
                     IsBackEnabled := true;
                     IsNextEnabled := true;
@@ -563,13 +467,9 @@ page 20438 "Qlty. Management Setup Wizard"
         case LeavingThisStep of
             StepWelcome:
                 Commit();
-            StepGettingStarted:
+            StepDemoData:
                 begin
                     GetLatestSetupRecord(true, true);
-                    if ApplyConfigurationPackage = ApplyConfigurationPackage::"Apply Getting Started Data" then begin
-                        QltyAutoConfigure.ApplyGettingStartedData(true);
-                        Commit();
-                    end;
                     Commit();
                     GetLatestSetupRecord(false, true);
                 end;
@@ -580,14 +480,14 @@ page 20438 "Qlty. Management Setup Wizard"
                     WhatForReceiving:
                         MovingToThisStep := StepReceivingConfig;
                     else
-                        MovingToThisStep := StepShowInspections;
+                        MovingToThisStep := StepDone;
                 end;
             StepProductionConfig:
                 case true of
                     WhatForReceiving:
                         MovingToThisStep := StepReceivingConfig;
                     else
-                        MovingToThisStep := StepShowInspections;
+                        MovingToThisStep := StepDone;
                 end;
         end;
     end;
@@ -609,12 +509,12 @@ page 20438 "Qlty. Management Setup Wizard"
         GuidedExperience: Codeunit "Guided Experience";
         EnvironmentInformation: Codeunit "Environment Information";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Wizard");
         CustomDimensions.Add('RegDetail5', EnvironmentInformation.GetEnvironmentName());
         CustomDimensions.Add('RegDetail6', CompanyName());
-        CustomDimensions.Add('RegDetail7', UserId());
 
         LogMessage('QMUSG001', FinishWizardLbl, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::All, CustomDimensions);
 
@@ -623,9 +523,9 @@ page 20438 "Qlty. Management Setup Wizard"
         if WhatForProduction then begin
             case true of
                 ProductionCreateInspectionsManually:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+                    QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
                 ProductionCreateInspectionsAutomatically:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
+                    QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOutputPost;
             end;
 
             QltyAutoConfigure.EnsureBasicSetupExists(false);
@@ -633,24 +533,24 @@ page 20438 "Qlty. Management Setup Wizard"
 
         if WhatForReceiving then begin
             case true of
-                ReceiveCreateInspectionsAutomaticallyTransfer and (QltyManagementSetup."Transfer Trigger" = QltyManagementSetup."Transfer Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::OnTransferOrderPostReceive);
-                (not ReceiveCreateInspectionsAutomaticallyTransfer) and (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyTransfer and (QltyManagementSetup."Transfer Order Trigger" = QltyManagementSetup."Transfer Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::OnTransferOrderPostReceive);
+                (not ReceiveCreateInspectionsAutomaticallyTransfer) and (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
             end;
 
             case true of
-                ReceiveCreateInspectionsAutomaticallyPurchase and (QltyManagementSetup."Purchase Trigger" = QltyManagementSetup."Purchase Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::OnPurchaseOrderPostReceive);
-                (not ReceiveCreateInspectionsAutomaticallyPurchase) and (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyPurchase and (QltyManagementSetup."Purchase Order Trigger" = QltyManagementSetup."Purchase Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
+                (not ReceiveCreateInspectionsAutomaticallyPurchase) and (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
             end;
 
             case true of
-                ReceiveCreateInspectionsAutomaticallyWarehouseReceipt and (QltyManagementSetup."Warehouse Receive Trigger" = QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
-                (not ReceiveCreateInspectionsAutomaticallyWarehouseReceipt) and (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyWarehouseReceipt and (QltyManagementSetup."Warehouse Receipt Trigger" = QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
+                (not ReceiveCreateInspectionsAutomaticallyWarehouseReceipt) and (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger);
             end;
 
             case true of
@@ -661,14 +561,7 @@ page 20438 "Qlty. Management Setup Wizard"
             end;
         end;
 
-        case true of
-            ShowAutoAndManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
-            ShowOnlyManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
-            ShowNever:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
-        end;
+        QltyNotificationMgmt.EnsureDefaultNotifications();
 
         if QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide then
             QltyManagementSetup.Validate(Visibility, QltyManagementSetup.Visibility::Show);
@@ -690,29 +583,39 @@ page 20438 "Qlty. Management Setup Wizard"
             end;
 
         if ResetWizardPageVariables then begin
-            WhatForProduction := (QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger);
+            WhatForProduction := (QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger);
 
-            WhatForReceiving := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger) or
-                (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger) or
+            WhatForReceiving := (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger) or
+                (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger) or
                 (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger) or
-                (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
+                (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
 
-            ProductionCreateInspectionsAutomatically := QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger;
+            ProductionCreateInspectionsAutomatically := QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger;
             ProductionCreateInspectionsManually := not ProductionCreateInspectionsAutomatically;
 
-            ReceiveCreateInspectionsAutomaticallyPurchase := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger);
-            ReceiveCreateInspectionsAutomaticallyWarehouseReceipt := (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyPurchase := (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyWarehouseReceipt := (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger);
             ReceiveCreateInspectionsAutomaticallySalesReturn := (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger);
-            ReceiveCreateInspectionsAutomaticallyTransfer := (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyTransfer := (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
 
             ReceiveCreateInspectionsManually := not (ReceiveCreateInspectionsAutomaticallyPurchase or
                 ReceiveCreateInspectionsAutomaticallyTransfer or
                 ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
                 ReceiveCreateInspectionsAutomaticallySalesReturn);
 
-            ShowAutoAndManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
-            ShowOnlyManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
-            ShowNever := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
         end
+    end;
+
+    local procedure LoadTopBanners()
+    begin
+        if MediaRepositoryStandard.Get('AssistedSetup-NoText-400px.png',
+           Format(CurrentClientType())) and
+           MediaRepositoryDone.Get('AssistedSetupDone-NoText-400px.png',
+           Format(CurrentClientType()))
+        then
+            if MediaResourcesStandard.Get(MediaRepositoryStandard."Media Resources Ref") and
+               MediaResourcesDone.Get(MediaRepositoryDone."Media Resources Ref")
+            then
+                TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
     end;
 }

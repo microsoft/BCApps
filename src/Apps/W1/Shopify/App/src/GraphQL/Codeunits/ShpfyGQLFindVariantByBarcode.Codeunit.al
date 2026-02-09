@@ -27,7 +27,7 @@ codeunit 30132 "Shpfy GQL FindVariantByBarcode" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(25);
+        exit(4);
     end;
 
 }

@@ -6,7 +6,7 @@ namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Manufacturing.Document;
 
-pageextension 139950 "Qlty. Test Prod. Order Routing" extends "Prod. Order Routing"
+pageextension 139956 "Qlty. Test Prod. Order Routing" extends "Prod. Order Routing"
 {
     layout
     {

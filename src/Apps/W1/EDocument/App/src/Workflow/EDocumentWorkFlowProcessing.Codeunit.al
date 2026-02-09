@@ -232,7 +232,7 @@ codeunit 6135 "E-Document WorkFlow Processing"
         exit(true);
     end;
 
-    internal procedure DoesFlowHasEDocService(var EDocServices: Record "E-Document Service"; WorkfLowCode: Code[20]): Boolean
+    procedure DoesFlowHasEDocService(var EDocServices: Record "E-Document Service"; WorkfLowCode: Code[20]): Boolean
     var
         WorkflowStepArgument: Record "Workflow Step Argument";
         WorkflowStep: Record "Workflow Step";

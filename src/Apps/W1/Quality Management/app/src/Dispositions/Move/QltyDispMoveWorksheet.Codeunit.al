@@ -25,7 +25,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         WorksheetLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the inspection, %2=from location, %3=to location';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
-        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item,variant,lot,and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the inspection';
+        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. \\ Make sure to define the quantity to move.', Comment = '%1=the inspection';
         DocumentTypeWarehouseMovementLbl: Label 'Warehouse Movement';
         NoWhseWkshErr: Label 'There is no Warehouse Worksheet for the specified template, worksheet name, and location. Ensure the correct worksheet is defined on the Quality Management Setup Card and the worksheet exists for location %1.', Comment = '%1=location';
 
@@ -48,7 +48,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Movement Worksheet";
         QltyManagementSetup.Get();
         MovementWorksheetTemplateName := QltyManagementSetup.GetMovementWorksheetTemplateName();
-        if QltyManagementSetup."Whse. Wksh. Name" = '' then
+        if QltyManagementSetup."Movement Worksheet Name" = '' then
             Error(MissingBinMoveBatchErr);
 
         if TempInstructionQltyDispositionBuffer."Location Filter" = '' then
@@ -74,7 +74,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             CreateWarehouseWorksheetLine(
                 QltyInspectionHeader,
                 MovementWorksheetTemplateName,
-                QltyManagementSetup."Whse. Wksh. Name",
+                QltyManagementSetup."Movement Worksheet Name",
                 TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(),
                 TempQuantityToActQltyDispositionBuffer.GetFromBinCode(),
                 TempQuantityToActQltyDispositionBuffer."New Bin Code",
@@ -84,12 +84,12 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             DidSomething := DidSomething or MovementLineCreated;
 
             if (MovementLineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only")) then
-                QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Wksh. Name");
+                QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Movement Worksheet Name");
 
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
         if (DidSomething and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post)) then
-            CreatedDocumentNo := CreateMovementFromMovementWorksheetLines(QltyInspectionHeader, MovementWorksheetTemplateName, QltyManagementSetup."Whse. Wksh. Name", FromLocation.Code);
+            CreatedDocumentNo := CreateMovementFromMovementWorksheetLines(QltyInspectionHeader, MovementWorksheetTemplateName, QltyManagementSetup."Movement Worksheet Name", FromLocation.Code);
 
         if CreatedDocumentNo <> '' then
             if CreatedWarehouseActivityHeader.Get(CreatedWarehouseActivityHeader.Type::Movement, CreatedDocumentNo) then
@@ -135,7 +135,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         WhseWorksheetName: Record "Whse. Worksheet Name";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         LineNo: Integer;
-        Handled: Boolean;
+        IsHandled: Boolean;
         WhseActivitySortMethod: Enum "Whse. Activity Sorting Method";
     begin
         WhseWorksheetName.SetRange("Worksheet Template Name", WhseWkshTemplateName);
@@ -170,8 +170,8 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             TempWarehouseEntry."Package No." := QltyInspectionHeader."Source Package No.";
             TempWarehouseEntry."Expiration Date" := QltyItemTrackingMgmt.GetExpirationDate(QltyInspectionHeader, FromLocationCode);
             TempWarehouseEntry."Location Code" := FromLocationCode;
-            OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader, FromLocationCode, FromBinCode, ToBinCode, Quantity, WorksheetLineCreated, WkshWhseWorksheetLine, TempWarehouseEntry, Handled);
-            if not Handled then
+            OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader, FromLocationCode, FromBinCode, ToBinCode, Quantity, WorksheetLineCreated, WkshWhseWorksheetLine, TempWarehouseEntry, IsHandled);
+            if not IsHandled then
                 if (TempWarehouseEntry."Lot No." <> '') or (TempWarehouseEntry."Serial No." <> '') or (TempWarehouseEntry."Package No." <> '') then
                     WkshWhseWorksheetLine.SetItemTrackingLines(TempWarehouseEntry, Quantity);
         end;
@@ -216,9 +216,9 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     /// <param name="WorksheetLineCreated"></param>
     /// <param name="lrecWhseWkshLine"></param>
     /// <param name="ltrecWarehouseEntry"></param>
-    /// <param name="lbHandled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; Handled: Boolean)
+    local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 }
