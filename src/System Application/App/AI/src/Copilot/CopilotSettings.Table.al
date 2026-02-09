@@ -64,7 +64,7 @@ table 7775 "Copilot Settings"
             FieldClass = FlowField;
             CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id")));
         }
-        field(10; "App Publisher"; Text[2048])
+        field(10; "App Publisher"; Text[250])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("NAV App Installed App".Publisher where("App ID" = field("App Id")));
