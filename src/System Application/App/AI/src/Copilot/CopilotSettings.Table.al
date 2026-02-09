@@ -32,12 +32,17 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA31
         field(4; Publisher; Text[2048])
         {
             DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
+#if not CLEAN28
+            ObsoleteState = Pending;
             ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
             ObsoleteReason = 'Replaced by "App Publisher" field which is populated from NAV App Installed table based on the App Id.';
         }
 #endif
