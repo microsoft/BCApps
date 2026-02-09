@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.Sales.History;
 using System.Upgrade;
 
 codeunit 6168 "E-Document Upgrade"
@@ -16,6 +17,7 @@ codeunit 6168 "E-Document Upgrade"
     trigger OnUpgradePerCompany()
     begin
         UpgradeLogURLMaxLength();
+        UpgradeQRCodeFields();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -39,11 +41,45 @@ codeunit 6168 "E-Document Upgrade"
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetQRCodeFieldsUpgradeTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
     begin
         exit('MS-540448-LogURLMaxLength-20240813');
+    end;
+
+    local procedure UpgradeQRCodeFields()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetQRCodeFieldsUpgradeTag()) then
+            exit;
+
+        MigrateSalesCrMemoQRCodeFields();
+
+        UpgradeTag.SetUpgradeTag(GetQRCodeFieldsUpgradeTag());
+    end;
+
+    local procedure MigrateSalesCrMemoQRCodeFields()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+#if not CLEAN28
+        if SalesCrMemoHeader.FindSet(true) then
+            repeat
+                if SalesCrMemoHeader."QR Code Image Obsolete".Count > 0 then begin
+                    SalesCrMemoHeader."QR Code Image" := SalesCrMemoHeader."QR Code Image Obsolete";
+                    SalesCrMemoHeader."QR Code Base64" := SalesCrMemoHeader."QR Code Base64 Obsolete";
+                    SalesCrMemoHeader.Modify();
+                end;
+            until SalesCrMemoHeader.Next() = 0;
+#endif
+    end;
+
+    local procedure GetQRCodeFieldsUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDOC-QRCodeFieldsUpgrade-20260209');
     end;
 
 }

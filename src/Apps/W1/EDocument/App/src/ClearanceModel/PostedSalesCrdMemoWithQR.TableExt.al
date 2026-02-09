@@ -24,12 +24,13 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
         }
 
 #if not CLEAN28
+#pragma warning disable AS0005, AS0125
         field(6167; "QR Code Image Obsolete"; MediaSet)
         {
             Caption = 'QR Code Image';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Replaced by field 6165 "QR Code Image" to align with Sales Invoice Header.';
-            ObsoleteState = Removed;
+            ObsoleteState = Pending;
             ObsoleteTag = '28.0';
         }
 
@@ -38,9 +39,10 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
             Caption = 'QR Code Base64';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Replaced by field 6166 "QR Code Base64" to align with Sales Invoice Header.';
-            ObsoleteState = Removed;
+            ObsoleteState = Pending;
             ObsoleteTag = '28.0';
         }
+#pragma warning restore AS0005, AS0125
 #endif
     }
 }
