@@ -9,7 +9,6 @@ using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Environment.Configuration;
-using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
 codeunit 4410 "Trial Balance"
