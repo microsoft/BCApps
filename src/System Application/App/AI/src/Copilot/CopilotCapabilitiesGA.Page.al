@@ -48,7 +48,7 @@ page 7774 "Copilot Capabilities GA"
                         SetStatusStyle();
                     end;
                 }
-                field(Publisher; Rec.Publisher)
+                field(Publisher; Rec."App Publisher")
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';

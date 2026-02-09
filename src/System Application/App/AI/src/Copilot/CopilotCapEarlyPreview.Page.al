@@ -48,7 +48,7 @@ page 7770 "Copilot Cap. Early Preview"
                         SetStatusStyle();
                     end;
                 }
-                field(Publisher; Rec.Publisher)
+                field(Publisher; Rec."App Publisher")
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';

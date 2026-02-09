@@ -32,12 +32,15 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
-
+#if not CLEANSCHEMA28
         field(4; Publisher; Text[2048])
         {
-            FieldClass = FlowField;
-            CalcFormula = lookup("NAV App Installed App".Publisher where("App ID" = field("App Id")));
+            DataClassification = SystemMetadata;
+            ObsoleteState = Removed;
+            ObsoleteTag = '28.0';
+            ObsoleteReason = 'Replaced by "App Publisher" field which is populated from NAV App Installed table based on the App Id.';
         }
+#endif
         field(5; Status; Enum "Copilot Status")
         {
             DataClassification = SystemMetadata;
@@ -60,6 +63,11 @@ table 7775 "Copilot Settings"
         {
             FieldClass = FlowField;
             CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id")));
+        }
+        field(10; "App Publisher"; Text[2048])
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("NAV App Installed App".Publisher where("App ID" = field("App Id")));
         }
     }
 

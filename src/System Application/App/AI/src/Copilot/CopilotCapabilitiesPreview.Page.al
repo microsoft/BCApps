@@ -48,7 +48,7 @@ page 7773 "Copilot Capabilities Preview"
                         SetStatusStyle();
                     end;
                 }
-                field(Publisher; Rec.Publisher)
+                field(Publisher; Rec."App Publisher")
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';
