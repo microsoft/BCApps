@@ -17,7 +17,9 @@ codeunit 6168 "E-Document Upgrade"
     trigger OnUpgradePerCompany()
     begin
         UpgradeLogURLMaxLength();
+#if not CLEAN28
         UpgradeQRCodeFields();
+#endif
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -41,7 +43,9 @@ codeunit 6168 "E-Document Upgrade"
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
+#if not CLEAN28
         PerCompanyUpgradeTags.Add(GetQRCodeFieldsUpgradeTag());
+#endif
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -49,6 +53,7 @@ codeunit 6168 "E-Document Upgrade"
         exit('MS-540448-LogURLMaxLength-20240813');
     end;
 
+#if not CLEAN28
     local procedure UpgradeQRCodeFields()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -65,7 +70,6 @@ codeunit 6168 "E-Document Upgrade"
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
     begin
-#if not CLEAN28
         if SalesCrMemoHeader.FindSet(true) then
             repeat
                 if SalesCrMemoHeader."QR Code Image Obsolete".Count > 0 then begin
@@ -74,12 +78,12 @@ codeunit 6168 "E-Document Upgrade"
                     SalesCrMemoHeader.Modify();
                 end;
             until SalesCrMemoHeader.Next() = 0;
-#endif
     end;
 
     local procedure GetQRCodeFieldsUpgradeTag(): Code[250]
     begin
         exit('MS-EDOC-QRCodeFieldsUpgrade-20260209');
     end;
+#endif
 
 }
