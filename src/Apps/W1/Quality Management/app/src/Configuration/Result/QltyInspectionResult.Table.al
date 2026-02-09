@@ -13,7 +13,7 @@ using Microsoft.QualityManagement.Document;
 /// It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. 
 /// The results with a lower number for the priority tests are evaluated first. 
 /// If you are not sure what to configure here then use the three defaults. 
-/// The document specific lot/serial/package blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
+/// The document specific item tracking blocking is for item+variant+item tracking combinations, and can be used for serial-only tracking, or package-only tracking.
 /// </summary>
 table 20411 "Qlty. Inspection Result"
 {
@@ -116,70 +116,70 @@ table 20411 "Qlty. Inspection Result"
             ToolTip = 'Specifies if an inspection can be finished given the applicable result.';
             InitValue = "Allow Finish";
         }
-        field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
+        field(20; "Item Tracking Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Sales';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows sales transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows sales transactions.';
         }
-        field(21; "Lot Allow Assembly Consumption"; Enum "Qlty. Item Trkg Block Behavior")
+        field(21; "Item Tracking Allow Asm. Cons."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Assembly Consumption';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Assembly Consumption transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Assembly Consumption transactions.';
         }
-        field(22; "Lot Allow Consumption"; Enum "Qlty. Item Trkg Block Behavior")
+        field(22; "Item Tracking Allow Consump."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Consumption';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Consumption transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Consumption transactions.';
         }
-        field(23; "Lot Allow Output"; Enum "Qlty. Item Trkg Block Behavior")
+        field(23; "Item Tracking Allow Output"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Output';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Output transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Output transactions.';
         }
-        field(24; "Lot Allow Purchase"; Enum "Qlty. Item Trkg Block Behavior")
+        field(24; "Item Tracking Allow Purchase"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Purchase';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Purchase transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Purchase transactions.';
         }
-        field(25; "Lot Allow Transfer"; Enum "Qlty. Item Trkg Block Behavior")
+        field(25; "Item Tracking Allow Transfer"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Transfer';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Transfer transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Transfer transactions.';
         }
-        field(26; "Lot Allow Assembly Output"; Enum "Qlty. Item Trkg Block Behavior")
+        field(26; "Item Tracking Allow Asm. Out."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Assembly Output';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Assembly Output transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Assembly Output transactions.';
         }
-        field(27; "Lot Allow Invt. Movement"; Enum "Qlty. Item Trkg Block Behavior")
+        field(27; "Item Tracking Allow Invt. Mov."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Movement';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Movement transactions.';
         }
-        field(28; "Lot Allow Invt. Pick"; Enum "Qlty. Item Trkg Block Behavior")
+        field(28; "Item Tracking Allow Invt. Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Pick';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Pick transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Pick transactions.';
         }
-        field(29; "Lot Allow Invt. Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
+        field(29; "Item Tracking Allow Invt. PA"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Put-Away';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Put-Away transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Put-Away transactions.';
         }
-        field(30; "Lot Allow Movement"; Enum "Qlty. Item Trkg Block Behavior")
+        field(30; "Item Tracking Allow Movement"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Movement';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Movement transactions.';
         }
-        field(31; "Lot Allow Pick"; Enum "Qlty. Item Trkg Block Behavior")
+        field(31; "Item Tracking Allow Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Pick';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Pick transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Pick transactions.';
         }
-        field(32; "Lot Allow Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
+        field(32; "Item Tracking Allow Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Put-Away';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Put-Away transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Put-Away transactions.';
         }
         field(50; "Override Style"; Text[100])
         {

@@ -32,7 +32,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
 
                 group(SettingsFor_iStepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Define a rule for lot or serial related tests when products are assembled.';
+                    InstructionalText = 'Define a rule for item tracking related tests when products are assembled.';
                     Caption = ' ';
                     ShowCaption = false;
                 }

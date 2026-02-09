@@ -48,7 +48,7 @@ report 20412 "Qlty. Schedule Inspection"
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateInspection;
-                    InstructionalText = 'On your Quality Management Setup page you have the Inspection Creation Option set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and lot. Make sure this is compatible with the scenario you are solving.';
+                    InstructionalText = 'On your Quality Management Setup page you have the Inspection Creation Option set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and item tracking. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
                     {
