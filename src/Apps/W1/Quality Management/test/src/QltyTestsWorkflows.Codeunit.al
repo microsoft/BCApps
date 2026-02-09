@@ -1343,7 +1343,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
     end;
 
     [Test]
-    procedure UnBlockLot()
+    procedure UnblockLot()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1391,7 +1391,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock lot on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnblockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1469,7 +1469,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
     end;
 
     [Test]
-    procedure UnBlockSerial()
+    procedure UnblockSerial()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1518,7 +1518,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock serial on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnblockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1596,7 +1596,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
     end;
 
     [Test]
-    procedure UnBlockPackage()
+    procedure UnblockPackage()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1646,7 +1646,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock package on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnblockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);

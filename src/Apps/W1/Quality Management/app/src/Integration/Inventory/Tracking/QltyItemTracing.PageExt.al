@@ -47,10 +47,10 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
         QltyInspectionHeader.SetFilter("Source Item No.", ItemNoFilter);
         if VariantFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);
-        if SerialNoFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
         if LotNoFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Lot No.", LotNoFilter);
+        if SerialNoFilter <> '' then
+            QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
         if PackageNoFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Package No.", PackageNoFilter);
         if Rec."Location Code" <> '' then

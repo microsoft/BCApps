@@ -58,11 +58,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
-        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
+        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
+        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
-        TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
+        LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
         IsInitialized: Boolean;
@@ -1853,7 +1853,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block assembly consumption
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Assembly Consumption" := ToLoadQltyInspectionResult."Lot Allow Assembly Consumption"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Cons."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Finished inspection created for the component lot with blocking result
@@ -1870,7 +1870,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] Posting the assembly order
         // [THEN] An error is raised indicating assembly consumption is blocked by the result
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, StrSubstNo(
-            EntryTypeBlocked2Err,
+            EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Consumption",
@@ -1927,7 +1927,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block purchase
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Purchase" := ToLoadQltyInspectionResult."Lot Allow Purchase"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Purchase" := ToLoadQltyInspectionResult."Item Tracking Allow Purchase"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection assigned the blocking result
@@ -1945,7 +1945,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] Posting the purchase document
         // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-        LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlocked2Err,
+        LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlockedErr,
             ReQltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::Purchase,
@@ -2081,7 +2081,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block assembly output
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Assembly Output" := ToLoadQltyInspectionResult."Lot Allow Assembly Output"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out." := ToLoadQltyInspectionResult."Item Tracking Allow Asm. Out."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2112,12 +2112,12 @@ codeunit 139964 "Qlty. Tests - Misc."
         EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlocked2Err,
+            EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Output",
             AssemblyHeader."Item No.",
-            StrSubstNo(TrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
+            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
     end;
 
     [Test]
@@ -2176,7 +2176,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Original inspection marked as finished with blocking result
@@ -2198,13 +2198,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
+            WarehouseEntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2258,7 +2259,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Put-Away" := ToLoadQltyInspectionResult."Item Tracking Allow Put-Away"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Inspection marked as finished with blocking result
@@ -2276,13 +2277,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
+            WarehouseEntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2350,7 +2352,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block inventory put-away
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA" := ToLoadQltyInspectionResult."Item Tracking Allow Invt. PA"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2378,13 +2380,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
+            WarehouseEntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2461,7 +2464,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block inventory movement
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Invt. Movement" := ToLoadQltyInspectionResult."Lot Allow Invt. Movement"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov." := ToLoadQltyInspectionResult."Item Tracking Allow Invt. Mov."::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2519,13 +2522,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating inventory movement is blocked by the highest re-inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
+            WarehouseEntryTypeBlockedErr,
             ReQltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Movement",
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]
@@ -2599,7 +2603,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection result configured to block movement
         ToLoadQltyInspectionResult.FindFirst();
         QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
-        ToLoadQltyInspectionResult."Lot Allow Movement" := ToLoadQltyInspectionResult."Lot Allow Movement"::Block;
+        ToLoadQltyInspectionResult."Item Tracking Allow Movement" := ToLoadQltyInspectionResult."Item Tracking Allow Movement"::Block;
         ToLoadQltyInspectionResult.Modify();
 
         // [GIVEN] Re-inspection marked as finished with blocking result
@@ -2660,13 +2664,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating movement is blocked by the most recent modified inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
-            EntryTypeBlockedErr,
+            WarehouseEntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
             ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::Movement,
             Item."No.",
             ReservationEntry."Lot No.",
-            ''))
+            '',
+            ''));
     end;
 
     [Test]

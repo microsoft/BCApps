@@ -25,7 +25,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         DescriptionTxt: Label 'Inspection [%1] changed item tracking', Comment = '%1 = Quality Inspection';
         NoJournalBatchErr: Label 'Cannot open the Reclassification Journal Batch. Check the Move/Reclassify batches on the Quality Management Setup page.';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclassification Journal Batch or Warehouse Reclassification Batch';
-        NoTrackingChangesErr: Label 'No changes to item tracking information were provided.';
+        NoItemTrackingChangesErr: Label 'No changes to item tracking information were provided.';
         DocumentTypeLbl: Label 'item tracking change';
 
     /// <summary>
@@ -46,21 +46,21 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
-        Handled: Boolean;
+        IsHandled: Boolean;
         LoopSuccess: Boolean;
         LineCreated: Boolean;
         DocumentOrBatch: Text;
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Change Item Tracking";
 
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, Changed, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, Changed, IsHandled);
+        if IsHandled then
             exit;
 
-        if ((TempInstructionQltyDispositionBuffer."New Lot No." = '') and (TempInstructionQltyDispositionBuffer."New Package No." = '') and
-           (TempInstructionQltyDispositionBuffer."New Serial No." = '') and (TempInstructionQltyDispositionBuffer."New Expiration Date" = 0D))
+        if ((TempInstructionQltyDispositionBuffer."New Lot No." = '') and (TempInstructionQltyDispositionBuffer."New Serial No." = '') and (TempInstructionQltyDispositionBuffer."New Package No." = '') and
+           (TempInstructionQltyDispositionBuffer."New Expiration Date" = 0D))
         then
-            Error(NoTrackingChangesErr);
+            Error(NoItemTrackingChangesErr);
 
         QltyManagementSetup.Get();
 
@@ -120,7 +120,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         ItemJournalBatch: Record "Item Journal Batch";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         JournalTemplate: Code[10];
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(ItemJournalLine);
         QltyManagementSetup.Get();
@@ -130,8 +130,8 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         if not ItemJournalBatch.Get(JournalTemplate, ReclassBatchName) then
             Error(NoJournalBatchErr);
 
-        OnBeforeInsertCreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, Handled);
-        if Handled then
+        OnBeforeInsertCreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         if TempQuantityToActQltyDispositionBuffer."New Location Code" = '' then
@@ -174,7 +174,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Occurs before change tracking has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -190,7 +190,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Provides an opportunity to adjust the item reclassification line created to change item tracking information before it is inserted.
     /// </summary>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeInsertCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    procedure OnBeforeInsertCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 

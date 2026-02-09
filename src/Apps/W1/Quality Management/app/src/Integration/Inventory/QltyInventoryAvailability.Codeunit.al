@@ -39,7 +39,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
 
     /// <summary>
-    /// GetCurrentLocationOfTrackedInventory gets the current location of the item+lot defined on the inspection.
+    /// GetCurrentLocationOfTrackedInventory gets the current location of the Item+Item tracking defined on the inspection.
     /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
     /// </summary>
     /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
@@ -213,6 +213,7 @@ codeunit 20445 "Qlty. Inventory Availability"
                         if ItemLedgerEntry."Package No." <> '' then
                             if ItemTrackingCode."Package Warehouse Tracking" then
                                 WarehouseEntry.SetRange("Package No.", ItemLedgerEntry."Package No.");
+
                         WarehouseEntry.SetRange("Source No.", ItemLedgerEntry."Document No.");
                         WarehouseEntry.SetRange("Registering Date", ItemLedgerEntry."Posting Date");
                         WarehouseEntry.SetRange("Quantity", ItemLedgerEntry."Quantity");
@@ -383,14 +384,14 @@ codeunit 20445 "Qlty. Inventory Availability"
         TempExistingInventoryBinContent: Record "Bin Content" temporary;
         MultipleBins: Boolean;
         SkipBinContent: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         BufferEntryCounter: Integer;
     begin
         TempQuantityQltyDispositionBuffer.Reset();
         TempQuantityQltyDispositionBuffer.DeleteAll();
 
-        OnBeforePopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, Handled);
-        if Handled then
+        OnBeforePopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, IsHandled);
+        if IsHandled then
             exit;
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
@@ -456,7 +457,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var Handled: Boolean)
+    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var IsHandled: Boolean)
     begin
     end;
 

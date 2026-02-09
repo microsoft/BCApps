@@ -72,7 +72,7 @@ codeunit 20424 "Qlty. Workflow Response"
         Peek: Text;
         ValueToSet: Text;
         TableFilter: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Peek := ResponseWorkflowStepInstance."Function Name";
         if not Peek.StartsWith(QltyWorkflowSetup.GetQualityInspectionPrefix()) then
@@ -119,8 +119,8 @@ codeunit 20424 "Qlty. Workflow Response"
         if OriginalWorkflowStep.FindFirst() then
             if ForOriginalWorkflowStepArgument.Get(OriginalWorkflowStep.Argument) then;
 
-        OnExecuteWorkflowResponseOnAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, Handled);
-        if Handled then
+        OnExecuteWorkflowResponseOnAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, IsHandled);
+        if IsHandled then
             exit;
 
         if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Header" then
@@ -190,7 +190,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockLot():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockLot():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -199,7 +199,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockSerial():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -208,7 +208,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockPackage():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -527,7 +527,7 @@ codeunit 20424 "Qlty. Workflow Response"
     end;
 
     /// <summary>
-    /// Returns the key for a flag to move the entire lot/serial
+    /// Returns the key for a flag to move the entire item tracking
     /// </summary>
     /// <returns></returns>
     procedure GetWellKnownMoveAll(): Text
@@ -857,9 +857,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="PreviousVariant">Variant.</param>
     /// <param name="ResponseWorkflowStepInstance">Record "Workflow Step Instance".</param>
     /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnExecuteWorkflowResponseOnAfterFindRelatedRecord(var ResponseExecuted: Boolean; var SourceVariant: Variant; PreviousVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var Handled: Boolean)
+    local procedure OnExecuteWorkflowResponseOnAfterFindRelatedRecord(var ResponseExecuted: Boolean; var SourceVariant: Variant; PreviousVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

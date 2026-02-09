@@ -260,10 +260,10 @@ table 20401 "Qlty. Test"
     /// </summary>
     procedure AssistEditDefaultValue()
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistEditDefaultValue(Rec, Handled);
-        if Handled then
+        OnBeforeAssistEditDefaultValue(Rec, IsHandled);
+        if IsHandled then
             exit;
 
         case Rec."Test Value Type" of
@@ -587,10 +587,10 @@ table 20401 "Qlty. Test"
         QltyLookupCode: Record "Qlty. Lookup Code";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, Handled);
-        if Handled then
+        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, IsHandled);
+        if IsHandled then
             exit;
 
         if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then begin
@@ -614,10 +614,10 @@ table 20401 "Qlty. Test"
     /// <returns></returns>
     procedure IsNumericFieldType() IsNumeric: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeIsNumericFieldType(Rec, IsNumeric, Handled);
-        if Handled then
+        OnBeforeIsNumericFieldType(Rec, IsNumeric, IsHandled);
+        if IsHandled then
             exit;
 
         IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
@@ -631,9 +631,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="IsNumeric"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
+    local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -642,9 +642,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="QltyInspectionTemplateEdit"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var Handled: Boolean)
+    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var IsHandled: Boolean)
     begin
     end;
 
@@ -652,9 +652,9 @@ table 20401 "Qlty. Test"
     /// Provides an ability to extend or replace assist editing the default value.
     /// </summary>
     /// <param name="QltyTest"></param>
-    /// <param name="Handled">Set to true to prevent base behavior from occurring.</param>
+    /// <param name="IsHandled">Set to true to prevent base behavior from occurring.</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var Handled: Boolean)
+    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var IsHandled: Boolean)
     begin
     end;
 }

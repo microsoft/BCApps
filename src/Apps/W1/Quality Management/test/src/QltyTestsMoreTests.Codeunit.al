@@ -1663,6 +1663,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
