@@ -32,6 +32,7 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
+
         field(4; Publisher; Text[2048])
         {
             FieldClass = FlowField;
