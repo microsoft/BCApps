@@ -84,44 +84,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
     [Test]
-    [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
-    procedure TestCardPage_AssistEditLookupTable()
-    var
-        AllObjWithCaption: Record AllObjWithCaption;
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup test value type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Table No." field
-        QltyTestCard."Lookup Table No.".AssistEdit();
-        QltyTestCard.Close();
-
-        // [THEN] The first table from AllObjWithCaption is selected via modal handler
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.FindFirst();
-
-        // [THEN] The test's Lookup Table No. is updated with the selected table ID
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(AllObjWithCaption."Object ID", ToLoadQltyTest."Lookup Table No.", 'Should be same table no.')
-    end;
-
-    [Test]
     procedure TestTable_ValidateExpressionFormula()
     var
         ToLoadQltyTest: Record "Qlty. Test";
@@ -220,36 +182,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure TestTable_AssistEditExpressionFormula_ShouldError()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field for a Boolean type
-        asserterror QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
-    end;
-
-    [Test]
     [HandlerFunctions('ModalPageHandleChooseFromLookup_VendorNo')]
     procedure TestTable_AssistEditDefaultValue_TypeTableLookup()
     var
@@ -294,41 +226,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] The test's Default Value is updated with the selected vendor number
         ToLoadQltyTest.Get(ToLoadQltyTest.Code);
         LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyTest."Default Value", 'Should be same vendor no.')
-    end;
-
-    [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure TestTable_AssistEditExpressionFormula()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] An expression formula value is prepared for the handler
-        AssistEditTemplateValue := ExpressionFormulaTok;
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field
-        QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] The test's Expression Formula is updated with the prepared value
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyTest."Expression Formula", 'Should be same expression formula.')
     end;
 
     [Test]
@@ -492,44 +389,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] Lookup is invoked on the "Lookup Field No." field
         QltyTestCard."Lookup Field No.".Lookup();
-        QltyTestCard.Close();
-
-        // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyTest."Lookup Field No.", 'Should be same lookup field no.');
-    end;
-
-    [Test]
-    [HandlerFunctions('FieldsLookupModalPageHandler')]
-    procedure TestTable_AssistEditLookupField()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        Vendor: Record Vendor;
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a field from the lookup table (e.g., select Vendor "No." field)
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] The Vendor "No." field name is prepared for selection via modal handler
-        ChooseFromLookupValue := Vendor.FieldName("No.");
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Field No." field
-        QltyTestCard."Lookup Field No.".AssistEdit();
         QltyTestCard.Close();
 
         // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
@@ -1804,6 +1663,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();

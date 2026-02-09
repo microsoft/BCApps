@@ -91,7 +91,6 @@ permissionset 20403 QltyGeneral
         page "Qlty. Manager RC" = X,
         page "Qlty. Test Card Part" = X,
         page "Qlty. Test Card" = X,
-        page "Qlty. Test Expr. Card Part" = X,
         page "Qlty. Test Lookup" = X,
         page "Qlty. Test Number Card Part" = X,
         page "Qlty. Test Wizard" = X,

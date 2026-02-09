@@ -47,10 +47,10 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
         QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
         if Rec."Variant Code" <> '' then
             QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
-        if Rec."Serial No." <> '' then
-            QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
         if Rec."Lot No." <> '' then
             QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
+        if Rec."Serial No." <> '' then
+            QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
         if Rec."Package No." <> '' then
             QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
         if Rec."Location Code" <> '' then

@@ -44,7 +44,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         VerifiedItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
@@ -71,8 +71,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         else
             Clear(VerifiedItemLedgerEntry);
 
-        OnBeforeProductionHandleOnAfterPostOutput(VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, Handled);
-        if Handled then
+        OnBeforeProductionHandleOnAfterPostOutput(VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
@@ -107,15 +107,15 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         QltyManagementSetup: Record "Qlty. Management Setup";
         OldProductionOrder: Record "Production Order";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         QltySessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
 
-        OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(OldProductionOrder, ToProdOrder, Handled);
-        if Handled then
+        OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(OldProductionOrder, ToProdOrder, IsHandled);
+        if IsHandled then
             exit;
 
         if QltyManagementSetup."Production Update Control" in [QltyManagementSetup."Production Update Control"::"Update when source changes"] then
@@ -388,15 +388,15 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
         ListOfInspectionIds: List of [RecordId];
         HasReservationEntries: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         CreatedAtLeastOneInspectionForRoutingLine: Boolean;
         CreatedAtLeastOneInspectionForOrderLine: Boolean;
         CreatedInspectionForProdOrder: Boolean;
         MadeInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, Handled);
-        if Handled then
+        OnBeforeProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, IsHandled);
+        if IsHandled then
             exit;
 
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
@@ -492,12 +492,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeProductionAttemptCreatePostAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine, Handled);
-        if Handled then
+        OnBeforeProductionAttemptCreatePostAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         if (ItemLedgerEntry."Entry Type" <> ItemLedgerEntry."Entry Type"::Output) or (ItemLedgerEntry."Item No." = '') then
@@ -546,9 +546,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionAttemptCreatePostAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeProductionAttemptCreatePostAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -568,9 +568,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// OnBeforeProductionAttemptCreateReleaseAutomaticInspection is called before attempting to automatically create an inspection for production related releasing.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; var Handled: Boolean)
+    local procedure OnBeforeProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; var IsHandled: Boolean)
     begin
     end;
 
@@ -595,9 +595,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionHandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeProductionHandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -606,9 +606,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="FromProductionOrder"></param>
     /// <param name="ToProductionOrder"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(var FromProductionOrder: Record "Production Order"; var ToProductionOrder: Record "Production Order"; var Handled: Boolean)
+    local procedure OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(var FromProductionOrder: Record "Production Order"; var ToProductionOrder: Record "Production Order"; var IsHandled: Boolean)
     begin
     end;
 }
