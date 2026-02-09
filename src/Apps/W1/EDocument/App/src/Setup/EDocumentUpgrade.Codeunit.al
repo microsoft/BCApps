@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+#if not CLEAN28
 using Microsoft.Sales.History;
+#endif
 using System.Upgrade;
 
 codeunit 6168 "E-Document Upgrade"
