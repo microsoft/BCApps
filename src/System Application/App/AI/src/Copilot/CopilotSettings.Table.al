@@ -34,7 +34,8 @@ table 7775 "Copilot Settings"
         }
         field(4; Publisher; Text[2048])
         {
-            DataClassification = SystemMetadata;
+            FieldClass = FlowField;
+            CalcFormula = lookup("NAV App Installed App".Publisher where("App ID" = field("App Id")));
         }
         field(5; Status; Enum "Copilot Status")
         {
@@ -57,7 +58,7 @@ table 7775 "Copilot Settings"
         field(9; "App Installed"; Boolean)
         {
             FieldClass = FlowField;
-            CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id"), Publisher = field(Publisher)));
+            CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id")));
         }
     }
 
