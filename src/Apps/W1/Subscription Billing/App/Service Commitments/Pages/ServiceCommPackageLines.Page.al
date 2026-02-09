@@ -56,7 +56,7 @@ page 8058 "Service Comm. Package Lines"
                 {
                     Style = Strong;
                     StyleExpr = Bold;
-                    ToolTip = 'Specifies the percentage at which the price of the Subscription Line is calculated. 100% means that the the price is the same as the calculation base (item or document).';
+                    ToolTip = 'Specifies the percentage at which the price of the Subscription Line is calculated. 100% means that the price is the same as the calculation base (item or document).';
                 }
                 field("Billing Base Period"; Rec."Billing Base Period")
                 {

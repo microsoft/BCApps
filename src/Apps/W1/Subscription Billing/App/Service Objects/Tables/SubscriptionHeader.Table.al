@@ -925,7 +925,8 @@ table 8057 "Subscription Header"
 
             trigger OnValidate()
             begin
-                UpdateVendorName();
+                if "Vendor No." <> xRec."Vendor No." then
+                    UpdateVendorName();
             end;
         }
         field(8001; "Vendor Name"; Text[100])
@@ -941,7 +942,7 @@ table 8057 "Subscription Header"
             var
                 Vendor: Record Vendor;
             begin
-                if Rec."Vendor Name" <> xRec."Vendor Name" then
+                if "Vendor Name" <> xRec."Vendor Name" then
                     if ShouldSearchForVendorByName("Vendor No.") then
                         Validate("Vendor No.", Vendor.GetVendorNo("Vendor Name"));
             end;
@@ -954,14 +955,21 @@ table 8057 "Subscription Header"
                     Validate("Vendor No.", Vendor."No.");
             end;
         }
-        field(8002; "Vendor Item No."; Text[50])
+        field(8002; "Vendor Name 2"; Text[50])
+        {
+            Caption = 'Vendor Name 2';
+            FieldClass = Normal;
+            ToolTip = 'Specifies an additional part of the name of the default vendor of this item.';
+            Editable = false;
+        }
+        field(8003; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
             FieldClass = Normal;
             Editable = false;
-            ToolTip = 'Specifies the the default vendor''s item no.';
+            ToolTip = 'Specifies the default vendor''s item no.';
         }
-        field(8003; "Manufacturer Code"; Code[10])
+        field(8010; "Manufacturer Code"; Code[10])
         {
             Caption = 'Manufacturer Code';
             TableRelation = Manufacturer;
@@ -970,10 +978,11 @@ table 8057 "Subscription Header"
 
             trigger OnValidate()
             begin
-                UpdateManufacturerName();
+                if "Manufacturer Code" <> xRec."Manufacturer Code" then
+                    UpdateManufacturerName();
             end;
         }
-        field(8004; "Manufacturer Name"; Text[50])
+        field(8011; "Manufacturer Name"; Text[50])
         {
             Caption = 'Manufacturer Name';
             FieldClass = Normal;
@@ -986,11 +995,12 @@ table 8057 "Subscription Header"
             var
                 Manufacturer: Record Manufacturer;
             begin
-                if "Manufacturer Name" <> '' then begin
-                    Manufacturer.SetRange(Name, "Manufacturer Name");
-                    if Manufacturer.FindFirst() then
-                        Validate("Manufacturer Code", Manufacturer.Code);
-                end;
+                if "Manufacturer Name" <> xRec."Manufacturer Name" then
+                    if "Manufacturer Name" <> '' then begin
+                        Manufacturer.SetRange(Name, "Manufacturer Name");
+                        if Manufacturer.FindFirst() then
+                            Validate("Manufacturer Code", Manufacturer.Code);
+                    end;
             end;
 
             trigger OnLookup()
@@ -1001,27 +1011,33 @@ table 8057 "Subscription Header"
                     Validate("Manufacturer Code", Manufacturer.Code);
             end;
         }
-        field(8005; "Salesperson Code"; Code[20])
+        field(8020; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
-            TableRelation = "Salesperson/Purchaser";
+            TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
             ToolTip = 'Specifies the salesperson who is assigned to the customer.';
             Editable = true;
+
+            trigger OnValidate()
+            begin
+                if "Salesperson Code" <> xRec."Salesperson Code" then
+                    ValidateSalespersonCode();
+            end;
         }
-        field(8006; "Sales Order No."; Code[20])
+        field(8021; "Sales Order No."; Code[20])
         {
             Caption = 'Sales Order No.';
             Editable = false;
             ToolTip = 'Indicates the sales order used to create the subscription.';
         }
-        field(8008; "Item Ledger Entry No."; Integer)
+        field(8022; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
             TableRelation = "Item Ledger Entry";
             Editable = false;
             ToolTip = 'Specifies the item ledger entry number that was used to create the subscription.';
         }
-        field(8009; "Last Sales Invoice No."; Code[20])
+        field(8023; "Last Sales Invoice No."; Code[20])
         {
             Caption = 'Last Sales Invoice No.';
             Editable = false;
@@ -2401,10 +2417,13 @@ table 8057 "Subscription Header"
     var
         Vendor: Record Vendor;
     begin
-        if ("Vendor No." <> '') and Vendor.Get("Vendor No.") then
-            "Vendor Name" := Vendor.Name
-        else
+        if ("Vendor No." <> '') and Vendor.Get("Vendor No.") then begin
+            "Vendor Name" := Vendor.Name;
+            "Vendor Name 2" := Vendor."Name 2";
+        end else begin
             "Vendor Name" := '';
+            "Vendor Name 2" := '';
+        end;
     end;
 
     local procedure UpdateManufacturerName()
@@ -2415,6 +2434,16 @@ table 8057 "Subscription Header"
             "Manufacturer Name" := Manufacturer.Name
         else
             "Manufacturer Name" := '';
+    end;
+
+    local procedure ValidateSalespersonCode()
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        if "Salesperson Code" <> '' then
+            if SalespersonPurchaser.Get("Salesperson Code") then
+                if SalespersonPurchaser.VerifySalesPersonPurchaserPrivacyBlocked(SalespersonPurchaser) then
+                    Error(SalespersonPurchaser.GetPrivacyBlockedGenericText(SalespersonPurchaser, true));
     end;
 
     local procedure ShouldSearchForVendorByName(VendorNo: Code[20]): Boolean

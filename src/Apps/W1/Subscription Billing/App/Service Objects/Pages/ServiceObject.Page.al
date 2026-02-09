@@ -523,6 +523,10 @@ page 8060 "Service Object"
                 field("Vendor Name"; Rec."Vendor Name")
                 {
                 }
+                field("Vendor Name 2"; Rec."Vendor Name 2")
+                {
+                    Importance = Additional;
+                }
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
                 }

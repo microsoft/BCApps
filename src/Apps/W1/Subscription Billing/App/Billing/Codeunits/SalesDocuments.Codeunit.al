@@ -370,6 +370,7 @@ codeunit 8063 "Sales Documents"
             exit;
         if ItemJournalLine.Quantity < 0 then begin
             ShowNegativeQuantityMessageIfNeeded(ItemJournalLine.Quantity);
+            ResetGlobalVariables();
             exit;
         end;
 
@@ -387,21 +388,28 @@ codeunit 8063 "Sales Documents"
     procedure CreateServiceObjectFromSales(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
     var
         TempTrackingSpecBuffer: Record "Tracking Specification" temporary;
+        Item: Record Item;
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
     begin
         //The function creates Subscription for Sales Line with Subscription Lines
         if SalesServiceCommMgmt.IsSalesLineWithSalesServiceCommitmentsToShip(SalesLine) then begin
             if SalesShptLine.Quantity < 0 then begin
                 ShowNegativeQuantityMessageIfNeeded(SalesShptLine.Quantity);
+                ResetGlobalVariables();
                 exit;
             end;
 
             ItemTrackingDocMgt.RetrieveDocumentItemTracking(TempTrackingSpecBuffer, SalesShptLine."Document No.", Database::"Sales Shipment Header", 0);
             TempTrackingSpecBuffer.SetRange("Source Ref. No.", SalesShptLine."Line No.");
-            if not TempTrackingSpecBuffer.IsEmpty() then
-                CreateServiceObjectFromTrackingSpecification(SalesHeader, SalesLine, TempTrackingSpecBuffer)
+            if TempTrackingSpecBuffer.FindSet() then
+                repeat
+                    CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, TempTrackingSpecBuffer."Serial No.", TempTrackingSpecBuffer."Quantity (Base)", 0);
+                until TempTrackingSpecBuffer.Next() = 0
             else
-                CreateServiceObjectFromSalesLine(SalesHeader, SalesLine);
+                if SalesLine.Type = Enum::"Sales Line Type"::Item then
+                    if Item.Get(SalesLine."No.") then
+                        if not Item.HasSNSpecificItemTracking() then
+                            CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, '', 0, 0);
         end;
     end;
 #endif
@@ -475,22 +483,6 @@ codeunit 8063 "Sales Documents"
             exit(ResetValueForServiceCommitmentItems);
         exit(SalesServiceCommMgmt.IsSalesLineWithServiceCommitmentItem(TempSalesLine, true) or ContractRenewalMgt.IsContractRenewal(TempSalesLine));
     end;
-
-#if not CLEAN28
-    [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '28.0')]
-    local procedure CreateServiceObjectFromSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
-    var
-        Item: Record Item;
-    begin
-        if SalesLine.Type <> Enum::"Sales Line Type"::Item then
-            exit;
-        if not Item.Get(SalesLine."No.") then
-            exit;
-        if Item.HasSNSpecificItemTracking() then
-            exit;
-        CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, '', 0, 0);
-    end;
-#endif
 
     local procedure CreateServiceObjectFromSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SerialNo: Code[50]; QtyPerSerialNo: Decimal; ItemLedgerEntryNo: Integer)
     var
@@ -650,19 +642,6 @@ codeunit 8063 "Sales Documents"
             BillingLine.DeleteAll(false);
         end;
     end;
-
-#if not CLEAN28
-    [Obsolete('Creation of Subscription Header happens in OnAfterPostItemJnlLine when Item Journal Line is posted', '28.0')]
-    local procedure CreateServiceObjectFromTrackingSpecification(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempTrackingSpecBuffer: Record "Tracking Specification" temporary)
-    begin
-        if TempTrackingSpecBuffer.FindSet() then
-            repeat
-                CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, TempTrackingSpecBuffer."Serial No.", TempTrackingSpecBuffer."Quantity (Base)", 0);
-            until TempTrackingSpecBuffer.Next() = 0;
-        TempTrackingSpecBuffer.Reset();
-        TempTrackingSpecBuffer.DeleteAll(false);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnUpdateSourceDocumentOnAfterSalesLineModify, '', false, false)]
     local procedure ModifyShipmentDateFromInventoryPickPostingDate(var SalesLine: Record "Sales Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
