@@ -190,7 +190,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockLot():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockLot():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -199,7 +199,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockSerial():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -208,7 +208,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockPackage():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -527,7 +527,7 @@ codeunit 20424 "Qlty. Workflow Response"
     end;
 
     /// <summary>
-    /// Returns the key for a flag to move the entire lot/serial
+    /// Returns the key for a flag to move the entire item tracking
     /// </summary>
     /// <returns></returns>
     procedure GetWellKnownMoveAll(): Text

@@ -11,6 +11,9 @@ page 8041 "Usage Data Imports"
     LinksAllowed = false;
     RefreshOnActivate = true;
     DataCaptionFields = "Supplier No.";
+    AdditionalSearchTerms = 'Usage Data Import, Import Usage, Process Usage, Usage Billing, Usage Data Processing, Import Reconciliation';
+    AboutTitle = 'About Usage Data Imports';
+    AboutText = 'This page is the starting point for processing and subsequently billing of usage data. Each import belongs to a Usage Data Supplier. Start a new processing by importing a new reconciliation file, for example, and then process it before generating the invoices.';
     layout
     {
         area(content)

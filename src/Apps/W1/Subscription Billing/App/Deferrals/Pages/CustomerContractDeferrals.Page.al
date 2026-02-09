@@ -9,6 +9,9 @@ page 8079 "Customer Contract Deferrals"
     Editable = false;
     SourceTable = "Cust. Sub. Contract Deferral";
     UsageCategory = History;
+    AdditionalSearchTerms = 'Customer Deferrals, Contract Deferrals, Deferred Revenue, Deferral Release, Revenue Deferral, Contract Revenue';
+    AboutTitle = 'About Customer Subscription Contract Deferrals';
+    AboutText = 'Details to deferred revenue per contract are shown here. This page also provides insights into which deferrals have been released and which have not.';
 
     layout
     {

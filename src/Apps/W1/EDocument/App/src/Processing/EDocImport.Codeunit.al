@@ -106,8 +106,10 @@ codeunit 6140 "E-Doc. Import"
             if ImportEDocumentProcess.IndexToStatus(StatusIndex, Status) then
                 if ImportEDocumentProcess.GetPreviousStep(Status, StepToUndo) then begin
                     ImportEDocumentProcess.ConfigureImportRun(EDocument, StepToUndo, EDocImportParameters, true);
-                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then
+                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then begin
+                        EDocImpSessionTelemetry.Emit(EDocument);
                         exit(false);
+                    end;
                 end;
 
         EDocument.CalcFields("Import Processing Status");
@@ -118,8 +120,10 @@ codeunit 6140 "E-Doc. Import"
             if ImportEDocumentProcess.IndexToStatus(StatusIndex, Status) then
                 if ImportEDocumentProcess.GetNextStep(Status, StepToDo) then begin
                     ImportEDocumentProcess.ConfigureImportRun(EDocument, StepToDo, EDocImportParameters, false);
-                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then
+                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then begin
+                        EDocImpSessionTelemetry.Emit(EDocument);
                         exit(false);
+                    end;
                 end;
 
         if CurrentStatus <> DesiredStatus then

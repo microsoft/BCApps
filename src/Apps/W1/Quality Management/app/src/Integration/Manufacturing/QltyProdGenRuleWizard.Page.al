@@ -31,7 +31,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                 group(SettingsFor_StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Define a rule for lot or serial related inspections when products are produced.';
+                    InstructionalText = 'Define a rule for item tracking related inspections when products are produced.';
                     Caption = ' ';
                     ShowCaption = false;
                 }

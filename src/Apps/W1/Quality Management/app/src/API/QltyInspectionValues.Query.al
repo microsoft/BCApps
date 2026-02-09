@@ -8,7 +8,7 @@ using Microsoft.QualityManagement.Document;
 
 /// <summary>
 /// Do not use this query outside of web services.
-/// Power automate friendly web service for quality inspections.
+/// Power Automate friendly web service for quality inspections.
 /// This web service is used to help list test values.
 /// </summary>
 query 20401 "Qlty. Inspection Values"
