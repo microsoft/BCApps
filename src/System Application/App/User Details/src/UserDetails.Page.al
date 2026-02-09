@@ -74,7 +74,7 @@ page 774 "User Details"
                     Caption = 'Last Login Date';
                     ToolTip = 'Specifies the date and time when the user last logged in.';
                 }
-                field("InactiveDays"; InactiveDays)
+                field("Inactive Days"; InactiveDays)
                 {
                     Caption = 'Inactive (days)';
                     ToolTip = 'Specifies the number of days since the user last logged in.';
