@@ -540,7 +540,7 @@ page 6121 "E-Document"
     local procedure GetClearanceVisibility(): Boolean
     begin
         exit(Rec."Document Type" in
-            [Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Document Type"::"Service Invoice", Enum::"E-Document Type"::"Sales Credit Memo",
+            [Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Document Type"::"Sales Order", Enum::"E-Document Type"::"Service Invoice", Enum::"E-Document Type"::"Sales Credit Memo",
             Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Document Type"::"Service Order"]);
     end;
 
