@@ -286,7 +286,7 @@ table 6121 "E-Document"
         field(45; Description; Text[250])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies a description of the E-Document.';
+            ToolTip = 'Specifies a description of the electronic document.';
         }
 
         #region Clearance Model
