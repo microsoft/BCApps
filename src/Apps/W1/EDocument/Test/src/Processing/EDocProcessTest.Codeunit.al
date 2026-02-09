@@ -383,7 +383,7 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after finalize action from Ready for draft state.');
 
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
-        Assert.IsTrue(PurchaseHeader.FindFirst(), 'The purchase header should be created.');
+        Assert.IsFalse(PurchaseHeader.IsEmpty(), 'The purchase header should be created.');
     end;
 
     #region HistoricalMatchingTest
