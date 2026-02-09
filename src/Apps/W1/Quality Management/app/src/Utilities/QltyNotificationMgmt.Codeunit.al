@@ -565,12 +565,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     var
         ActionMessage: Text;
         ActionProcedureCallback: Text;
-        IsHandled: Boolean;
     begin
-        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, IsHandled);
-        if IsHandled then
-            exit;
-
         NotificationToShow.Message(CurrentMessage);
         foreach ActionMessage in AvailableOptions.Keys do
             if AvailableOptions.Get(ActionMessage, ActionProcedureCallback) then
@@ -653,17 +648,5 @@ codeunit 20437 "Qlty. Notification Mgmt."
     local procedure GetInspectionCreatedNotificationId(): Guid
     begin
         exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
-    end;
-
-    /// <summary>
-    /// Use this to supplment, extend, or replace base action handling.
-    /// </summary>
-    /// <param name="NotificationToShow"></param>
-    /// <param name="CurrentMessage"></param>
-    /// <param name="Options"></param>
-    /// <param name="IsHandled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var IsHandled: Boolean)
-    begin
     end;
 }
