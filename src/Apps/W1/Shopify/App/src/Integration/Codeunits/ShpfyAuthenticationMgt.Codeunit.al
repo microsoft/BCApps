@@ -79,7 +79,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         InstallURLTxt: Label 'https://%1/admin/oauth/authorize?scope=%2&redirect_uri=%3&state=%4&grant_options[]=%5', Comment = '%1 = Store, %2 = Scope, %3 = RedirectUrl, %4 = State, %5 = GrantOptions', Locked = true;
         InstallURLWithClientIdParamTok: Label '%1&client_id=%2', Comment = '%1 = InstallURLTxt, %2 = ClientId', Locked = true;
         NotMatchingStateErr: Label 'The state parameter value does not match.';
-        StoreMismatchLbl: Label 'The store URL returned from Shopify does not match the store. Do you want to correct the store URL?';
+        StoreMismatchLbl: Label 'The store URL returned from Shopify differs from the URL you entered. You can find your store''s internal URL in Shopify Admin under Domains settings. Do you want to update the store URL to match?';
     begin
         OAuth2.GetDefaultRedirectURL(RedirectUrl);
         State := Random(999);
