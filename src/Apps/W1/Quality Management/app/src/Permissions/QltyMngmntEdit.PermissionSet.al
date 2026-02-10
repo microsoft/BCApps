@@ -13,6 +13,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Workflow;
 
 permissionset 20405 "QltyMngmnt - Edit"
 {
@@ -23,18 +24,19 @@ permissionset 20405 "QltyMngmnt - Edit"
     IncludedPermissionSets = "QltyMngmnt - Read";
 
     Permissions =
+        tabledata "Qlty. Management Setup" = IMD,
+        tabledata "Qlty. Mgmt. Role Center Cue" = IMD,
+        tabledata "Qlty. Express Config. Value" = IMD,
         tabledata "Qlty. Inspection Gen. Rule" = IMD,
         tabledata "Qlty. I. Result Condit. Conf." = IMD,
-        tabledata "Qlty. Inspection Result" = IMD,
-        tabledata "Qlty. Lookup Code" = IMD,
-        tabledata "Qlty. Management Setup" = IMD,
-        tabledata "Qlty. Related Transfers Buffer" = IMD,
-        tabledata "Qlty. Mgmt. Role Center Cue" = IMD,
-        tabledata "Qlty. Inspect. Src. Fld. Conf." = IMD,
         tabledata "Qlty. Inspect. Source Config." = IMD,
-        tabledata "Qlty. Inspection Template Line" = IMD,
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = IMD,
+        tabledata "Qlty. Lookup Code" = IMD,
+        tabledata "Qlty. Related Transfers Buffer" = IMD,
         tabledata "Qlty. Inspection Template Hdr." = IMD,
-        tabledata "Qlty. Inspection Line" = IMD,
+        tabledata "Qlty. Inspection Template Line" = IMD,
+        tabledata "Qlty. Test" = IMD,
+        tabledata "Qlty. Inspection Result" = IMD,
         tabledata "Qlty. Inspection Header" = IMD,
-        tabledata "Qlty. Test" = IMD;
+        tabledata "Qlty. Inspection Line" = IMD;
 }

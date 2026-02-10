@@ -26,7 +26,6 @@ permissionset 20403 QltyGeneral
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        // Table data
         tabledata "Qlty. Express Config. Value" = RIMD,
         tabledata "Qlty. Inspection Gen. Rule" = RIMD,
         tabledata "Qlty. I. Result Condit. Conf." = RIMD,

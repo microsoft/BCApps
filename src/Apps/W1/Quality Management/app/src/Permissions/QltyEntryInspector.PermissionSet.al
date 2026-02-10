@@ -26,9 +26,7 @@ permissionset 20404 QltyEntryInspector
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        // Table data
         tabledata "Qlty. Express Config. Value" = RIMD,
-        tabledata "Qlty. Test" = RIMd,
         tabledata "Qlty. Inspection Gen. Rule" = RIMd,
         tabledata "Qlty. I. Result Condit. Conf." = RIMd,
         tabledata "Qlty. Inspection Result" = RIMd,
@@ -41,6 +39,7 @@ permissionset 20404 QltyEntryInspector
         tabledata "Qlty. Inspect. Src. Fld. Conf." = RIMd,
         tabledata "Qlty. Inspect. Source Config." = RIMd,
         tabledata "Qlty. Inspection Line" = RIMd,
-        tabledata "Qlty. Inspection Header" = RIMd;
+        tabledata "Qlty. Inspection Header" = RIMd,
+        tabledata "Qlty. Test" = RIMd;
 }
 
