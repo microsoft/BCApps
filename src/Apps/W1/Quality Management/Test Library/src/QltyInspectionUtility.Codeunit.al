@@ -51,6 +51,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryUtility: Codeunit "Library - Utility";
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
+        SupervisorRoleIDTok: Label 'QltyMngmnt - Edit', Locked = true;
 
     internal procedure EnsureSetupExists()
     var
@@ -58,7 +59,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
-        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
+        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), SupervisorRoleIDTok);
     end;
 
     internal procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
