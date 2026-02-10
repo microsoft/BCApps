@@ -89,7 +89,10 @@ page 20442 "Qlty. Report Selection - QM"
     local procedure SetUsageFilter(ModifyRec: Boolean)
     begin
         if ModifyRec then
-            if Rec.Modify() then;
+            if IsNullGuid(Rec.SystemId) then
+                Rec.Insert()
+            else
+                Rec.Modify();
         Rec.FilterGroup(2);
 
         case QltyReportSelectionUsage of
@@ -101,19 +104,7 @@ page 20442 "Qlty. Report Selection - QM"
                 Rec.SetRange(Usage, Rec."Usage"::"Quality Management - General Purpose Inspection");
         end;
 
-        OnSetUsageFilterOnAfterSetFiltersByReportUsage(Rec, QltyReportSelectionUsage);
         Rec.FilterGroup(0);
         CurrPage.Update();
-    end;
-
-    /// <summary>
-    /// OnSetUsageFilterOnAfterSetFiltersByReportUsage gives an opportunity to extend the report usage filtering.
-    /// </summary>
-    /// <param name="pRecReportSelections">var Record "Report Selections".</param>
-    /// <param name="ReportSelectionUsage">Enum "Qlty. Report Selection Usage".</param>
-
-    [IntegrationEvent(false, false)]
-    local procedure OnSetUsageFilterOnAfterSetFiltersByReportUsage(var pRecReportSelections: Record "Report Selections"; ReportSelectionUsage: Enum "Qlty. Report Selection Usage")
-    begin
     end;
 }

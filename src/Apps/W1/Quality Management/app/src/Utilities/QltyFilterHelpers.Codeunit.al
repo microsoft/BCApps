@@ -178,7 +178,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="CurrentTable">Input/Output: Table reference as text; updated to Object Name if found</param>
     /// <returns>The table ID if found; 0 if table cannot be identified</returns>
-    procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
+    internal procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
     var
         TablesAllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -243,7 +243,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="CurrentTable">The table.</param>
     /// <param name="NumberOrNameOfField">Will be the field name as an output if found. If unfound will be left unaltered.</param>
     /// <returns></returns>
-    procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
+    internal procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
     var
         ToFindField: Record Field;
     begin
@@ -723,7 +723,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
+    internal procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
     var
         UnitOfMeasure: Record "Unit of Measure";
         UnitsOfMeasure: Page "Units of Measure";
@@ -749,7 +749,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
 
-    procedure CleanUpWhereClause400(Input: Text) ResultText: Text[400]
+    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
@@ -815,7 +815,7 @@ codeunit 20403 "Qlty. Filter Helpers"
             until TempFilterItemAttributesBuffer.Next() = 0;
     end;
 
-    internal procedure BuildItemAttributeFilter400(var ItemAttributeFilter: Text[400])
+    internal procedure BuildItemAttributeFilter2048(var ItemAttributeFilter: Text[2048])
     var
         FullItemAttributeFilter: Text;
     begin
@@ -949,7 +949,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="FieldNo"></param>
     /// <param name="ExpectedVariant"></param>
     /// <returns></returns>
-    procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
+    internal procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
     var
         RecordRef: RecordRef;
         FieldRef: FieldRef;

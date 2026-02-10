@@ -137,7 +137,7 @@ pageextension 4406 EXRFinRoleCenter extends "Finance Manager Role Center"
                 ToolTip = 'Open a spreadsheet that shows Trial Balance/Budget data.';
             }
         }
-        addafter("Customer - Sales List")
+        addafter("Salesperson - Commission")
         {
             action(EXRAgedAccountsRecExcel)
             {

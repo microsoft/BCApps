@@ -61,7 +61,7 @@ page 20426 "Qlty. Manager Role Center"
                 Caption = 'Item Tracing';
                 Image = ItemTracing;
                 RunObject = Page "Item Tracing";
-                ToolTip = 'Trace where a lot or serial number assigned to the item was used, for example, to find which lot a defective component came from or to find all the customers that have received items containing the defective component.';
+                ToolTip = 'Trace where a lot/serial/package number assigned to the item was used, for example, to find which lot a defective component came from or to find all the customers that have received items containing the defective component.';
             }
             group(Qlty_Processing_Reports)
             {
@@ -323,7 +323,7 @@ page 20426 "Qlty. Manager Role Center"
                     RunObject = Page "Item Journal Batches";
                     RunPageView = where("Template Type" = const(Transfer),
                                         Recurring = const(false));
-                    ToolTip = 'Change information recorded on item ledger entries. Typical inventory information to reclassify includes dimensions and sales campaign codes, but you can also perform basic inventory transfers by reclassifying location and bin codes. Serial or lot numbers and their expiration dates must be reclassified with the Item Tracking Reclassification journal.';
+                    ToolTip = 'Change information recorded on item ledger entries. Typical inventory information to reclassify includes dimensions and sales campaign codes, but you can also perform basic inventory transfers by reclassifying location and bin codes. Lot/serial/package numbers and their expiration dates must be reclassified with the Item Tracking Reclassification journal.';
                 }
             }
             group(Qlty_Sections_Worksheet_Group)

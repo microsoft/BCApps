@@ -57,6 +57,9 @@ page 20407 "Qlty. Inspection Subform"
 
                     trigger OnAssistEdit()
                     begin
+                        Rec.CalcFields("Test Value Type");
+                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                            exit;
                         UpdateRowData();
 
                         CurrPage.Update(true);
@@ -85,14 +88,14 @@ page 20407 "Qlty. Inspection Subform"
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = false;
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Description';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
@@ -100,126 +103,126 @@ page 20407 "Qlty. Inspection Subform"
 
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = false;
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = false;
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = false;
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = false;
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = false;
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = false;
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = false;
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = false;
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = false;
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                     Editable = false;
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
@@ -295,6 +298,8 @@ page 20407 "Qlty. Inspection Subform"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleText: Text;
         CurrentSelectedInspectionLineTok: Label 'CurrentSelectedInspectionLine', Locked = true;
+        DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
+        ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnOpenPage()
     begin
@@ -363,10 +368,10 @@ page 20407 "Qlty. Inspection Subform"
 
     local procedure GetCanEditTestValue() Result: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCanEditTestValue(Rec, Result, Handled);
-        if Handled then
+        OnBeforeCanEditTestValue(Rec, Result, IsHandled);
+        if IsHandled then
             exit;
 
         Rec.CalcFields("Test Value Type");
@@ -378,9 +383,9 @@ page 20407 "Qlty. Inspection Subform"
     /// </summary>
     /// <param name="QltyInspectionLine"></param>
     /// <param name="CanEditTestValue"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var Handled: Boolean)
+    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

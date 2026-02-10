@@ -18,13 +18,13 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
     {
         addlast(processing)
         {
-            group(Qlty_Processing)
+            group(Qlty_QualityManagement_Processing_Group)
             {
                 Image = TaskQualityMeasure;
                 Caption = 'Quality Management';
                 ToolTip = 'Create Quality Inspections.';
 
-                action(Qlty_ShowInspections)
+                action(Qlty_ShowQualityInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -45,7 +45,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                     Caption = 'Analysis';
                     Tooltip = 'Analyze Quality Inspection data';
 
-                    action(Qlty_InspectionLines)
+                    action(Qlty_QualityInspectionLines)
                     {
                         Caption = 'Quality Inspection Lines';
                         Image = AnalysisView;
@@ -54,15 +54,25 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                         RunObject = Page "Qlty. Inspection Lines";
                     }
                 }
-                group(Qlty_SemiRegularSetup)
+                group(Qlty_ConfigureQualityManagement)
                 {
-                    Caption = 'Templates and Rules';
-                    Tooltip = 'Configure the Quality Inspection Templates and Rules';
+                    Caption = 'Setup';
+                    Tooltip = 'Configure the Quality Management';
+                    Image = Setup;
 
+                    action(Qlty_ManagementSetup)
+                    {
+                        Caption = 'Quality Management Setup';
+                        RunObject = Page "Qlty. Management Setup";
+                        ApplicationArea = QualityManagement;
+                        Image = Setup;
+                        RunPageMode = Edit;
+                        Tooltip = 'Change the behavior of the Quality Management.';
+                    }
                     action(Qlty_ConfigureInspectionTemplates)
                     {
                         ApplicationArea = QualityManagement;
-                        Caption = 'Test Inspections';
+                        Caption = 'Inspection Templates';
                         Image = Database;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
@@ -87,31 +97,15 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                         ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                     }
                 }
-                group(Qlty_ManagementConfigure)
-                {
-                    Caption = 'Setup';
-                    Tooltip = 'Configure the Quality Management';
-                    Image = Setup;
-
-                    action(Qlty_ManagementSetup)
-                    {
-                        Caption = 'Quality Management Setup';
-                        Tooltip = 'Change the behavior of the Quality Management.';
-                        RunObject = Page "Qlty. Management Setup";
-                        ApplicationArea = QualityManagement;
-                        Image = Setup;
-                        RunPageMode = Edit;
-                    }
-                }
             }
         }
         addlast(sections)
         {
-            group(Qlty_Sections_Group)
+            group(Qlty_QualityManagement_Sections_Group)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_Sections_ShowInspections)
+                action(Qlty_Sections_ShowQualityInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -119,7 +113,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection List";
                 }
-                action(Qlty_Sections_InspectionLines)
+                action(Qlty_Sections_QualityInspectionLines)
                 {
                     Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;

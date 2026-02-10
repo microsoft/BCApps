@@ -43,7 +43,6 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(5; "From Field No."; Integer)
         {
             Caption = 'From Field No.';
-            Description = 'Specifies the from field.';
             BlankZero = true;
             NotBlank = true;
             TableRelation = Field."No." where(TableNo = field("From Table No."));
@@ -64,15 +63,13 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             CalcFormula = lookup(Field."Field Caption" where(TableNo = field("From Table No."),
                                                              "No." = field("From Field No.")));
             Caption = 'From Field Name';
-            Description = 'Specifies the from field.';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the from field.';
+            ToolTip = 'Specifies the from field name.';
         }
         field(7; "To Field No."; Integer)
         {
             Caption = 'To Field No.';
-            Description = 'Specifies the To Field No. When the target is an inspection this would be a test on the inspection itself.';
             NotBlank = true;
             BlankZero = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."));
@@ -136,7 +133,6 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(10; "Display As"; Text[80])
         {
             Caption = 'Display in Control Information as';
-            Description = 'Specifies what to show in the caption for the Control Information section on an inspection.';
             ToolTip = 'Specifies what to show in the caption for the Control Information section on an inspection.';
 
             trigger OnValidate()
@@ -148,7 +144,6 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(11; "Priority Test"; Enum "Qlty. Config. Test Priority")
         {
             Caption = 'Priority Test';
-            Description = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
             ToolTip = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
         }
     }
@@ -170,7 +165,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         ChooseAFromFieldFirstErr: Label 'Please choose a "from" field first before choosing a "to" field.';
-        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4. Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the inspection, %3=the field it is coming from, %4=the table it is coming from. ';
+        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4. Are you sure you want to also map the same field here?', Comment = '%1=the config, %2=the field being mapped in the inspection, %3=the field it is coming from, %4=the table it is coming from.';
         CustomTok: Label 'Custom', Locked = true;
 
     trigger OnInsert()
@@ -178,7 +173,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         InitLineNoIfNeeded();
     end;
 
-    internal procedure InitLineNoIfNeeded()
+    procedure InitLineNoIfNeeded()
     var
         EnsureUniqueNoQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
     begin

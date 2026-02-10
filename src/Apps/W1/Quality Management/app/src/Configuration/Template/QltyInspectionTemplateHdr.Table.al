@@ -36,29 +36,25 @@ table 20402 "Qlty. Inspection Template Hdr."
         field(2; Description; Text[100])
         {
             Caption = 'Description';
-            Description = 'Specifies an explanation of the Quality Inspection Template. You can enter a maximum of 100 characters, both numbers and letters.';
             ToolTip = 'Specifies an explanation of the Quality Inspection Template. You can enter a maximum of 100 characters, both numbers and letters.';
         }
         field(7; "Copied From Template Code"; Code[20])
         {
-            Description = 'Used to track where a template was copied from.';
             Caption = 'Copied From Template Code';
+            ToolTip = 'Specifies where a template was copied from.';
         }
         field(17; "Sample Source"; Enum "Qlty. Sample Size Source")
         {
-            Description = 'Sample Source determines how the Sample Size initially gets set. Values are rounded up to the nearest whole number.';
             Caption = 'Sample Source';
-            ToolTip = 'Specifies how the Sample Size initially gets set.';
+            ToolTip = 'Specifies how the Sample Size initially gets set. Values are rounded up to the nearest whole number.';
         }
         field(18; "Sample Fixed Amount"; Integer)
         {
-            Description = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units.';
             Caption = 'Sample Amount';
             ToolTip = 'Specifies the discrete fixed sample amount when Sample Source is set to a fixed quantity. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
         }
         field(19; "Sample Percentage"; Decimal)
         {
-            Description = 'When Sample Source is set to a percentage then this represents the percent of the source quantity to use. Values will be rounded to the highest discrete amount.';
             Caption = 'Sample %';
             AutoFormatType = 0;
             DecimalPlaces = 0 : 2;

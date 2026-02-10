@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.QualityManagement;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
+using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
 
 codeunit 139957 "Qlty. Tests - Permission Mgmt."
@@ -16,7 +16,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
     var
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
         ExpectedSupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
@@ -32,9 +32,9 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] It returns true if read permission exists, false otherwise
 
         if QltyInspectionHeader.ReadPermission() then
-            LibraryAssert.IsTrue(QltyPermissionMgmt.CanReadInspectionResults(), 'Should return read permission = true')
+            LibraryAssert.IsTrue(QltyInspectionUtility.CanReadInspectionResults(), 'Should return read permission = true')
         else
-            LibraryAssert.IsFalse(QltyPermissionMgmt.CanReadInspectionResults(), 'Should return read permission = false');
+            LibraryAssert.IsFalse(QltyInspectionUtility.CanReadInspectionResults(), 'Should return read permission = false');
     end;
 
     [Test]
@@ -46,7 +46,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to create a manual inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanCreateManualInspection();
+            asserterror QltyInspectionUtility.VerifyCanCreateManualInspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Inspection Manual'));
         end;
     end;
@@ -60,10 +60,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanCreateManualInspection is called
-        QltyPermissionMgmt.VerifyCanCreateManualInspection();
+        QltyInspectionUtility.VerifyCanCreateManualInspection();
 
         // [THEN] The operation succeeds and CanCreateManualInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanCreateManualInspection(), 'should be allowed with insert permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateManualInspection(), 'should be allowed with insert permission on order table data');
     end;
 
     [Test]
@@ -73,10 +73,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [GIVEN] No specific permission set is required
 
         // [WHEN] VerifyCanCreateAutoInspection is called
-        QltyPermissionMgmt.VerifyCanCreateAutoInspection();
+        QltyInspectionUtility.VerifyCanCreateAutoInspection();
 
         // [THEN] The operation succeeds and CanCreateAutoInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanCreateAutoInspection(), 'everyone is allowed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateAutoInspection(), 'everyone is allowed.');
     end;
 
     [Test]
@@ -88,7 +88,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to create a re-inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanCreateReinspection();
+            asserterror QltyInspectionUtility.VerifyCanCreateReinspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Re-inspection'));
         end;
     end;
@@ -102,10 +102,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanCreateReinspection is called
-        QltyPermissionMgmt.VerifyCanCreateReinspection();
+        QltyInspectionUtility.VerifyCanCreateReinspection();
 
         // [THEN] The operation succeeds and CanCreateReinspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanCreateReinspection(), 'should be allowed with insert permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateReinspection(), 'should be allowed with insert permission on order table data');
     end;
 
     [Test]
@@ -117,7 +117,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to delete an open inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
+            asserterror QltyInspectionUtility.VerifyCanDeleteOpenInspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Delete Open Inspection'));
         end;
     end;
@@ -131,10 +131,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteOpenInspection is called
-        QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
+        QltyInspectionUtility.VerifyCanDeleteOpenInspection();
 
         // [THEN] The operation succeeds and CanDeleteOpenInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanDeleteOpenInspection(), 'allowed with supervisor role');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanDeleteOpenInspection(), 'allowed with supervisor role');
     end;
 
     [Test]
@@ -146,7 +146,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to delete a finished inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
+            asserterror QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Delete Finished Inspection'));
         end;
     end;
@@ -160,10 +160,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteFinishedInspection is called        
-        QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
+        QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
 
         // [THEN] The operation succeeds and CanDeleteFinishedInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanDeleteFinishedInspection(), 'allowed with supervisor role');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanDeleteFinishedInspection(), 'allowed with supervisor role');
     end;
 
     [Test]
@@ -175,10 +175,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeOtherInspections is called
-        QltyPermissionMgmt.VerifyCanChangeOtherInspections();
+        QltyInspectionUtility.VerifyCanChangeOtherInspections();
 
         // [THEN] The operation succeeds and CanChangeOtherInspections returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanChangeOtherInspections(), 'allowed with supervisor role');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeOtherInspections(), 'allowed with supervisor role');
     end;
 
     [Test]
@@ -190,7 +190,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to reopen an inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanReopenInspection();
+            asserterror QltyInspectionUtility.VerifyCanReopenInspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Reopen Inspection'));
         end;
     end;
@@ -204,10 +204,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanReopenInspection is called
-        QltyPermissionMgmt.VerifyCanReopenInspection();
+        QltyInspectionUtility.VerifyCanReopenInspection();
 
         // [THEN] The operation succeeds and CanReopenInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanReopenInspection(), 'should be allowed with modify permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanReopenInspection(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
@@ -219,7 +219,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to finish an inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanFinishInspection();
+            asserterror QltyInspectionUtility.VerifyCanFinishInspection();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Finish Inspection'));
         end;
     end;
@@ -233,10 +233,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanFinishInspection is called
-        QltyPermissionMgmt.VerifyCanFinishInspection();
+        QltyInspectionUtility.VerifyCanFinishInspection();
 
         // [THEN] The operation succeeds and CanFinishInspection returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanFinishInspection(), 'should be allowed with modify permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanFinishInspection(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
@@ -248,7 +248,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to change tracking number
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+            asserterror QltyInspectionUtility.VerifyCanChangeTrackingNo();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Change Tracking No.'));
         end;
     end;
@@ -262,10 +262,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeTrackingNo is called
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyInspectionUtility.VerifyCanChangeTrackingNo();
 
         // [THEN] The operation succeeds and CanChangeTrackingNo returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanChangeTrackingNo(), 'should be allowed with modify permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeTrackingNo(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
@@ -277,7 +277,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] An error is raised indicating the user lacks permission to change source quantity
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+            asserterror QltyInspectionUtility.VerifyCanChangeSourceQuantity();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Change Source Quantity'));
         end;
     end;
@@ -291,10 +291,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeSourceQuantity is called
-        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+        QltyInspectionUtility.VerifyCanChangeSourceQuantity();
 
         // [THEN] The operation succeeds and CanChangeSourceQuantity returns true
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanChangeSourceQuantity(), 'should be allowed with modify permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
@@ -305,7 +305,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [WHEN] CanEditLineComments is called
         // [THEN] The function returns true
 
-        LibraryAssert.IsTrue(QltyPermissionMgmt.CanEditLineComments(), 'everyone with permission to modify record links is allowed');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanEditLineComments(), 'everyone with permission to modify record links is allowed');
     end;
 
     local procedure CheckQltyInspectionHeaderWritePermission(): Boolean

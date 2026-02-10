@@ -96,7 +96,7 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
         InternalMovementLine: Record "Internal Movement Line";
         TempWarehouseEntry: Record "Warehouse Entry" temporary;
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         InternalMovementLine.Validate("No.", InternalMovementHeader."No.");
         InternalMovementLine.SetUpNewLine(PrevInternalMovementLine);
@@ -119,8 +119,8 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
             TempWarehouseEntry."Package No." := QltyInspectionHeader."Source Package No.";
             TempWarehouseEntry."Expiration Date" := QltyItemTrackingMgmt.GetExpirationDate(QltyInspectionHeader, InternalMovementHeader."Location Code");
             TempWarehouseEntry."Location Code" := InternalMovementHeader."Location Code";
-            OnBeforeSetInternalMovementTrackingLines(QltyInspectionHeader, InternalMovementHeader, PrevInternalMovementLine, InternalMovementLine, FromBinCode, Quantity, TempWarehouseEntry, Handled);
-            if not Handled then
+            OnBeforeSetInternalMovementTrackingLines(QltyInspectionHeader, InternalMovementHeader, PrevInternalMovementLine, InternalMovementLine, FromBinCode, Quantity, TempWarehouseEntry, IsHandled);
+            if not IsHandled then
                 if (TempWarehouseEntry."Lot No." <> '') or (TempWarehouseEntry."Serial No." <> '') or (TempWarehouseEntry."Package No." <> '') then
                     InternalMovementLine.SetItemTrackingLines(TempWarehouseEntry, Quantity);
         end;
@@ -139,9 +139,9 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
     /// <param name="FromBinCode"></param>
     /// <param name="Quantity"></param>
     /// <param name="TempWarehouseEntry"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetInternalMovementTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; InternalMovementHeader: Record "Internal Movement Header"; var PrevInternalMovementLine: Record "Internal Movement Line"; var InternalMovementLine: Record "Internal Movement Line"; FromBinCode: Code[20]; var Quantity: Decimal; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var Handled: Boolean)
+    local procedure OnBeforeSetInternalMovementTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; InternalMovementHeader: Record "Internal Movement Header"; var PrevInternalMovementLine: Record "Internal Movement Line"; var InternalMovementLine: Record "Internal Movement Line"; FromBinCode: Code[20]; var Quantity: Decimal; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 

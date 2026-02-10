@@ -46,7 +46,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             exit;
@@ -96,7 +96,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receive Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
@@ -114,7 +114,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receive Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
             OptionalSource := PurchaseLine;
@@ -130,7 +130,6 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Handled: Boolean;
         HasInspection: Boolean;
         SourceVariant: Variant;
         DummyVariant: Variant;
@@ -149,8 +148,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyInspectionGenRule.IsEmpty() then begin
             SourceVariant := SalesLine;
             QltyWarehouseIntegration.CollectSourceItemTracking(SourceVariant, TempTrackingSpecification);
-            OnBeforeSalesReturnCreateInspectionWithSalesLine(SalesHeader, SalesLine, TempItemLedgEntryNotInvoiced, TempTrackingSpecification, Handled);
-            if Handled then
+            IsHandled := false;
+            OnBeforeSalesReturnCreateInspectionWithSalesLine(SalesHeader, SalesLine, TempItemLedgEntryNotInvoiced, TempTrackingSpecification, IsHandled);
+            if IsHandled then
                 exit;
 
             TempTrackingSpecification.Reset();
@@ -183,7 +183,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
@@ -201,7 +201,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
@@ -222,7 +222,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             exit;
@@ -265,12 +265,12 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeAttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSourceLineVariant, Handled);
-        if Handled then
+        OnBeforeAttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSourceLineVariant, IsHandled);
+        if IsHandled then
             exit;
 
         QltyWarehouseIntegration.CollectSourceItemTracking(OptionalSourceLineVariant, TempTrackingSpecification);
@@ -293,7 +293,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             end;
         end;
 
-        OnAfterAttemptCreateInspectionWithReceiptLine(HasInspection, QltyInspectionHeader, WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSourceLineVariant, TempTrackingSpecification, Handled);
+        OnAfterAttemptCreateInspectionWithReceiptLine(HasInspection, QltyInspectionHeader, WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSourceLineVariant, TempTrackingSpecification);
     end;
 
     local procedure AttemptCreateInspectionWithWhseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header")
@@ -304,12 +304,12 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         OptionalSourceRecordVariant: Variant;
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforePurchaseAttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader, Handled);
-        if Handled then
+        OnBeforePurchaseAttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader, IsHandled);
+        if IsHandled then
             exit;
 
         if QltyWarehouseIntegration.GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, OptionalSourceRecordVariant) then
@@ -333,7 +333,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             end;
         end;
 
-        OnAfterPurchaseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseJournalLine, PostedWhseReceiptHeader, Handled);
+        OnAfterPurchaseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseJournalLine, PostedWhseReceiptHeader);
     end;
 
     local procedure AttemptCreateInspectionWithPurchaseLineAndTracking(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
@@ -341,12 +341,12 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforePurchaseAttemptCreateInspectionWithPurchaseLine(PurchaseLine, PurchaseHeader, TempTrackingSpecification, Handled);
-        if Handled then
+        OnBeforePurchaseAttemptCreateInspectionWithPurchaseLine(PurchaseLine, PurchaseHeader, TempTrackingSpecification, IsHandled);
+        if IsHandled then
             exit;
 
         TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
@@ -354,7 +354,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if HasInspection then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(HasInspection, QltyInspectionHeader, PurchaseLine, PurchaseHeader, TempTrackingSpecification, Handled);
+        OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(HasInspection, QltyInspectionHeader, PurchaseLine, PurchaseHeader, TempTrackingSpecification);
     end;
 
     local procedure AttemptCreateInspectionWithReceiveTransferLine(var TransTransferLine: Record "Transfer Line"; var OptionalTransferReceiptHeader: Record "Transfer Receipt Header"; var OptionalDirectTransHeader: Record "Direct Trans. Header")
@@ -364,13 +364,13 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         CurrentVariant: Variant;
 
     begin
-        OnBeforeAttemptCreateInspectionWithInboundTransferLine(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, QltyInspectionHeader, HasInspection, Handled);
-        if Handled then
+        OnBeforeAttemptCreateInspectionWithInboundTransferLine(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, QltyInspectionHeader, HasInspection, IsHandled);
+        if IsHandled then
             exit;
         CurrentVariant := TransTransferLine;
         QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification);
@@ -415,9 +415,9 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="WarehouseReceiptLine"></param>
     /// <param name="WarehouseReceiptHeader"></param>
     /// <param name="pvarOptionalSourceLine">The optional source line (purchase line, sales line, transfer line)</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAttemptCreateInspectionWithReceiptLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var OptionalSourceLineVariant: Variant; var Handled: Boolean)
+    local procedure OnBeforeAttemptCreateInspectionWithReceiptLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var OptionalSourceLineVariant: Variant; var IsHandled: Boolean)
     begin
     end;
 
@@ -430,9 +430,8 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="WarehouseReceiptHeader"></param>
     /// <param name="pvarOptionalSourceLine">The optional source line (purchase line, sales line, transfer line)</param>
     /// <param name="TempTrackingSpecification">Optional. When set contains all of the related item tracking details involved. Could be multiple records</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAttemptCreateInspectionWithReceiptLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var OptionalSourceLineVariant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)
+    local procedure OnAfterAttemptCreateInspectionWithReceiptLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var OptionalSourceLineVariant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
     end;
 
@@ -441,9 +440,9 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// </summary>
     /// <param name="WarehouseJournalLine">var Record "Warehouse Journal Line".</param>
     /// <param name="PostedWhseReceiptHeader">Record "Posted Whse. Receipt Header".</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePurchaseAttemptCreateInspectionWithWhseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var Handled: Boolean)
+    local procedure OnBeforePurchaseAttemptCreateInspectionWithWhseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -454,9 +453,8 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="QltyInspectionHeader">The quality inspection involved</param>
     /// <param name="WarehouseJournalLine">var Record "Warehouse Journal Line".</param>
     /// <param name="PostedWhseReceiptHeader">Record "Posted Whse. Receipt Header".</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPurchaseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var Handled: Boolean)
+    local procedure OnAfterPurchaseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header")
     begin
     end;
 
@@ -466,9 +464,9 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="PurchaseLine">The purchase line</param>
     /// <param name="PurchaseHeader">The purchase header</param>
     /// <param name="TempTrackingSpecification">Temporary var Record "Tracking Specification".</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePurchaseAttemptCreateInspectionWithPurchaseLine(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)
+    local procedure OnBeforePurchaseAttemptCreateInspectionWithPurchaseLine(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
     end;
 
@@ -480,9 +478,8 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="PurchaseLine">The purchase line</param>
     /// <param name="PurchaseHeader">The purchase header</param>
     /// <param name="TempSpecTrackingSpecification">Temporary var Record "Tracking Specification".</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)
+    local procedure OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
     end;
 
@@ -493,9 +490,9 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="SalesLine"></param>
     /// <param name="TempLedgNotInvoicedItemLedgerEntry"></param>
     /// <param name="TempTrackingSpecification"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSalesReturnCreateInspectionWithSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempLedgNotInvoicedItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)
+    local procedure OnBeforeSalesReturnCreateInspectionWithSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempLedgNotInvoicedItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
     end;
 
@@ -514,7 +511,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the create inspection behavior when triggered from posting an inbound Transfer Line.
+    /// Provides an opportunity to modify the Inspection Creation Option when triggered from posting an inbound Transfer Line.
     /// </summary>
     /// <param name="TransTransferLine">Transfer Line</param>
     /// <param name="TransferReceiptHeader">Transfer Receipt Header</param>
@@ -522,9 +519,9 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="TempSpecTrackingSpecification">Tracking Specification</param>
     /// <param name="QltyInspectionHeader">Created Inspection</param>
     /// <param name="HasInspection">Signifies an inspection was created or an existing inspection was found</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAttemptCreateInspectionWithInboundTransferLine(var TransTransferLine: Record "Transfer Line"; var TransferReceiptHeader: Record "Transfer Receipt Header"; var DirectTransHeader: Record "Direct Trans. Header"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var HasInspection: Boolean; var Handled: Boolean)
+    local procedure OnBeforeAttemptCreateInspectionWithInboundTransferLine(var TransTransferLine: Record "Transfer Line"; var TransferReceiptHeader: Record "Transfer Receipt Header"; var DirectTransHeader: Record "Direct Trans. Header"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var HasInspection: Boolean; var IsHandled: Boolean)
     begin
     end;
 

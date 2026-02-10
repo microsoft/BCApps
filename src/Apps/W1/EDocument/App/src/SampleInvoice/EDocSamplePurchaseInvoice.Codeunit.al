@@ -13,6 +13,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.Reflection;
 using System.Utilities;
 
 /// <summary>
@@ -26,6 +27,8 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         TempEDocPurchHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchLine: Record "E-Document Purchase Line" temporary;
+        ReportLayoutList: Record "Report Layout List";
+        MixLayoutsForPDFGeneration: Boolean;
 
     /// <summary>
     /// Gets the posting date for the sample invoice.
@@ -66,6 +69,14 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         SamplePurchInvFile.Scenario := Scenario;
         SamplePurchInvFile."Vendor Name" := TempEDocPurchHeader."Vendor Company Name";
         SamplePurchInvFile.Insert();
+    end;
+
+    /// <summary>
+    /// Sets the flag to mix layouts for PDF generation.
+    /// </summary>
+    procedure SetMixLayoutsForPDFGeneration()
+    begin
+        MixLayoutsForPDFGeneration := true;
     end;
 
     /// <summary>
@@ -177,6 +188,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         GeneratedPdfIsEmptyErr: Label 'Generated PDF is empty';
     begin
         TempEDocPurchHeader.TestField("[BC] Vendor No.");
+        SetLayout(SamplePurchInvPDF);
         TempBlob := SamplePurchInvPDF.GeneratePDF(TempEDocPurchHeader, TempEDocPurchLine);
         if TempBlob.Length() = 0 then
             error(GeneratedPdfIsEmptyErr);
@@ -192,7 +204,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
-        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name")))
+        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No." + '.pdf', 1, MaxStrLen(SamplePurchInvFile."File Name")))
     end;
 
     local procedure GetLineDescription(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]): Text[100]
@@ -215,5 +227,18 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
                 end;
         end;
         exit('');
+    end;
+
+    local procedure SetLayout(var SamplePurchInvPDF: Codeunit "E-Doc Sample Purch.Inv. PDF")
+    begin
+        if not MixLayoutsForPDFGeneration then
+            exit;
+        if ReportLayoutList."Report ID" = 0 then begin
+            ReportLayoutList.SetRange("Report ID", Report::"E-Doc Sample Purchase Invoice");
+            ReportLayoutList.FindSet();
+        end;
+        SamplePurchInvPDF.SetSamplePurchInvoiceLayout(ReportLayoutList.Name);
+        if ReportLayoutList.Next() = 0 then
+            ReportLayoutList.FindSet();
     end;
 }

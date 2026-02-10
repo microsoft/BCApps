@@ -36,7 +36,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanReadInspectionResults returns true if the current user can has permission to read inspection results in general.
     /// </summary>
     /// <returns>Return value of type Boolean, true if the current user can has permission to read inspection results in general</returns>
-    procedure CanReadInspectionResults(): Boolean
+    internal procedure CanReadInspectionResults(): Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -48,7 +48,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanCreateManualInspection()
+    internal procedure VerifyCanCreateManualInspection()
     begin
         if not CanCreateManualInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionManual());
@@ -58,7 +58,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanCreateManualInspection. True if the user can create a manual inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateManualInspection(): Boolean
+    internal procedure CanCreateManualInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionCreateInspectionManual()));
     end;
@@ -68,7 +68,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanCreateAutoInspection()
+    internal procedure VerifyCanCreateAutoInspection()
     begin
         if not CanCreateAutoInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionAuto());
@@ -78,7 +78,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanCreateAutoInspection. True if the user can create an automatic inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateAutoInspection(): Boolean
+    internal procedure CanCreateAutoInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionCreateInspectionAuto()));
     end;
@@ -88,7 +88,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanCreateReinspection()
+    internal procedure VerifyCanCreateReinspection()
     begin
         if not CanCreateReinspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReinspection());
@@ -98,7 +98,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanCreateReinspection. True if the user can create a re-inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateReinspection(): Boolean
+    internal procedure CanCreateReinspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionCreateReinspection()));
     end;
@@ -108,7 +108,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanDeleteOpenInspection()
+    internal procedure VerifyCanDeleteOpenInspection()
     begin
         if not CanDeleteOpenInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteOpenInspection());
@@ -118,7 +118,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanDeleteOpenInspection. True if the user  can delete an open inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanDeleteOpenInspection(): Boolean
+    internal procedure CanDeleteOpenInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionDeleteOpenInspection()));
     end;
@@ -128,7 +128,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanDeleteFinishedInspection()
+    internal procedure VerifyCanDeleteFinishedInspection()
     begin
         if not CanDeleteFinishedInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteFinishedInspection());
@@ -138,7 +138,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanDeleteFinishedInspection. True if the user can delete a finished inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanDeleteFinishedInspection(): Boolean
+    internal procedure CanDeleteFinishedInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionDeleteFinishedInspection()));
     end;
@@ -148,7 +148,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanChangeOtherInspections()
+    internal procedure VerifyCanChangeOtherInspections()
     begin
         if not CanChangeOtherInspections() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeOtherInspections());
@@ -158,7 +158,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanChangeOtherInspections. True if the user can change someone else's inspections.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeOtherInspections(): Boolean
+    internal procedure CanChangeOtherInspections(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionChangeOtherInspections()));
     end;
@@ -168,7 +168,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanReopenInspection()
+    internal procedure VerifyCanReopenInspection()
     begin
         if not CanReopenInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionReopenInspection());
@@ -178,7 +178,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanReopenInspection. True if the user can re-open an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanReopenInspection(): Boolean
+    internal procedure CanReopenInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionReopenInspection()));
     end;
@@ -188,7 +188,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanFinishInspection()
+    internal procedure VerifyCanFinishInspection()
     begin
         if not CanFinishInspection() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishInspection());
@@ -198,7 +198,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanFinishInspection. True if the user can can finish an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanFinishInspection(): Boolean
+    internal procedure CanFinishInspection(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionFinishInspection()));
     end;
@@ -208,7 +208,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanChangeTrackingNo()
+    internal procedure VerifyCanChangeTrackingNo()
     begin
         if not CanChangeTrackingNo() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeTrackingNo());
@@ -218,7 +218,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanChangeTrackingNo. True if the user can change the tracking on an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeTrackingNo(): Boolean
+    internal procedure CanChangeTrackingNo(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionChangeTrackingNo()));
     end;
@@ -228,7 +228,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="ShouldPrompt">Only set with interaction ability is available ( GuiAllowed() is true ) and also prompt when possible is chosen.</param>
     /// <returns>Whether or not auto-assignment should occur.</returns>
-    procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
+    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -248,7 +248,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
+    internal procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
             GetCaptionCreateInspectionAuto():
@@ -339,7 +339,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanChangeSourceQuantity()
+    internal procedure VerifyCanChangeSourceQuantity()
     begin
         if not CanChangeSourceQuantity() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeSourceQuantity());
@@ -349,7 +349,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanChangeSourceQuantity. True if the user can change source quantities
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeSourceQuantity(): Boolean
+    internal procedure CanChangeSourceQuantity(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionChangeSourceQuantity()));
     end;
@@ -359,7 +359,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanEditLineComments()
+    internal procedure VerifyCanEditLineComments()
     begin
         if not CanEditLineComments() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionEditLineComments());
@@ -369,7 +369,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanEditLineComments. True if the user can add line notes/comments.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanEditLineComments(): Boolean
+    internal procedure CanEditLineComments(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;
@@ -378,7 +378,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanReadLineComments. True if the user can read or write line comments.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanReadLineComments(): Boolean
+    internal procedure CanReadLineComments(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;

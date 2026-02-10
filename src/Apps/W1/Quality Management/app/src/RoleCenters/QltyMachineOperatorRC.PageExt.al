@@ -18,13 +18,13 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
     {
         addlast(processing)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement_Processing_Group)
             {
                 Image = TaskQualityMeasure;
                 Caption = 'Quality Management';
                 ToolTip = 'Create Quality Inspections.';
 
-                action(Qlty_ShowInspections)
+                action(Qlty_ShowQualityInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -44,7 +44,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 {
                     Caption = 'Analysis';
 
-                    action(Qlty_InspectionLines)
+                    action(Qlty_QualityInspectionLines)
                     {
                         Caption = 'Quality Inspection Lines';
                         Image = AnalysisView;
@@ -53,10 +53,21 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                         RunObject = Page "Qlty. Inspection Lines";
                     }
                 }
-                group(Qlty_SemiRegularSetup)
+                group(Qlty_ConfigureQualityManagement)
                 {
-                    Caption = 'Templates and Rules';
+                    Caption = 'Setup';
+                    Tooltip = 'Configure the Quality Management';
+                    Image = Setup;
 
+                    action(Qlty_ManagementSetup)
+                    {
+                        Caption = 'Quality Management Setup';
+                        RunObject = Page "Qlty. Management Setup";
+                        ApplicationArea = QualityManagement;
+                        Image = Setup;
+                        RunPageMode = Edit;
+                        Tooltip = 'Change the behavior of the Quality Management.';
+                    }
                     action(Qlty_ConfigureInspectionTemplates)
                     {
                         ApplicationArea = QualityManagement;
@@ -85,31 +96,15 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                         ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                     }
                 }
-                group(Qlty_ManagementConfigure)
-                {
-                    Caption = 'Setup';
-                    Tooltip = 'Configure the Quality Management';
-                    Image = Setup;
-
-                    action(Qlty_ManagementSetup)
-                    {
-                        Caption = 'Quality Management Setup';
-                        Tooltip = 'Change the behavior of the Quality Management.';
-                        RunObject = Page "Qlty. Management Setup";
-                        ApplicationArea = QualityManagement;
-                        Image = Setup;
-                        RunPageMode = Edit;
-                    }
-                }
             }
         }
         addlast(sections)
         {
-            group(Qlty_Sections)
+            group(Qlty_QualityManagement_Sections_Group)
             {
                 Caption = 'Quality Inspection';
 
-                action(Qlty_Sections_ShowInspections)
+                action(Qlty_Sections_ShowQualityInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -117,7 +112,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection List";
                 }
-                action(Qlty_Sections_InspectionLines)
+                action(Qlty_Sections_QualityInspectionLines)
                 {
                     Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;

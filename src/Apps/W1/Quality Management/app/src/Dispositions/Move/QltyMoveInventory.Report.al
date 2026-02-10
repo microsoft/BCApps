@@ -12,7 +12,7 @@ using Microsoft.Warehouse.Structure;
 report 20404 "Qlty. Move Inventory"
 {
     Caption = 'Quality Management - Move Inventory';
-    AdditionalSearchTerms = 'Move To Bin,Quarantine lot,quarantine';
+    AdditionalSearchTerms = 'Quarantine';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
@@ -22,7 +22,7 @@ report 20404 "Qlty. Move Inventory"
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -217,7 +217,7 @@ report 20404 "Qlty. Move Inventory"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocationCode)
                     {

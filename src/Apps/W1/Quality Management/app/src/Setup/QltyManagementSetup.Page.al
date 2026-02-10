@@ -8,9 +8,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing;
-using Microsoft.QualityManagement.Integration.Receiving;
-using Microsoft.QualityManagement.Integration.Warehouse;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Telemetry;
 
@@ -31,43 +29,37 @@ page 20400 "Qlty. Management Setup"
         {
             group(SettingsForDefaults)
             {
-                Caption = 'Defaults';
+                Caption = 'General';
                 group(SettingsForNumbering)
                 {
-                    Caption = 'Numbering';
+                    Caption = 'Number Series';
 
                     field("Quality Inspection Nos."; Rec."Quality Inspection Nos.")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
-                group(SettingsForBehaviors)
+                group(SettingsForInspections)
                 {
-                    Caption = 'Behaviors';
+                    Caption = 'Creating and finding inspections';
 
-                    field("Create Inspection Behavior"; Rec."Create Inspection Behavior")
+                    field("Inspection Creation Option"; Rec."Inspection Creation Option")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Create Inspection Behavior';
-                        AboutText = 'Defines the behavior of when to create a new Quality Inspection when existing inspections occur.';
+                        AboutTitle = 'Inspection Creation Option';
+                        AboutText = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+
                     }
-                    field("Find Existing Behavior"; Rec."Find Existing Behavior")
+                    field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Find Existing Inspection Behavior';
-                        AboutText = 'When looking for existing inspections, this defines what it looks for.';
-                    }
-                    field("Conditional Lot Find Behavior"; Rec."Conditional Lot Find Behavior")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
-                        AboutText = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
+                        AboutTitle = 'Inspection Search Criteria';
+                        AboutText = 'Specifies the criteria the system uses to search for existing inspections.';
                     }
                 }
                 group(SettingsForMiscellaneous)
@@ -84,155 +76,82 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        Caption = 'Maximum Rows To Fetch on Field Lookups';
                         ShowCaption = true;
-                        AboutTitle = 'Maximum Rows To Fetch on Field Lookups';
-                        AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
+                        AboutTitle = 'Maximum Rows To Fetch In Lookups';
+                        AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
 
                     }
-                    group(SettingsForExplainShowInspection)
-                    {
-                        Caption = 'Show Inspection';
-                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created inspections immediately to the user, however for production scenarios in most circumstances automatically created inspections will end up in a queue or dispatch for quality inspectors. Value "Only manually created inspections" will let you see inspections created manually with a button, and will just let automatically created inspections be created without showing it.';
-                        field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Show Inspection';
-                            ShowCaption = true;
-                            Importance = Promoted;
-                            AboutTitle = 'When To Show Inspections';
-                            AboutText = 'Whether to show the Quality Inspection page after an inspection has been made.';
-                        }
-                    }
-                    field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
+                    field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
-                        Caption = 'Picture Upload Behavior';
+                        Caption = 'Additional Picture Handling';
                         ShowCaption = true;
-                        AboutTitle = 'Picture Upload Behavior';
+                        AboutTitle = 'Additional Picture Handling';
                         AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
                     }
-                    group(Workflow)
-                    {
-                        Caption = 'Workflow and Approval Request Integration';
-                        field("Workflow Integration Enabled"; Rec."Workflow Integration Enabled")
-                        {
-                            Importance = Additional;
-                            ApplicationArea = All;
-                            AboutTitle = 'Business Central Workflow integration.';
-                            AboutText = 'Workflows can be used to trigger dispositions, such as negative adjustments, transfers, moves, and more.';
-                        }
-                    }
-
                 }
             }
-            group(SettingsForReceiving)
+            group(GenerationRuleTriggerDefaults)
             {
-                Caption = 'Receiving';
-                InstructionalText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
+                Caption = 'Generation Rule Trigger Defaults';
+                InstructionalText = 'Manage receiving, production, and warehousing options here, such as automatically creating inspections when receipts or output are posted, and defining default automation and trigger settings for inspection generation rules.';
 
                 group(SettingsForReceiveAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for how receipt tasks automatically create inspections. You also need to create inspection generation rules to configure which templates will be used. Different triggers can be changed on the inspection generation rules.';
+                    Caption = 'Receiving';
                     AboutTitle = 'Receiving Related Automation Settings';
                     AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
-                    field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
+                    field("Warehouse Receipt Trigger"; Rec."Warehouse Receipt Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Warehouse Receipts';
+                        Caption = 'Warehouse Receipts Trigger';
                     }
-                    field("Purchase Trigger"; Rec."Purchase Trigger")
+                    field("Purchase Order Trigger"; Rec."Purchase Order Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Purchase Orders';
+                        Caption = 'Purchase Orders Trigger';
                     }
                     field("Sales Return Trigger"; Rec."Sales Return Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Sales Returns';
+                        Caption = 'Sales Returns Trigger';
                     }
-                    field("Transfer Trigger"; Rec."Transfer Trigger")
+                    field("Transfer Order Trigger"; Rec."Transfer Order Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Transfer Orders';
-                    }
-                    field(ChooseCreateNewRule_Receiving; 'Click here to create a new generation rule...')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = All;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyRecGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
-                    }
-                    field("Receive Update Control"; Rec."Receive Update Control")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        Caption = 'Control Source';
-                        Importance = Additional;
-                        Visible = false;
-                        AboutTitle = 'When to update on receiving related changes.';
-                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
+                        Caption = 'Transfer Orders Trigger';
                     }
                 }
-            }
-            group(SettingsForProduction)
-            {
-                Caption = 'Production';
-                InstructionalText = 'Production related settings are configured in this group. For example, you can choose to automatically create inspections when output is created.';
-
                 group(SettingsForProductionAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for inspection generation rules related to production output. Different triggers can be changed on the inspection generation rules.';
+                    Caption = 'Production';
                     AboutTitle = 'Production Related Automation Settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
-                    field("Production Trigger"; Rec."Production Trigger")
+                    field("Production Order Trigger"; Rec."Production Order Trigger")
                     {
-                        Caption = 'Production - Create Inspection';
+                        Caption = 'Production Order Trigger';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Production related trigger';
-                        AboutText = 'Optionally choose a production-related trigger to try and create an inspection.';
+                        AboutTitle = 'Production Order related trigger';
+                        AboutText = 'Optionally choose a production order related trigger to try and create an inspection.';
                     }
-                    field("Auto Output Configuration"; Rec."Auto Output Configuration")
+                    field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {
-                        Caption = 'Auto Output Configuration';
+                        Caption = 'Prod. trigger output condition';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Auto Output Configuration';
+                        AboutTitle = 'Prod. trigger output condition';
                         AboutText = 'Provides granular options for when an inspection should be created automatically during the production process.';
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
-                        Caption = 'Assembly - Create Inspection';
+                        Caption = 'Assembly Trigger';
                         ApplicationArea = Assembly;
                         ShowCaption = true;
                         AboutTitle = 'Assembly related trigger';
                         AboutText = 'Optionally choose an assembly-related trigger to try and create an inspection.';
-                    }
-                    field(ChooseCreateNewRule_Production; 'Click here to create a new generation rule...')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = Assembly, Manufacturing;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyProdGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
                     }
                     field("Production Update Control"; Rec."Production Update Control")
                     {
@@ -245,229 +164,87 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
-            }
-            group(SettingsForInventory)
-            {
-                Caption = 'Inventory and Warehousing';
-
                 group(SettingsForWarehouseAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for inspection generation rules related to warehousing. Different triggers can be changed on the inspection generation rules.';
+                    Caption = 'Inventory and Warehousing';
                     AboutTitle = 'Warehousing Related Automation Settings';
                     AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create an inspection when a lot is moved to a specific bin.';
 
                     field("Warehouse Trigger"; Rec."Warehouse Trigger")
                     {
-                        Caption = 'Create Inspection';
+                        Caption = 'Warehouse Movement Trigger';
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Warehouse related trigger';
                         AboutText = 'Optionally choose a warehousing related trigger to try and create an inspection.';
                     }
-                    field("Whse. Move Related Triggers"; Rec."Whse. Move Related Triggers")
-                    {
-                        Caption = 'Related Generation Rules';
-                        ApplicationArea = All;
-                    }
-                    field(ChooseCreateNewRule_WhseMovement; 'Click here to create a new generation rule...')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = All;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyWhseGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
-                    }
-                }
-                group(SettingsForBinMovements)
-                {
-                    Caption = 'Bin Movements and Reclassifications';
-                    InstructionalText = 'The batch to use when moving inventory to a different bin; this will be used for the manual Move to Bin action as well as PowerAutomate actions. This will also be used for reclassification journals when changing item tracking information.';
-
-                    field("Bin Move Batch Name"; Rec."Bin Move Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Batch Name';
-                        AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
-                    }
-                    field("Bin Whse. Move Batch Name"; Rec."Bin Whse. Move Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
-                        AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
-                    }
-                    field("Whse. Wksh. Name"; Rec."Whse. Wksh. Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Worksheet Name';
-                        AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
-                        AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
-                    }
-                }
-                group(SettingsForAdjustments)
-                {
-                    Caption = 'Inventory Adjustments';
-                    InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
-
-                    field("Item Adjustment Batch Name"; Rec."Adjustment Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Batch Name';
-                        AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
-                    }
-                    field("Whse. Adjustment Batch Name"; Rec."Whse. Adjustment Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
-                        AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
-                    }
                 }
             }
+            group(SettingsForBinMovements)
+            {
+                Caption = 'Bin Movements and Reclassifications';
+                InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
+
+                field("Item Reclass. Batch Name"; Rec."Item Reclass. Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Item Reclass. Batch Name';
+                    AboutTitle = 'Item Reclass. Batch Name (Non-Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
+                }
+                field("Whse. Reclass. Batch Name"; Rec."Whse. Reclass. Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Batch Name';
+                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
+                }
+                field("Movement Worksheet Name"; Rec."Movement Worksheet Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Worksheet Name';
+                    AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
+                    AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
+                }
+            }
+            group(SettingsForAdjustments)
+            {
+                Caption = 'Inventory Adjustments';
+                InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
+
+                field("Item Item Journal Batch Name"; Rec."Item Journal Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Batch Name';
+                    AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
+                }
+                field("Whse. Item Journal Batch Name"; Rec."Whse. Item Journal Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Batch Name';
+                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
+                }
+            }
+
             group(SettingsForTracking)
             {
                 Caption = 'Item Tracking';
-                InstructionalText = 'Will your lot numbers always be posted when performing quality inspections?';
+                InstructionalText = 'Will your item tracking numbers always be posted when performing quality inspections?';
 
                 field("Tracking Before Finishing"; Rec."Item Tracking Before Finishing")
                 {
                     ApplicationArea = All;
                     AboutTitle = 'Item Tracking';
-                    AboutText = 'Will your lot numbers always be posted when performing quality inspections?';
+                    AboutText = 'Will your item tracking numbers always be posted when performing quality inspections?';
                 }
-                group(SettingsForTrackingInstruction1)
-                {
-                    Caption = 'Allow Missing Item Tracking';
-                    InstructionalText = 'Use this if you do not use lot or serial numbers, or if you use them but have processes that will have inspections that will not have known lot or serial numbers. For example if you have inspections created in production that prevents the product from being produced then there may not be a lot/serial. Inspections with no lot/serial will be permitted.';
-                }
-                group(SettingsForTrackingInstruction2)
-                {
-                    Caption = 'Posted Item Tracking Only';
-                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before an inspection can be finished. For example if you are doing inspections on finished goods then the lot/serial should exist, or if you are doing inspections when lots are moved to a bin then the lot/serial must exist.';
-                }
-                group(SettingsForTrackingInstruction3)
-                {
-                    Caption = 'Reservation or Posted';
-                    InstructionalText = 'Use this if lot/serial numbers need to be in the system, but might not yet be posted. An example could be lots that are being received or being produced, have not yet been received or produced yet, but do exist on your item tracking lines.';
-                }
-                group(SettingsForTrackingInstruction4)
-                {
-                    Caption = 'Any Non Empty Value';
-                    InstructionalText = 'Use this if you want to track lot/serial numbers that do not enter the system but need inspections to document why they did not enter the system. For example if you reject a lot during the receiving process and a failed lot is never put-away. Alternatively if you are producing and know the intended lot/serial but the in-progress item is discarded before it is posted to inventory. Inspections with lot/serials that are not in your inventory will be permitted.';
-                }
-            }
-            group(SettingsForMobileAndBricks)
-            {
-                Caption = 'Personal Device Interface';
-                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface.';
-
-                field("Brick Top Left Header"; Rec."Brick Top Left Header")
+                field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
-                }
-                field("Brick Top Left Expression"; Rec."Brick Top Left Expression")
-                {
-                    ApplicationArea = All;
-
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Top Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Left Header"; Rec."Brick Middle Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Left Expression"; Rec."Brick Middle Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Right Header"; Rec."Brick Middle Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Right Expression"; Rec."Brick Middle Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Left Header"; Rec."Brick Bottom Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Left Expression"; Rec."Brick Bottom Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Right Header"; Rec."Brick Bottom Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Right Expression"; Rec."Brick Bottom Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(ChooseBrickRevertToDefaults; 'Revert To Defaults')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to use defaults for this Personal Device Interface group.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-                        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-                        Rec.Modify();
-                    end;
-                }
-                field(ChooseBrickUpdateExistingInspection; 'Update Existing Inspections')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to update existing inspections with your new brick expressions.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.UpdateBrickFieldsOnAllExistingInspection();
-                    end;
+                    ShowCaption = true;
+                    AboutTitle = 'Which inspections to inspect when analyzing document specific item tracking blocking.';
+                    AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
                 }
             }
         }
@@ -510,6 +287,17 @@ page 20400 "Qlty. Management Setup"
                 RunObject = Page "Qlty. Inspection Result List";
                 RunPageMode = Edit;
             }
+            action(Tests)
+            {
+                ApplicationArea = All;
+                Caption = 'Tests';
+                ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                Image = TaskQualityMeasure;
+                AboutTitle = 'Tests';
+                AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                RunObject = Page "Qlty. Tests";
+                RunPageMode = Edit;
+            }
         }
     }
 
@@ -526,9 +314,6 @@ page 20400 "Qlty. Management Setup"
             if Rec.Get() then;
             FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
         end;
-
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
     end;
 
     trigger OnClosePage()
