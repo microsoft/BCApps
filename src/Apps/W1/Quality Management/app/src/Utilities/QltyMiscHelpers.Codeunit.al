@@ -12,7 +12,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -26,7 +25,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import from File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
@@ -59,106 +57,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         YesLbl: Label 'YES';
         OnLbl: Label 'ON';
 
-    /// <summary>
-    /// Returns the translatable "Yes" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    internal procedure GetTranslatedYes250(): Text[250]
-    begin
-        exit(TranslatableYesLbl);
-    end;
-
-    /// <summary>
-    /// Returns the translatable "No" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "No" text (up to 250 characters)</returns>
-    internal procedure GetTranslatedNo250(): Text[250]
-    begin
-        exit(TranslatableNoLbl);
-    end;
-
-    /// <summary>
-    /// The maximum recursion to use when creating inspections.
-    /// Used for traversal on source table configuration when finding applicable generation rules, and also when populating source fields.
-    /// 
-    /// This limit prevents infinite loops in complex configuration hierarchies and ensures reasonable performance
-    /// when traversing multi-level table relationships.
-    /// </summary>
-    /// <returns>The maximum recursion depth allowed (currently 20 levels)</returns>
-    internal procedure GetArbitraryMaximumRecursion(): Integer
-    begin
-        exit(20);
-    end;
-
-    internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        ResultRowsCount := DefaultMaxRowsFieldLookup();
-
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit;
-
-        if QltyManagementSetup."Max Rows Field Lookups" > 0 then
-            ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
-    end;
-
-    local procedure DefaultMaxRowsFieldLookup(): Integer
-    begin
-        exit(100);
-    end;
-
-    /// <summary>
-    /// Prompts the user to select a file and imports its contents into an InStream for processing.
-    /// Displays a file upload dialog with optional file type filtering.
-    /// 
-    /// Common usage: Importing configuration files, test data, or external quality inspection results.
-    /// </summary>
-    /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
-    /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
-    /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text) Worked: Boolean
-    begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream);
-    end;
-
-    /// <summary>
-    /// Attempts to parse simple range notation (min..max) into separate minimum and maximum decimal values.
-    /// Handles the common 90% use case of range specifications in quality inspections.
-    /// 
-    /// Examples:
-    /// - "10..20" → OutMin=10, OutMax=20, returns true
-    /// - "5.5..10.5" → OutMin=5.5, OutMax=10.5, returns true
-    /// - "Invalid" → returns false
-    /// - "10" → returns false (not a range)
-    /// </summary>
-    /// <param name="InputText">The text containing a range in format "minValue..maxValue"</param>
-    /// <param name="MinValueInRange">Output: The minimum value from the range</param>
-    /// <param name="MaxValueInRange">Output: The maximum value from the range</param>
-    /// <returns>True if successfully parsed as a simple range; False if input doesn't match simple range pattern</returns>
-    procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
-    var
-        OfParts: List of [Text];
-        Temp: Text;
-    begin
-        Clear(MaxValueInRange);
-        Clear(MinValueInRange);
-
-        if InputText.Contains('..') then
-            if InputText.IndexOf('..') > 0 then begin
-                OfParts := InputText.Split('..');
-                if OfParts.Count() = 2 then begin
-                    OfParts.Get(1, Temp);
-                    if Evaluate(MinValueInRange, Temp) then begin
-                        OfParts.Get(2, Temp);
-                        if Evaluate(MaxValueInRange, Temp) then
-                            exit(true);
-                    end;
-                end;
-            end;
-    end;
 
     /// <summary>
     /// Retrieves available record values for a table lookup field configured on an inspection line, returned as CSV.
@@ -236,6 +134,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
     procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         ReasonableMaximum: Integer;
         DummyText: Text;
@@ -244,7 +143,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TempBufferQltyLookupCode.IsTemporary() then
             TempBufferQltyLookupCode.DeleteAll();
 
-        ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
+        ReasonableMaximum := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
 
         TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyTest."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
@@ -288,8 +187,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text) ResultText: Text
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
     end;
 
     /// <summary>
@@ -306,6 +206,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="CSVSimpleText"></param>
     local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         RecordRefToFetch: RecordRef;
         FieldRefToChoiceField: FieldRef;
         FieldRefToDescriptionField: FieldRef;
@@ -319,7 +220,7 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit;
 
         if MaxCountRecords <= 0 then begin
-            MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
+            MaxCountRecords := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
             if MaxCountRecords > MaxRecordsFetchLimit() then

@@ -1499,7 +1499,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax.
+    /// Wrapper for QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax.
     /// Attempts to parse a text range (e.g., "1..10") into min and max decimal values.
     /// </summary>
     /// <param name="InputText">The text containing a range in format "minValue..maxValue".</param>
@@ -1508,21 +1508,21 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if successfully parsed as a simple range.</returns>
     internal procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
     begin
-        exit(QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(InputText, MinValueInRange, MaxValueInRange));
+        exit(QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(InputText, MinValueInRange, MaxValueInRange));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetArbitraryMaximumRecursion.
+    /// Wrapper for QltyConfigurationHelpers.GetArbitraryMaximumRecursion.
     /// Returns the maximum recursion depth limit for traversing multi-level table relationships.
     /// </summary>
     /// <returns>The maximum recursion depth allowed (currently 20 levels).</returns>
     internal procedure GetArbitraryMaximumRecursion(): Integer
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        exit(QltyMiscHelpers.GetArbitraryMaximumRecursion());
+        exit(QltyConfigurationHelpers.GetArbitraryMaximumRecursion());
     end;
 
     /// <summary>
@@ -1556,15 +1556,15 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup.
+    /// Wrapper for QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup.
     /// Returns the configured maximum rows for field lookups from Quality Management Setup.
     /// </summary>
     /// <returns>Maximum rows to fetch for field lookups (default 100 if not configured).</returns>
     internal procedure GetDefaultMaximumRowsFieldLookup(): Integer
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        exit(QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup());
+        exit(QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup());
     end;
 
     /// <summary>
@@ -1613,31 +1613,35 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Filter Helpers Wrappers
 
-    #region Qlty. Misc Helpers Additional Wrappers
+    #region Qlty. Localization Wrappers
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetTranslatedYes250.
+    /// Wrapper for QltyLocalization.GetTranslatedYes.
     /// Returns the translatable "Yes" label with maximum length of 250 characters.
     /// </summary>
     /// <returns>The localized "Yes" text (up to 250 characters)</returns>
     internal procedure GetTranslatedYes250(): Text[250]
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
-        exit(QltyMiscHelpers.GetTranslatedYes250());
+        exit(QltyLocalization.GetTranslatedYes());
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetTranslatedNo250.
+    /// Wrapper for QltyLocalization.GetTranslatedNo.
     /// Returns the translatable "No" label with maximum length of 250 characters.
     /// </summary>
     /// <returns>The localized "No" text (up to 250 characters)</returns>
     internal procedure GetTranslatedNo250(): Text[250]
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
-        exit(QltyMiscHelpers.GetTranslatedNo250());
+        exit(QltyLocalization.GetTranslatedNo());
     end;
+
+    #endregion Qlty. Localization Wrappers
+
+    #region Qlty. Misc Helpers Additional Wrappers
 
     /// <summary>
     /// Wrapper for QltyMiscHelpers.GetBooleanFor.

@@ -985,7 +985,7 @@ page 20434 "Qlty. Test Number Card Part"
     var
         QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -1100,7 +1100,7 @@ page 20434 "Qlty. Test Number Card Part"
             if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::"In Progress" then
                 AdvancedRange := DefaultRangeTok;
 
-        if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
+        if QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
             if not QltyTestIds.Contains(QltyTest.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
@@ -1229,7 +1229,7 @@ page 20434 "Qlty. Test Number Card Part"
 
         QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -1249,7 +1249,7 @@ page 20434 "Qlty. Test Number Card Part"
     begin
         QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
         QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
         QltyIResultConditConf.Modify(true);
         LoadExistingTest(QltyTest.Code);
         CurrPage.Update(false);

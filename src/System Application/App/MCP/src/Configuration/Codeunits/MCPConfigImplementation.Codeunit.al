@@ -31,6 +31,7 @@ codeunit 8351 "MCP Config Implementation"
         InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
+        VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
         MCPConfigurationCreatedLbl: Label 'MCP Configuration created', Locked = true;
         MCPConfigurationModifiedLbl: Label 'MCP Configuration modified', Locked = true;
         MCPConfigurationDeletedLbl: Label 'MCP Configuration deleted', Locked = true;
@@ -45,7 +46,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
         MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
         VSCodeAppNameLbl: Label 'VS Code', Locked = true;
-        VSCodeAppDescriptionLbl: Label 'Visual Studio Code';
+        VSCodeAppDescriptionLbl: Label 'Visual Studio Code', Locked = true;
         VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
         ExportFileNameTxt: Label 'MCPConfig_%1_%2.json', Locked = true, Comment = '%1 = config name, %2 = date';
         ExportTitleTxt: Label 'Export Configuration';
@@ -352,6 +353,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
+        PageMetadata: Record "Page Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
@@ -359,12 +361,13 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        ValidateAPITool(APIPageId, ValidateAPIPublisher);
+        PageMetadata := ValidateAPITool(APIPageId, ValidateAPIPublisher);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."API Version" := GetHighestAPIVersion(PageMetadata);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -511,7 +514,7 @@ codeunit 8351 "MCP Config Implementation"
             APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
-    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean)
+    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
     var
         PageMetadata: Record "Page Metadata";
     begin
@@ -522,13 +525,15 @@ codeunit 8351 "MCP Config Implementation"
             Error(InvalidPageTypeErr);
 
         if not ValidateAPIPublisher then
-            exit;
+            exit(PageMetadata);
 
         if PageMetadata.APIPublisher = 'microsoft' then
             Error(InvalidAPIVersionErr);
 
         if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
             Error(InvalidAPIVersionErr);
+
+        exit(PageMetadata);
     end;
 
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -628,6 +633,102 @@ codeunit 8351 "MCP Config Implementation"
         MCPSystemTool."Tool Name" := ToolName;
         MCPSystemTool."Tool Description" := ToolDescription;
         MCPSystemTool.Insert();
+    end;
+
+    internal procedure ValidateAPIVersion(ObjectId: Integer; APIVersion: Text)
+    var
+        PageMetadata: Record "Page Metadata";
+        Versions: List of [Text];
+    begin
+        if not PageMetadata.Get(ObjectId) then
+            exit;
+
+        Versions := PageMetadata.APIVersion.Split(',');
+        if not Versions.Contains(APIVersion) then
+            Error(VersionNotValidErr);
+    end;
+
+    internal procedure LookupAPIVersions(PageId: Integer; var APIVersion: Text[30])
+    var
+        PageMetadata: Record "Page Metadata";
+        MCPAPIVersion: Record "MCP API Version";
+        Versions: List of [Text];
+        Version: Text[30];
+    begin
+        if not PageMetadata.Get(PageId) then
+            exit;
+
+        Versions := PageMetadata.APIVersion.Split(',');
+        foreach Version in Versions do begin
+            MCPAPIVersion."API Version" := Version;
+            MCPAPIVersion.Insert();
+        end;
+
+        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
+            APIVersion := MCPAPIVersion."API Version";
+    end;
+
+    internal procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    var
+        Versions: List of [Text];
+        Version: Text;
+        HighestVersion: Text;
+        HighestMajor: Integer;
+        HighestMinor: Integer;
+        CurrentMajor: Integer;
+        CurrentMinor: Integer;
+    begin
+        if PageMetadata.APIVersion = '' then
+            exit('');
+
+        Versions := PageMetadata.APIVersion.Split(',');
+
+        if Versions.Count() = 1 then
+            exit(CopyStr(Versions.Get(1), 1, 30));
+
+        HighestMajor := -1;
+        HighestMinor := -1;
+
+        foreach Version in Versions do
+            if TryParseVersion(Version, CurrentMajor, CurrentMinor) then
+                if (CurrentMajor > HighestMajor) or ((CurrentMajor = HighestMajor) and (CurrentMinor > HighestMinor)) then begin
+                    HighestMajor := CurrentMajor;
+                    HighestMinor := CurrentMinor;
+                    HighestVersion := Version;
+                end;
+
+        exit(CopyStr(HighestVersion, 1, 30));
+    end;
+
+    local procedure TryParseVersion(Version: Text; var Major: Integer; var Minor: Integer): Boolean
+    var
+        VersionParts: List of [Text];
+        VersionNumber: Text;
+    begin
+        // 'beta' is treated as lowest priority
+        if Version.ToLower() = 'beta' then begin
+            Major := -1;
+            Minor := -1;
+            exit(true);
+        end;
+
+        // Expected format: vMajor.Minor (e.g., v1.0, v2.0)
+        if not Version.StartsWith('v') then
+            exit(false);
+
+        VersionNumber := Version.Substring(2); // Remove 'v'
+        VersionParts := VersionNumber.Split('.');
+
+        if VersionParts.Count() <> 2 then
+            exit(false);
+
+        if not Evaluate(Major, VersionParts.Get(1)) then
+            exit(false);
+
+        if not Evaluate(Minor, VersionParts.Get(2)) then
+            exit(false);
+
+        exit(true);
     end;
     #endregion
 
