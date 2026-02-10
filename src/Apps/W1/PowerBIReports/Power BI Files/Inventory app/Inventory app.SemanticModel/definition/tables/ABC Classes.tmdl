@@ -68,7 +68,7 @@ table 'ABC Classes'
 		queryGroup: 'Dimension Tables'
 		source =
 				let
-				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,#"ABC ANALYSIS", []),
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
 				    TableData = Source{[Name="abcAnalysisSetups",Signature="table"]}[Data],
 				    #"Divided Column" = Table.TransformColumns(TableData, {{"categoryA", each _ / 100, type number},{"categoryB", each _ / 100, type number},{"categoryC", each _ / 100, type number}})
 				in

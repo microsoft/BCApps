@@ -136,9 +136,3 @@ expression ConvertUTC =
 
 	annotation PBI_ResultType = Function
 
-expression 'ABC ANALYSIS' = "microsoft/analytics/v27.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: dbf2dabc-7793-4df6-85f8-05426a3f6b33
-	queryGroup: 'Parameters and Functions'
-
-	annotation PBI_ResultType = Text
-
