@@ -17,7 +17,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     InherentPermissions = X;
 
     var
-        ActionCreateInspectionManuallyLbl: Label 'Create Inspection manually';
+        ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
         ActionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
         ActionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
         ActionCreateReinspectionLbl: Label 'Create Re-inspection';
@@ -29,7 +29,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ActionChangeTrackingNoLbl: Label 'Change Tracking No.';
         ActionChangeSourceQuantityLbl: Label 'Change Source Quantity';
         SupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
-        UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
+        UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
     /// CanReadInspectionResults returns true if the current user can has permission to read inspection results in general.
@@ -43,21 +43,21 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines if the current user can create a manual inspection.
-    /// </summary>
-    internal procedure VerifyCanCreateManualInspection()
-    begin
-        if not CanCreateManualInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
-    end;
-
-    /// <summary>
     /// CanCreateManualInspection. True if the user can create a manual inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateManualInspection(): Boolean
     begin
         exit(LoadPermissionDetails(ActionCreateInspectionManuallyLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can create a manual inspection.
+    /// </summary>
+    internal procedure VerifyCanCreateManualInspection()
+    begin
+        if not CanCreateManualInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
     end;
 
     /// <summary>

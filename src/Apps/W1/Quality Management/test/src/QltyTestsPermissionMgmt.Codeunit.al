@@ -18,7 +18,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
-        UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
+        UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
         ExpectedSupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
 
     [Test]
@@ -47,7 +47,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanCreateManualInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Inspection Manual'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'create inspection manually'));
         end;
     end;
 
