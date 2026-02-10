@@ -589,6 +589,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
         Option2NameMismatchMsg: Label 'Incorrect Option 2 Name';
         Option2ValueMismatchMsg: Label 'Incorrect Option 2 Value';
     begin
+#pragma warning disable AA0210
         ShpfyVariant.SetRange("Product Id", ParentProductId);
         ShpfyVariant.SetRange("Shop Code", Shop.Code);
 #pragma warning restore AA0210
