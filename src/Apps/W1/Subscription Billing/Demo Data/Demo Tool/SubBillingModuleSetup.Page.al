@@ -1,7 +1,5 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.DemoTool.Helpers;
-
 page 8101 "Sub. Billing Module Setup"
 {
     PageType = Card;
