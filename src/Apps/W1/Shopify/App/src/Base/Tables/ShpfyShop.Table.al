@@ -5,7 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
