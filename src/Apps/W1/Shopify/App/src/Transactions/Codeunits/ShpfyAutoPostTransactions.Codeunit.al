@@ -89,25 +89,17 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         GenJournalLine: Record "Gen. Journal Line";
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         SuggestPayments: Report "Shpfy Suggest Payments";
+        AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
     begin
         PaymentMethodMapping.Get(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
         SuggestPayments.SetJournalParameters(PaymentMethodMapping."Auto-Post Jnl. Template", PaymentMethodMapping."Auto-Post Jnl. Batch", PostingDate);
         SuggestPayments.GetOrderTransactions(OrderTransaction);
-        SuggestPayments.CreateGeneralJournalLines(true);
+        SuggestPayments.CreateGeneralJournalLines();
         GenJournalLine.SetRange("Shpfy Transaction Id", OrderTransaction."Shopify Transaction Id");
-        GenJournalLine.SetRange("Automatically Posted", true);
         if GenJournalLine.FindFirst() then begin
+            BindSubscription(AutoGenJnlPost);
             GenJournalLine.SendToPosting(Codeunit::"Gen. Jnl.-Post");
-            RemoveNotPostedLines(OrderTransaction."Shopify Transaction Id");
+            UnbindSubscription(AutoGenJnlPost);
         end;
-    end;
-
-    local procedure RemoveNotPostedLines(ShopifyTransactionId: BigInteger)
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        GenJournalLine.SetRange("Shpfy Transaction Id", ShopifyTransactionId);
-        if not GenJournalLine.IsEmpty() then
-            GenJournalLine.DeleteAll(true);
     end;
 }

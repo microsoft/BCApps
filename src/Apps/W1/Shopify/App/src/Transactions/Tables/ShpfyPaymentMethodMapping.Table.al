@@ -15,6 +15,8 @@ table 30134 "Shpfy Payment Method Mapping"
 {
     Access = Internal;
     Caption = 'Shopify Payment Method';
+    DrillDownPageID = "Shpfy Payment Methods Mapping";
+    LookupPageID = "Shpfy Payment Methods Mapping";
     DataClassification = CustomerContent;
 
     fields
@@ -69,7 +71,7 @@ table 30134 "Shpfy Payment Method Mapping"
         {
             Caption = 'Auto-Post Journal Template';
             DataClassification = CustomerContent;
-            TableRelation = "Gen. Journal Template";
+            TableRelation = "Gen. Journal Template" where(Type = const("Cash Receipts"));
         }
         field(9; "Auto-Post Jnl. Batch"; Code[10])
         {

@@ -29,24 +29,4 @@ codeunit 30311 "Shpfy Suggest Payments"
     begin
         NewCustLedgerEntry."Shpfy Transaction Id" := 0;
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post", 'OnBeforeCode', '', false, false)]
-    local procedure OnBeforeCode(var GenJournalLine: Record "Gen. Journal Line"; var HideDialog: Boolean)
-    begin
-        if GenJournalLine."Automatically Posted" then
-            HideDialog := true;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post", 'OnBeforeShowPostResultMessage', '', false, false)]
-    local procedure OnBeforeShowPostResultMessage(var GenJnlLine: Record "Gen. Journal Line"; TempJnlBatchName: Code[10]; var IsHandled: Boolean)
-    var
-        AutomaticallyPosted: Boolean;
-    begin
-        if GenJnlLine.GetFilter("Automatically Posted") = '' then
-            exit;
-
-        Evaluate(AutomaticallyPosted, GenJnlLine.GetFilter("Automatically Posted"));
-        if AutomaticallyPosted then
-            IsHandled := true;
-    end;
 }

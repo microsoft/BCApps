@@ -45,7 +45,7 @@ report 30118 "Shpfy Suggest Payments"
 
             trigger OnPostDataItem()
             begin
-                CreateGeneralJournalLines(false);
+                CreateGeneralJournalLines();
             end;
         }
     }
@@ -378,7 +378,7 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Insert();
     end;
 
-    internal procedure CreateGeneralJournalLines(AutomaticallyPosted: Boolean)
+    internal procedure CreateGeneralJournalLines()
     var
         NoSeriesBatch: Codeunit "No. Series - Batch";
         LastLineNo: Integer;
@@ -389,6 +389,8 @@ report 30118 "Shpfy Suggest Payments"
         GenJournalLine.SetRange("Journal Batch Name", GeneralJournalBatchName);
         if GenJournalLine.FindLast() then
             LastLineNo := GenJournalLine."Line No.";
+
+        RemoveGenJournalLines(TempSuggestPayment."Shpfy Transaction Id");
 
         if OrderNoInDescription then
             TempSuggestPayment.SetAutoCalcFields("Shpfy Order No.");
@@ -433,13 +435,19 @@ report 30118 "Shpfy Suggest Payments"
                     GenJournalLine.Validate("Applies-to Doc. No.", TempSuggestPayment."Credit Memo No.");
                 end;
                 GenJournalLine."Shpfy Transaction Id" := TempSuggestPayment."Shpfy Transaction Id";
-                GenJournalLine."Automatically Posted" := AutomaticallyPosted;
                 GenJournalLine.SetSuppressCommit(false);
                 GenJournalLine.Insert(true);
 
                 if DocNoPerLine then
                     NextDocNo := NoSeriesBatch.SimulateGetNextNo(GenJournalBatch."No. Series", GenJournalLine."Posting Date", NextDocNo);
             until TempSuggestPayment.Next() = 0;
+    end;
+
+    local procedure RemoveGenJournalLines(ShopifyTransactionId: BigInteger)
+    begin
+        GenJournalLine.SetRange("Shpfy Transaction Id", ShopifyTransactionId);
+        if not GenJournalLine.IsEmpty() then
+            GenJournalLine.DeleteAll(true);
     end;
 
     local procedure SetGenJournallLineDimension(CustomerLedgerEntryDimensionSetId: Integer)

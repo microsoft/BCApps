@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
@@ -332,7 +333,18 @@ codeunit 139614 "Shpfy Auto Post Trans. Test"
 
         CreatePaymentMethodMapping();
 
+        DisablePostWithJobQueue();
+
         IsInitialized := true;
+    end;
+
+    local procedure DisablePostWithJobQueue()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Post with Job Queue" := false;
+        GeneralLedgerSetup.Modify();
     end;
 
     local procedure CreateItem()
