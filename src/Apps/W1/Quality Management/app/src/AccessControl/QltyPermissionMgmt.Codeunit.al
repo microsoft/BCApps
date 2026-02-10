@@ -18,18 +18,18 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     var
         CurrentUserId: Text;
-        ExpressOnlyCaptionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
-        ExpressOnlyCaptionCreateInspectionManualLbl: Label 'Create Inspection Manual';
-        ExpressOnlyCaptionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
-        ExpressOnlyCaptionCreateReinspectionLbl: Label 'Create Re-inspection';
-        ExpressOnlyCaptionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
-        ExpressOnlyCaptionDeleteFinishedInspectionLbl: Label 'Delete Finished Inspection';
-        ExpressOnlyCaptionChangeOthersInspectionsLbl: Label 'Change Others Inspections';
-        ExpressOnlyCaptionReopenInspectionLbl: Label 'Reopen Inspection';
-        ExpressOnlyCaptionFinishInspectionLbl: Label 'Finish Inspection';
-        ExpressOnlyCaptionChangeTrackingNoLbl: Label 'Change Tracking No.';
-        ExpressOnlyCaptionChangeSourceQuantityLbl: Label 'Change Source Quantity';
-        ExpectedSupervisorRoleIDTxt: Label 'QltyGeneral', Locked = true;
+        ActionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
+        ActionCreateInspectionManualLbl: Label 'Create Inspection Manual';
+        ActionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
+        ActionCreateReinspectionLbl: Label 'Create Re-inspection';
+        ActionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
+        ActionDeleteFinishedInspectionLbl: Label 'Delete Finished Inspection';
+        ActionChangeOthersInspectionsLbl: Label 'Change Others Inspections';
+        ActionReopenInspectionLbl: Label 'Reopen Inspection';
+        ActionFinishInspectionLbl: Label 'Finish Inspection';
+        ActionChangeTrackingNoLbl: Label 'Change Tracking No.';
+        ActionChangeSourceQuantityLbl: Label 'Change Source Quantity';
+        SupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
@@ -51,7 +51,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateManualInspection()
     begin
         if not CanCreateManualInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionManual());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionManualLbl);
     end;
 
     /// <summary>
@@ -60,7 +60,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateManualInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateInspectionManual()));
+        exit(LoadPermissionDetails(ActionCreateInspectionManualLbl));
     end;
 
     /// <summary>
@@ -71,7 +71,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateAutoInspection()
     begin
         if not CanCreateAutoInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionAuto());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionAutoLbl);
     end;
 
     /// <summary>
@@ -80,7 +80,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateAutoInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateInspectionAuto()));
+        exit(LoadPermissionDetails(ActionCreateInspectionAutoLbl));
     end;
 
     /// <summary>
@@ -91,7 +91,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateReinspection()
     begin
         if not CanCreateReinspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReinspection());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateReinspectionLbl);
     end;
 
     /// <summary>
@@ -100,7 +100,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateReinspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateReinspection()));
+        exit(LoadPermissionDetails(ActionCreateReinspectionLbl));
     end;
 
     /// <summary>
@@ -111,7 +111,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanDeleteOpenInspection()
     begin
         if not CanDeleteOpenInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteOpenInspection());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionDeleteOpenInspectionLbl);
     end;
 
     /// <summary>
@@ -120,7 +120,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanDeleteOpenInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionDeleteOpenInspection()));
+        exit(LoadPermissionDetails(ActionDeleteOpenInspectionLbl));
     end;
 
     /// <summary>
@@ -131,7 +131,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
         if not CanDeleteFinishedInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteFinishedInspection());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionDeleteFinishedInspectionLbl);
     end;
 
     /// <summary>
@@ -140,7 +140,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanDeleteFinishedInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionDeleteFinishedInspection()));
+        exit(LoadPermissionDetails(ActionDeleteFinishedInspectionLbl));
     end;
 
     /// <summary>
@@ -151,7 +151,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeOtherInspections()
     begin
         if not CanChangeOtherInspections() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeOtherInspections());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeOthersInspectionsLbl);
     end;
 
     /// <summary>
@@ -160,7 +160,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionChangeOtherInspections()));
+        exit(LoadPermissionDetails(ActionChangeOthersInspectionsLbl));
     end;
 
     /// <summary>
@@ -171,7 +171,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanReopenInspection()
     begin
         if not CanReopenInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionReopenInspection());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionReopenInspectionLbl);
     end;
 
     /// <summary>
@@ -180,7 +180,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanReopenInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionReopenInspection()));
+        exit(LoadPermissionDetails(ActionReopenInspectionLbl));
     end;
 
     /// <summary>
@@ -191,7 +191,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanFinishInspection()
     begin
         if not CanFinishInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishInspection());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionFinishInspectionLbl);
     end;
 
     /// <summary>
@@ -200,7 +200,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanFinishInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionFinishInspection()));
+        exit(LoadPermissionDetails(ActionFinishInspectionLbl));
     end;
 
     /// <summary>
@@ -211,7 +211,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeTrackingNo()
     begin
         if not CanChangeTrackingNo() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeTrackingNo());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeTrackingNoLbl);
     end;
 
     /// <summary>
@@ -220,7 +220,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanChangeTrackingNo(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionChangeTrackingNo()));
+        exit(LoadPermissionDetails(ActionChangeTrackingNoLbl));
     end;
 
     /// <summary>
@@ -251,27 +251,27 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
-            GetCaptionCreateInspectionAuto():
+            ActionCreateInspectionAutoLbl:
                 Result := true;
-            GetCaptionCreateInspectionManual():
+            ActionCreateInspectionManualLbl:
                 Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
-            GetCaptionCreateReinspection():
+            ActionCreateReinspectionLbl:
                 Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
-            GetCaptionChangeOtherInspections():
+            ActionChangeOthersInspectionsLbl:
                 Result := GetIsSuperVisorRoleAssigned();
-            GetCaptionDeleteFinishedInspection():
+            ActionDeleteFinishedInspectionLbl:
                 Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
-            GetCaptionDeleteOpenInspection():
+            ActionDeleteOpenInspectionLbl:
                 Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header");
-            GetCaptionChangeTrackingNo():
+            ActionChangeTrackingNoLbl:
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
-            GetCaptionFinishInspection():
+            ActionFinishInspectionLbl:
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
-            GetCaptionReopenInspection():
+            ActionReopenInspectionLbl:
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
-            GetCaptionChangeSourceQuantity():
+            ActionChangeSourceQuantityLbl:
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
-            GetCaptionEditLineComments():
+            ActionEditLineCommentsLbl:
                 Result := GetCanModifyTableData(Database::"Record Link");
         end;
     end;
@@ -308,10 +308,10 @@ codeunit 20406 "Qlty. Permission Mgmt."
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), ExpectedSupervisorRoleIDTxt);
+        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), SupervisorRoleIDTxt);
         if not IsAssigned then
             if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
-                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), ExpectedSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id);
+                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), SupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id);
         if not IsAssigned then
             IsAssigned := UserPermissions.IsSuper(UserSecurityId());
     end;
@@ -342,7 +342,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeSourceQuantity()
     begin
         if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeSourceQuantity());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeSourceQuantityLbl);
     end;
 
     /// <summary>
@@ -351,7 +351,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanChangeSourceQuantity(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionChangeSourceQuantity()));
+        exit(LoadPermissionDetails(ActionChangeSourceQuantityLbl));
     end;
 
     /// <summary>
@@ -362,7 +362,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanEditLineComments()
     begin
         if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionEditLineComments());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionEditLineCommentsLbl);
     end;
 
     /// <summary>
@@ -371,7 +371,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanEditLineComments(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionEditLineComments()));
+        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
     end;
 
     /// <summary>
@@ -380,61 +380,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanReadLineComments(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionEditLineComments()));
-    end;
-
-    local procedure GetCaptionCreateInspectionManual(): Text
-    begin
-        exit(ExpressOnlyCaptionCreateInspectionManualLbl);
-    end;
-
-    local procedure GetCaptionCreateInspectionAuto(): Text
-    begin
-        exit(ExpressOnlyCaptionCreateInspectionAutoLbl);
-    end;
-
-    local procedure GetCaptionCreateReinspection(): Text
-    begin
-        exit(ExpressOnlyCaptionCreateReinspectionLbl);
-    end;
-
-    local procedure GetCaptionDeleteOpenInspection(): Text
-    begin
-        exit(ExpressOnlyCaptionDeleteOpenInspectionLbl);
-    end;
-
-    local procedure GetCaptionDeleteFinishedInspection(): Text
-    begin
-        exit(ExpressOnlyCaptionDeleteFinishedInspectionLbl);
-    end;
-
-    local procedure GetCaptionChangeOtherInspections(): Text
-    begin
-        exit(ExpressOnlyCaptionChangeOthersInspectionsLbl);
-    end;
-
-    local procedure GetCaptionReopenInspection(): Text
-    begin
-        exit(ExpressOnlyCaptionReopenInspectionLbl);
-    end;
-
-    local procedure GetCaptionFinishInspection(): Text
-    begin
-        exit(ExpressOnlyCaptionFinishInspectionLbl);
-    end;
-
-    local procedure GetCaptionChangeTrackingNo(): Text
-    begin
-        exit(ExpressOnlyCaptionChangeTrackingNoLbl);
-    end;
-
-    local procedure GetCaptionChangeSourceQuantity(): Text
-    begin
-        exit(ExpressOnlyCaptionChangeSourceQuantityLbl);
-    end;
-
-    local procedure GetCaptionEditLineComments(): Text
-    begin
-        exit(ExpressOnlyCaptionEditLineCommentsLbl);
+        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
     end;
 }
