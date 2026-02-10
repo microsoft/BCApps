@@ -60,7 +60,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
-    procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
+    internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary;
@@ -68,12 +68,12 @@ codeunit 20410 "Qlty. Result Evaluation"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LoopConditionMet: Boolean;
         AnyConditionMet: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         Small: Text[250];
         Condition: Text;
     begin
-        OnBeforeEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, Handled);
-        if Handled then
+        OnBeforeEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, IsHandled);
+        if IsHandled then
             exit;
 
         QltyInspectionResult.SetCurrentKey("Evaluation Sequence");
@@ -128,9 +128,7 @@ codeunit 20410 "Qlty. Result Evaluation"
 
         until QltyInspectionResult.Next() = 0;
 
-        OnAfterEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, TempHighestQltyIResultConditConf, Handled);
-        if Handled then
-            exit;
+        OnAfterEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, TempHighestQltyIResultConditConf);
 
         if AnyConditionMet then
             exit(TempHighestQltyIResultConditConf."Result Code");
@@ -157,7 +155,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <returns></returns>
     [TryFunction]
-    procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         ValidateQltyInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader, false);
     end;
@@ -334,10 +332,10 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValueAsInteger: Integer;
         DateAndTimeValue: DateTime;
         DateOnlyValue: Date;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyLookupCode, QltyCaseSensitivity, Handled);
-        if Handled then
+        OnBeforeValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyLookupCode, QltyCaseSensitivity, IsHandled);
+        if IsHandled then
             exit;
 
         if TextToValidate = '' then
@@ -398,9 +396,11 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyTestValueType::"Value Type Option",
                 QltyTestValueType::"Value Type Table Lookup":
                 begin
+                    TextToValidate := CopyStr(TextToValidate.Trim(), 1, MaxStrLen(TextToValidate));
+
                     TempBufferQltyLookupCode.Reset();
                     TempBufferQltyLookupCode.SetRange("Custom 1", TextToValidate);
-                    if (TempBufferQltyLookupCode.IsEmpty()) and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
+                    if TempBufferQltyLookupCode.IsEmpty() and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
                         TempBufferQltyLookupCode.Reset();
                         TempBufferQltyLookupCode.SetRange("Custom 2", TextToValidate.ToLower());
                     end;
@@ -481,7 +481,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         Result := AcceptableValue in [IsDefaultNumberTok, IsDefaultTextTok];
     end;
 
-    procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
+    internal procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         ValueAsDateTime: DateTime;
@@ -525,7 +525,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(IsGood);
     end;
 
-    procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
+    internal procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
         ValueAsDate: Date;
@@ -601,9 +601,9 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="QltyTestValueType">var Rnum "Qlty. Test Value Type".</param>
     /// <param name="TestValue">var Text.</param>
     /// <param name="OutCode">The result.</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var Handled: Boolean)
+    local procedure OnBeforeEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
@@ -615,9 +615,8 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="TestValue">var Text.</param>
     /// <param name="Result">var Code[20].</param>
     /// <param name="TempHighestQltyIResultConditConf">var Record "Qlty. I. Result Condit. Conf." temporary.</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary; var Handled: Boolean)
+    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary)
     begin
     end;
 
@@ -630,9 +629,9 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="QltyTestValueType"></param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="CaseOption"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"; var Handled: Boolean)
+    local procedure OnBeforeValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"; var IsHandled: Boolean)
     begin
     end;
 

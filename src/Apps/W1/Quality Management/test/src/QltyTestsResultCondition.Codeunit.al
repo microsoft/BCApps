@@ -515,6 +515,72 @@ codeunit 139956 "Qlty. Tests - Result Condition"
     end;
 
     [Test]
+    procedure CopyResultConditionsFromDefaultToAllTemplates_WithNewTestConfiguredToCopy()
+    var
+        ConditionalQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyTest: Record "Qlty. Test";
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        TestCode: Text;
+        BeforeNewResultCountConditions: Integer;
+    begin
+        // [SCENARIO] Supports issue 5503, allows a scenario of adding a new grade with 'automatically copy' configured after existing grades are and adds those conditions.
+
+        Initialize();
+
+        // [GIVEN] Quality Management setup is initialized
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A first quality inspection template is created with a custom grade condition
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        Clear(ToLoadQltyTest);
+        ToLoadQltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyTest.Code), TestCode);
+        ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+        ToLoadQltyTest.Insert();
+
+        ConfigurationToLoadQltyInspectionTemplateLine.Init();
+        ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
+        ConfigurationToLoadQltyInspectionTemplateLine.Insert();
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
+        ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
+        ToLoadQltyIResultConditConf.Condition := InitialConditionTok;
+        ToLoadQltyIResultConditConf.Modify();
+
+        // This is not testing the scenario, this is just validating the preconditions.
+        ConditionalQltyInspectionResult.SetRange("Copy Behavior", ConditionalQltyInspectionResult."Copy Behavior"::"Automatically copy the result");
+        LibraryAssert.IsTrue(ConditionalQltyInspectionResult.Count() > 0, 'Validating preconditions. There must be n>0 grades that copy for this test to be valid.');
+        ToLoadQltyIResultConditConf.SetRecFilter();
+        ToLoadQltyIResultConditConf.SetRange("Result Code");
+        BeforeNewResultCountConditions := ConditionalQltyInspectionResult.Count();
+        LibraryAssert.AreEqual(BeforeNewResultCountConditions, ToLoadQltyIResultConditConf.Count(), 'Validating preconditions. Grade.Count(where copy is on) should equal the grade count for a given template line.');
+
+        // [GIVEN] Another net new grade with a copy behavior.
+        ConditionalQltyInspectionResult.Init();
+        ConditionalQltyInspectionResult.Code := 'AUTOMATEDTEST';
+        ConditionalQltyInspectionResult.Description := 'Automated test.';
+        ConditionalQltyInspectionResult."Copy Behavior" := ConditionalQltyInspectionResult."Copy Behavior"::"Automatically copy the result";
+        ConditionalQltyInspectionResult.Insert(true);
+
+        // [WHEN] We ask the system to copy the new grades to all templates
+        CondManagementQltyResultConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+
+        // [THEN] The grade condition count should now be one higher.
+        ConditionalQltyInspectionResult.SetRange("Copy Behavior", ConditionalQltyInspectionResult."Copy Behavior"::"Automatically copy the result");
+        LibraryAssert.AreEqual(BeforeNewResultCountConditions + 1, ToLoadQltyIResultConditConf.Count(), 'The grade conditions should have increased by one.');
+
+        // clean up the artifacts
+        ToLoadQltyIResultConditConf.Reset();
+        ToLoadQltyIResultConditConf.SetRange("Result Code", ConditionalQltyInspectionResult.Code);
+        ToLoadQltyIResultConditConf.DeleteAll(false);
+        ConditionalQltyInspectionResult.Delete(); // remove the grade.
+    end;
+
+    [Test]
     procedure CopyResultConditionsFromTemplateLineToInspection_NoExistingConfigLine()
     var
         Location: Record Location;
@@ -530,7 +596,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         DummyReservationEntry: Record "Reservation Entry";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
         UnusedVariant: Code[10];
         TestCode: Text;
@@ -568,9 +633,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPreventDisplaying(RecordRef, true, false, QltyInspectionHeader);
 
         // [WHEN] Result conditions are copied from the template line to the inspection
         CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);

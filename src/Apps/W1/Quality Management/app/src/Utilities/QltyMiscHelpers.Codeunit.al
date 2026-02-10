@@ -26,28 +26,45 @@ codeunit 20599 "Qlty. Misc Helpers"
         TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import From File';
+        ImportFromLbl: Label 'Import from File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
         YesNoKeyword3Txt: Label 'Is the';
         YesNoKeyword4Txt: Label 'Did you';
         YesNoKeyword5Txt: Label 'Have you';
-        TrackingKeyword1Txt: Label 'serial #';
-        TrackingKeyword2Txt: Label 'lot #';
-        TrackingKeyword3Txt: Label 'serial number';
+        TrackingKeyword1Txt: Label 'lot #';
+        TrackingKeyword2Txt: Label 'serial #';
+        TrackingKeyword3Txt: Label 'package #';
         TrackingKeyword4Txt: Label 'lot number';
+        TrackingKeyword5Txt: Label 'serial number';
+        TrackingKeyword6Txt: Label 'package number';
         UnableToSetTableValueTableNotFoundErr: Label 'Unable to set a value because the table [%1] was not found.', Comment = '%1=the table name';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
+        QltyGoodLbl: Label 'GOOD';
+        QltyPassLbl: Label 'PASS';
+        QltyAcceptableLbl: Label 'ACCEPTABLE';
+        QltyPassedLbl: Label 'PASSED';
+        QltyBadLbl: Label 'BAD';
+        QltyFailLbl: Label 'FAIL';
+        QltyUnacceptableLbl: Label 'UNACCEPTABLE';
+        QltyFailedLbl: Label 'FAILED';
+        QltyNotOkLbl: Label 'NOTOK';
+        PositiveLbl: Label 'POSITIVE';
+        EnabledLbl: Label 'ENABLED';
+        CheckLbl: Label 'CHECK';
+        CheckedLbl: Label 'CHECKED';
+        YesLbl: Label 'YES';
+        OnLbl: Label 'ON';
 
     /// <summary>
     /// Returns the translatable "Yes" label with maximum length of 250 characters.
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    procedure GetTranslatedYes250(): Text[250]
+    internal procedure GetTranslatedYes250(): Text[250]
     begin
         exit(TranslatableYesLbl);
     end;
@@ -57,7 +74,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "No" text (up to 250 characters)</returns>
-    procedure GetTranslatedNo250(): Text[250]
+    internal procedure GetTranslatedNo250(): Text[250]
     begin
         exit(TranslatableNoLbl);
     end;
@@ -78,18 +95,19 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        Handled: Boolean;
     begin
-        ResultRowsCount := 100;
-        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, Handled);
-        if Handled then
-            exit;
+        ResultRowsCount := DefaultMaxRowsFieldLookup();
 
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if QltyManagementSetup."Max Rows Field Lookups" > 0 then
             ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
+    end;
+
+    local procedure DefaultMaxRowsFieldLookup(): Integer
+    begin
+        exit(100);
     end;
 
     /// <summary>
@@ -101,11 +119,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
     /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
     /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
-    var
-        ServerFile: Text;
+    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text) Worked: Boolean
     begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFile, InStream);
+        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream);
     end;
 
     /// <summary>
@@ -306,8 +322,8 @@ codeunit 20599 "Qlty. Misc Helpers"
             MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
-            if MaxCountRecords > 1000 then
-                MaxCountRecords := 1000;
+            if MaxCountRecords > MaxRecordsFetchLimit() then
+                MaxCountRecords := MaxRecordsFetchLimit();
         end;
 
         RemainingCountRecordsToAdd := MaxCountRecords;
@@ -317,7 +333,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TableFilter <> '' then
             RecordRefToFetch.SetView(TableFilter);
 
-        LoopSafety := 1000;
+        LoopSafety := MaxRecordsFetchLimit();
         if RecordRefToFetch.FindSet() then
             repeat
                 LoopSafety -= 1;
@@ -348,6 +364,11 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToFetch.Close();
     end;
 
+    local procedure MaxRecordsFetchLimit(): Integer
+    begin
+        exit(1000);
+    end;
+
     /// <summary>
     /// Converts text input to a boolean value using flexible interpretation rules.
     /// Treats any positive boolean representation as true, everything else as false.
@@ -363,7 +384,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
-    procedure GetBooleanFor(Input: Text) IsTrue: Boolean
+    internal procedure GetBooleanFor(Input: Text) IsTrue: Boolean
     begin
         if Input <> '' then begin
             if not Evaluate(IsTrue, Input) then
@@ -371,8 +392,8 @@ codeunit 20599 "Qlty. Misc Helpers"
 
             case UpperCase(Input) of
                 UpperCase(TranslatableYesLbl), UpperCase(LockedYesLbl),
-                'Y', 'YES', 'T', 'TRUE', '1', 'POSITIVE', 'ENABLED', 'CHECK', 'CHECKED',
-                'GOOD', 'PASS', 'ACCEPTABLE', 'PASSED', 'OK', 'ON',
+                'Y', YesLbl, 'T', 'TRUE', '1', PositiveLbl, EnabledLbl, CheckLbl, CheckedLbl,
+                QltyGoodLbl, QltyPassLbl, QltyAcceptableLbl, QltyPassedLbl, 'OK', OnLbl,
                 'V', ':SELECTED:':
                     IsTrue := true;
             end;
@@ -392,7 +413,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
-    procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
+    internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
         ConvertedBoolean: Boolean;
     begin
@@ -406,20 +427,20 @@ codeunit 20599 "Qlty. Misc Helpers"
             UpperCase(TranslatableYesLbl),
             UpperCase(LockedYesLbl),
             'Y',
-            'YES',
+            YesLbl,
             'T',
             'TRUE',
             '1',
-            'POSITIVE',
-            'ENABLED',
-            'CHECK',
-            'CHECKED',
-            'GOOD',
-            'PASS',
-            'ACCEPTABLE',
-            'PASSED',
+            PositiveLbl,
+            EnabledLbl,
+            CheckLbl,
+            CheckedLbl,
+            QltyGoodLbl,
+            QltyPassLbl,
+            QltyAcceptableLbl,
+            QltyPassedLbl,
             'OK',
-            'ON',
+            OnLbl,
             'V',
             ':SELECTED:':
                 exit(true);
@@ -465,11 +486,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             'DISABLED',
             'UNCHECK',
             'UNCHECKED',
-            'BAD',
-            'FAIL',
-            'UNACCEPTABLE',
-            'FAILED',
-            'NOTOK',
+            QltyBadLbl,
+            QltyFailLbl,
+            QltyUnacceptableLbl,
+            QltyFailedLbl,
+            QltyNotOkLbl,
             'OFF',
             ':UNSELECTED:':
                 exit(true);
@@ -491,7 +512,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="InputText">The text to check for boolean-like characteristics</param>
     /// <returns>True if text appears to be a boolean representation; False otherwise</returns>
-    procedure CanTextBeInterpretedAsBooleanIsh(InputText: Text): Boolean
+    internal procedure CanTextBeInterpretedAsBooleanIsh(InputText: Text): Boolean
     begin
         exit(IsTextValuePositiveBoolean(InputText) or IsTextValueNegativeBoolean(InputText));
     end;
@@ -518,7 +539,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
     /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
-    procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
+    internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -577,7 +598,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source record where details were found</param>
     /// <returns>True if person details were found in any supported table; False otherwise</returns>
-    procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
+    internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
     var
         Contact: Record Contact;
         Employee: Record Employee;
@@ -688,7 +709,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     ///    - DateTime format → Field Type DateTime
     /// 2. Description-based detection (keywords):
     ///    - Contains "date" → Field Type Date
-    ///    - Contains tracking keywords ("lot", "serial") → Field Type Text
+    ///    - Contains tracking keywords ("lot", "serial", "package") → Field Type Text
     ///    - Starts with yes/no keywords → Field Type Boolean
     /// 3. Default fallback → Field Type Text
     /// 
@@ -728,7 +749,9 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Description.Contains(UpperCase(TrackingKeyword1Txt)),
                 Description.Contains(UpperCase(TrackingKeyword2Txt)),
                 Description.Contains(UpperCase(TrackingKeyword3Txt)),
-                Description.Contains(UpperCase(TrackingKeyword4Txt)):
+                Description.Contains(UpperCase(TrackingKeyword4Txt)),
+                Description.Contains(UpperCase(TrackingKeyword5Txt)),
+                Description.Contains(UpperCase(TrackingKeyword6Txt)):
                     QltyTestValueType := QltyTestValueType::"Value Type Text";
 
                 Description.StartsWith(UpperCase(YesNoKeyword1Txt)),
@@ -745,7 +768,6 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Automatically determines the correct page to display based on the source record type.
     /// 
     /// Behavior:
-    /// - Fires OnBeforeNavigateToSourceDocument event for extensibility
     /// - Exits if no source document is linked (Source RecordId is empty)
     /// - Uses Page Management to find the appropriate page for the record type
     /// - Opens the page in modal mode displaying the source document
@@ -760,12 +782,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToNavigateTo: RecordRef;
         VariantContainer: Variant;
         CurrentPage: Integer;
-        Handled: Boolean;
     begin
-        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, Handled);
-        if Handled then
-            exit;
-
         if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
             exit;
 
@@ -920,27 +937,5 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit(false);
 
         exit(RecordRef.Number() <> 0);
-    end;
-
-    /// <summary>
-    /// Provides an ability to override the handling of navigating to a source document.
-    /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Provides an opportunity for customizations to alter the default maximum rows shown
-    /// for a table lookup in a quality inspector field.
-    /// Changing the default to a larger number can introduce performance issues.
-    /// </summary>
-    /// <param name="Rows"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var Handled: Boolean)
-    begin
     end;
 }

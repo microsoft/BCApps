@@ -69,6 +69,11 @@ table 30144 "Shpfy FulFillment Order Line"
         {
             DataClassification = CustomerContent;
         }
+        field(12; "Line Item Id"; BigInteger)
+        {
+            Caption = 'Line Item Id';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {
@@ -80,6 +85,9 @@ table 30144 "Shpfy FulFillment Order Line"
         {
         }
         key(Key3; "Shopify Order Id", "Shopify Variant Id", "Fulfillment Status")
+        {
+        }
+        key(Key4; "Shopify Order Id", "Line Item Id")
         {
         }
     }

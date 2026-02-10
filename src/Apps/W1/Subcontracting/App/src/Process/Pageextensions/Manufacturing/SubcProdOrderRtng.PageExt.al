@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -51,17 +51,17 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 ToolTip = 'Create Purchase Orders for Subcontracting directly from the Production Routing Line.';
                 trigger OnAction()
                 var
-                    ProdOrderRtngLine: Record "Prod. Order Routing Line";
+                    ProdOrderRoutingLine: Record "Prod. Order Routing Line";
                     PurchaseLine: Record "Purchase Line";
-                    SubcontractingMgmt: Codeunit "Subcontracting Management";
+                    SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
                     NoOfCreatedPurchOrder: Integer;
                     NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
                 begin
-                    CurrPage.SetSelectionFilter(ProdOrderRtngLine);
-                    ProdOrderRtngLine.FindSet();
+                    CurrPage.SetSelectionFilter(ProdOrderRoutingLine);
+                    ProdOrderRoutingLine.FindSet();
                     repeat
-                        NoOfCreatedPurchOrder += SubcontractingMgmt.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRtngLine);
-                    until ProdOrderRtngLine.Next() = 0;
+                        NoOfCreatedPurchOrder += SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+                    until ProdOrderRoutingLine.Next() = 0;
 
                     if NoOfCreatedPurchOrder = 0 then begin
                         PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
@@ -71,13 +71,13 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                         PurchaseLine.SetRange("Routing No.", Rec."Routing No.");
                         PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
                         if PurchaseLine.IsEmpty() then
-                            Message(NoPurchOrderCreatedMsg, ProdOrderRtngLine."Prod. Order No.")
+                            Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
                     end else begin
                         if NoOfCreatedPurchOrder = 1 then begin
-                            SubcontractingMgmt.ClearOperationNoForCreatedPurchaseOrder();
-                            SubcontractingMgmt.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
+                            SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
+                            SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
                         end;
-                        SubcontractingMgmt.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
+                        SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
                     end;
                 end;
             }

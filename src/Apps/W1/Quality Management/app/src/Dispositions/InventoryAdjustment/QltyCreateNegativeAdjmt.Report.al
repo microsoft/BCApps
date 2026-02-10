@@ -14,11 +14,11 @@ report 20408 "Qlty. Create Negative Adjmt."
 {
     Caption = 'Quality Management - Create Negative Inventory Adjustment';
     ApplicationArea = QualityManagement;
-    AdditionalSearchTerms = 'destructive test, destroy, negative adjustment, write-off, damage, dispose';
+    AdditionalSearchTerms = 'write-off, dispose';
     ProcessingOnly = true;
     UsageCategory = Tasks;
     AllowScheduling = false;
-    Description = 'Use this to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
+    ToolTip = 'Use this to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
 
     dataset
     {
@@ -30,9 +30,7 @@ report 20408 "Qlty. Create Negative Adjmt."
             var
                 QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
                 CurrentVariant: Text;
-                LotNo: Text;
-                SerialNo: Text;
-                PackageNo: Text;
+                LotNo, SerialNo, PackageNo : Text;
             begin
                 if QltyDispNegAdjustInv.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, PostBehavior, ReasonCode) then
                     exit;

@@ -757,12 +757,12 @@ page 6393 "Continia Onboarding Guide"
                 InitializeNetworkProfiles();
             end;
 
-        if (Step = Step::AdvancedSetup) and not Backwards and not CurrentStepSkipped then
-            ValidateParticipationProfiles();
-        if (Step = Step::DocumentTypes) and not Backwards and (Steps = 2) then
-            ValidateParticipationProfiles();
         if (Step = Step::DocumentTypes) and (not Backwards) and (not CurrentStepSkipped) then
             PopulateNetworkProfilesByUserSelection();
+        if (Step = Step::DocumentTypes) and not Backwards and (Steps = 2) then
+            ValidateParticipationProfiles();
+        if (Step = Step::AdvancedSetup) and not Backwards and not CurrentStepSkipped then
+            ValidateParticipationProfiles();
     end;
 
     local procedure OnAfterMoveStep(Backwards: Boolean)
@@ -1028,15 +1028,13 @@ page 6393 "Continia Onboarding Guide"
     local procedure ValidateParticipationProfiles()
     var
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        ApiRequests: Codeunit "Continia Api Requests";
     begin
         CurrPage.SelectProfilesPeppol.Page.GetProfileSelection(TempActivatedProfiles);
 
         if TempActivatedProfiles.Count = 0 then
             Error(MustChooseAProfileErr);
 
-        // Check if the profiles are not already registered, the function will thrown an error if any profiles are already registered
-        ApiRequests.CheckProfilesNotRegistered(TempParticipation);
+        CheckParticipationExternalRegistration(TempActivatedProfiles);
     end;
 
     internal procedure SetRunScenario(ParamRunScenario: Enum "Continia Wizard Scenario")
@@ -1113,6 +1111,22 @@ page 6393 "Continia Onboarding Guide"
                 exit("Continia Profile Direction"::Inbound);
             Send and (not Receive):
                 exit("Continia Profile Direction"::Outbound);
+        end;
+    end;
+
+    internal procedure CheckParticipationExternalRegistration(var TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary)
+    var
+        ApiRequests: Codeunit "Continia Api Requests";
+    begin
+        // Check if the participation is not already registered, the function will throw an error if participation is already registered.
+        // Exception: Peppol participation with outbound - only profiles can be registered even if it is already registered externally.
+        if TempParticipation.Network <> Enum::"Continia E-Delivery Network"::Peppol then
+            ApiRequests.CheckProfilesNotRegistered(TempParticipation)
+        else begin
+            TempActivatedProfiles.Reset();
+            TempActivatedProfiles.SetFilter("Profile Direction", '<>%1', TempActivatedProfiles."Profile Direction"::Outbound);
+            if not TempActivatedProfiles.IsEmpty() then
+                ApiRequests.CheckProfilesNotRegistered(TempParticipation);
         end;
     end;
 

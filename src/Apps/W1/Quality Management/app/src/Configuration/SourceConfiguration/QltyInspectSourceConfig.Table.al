@@ -36,7 +36,6 @@ table 20407 "Qlty. Inspect. Source Config."
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
-            Description = 'A short name for this configuration. There is typically one entry for each configuration that associated a table with a given template.';
             NotBlank = true;
             ToolTip = 'Specifies a short name for this configuration. There is typically one entry for each configuration that associated a table with a given template.';
 

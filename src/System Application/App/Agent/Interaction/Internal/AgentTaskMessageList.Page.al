@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 page 4301 "Agent Task Message List"
 {
     PageType = List;
@@ -18,6 +20,7 @@ page 4301 "Agent Task Message List"
     Editable = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SourceTableView = sorting("Task Id", "Memory Entry Id") order(descending);
 
     layout
     {
@@ -68,6 +71,18 @@ page 4301 "Agent Task Message List"
                 {
                     Caption = 'ID';
                 }
+            }
+        }
+
+        area(FactBoxes)
+        {
+            part(TaskContext; "Agent Task Context Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Task context';
+                AboutTitle = 'Context information about the task and agent';
+                AboutText = 'Shows context information such as the agent name, task ID, and company name.';
+                SubPageLink = ID = field("Task ID");
             }
         }
     }

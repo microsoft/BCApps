@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -70,14 +70,14 @@ table 99001501 "Subc. Management Setup"
             Caption = 'Component at Location';
             trigger OnValidate()
             var
-                CompanyInfo: Record "Company Information";
+                CompanyInformation: Record "Company Information";
                 ManufacturingSetup: Record "Manufacturing Setup";
             begin
                 case "Component at Location" of
                     "Components at Location"::Company:
                         begin
-                            CompanyInfo.Get();
-                            CompanyInfo.TestField("Location Code");
+                            CompanyInformation.Get();
+                            CompanyInformation.TestField("Location Code");
                         end;
                     "Components at Location"::Manufacturing:
                         begin
@@ -152,12 +152,12 @@ table 99001501 "Subc. Management Setup"
     }
     procedure ItemChargeToRcptSubReferenceEnabled(): Boolean
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
     begin
-        SubManagementSetup.SetLoadFields(RefItemChargeToRcptSubLines);
-        if not SubManagementSetup.Get() then
+        SubcManagementSetup.SetLoadFields(RefItemChargeToRcptSubLines);
+        if not SubcManagementSetup.Get() then
             exit(false);
 
-        exit(SubManagementSetup.RefItemChargeToRcptSubLines);
+        exit(SubcManagementSetup.RefItemChargeToRcptSubLines);
     end;
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ page 99001506 "Subc. Temp BOM Lines"
 
                         if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
                             GetSubManagementSetup();
-                            Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+                            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
                         end;
                     end;
                 }
@@ -105,11 +105,11 @@ page 99001506 "Subc. Temp BOM Lines"
         Rec."Routing Link Code" := xRec."Routing Link Code";
         Rec."Subcontracting Type" := xRec."Subcontracting Type";
         GetSubManagementSetup();
-        Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+        Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
     end;
 
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         SubManagementSetupRead: Boolean;
 
     procedure SetTemporaryRecords(var TempProductionBOMLine: Record "Production BOM Line" temporary)
@@ -120,8 +120,8 @@ page 99001506 "Subc. Temp BOM Lines"
     local procedure GetSubManagementSetup()
     begin
         if not SubManagementSetupRead then begin
-            SubManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
-            SubManagementSetup.Get();
+            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            SubcManagementSetup.Get();
             SubManagementSetupRead := true;
         end;
     end;

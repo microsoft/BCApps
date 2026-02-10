@@ -12,7 +12,6 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Manufacturing;
@@ -40,79 +39,62 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+            ToolTip = 'Specifies the default number series for quality inspection documents.';
         }
-        field(3; "Show Inspection Behavior"; Enum "Qlty. Show Inspection Behavior")
+        field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
-            Caption = 'Show Inspection Behavior';
-            ToolTip = 'Specifies whether to show the Quality Inspection page after an inspection has been made.';
+            Caption = 'Inspection Creation Option';
+            ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
         }
-        field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
+        field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
         {
-            Caption = 'Create Inspection Behavior';
-            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection when existing inspections occur.';
-        }
-        field(5; "Find Existing Behavior"; Enum "Qlty. Find Existing Behavior")
-        {
-            Caption = 'Find Existing Behavior';
-            Description = 'When looking for existing inspections, this defines what it looks for.';
-            ToolTip = 'Specifies what criteria the system looks for when searching for existing inspections.';
+            Caption = 'Inspection Search Criteria';
+            ToolTip = 'Specifies the criteria the system uses to search for existing inspections.';
         }
         field(6; "Certificate Contact No."; Code[20])
         {
-            Caption = 'Certificate of Analysis Contact No.';
-            Description = 'When supplied, these contact details will appear on the CoA report.';
+            Caption = 'Certificate of Analysis Contact';
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
         }
-        field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
+        field(10; "Production Order Trigger"; Enum "Qlty. Production Order Trigger")
         {
-            Description = 'Optionally choose a production related trigger to try and create an inspection.';
-            Caption = 'Production Trigger';
-            ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create an inspection.';
+            Caption = 'Production Order Trigger';
+            ToolTip = 'Specifies a default production order related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Production Trigger" <> xRec."Production Trigger") and (xRec."Production Trigger" <> xRec."Production Trigger"::NoTrigger) then begin
+                if (Rec."Production Order Trigger" <> xRec."Production Order Trigger") and (xRec."Production Order Trigger" <> xRec."Production Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-                    QltyInspectionGenRule.SetRange("Production Trigger", xRec."Production Trigger");
+                    QltyInspectionGenRule.SetRange("Production Order Trigger", xRec."Production Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Order Trigger", Rec."Production Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Production Order Trigger", Rec."Production Order Trigger", false);
                 end;
             end;
         }
         field(11; "Production Update Control"; Enum "Qlty. Update Source Behavior")
         {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
             InitValue = "Do not update";
             Caption = 'Production Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
-        }
-        field(21; "Receive Update Control"; Enum "Qlty. Update Source Behavior")
-        {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
-            Caption = 'Receive Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
+            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when source changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do not update" to prevent updating the original source that created the inspection.';
         }
         field(24; "Item Tracking Before Finishing"; Enum "Qlty. Item Tracking Behavior")
         {
-            Description = 'Whether to require item tracking before finishing an inspection.';
             Caption = 'Item Tracking Before Finishing';
-            ToolTip = 'Specifies whether to require item tracking before finishing an inspection.';
+            ToolTip = 'Specifies when item tracking is required for inspections, including whether missing values are allowed, only posted tracking is accepted, reserved (unposted) tracking is permitted, or any non-empty lot/serial/package value is valid.';
         }
         field(26; "Scheduler Template Code"; Code[20])
         {
-            Description = 'When using a specific template, which specific template.';
+            ToolTip = 'Specifies which specific template to use when using a specific template.';
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
             Caption = 'Scheduler Template Code';
         }
-        field(27; "Picture Upload Behavior"; Enum "Qlty. Picture Upload Behavior")
+        field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
-            Description = 'When a picture has been taken, this value defines what to do with that picture.';
-            Caption = 'Picture Upload Behavior';
+            Caption = 'Additional Picture Handling';
             ToolTip = 'Specifies what to do with a picture after it has been taken.';
 
             trigger OnValidate()
@@ -120,15 +102,13 @@ table 20400 "Qlty. Management Setup"
                 SanityCheckPictureAndCameraSettings();
             end;
         }
-        field(28; "Conditional Lot Find Behavior"; Enum "Qlty. Inspection Find Behavior")
+        field(28; "Inspection Selection Criteria"; Enum "Qlty. Insp. Selection Criteria")
         {
-            Description = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
-            Caption = 'Conditional Lot Find Behavior';
-            ToolTip = 'Specifies which test(s) are considered when evaluating if a document-specific transaction is blocked.';
+            Caption = 'Quality Inspection Selection Criteria';
+            ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
-            Description = 'Optionally choose a warehouse related trigger to try and create an inspection.';
             Caption = 'Warehouse Trigger';
             ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create an inspection.';
 
@@ -149,74 +129,11 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(30; "Whse. Move Related Triggers"; Integer)
-        {
-            CalcFormula = count("Qlty. Inspection Gen. Rule" where(Intent = const("Warehouse Movement")));
-            Caption = 'Whse. Move Related Triggers';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies the Inspection Generation Rules that are warehouse movement related.';
-        }
-        field(60; "Brick Top Left Expression"; Text[200])
-        {
-            Caption = 'Brick Top Left Expression';
-            ToolTip = 'Specifies the top left expression. Appears in small font in its own row of the tile.';
-        }
-        field(61; "Brick Middle Left Expression"; Text[200])
-        {
-            Caption = 'Brick Middle Left Expression';
-            ToolTip = 'Specifies the middle left expression. Appears in a tile large font, with a link style lookup.';
-        }
-        field(62; "Brick Middle Right Expression"; Text[200])
-        {
-            Caption = 'Brick Middle Right Expression';
-            ToolTip = 'Specifies the middle right expression. Appears in a tile with a large font and no link, right-aligned.';
-        }
-        field(63; "Brick Bottom Left Expression"; Text[200])
-        {
-            Caption = 'Brick Bottom Left Expression';
-            ToolTip = 'Specifies the bottom left expression. Appears in a tile with a small font, not as small as Brick Top Left Expression (the first field).';
-        }
-        field(64; "Brick Bottom Right Expression"; Text[200])
-        {
-            Caption = 'Brick Bottom Right Expression';
-            ToolTip = 'Specifies the bottom right expression. Appears in a tile with a small font, not as small as Brick Top Left Expression (the first field).';
-        }
-        field(65; "Brick Top Left Header"; Text[30])
-        {
-            Description = 'Appears in small font in its own row of the tile';
-            Caption = 'Brick Top Left Header';
-            ToolTip = 'Specifies a field header for the Brick Top Left Expression.';
-        }
-        field(66; "Brick Middle Left Header"; Text[30])
-        {
-            Description = 'Appears in a tile large font, with a link style lookup';
-            Caption = 'Brick Middle Left Header';
-            ToolTip = 'Specifies the middle left header. Field header for the Brick Middle Left Expression.';
-        }
-        field(67; "Brick Middle Right Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a large font and no link, right-aligned.';
-            Caption = 'Brick Middle Right Header';
-            ToolTip = 'Specifies the middle right header. Field header for the Brick Middle Right Expression.';
-        }
-        field(68; "Brick Bottom Left Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a small font, not as small as field 1.';
-            Caption = 'Brick Bottom Left Header';
-            ToolTip = 'Specifies the bottom left header. Field header for the Brick Bottom Left Expression.';
-        }
-        field(69; "Brick Bottom Right Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a small font, not as small as field 1.';
-            Caption = 'Brick Bottom Right Header';
-            ToolTip = 'Specifies the bottom right field header for the Brick Bottom Right Expression.';
-        }
         field(70; "Visibility"; Enum "Qlty. Management Visibility")
         {
-            Description = 'Assists with toggling the application area that shows or hides the Quality Management.';
-            DataClassification = SystemMetadata;
             Caption = 'Visibility';
+            ToolTip = 'Specifies the application area setting that shows or hides the Quality Management.';
+            DataClassification = SystemMetadata;
 
             trigger OnValidate()
             var
@@ -238,17 +155,10 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(72; "Workflow Integration Enabled"; Boolean)
+        field(73; "Item Reclass. Batch Name"; Code[10])
         {
-            Description = 'When enabled, provides events and responses for working with Business Central workflows and approvals.';
-            DataClassification = SystemMetadata;
-            Caption = 'Workflow Integration Enabled';
-            ToolTip = 'Specifies whether to enable events and responses for workflows.';
-        }
-        field(73; "Bin Move Batch Name"; Code[10])
-        {
-            Caption = 'Bin Move Batch Name';
-            ToolTip = 'Specifies the batch to use for bin movements and reclassifications for non-directed pick and put-away locations.';
+            Caption = 'Item Reclass. Batch Name';
+            ToolTip = 'Specifies the item reclassification journal batch to use for bin movements and reclassifications for non-directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -261,7 +171,7 @@ table 20400 "Qlty. Management Setup"
 
                 if ItemJournalBatches.RunModal() = Action::LookupOK then begin
                     ItemJournalBatches.GetRecord(ItemJournalBatch);
-                    Rec."Bin Move Batch Name" := ItemJournalBatch.Name;
+                    Rec."Item Reclass. Batch Name" := ItemJournalBatch.Name;
                 end;
             end;
 
@@ -269,15 +179,14 @@ table 20400 "Qlty. Management Setup"
             var
                 ItemJournalBatch: Record "Item Journal Batch";
             begin
-                if Rec."Bin Move Batch Name" <> '' then
-                    ItemJournalBatch.Get(GetItemReclassJournalTemplate(), "Bin Move Batch Name");
+                if Rec."Item Reclass. Batch Name" <> '' then
+                    ItemJournalBatch.Get(GetItemReclassJournalTemplate(), "Item Reclass. Batch Name");
             end;
         }
-        field(74; "Bin Whse. Move Batch Name"; Code[10])
+        field(74; "Whse. Reclass. Batch Name"; Code[10])
         {
-            Caption = 'Bin Whse. Move Batch Name';
-            Description = 'The batch to use for bin movements for directed pick and put-away locations';
-            ToolTip = 'Specifies the batch to use for bin movements and reclassifications for directed pick and put-away locations.';
+            Caption = 'Whse. Reclass. Batch Name';
+            ToolTip = 'Specifies the warehouse reclassification journal batch to use for bin movements and reclassifications for directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -290,7 +199,7 @@ table 20400 "Qlty. Management Setup"
 
                 if JnlWhseJournalBatches.RunModal() = Action::LookupOK then begin
                     JnlWhseJournalBatches.GetRecord(WhseWarehouseJournalBatch);
-                    "Bin Whse. Move Batch Name" := WhseWarehouseJournalBatch.Name;
+                    "Whse. Reclass. Batch Name" := WhseWarehouseJournalBatch.Name;
                 end;
             end;
 
@@ -298,16 +207,16 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWarehouseJournalBatch: Record "Warehouse Journal Batch";
             begin
-                if "Bin Whse. Move Batch Name" <> '' then begin
-                    WhseWarehouseJournalBatch.SetRange(Name, "Bin Whse. Move Batch Name");
+                if "Whse. Reclass. Batch Name" <> '' then begin
+                    WhseWarehouseJournalBatch.SetRange(Name, "Whse. Reclass. Batch Name");
                     if WhseWarehouseJournalBatch.IsEmpty() then
-                        Error(BatchNotFoundErr, "Bin Whse. Move Batch Name");
+                        Error(BatchNotFoundErr, "Whse. Reclass. Batch Name");
                 end;
             end;
         }
         field(91; "Max Rows Field Lookups"; Integer)
         {
-            Caption = 'Maximum Rows To Fetch on Field Lookups';
+            Caption = 'Maximum Rows To Fetch In Lookups';
             BlankZero = true;
             MinValue = 1;
             MaxValue = 1000;
@@ -315,15 +224,15 @@ table 20400 "Qlty. Management Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
         }
-        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
+        field(92; "Prod. Trigger Output Condition"; Enum "Prod. Trigger Output Condition")
         {
-            Caption = 'Auto Output Configuration';
+            Caption = 'Prod. Trigger Output Condition';
             ToolTip = 'Specifies granular options for when an inspection should be created automatically during the production process.';
         }
-        field(93; "Whse. Wksh. Name"; Code[10])
+        field(93; "Movement Worksheet Name"; Code[10])
         {
-            Caption = 'Warehouse Worksheet Name';
-            ToolTip = 'Specifies the worksheet used for warehouse movements for directed pick and put-away locations.';
+            Caption = 'Movement Worksheet Name';
+            ToolTip = 'Specifies the movement worksheet name used for warehouse movements for directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -336,7 +245,7 @@ table 20400 "Qlty. Management Setup"
 
                 if NameWhseWorksheetNames.RunModal() = Action::LookupOK then begin
                     NameWhseWorksheetNames.GetRecord(WhseWorksheetName);
-                    Rec."Whse. Wksh. Name" := WhseWorksheetName.Name;
+                    Rec."Movement Worksheet Name" := WhseWorksheetName.Name;
                 end;
             end;
 
@@ -344,17 +253,17 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWorksheetName: Record "Whse. Worksheet Name";
             begin
-                if Rec."Whse. Wksh. Name" <> '' then begin
-                    WhseWorksheetName.SetRange(Name, Rec."Whse. Wksh. Name");
+                if Rec."Movement Worksheet Name" <> '' then begin
+                    WhseWorksheetName.SetRange(Name, Rec."Movement Worksheet Name");
                     if WhseWorksheetName.IsEmpty() then
-                        Error(WorksheetNameNotFoundErr, Rec."Whse. Wksh. Name");
+                        Error(WorksheetNameNotFoundErr, Rec."Movement Worksheet Name");
                 end;
             end;
         }
-        field(95; "Adjustment Batch Name"; Code[10])
+        field(95; "Item Journal Batch Name"; Code[10])
         {
-            Caption = 'Adjustment Batch Name';
-            ToolTip = 'Specifies the batch to use for negative inventory adjustment item journals.';
+            Caption = 'Item Journal Batch Name';
+            ToolTip = 'Specifies the item journal batch to use for negative inventory adjustments.';
 
             trigger OnLookup()
             var
@@ -367,7 +276,7 @@ table 20400 "Qlty. Management Setup"
 
                 if ItemJournalBatches.RunModal() = Action::LookupOK then begin
                     ItemJournalBatches.GetRecord(ItemJournalBatch);
-                    Rec."Adjustment Batch Name" := ItemJournalBatch.Name;
+                    Rec."Item Journal Batch Name" := ItemJournalBatch.Name;
                 end;
             end;
 
@@ -375,14 +284,14 @@ table 20400 "Qlty. Management Setup"
             var
                 ItemJournalBatch: Record "Item Journal Batch";
             begin
-                if Rec."Adjustment Batch Name" <> '' then
-                    ItemJournalBatch.Get(GetInventoryAdjustmentJournalTemplate(), Rec."Adjustment Batch Name");
+                if Rec."Item Journal Batch Name" <> '' then
+                    ItemJournalBatch.Get(GetInventoryAdjustmentJournalTemplate(), Rec."Item Journal Batch Name");
             end;
         }
-        field(96; "Whse. Adjustment Batch Name"; Code[10])
+        field(96; "Whse. Item Journal Batch Name"; Code[10])
         {
-            Caption = 'Whse. Adjustment Batch Name';
-            ToolTip = 'Specifies the batch to use for negative inventory adjustment warehouse item journals.';
+            Caption = 'Whse. Item Journal Batch Name';
+            ToolTip = 'Specifies the warehouse item journal batch to use for negative inventory adjustments.';
 
             trigger OnLookup()
             var
@@ -395,7 +304,7 @@ table 20400 "Qlty. Management Setup"
 
                 if JnlWhseJournalBatches.RunModal() = Action::LookupOK then begin
                     JnlWhseJournalBatches.GetRecord(WhseWarehouseJournalBatch);
-                    Rec."Whse. Adjustment Batch Name" := WhseWarehouseJournalBatch.Name;
+                    Rec."Whse. Item Journal Batch Name" := WhseWarehouseJournalBatch.Name;
                 end;
             end;
 
@@ -403,57 +312,51 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWarehouseJournalBatch: Record "Warehouse Journal Batch";
             begin
-                if Rec."Whse. Adjustment Batch Name" <> '' then begin
-                    WhseWarehouseJournalBatch.SetRange(Name, Rec."Whse. Adjustment Batch Name");
+                if Rec."Whse. Item Journal Batch Name" <> '' then begin
+                    WhseWarehouseJournalBatch.SetRange(Name, Rec."Whse. Item Journal Batch Name");
                     if WhseWarehouseJournalBatch.IsEmpty() then
-                        Error(BatchNotFoundErr, Rec."Whse. Adjustment Batch Name");
+                        Error(BatchNotFoundErr, Rec."Whse. Item Journal Batch Name");
                 end;
             end;
         }
-        field(97; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
+        field(97; "Warehouse Receipt Trigger"; Enum "Qlty. Whse. Receipt Trigger")
         {
-            Caption = 'Create Inspection On Warehouse Receive Trigger';
-            Description = 'Provides automation to create an inspection when a warehouse receipt is created.';
+            Caption = 'Create Inspection On Warehouse Receipt Trigger';
             ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                SanityCheckReceiveSettings();
-
-                if (Rec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger") and (xRec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger"::NoTrigger) then begin
+                if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
-                    QltyInspectionGenRule.SetRange("Warehouse Receive Trigger", xRec."Warehouse Receive Trigger");
+                    QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receive Trigger", Rec."Warehouse Receive Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Warehouse Receive Trigger", Rec."Warehouse Receive Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger", false);
                 end;
             end;
         }
-        field(98; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
+        field(98; "Purchase Order Trigger"; Enum "Qlty. Purchase Order Trigger")
         {
-            Caption = 'Create Inspection On Purchase Trigger';
-            Description = 'Provides automation to create an inspection when a purchase is received.';
-            ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create an inspection.';
-
+            Caption = 'Create Inspection On Purchase Order Trigger';
+            ToolTip = 'Specifies a default purchase order trigger value for Inspection Generation Rules to create an inspection.';
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Purchase Trigger" <> xRec."Purchase Trigger") and (xRec."Purchase Trigger" <> xRec."Purchase Trigger"::NoTrigger) then begin
+                if (Rec."Purchase Order Trigger" <> xRec."Purchase Order Trigger") and (xRec."Purchase Order Trigger" <> xRec."Purchase Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
-                    QltyInspectionGenRule.SetRange("Purchase Trigger", xRec."Purchase Trigger");
+                    QltyInspectionGenRule.SetRange("Purchase Order Trigger", xRec."Purchase Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Trigger", Rec."Purchase Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Purchase Trigger", Rec."Purchase Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Order Trigger", Rec."Purchase Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Purchase Order Trigger", Rec."Purchase Order Trigger", false);
                 end;
             end;
         }
         field(99; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
         {
             Caption = 'Create Inspection On Sales Return Trigger';
-            Description = 'Provides automation to create an inspection when a sales return is received.';
             ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
@@ -469,30 +372,28 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(100; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
+        field(100; "Transfer Order Trigger"; Enum "Qlty. Transfer Order Trigger")
         {
-            Caption = 'Create Inspection On Transfer Trigger';
-            Description = 'Provides automation to create an inspection when a transfer order is received.';
-            ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create an inspection.';
+            Caption = 'Create Inspection On Transfer Order Trigger';
+            ToolTip = 'Specifies a default transfer order trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Transfer Trigger" <> xRec."Transfer Trigger") and (xRec."Transfer Trigger" <> xRec."Transfer Trigger"::NoTrigger) then begin
+                if (Rec."Transfer Order Trigger" <> xRec."Transfer Order Trigger") and (xRec."Transfer Order Trigger" <> xRec."Transfer Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
-                    QltyInspectionGenRule.SetRange("Transfer Trigger", xRec."Transfer Trigger");
+                    QltyInspectionGenRule.SetRange("Transfer Order Trigger", xRec."Transfer Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Trigger", Rec."Transfer Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Transfer Trigger", Rec."Transfer Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Order Trigger", Rec."Transfer Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Transfer Order Trigger", Rec."Transfer Order Trigger", false);
                 end;
             end;
         }
         field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
         {
             Caption = 'Create Inspection On Assembly Trigger';
-            Description = 'Provides automation to create an inspection when an assembly order creates output.';
-            ToolTip = 'Specifies a default assembly-related trigger value for Inspection Generation Rules to try and create an inspection.';
+            ToolTip = 'Specifies when to create an inspection for assembly orders using inspection generation rules';
 
             trigger OnValidate()
             var
@@ -518,142 +419,23 @@ table 20400 "Qlty. Management Setup"
     }
 
     var
+        RecordHasBeenRead: Boolean;
         ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
         InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-        DefaultTopLeftExpressionTxt: Label '[No.] [Re-inspection No.]', Locked = true;
-        DefaultMiddleLeftExpressionTxt: Label '[Result Description]', Locked = true;
-        DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
-        DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;
-        DefaultBottomRightExpressionTxt: Label '[Status] [Finished Date]', Locked = true;
-        DefaultTopLeftLbl: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftLbl: Label 'Result', Locked = true;
-        DefaultMiddleRightLbl: Label 'Details', Locked = true;
-        DefaultBottomLeftLbl: Label 'Document', Locked = true;
-        DefaultBottomRightLabelLbl: Label 'Status', Locked = true;
-        ExcludeBrickFieldTok: Label '<>Brick*', Locked = true;
-        MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg: Label 'The mobile fields have been updated for all existing inspections.';
-
-    trigger OnInsert()
-    begin
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-    end;
-
-    trigger OnModify()
-    begin
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-    end;
-
-    internal procedure SanityCheckReceiveSettings()
-    var
-        Handled: Boolean;
-    begin
-        OnBeforeValidateQualityManagementSettings(xRec, Rec, Handled);
-        if Handled then
-            exit;
-    end;
 
     internal procedure SanityCheckPictureAndCameraSettings()
     var
         DocumentServiceManagement: Codeunit "Document Service Management";
     begin
-        if Rec."Picture Upload Behavior" <> Rec."Picture Upload Behavior"::"Attach and upload to OneDrive" then
+        if Rec."Additional Picture Handling" <> Rec."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
             exit;
 
         if not DocumentServiceManagement.IsConfigured() then
             Error(OneDriveIntegrationNotConfiguredErr);
-    end;
-
-    internal procedure GetBrickExpressions(var TopLeft: Text[200]; var MiddleLeft: Text[200]; var MiddleRight: Text[200]; var BottomLeft: Text[200]; var BottomRight: Text[200])
-    begin
-        TopLeft := DefaultTopLeftExpressionTxt;
-        MiddleLeft := DefaultMiddleLeftExpressionTxt;
-        MiddleRight := DefaultMiddleRightExpressionTxt;
-        BottomLeft := DefaultBottomLeftExpressionTxt;
-        BottomRight := DefaultBottomRightExpressionTxt;
-
-        if Rec."Brick Top Left Expression" <> '' then
-            TopLeft := Rec."Brick Top Left Expression";
-
-        if Rec."Brick Middle Left Expression" <> '' then
-            MiddleLeft := Rec."Brick Middle Left Expression";
-
-        if Rec."Brick Middle Right Expression" <> '' then
-            MiddleRight := Rec."Brick Middle Right Expression";
-
-        if Rec."Brick Bottom Left Expression" <> '' then
-            BottomLeft := Rec."Brick Bottom Left Expression";
-
-        if Rec."Brick Bottom Right Expression" <> '' then
-            BottomRight := Rec."Brick Bottom Right Expression";
-    end;
-
-    internal procedure GetBrickHeaders(var TopLeft: Text[30]; var MiddleLeft: Text[30]; var MiddleRight: Text[30]; var BottomLeft: Text[30]; var BottomRight: Text[30])
-    begin
-        TopLeft := DefaultTopLeftLbl;
-        MiddleLeft := DefaultMiddleLeftLbl;
-        MiddleRight := DefaultMiddleRightLbl;
-        BottomLeft := DefaultBottomLeftLbl;
-        BottomRight := DefaultBottomRightLabelLbl;
-
-        if Rec."Brick Top Left Header" <> '' then
-            TopLeft := Rec."Brick Top Left Header";
-
-        if Rec."Brick Middle Left Header" <> '' then
-            MiddleLeft := Rec."Brick Middle Left Header";
-
-        if Rec."Brick Middle Right Header" <> '' then
-            MiddleRight := Rec."Brick Middle Right Header";
-
-        if Rec."Brick Bottom Left Header" <> '' then
-            BottomLeft := Rec."Brick Bottom Left Header";
-
-        if Rec."Brick Bottom Right Header" <> '' then
-            BottomRight := Rec."Brick Bottom Right Header";
-    end;
-
-    internal procedure AssistEditBrickField(FieldNo: Integer)
-    var
-        QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
-        RecordRefToInspection: RecordRef;
-        FieldRefToInspection: FieldRef;
-        Template: Text;
-    begin
-        RecordRefToInspection := Rec.RecordId().GetRecord();
-        RecordRefToInspection.SetRecFilter();
-        RecordRefToInspection.FindFirst();
-        FieldRefToInspection := RecordRefToInspection.Field(FieldNo);
-        Template := FieldRefToInspection.Value();
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", ExcludeBrickFieldTok, Template) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            FieldRefToInspection.Validate(CopyStr(Template, 1, FieldRefToInspection.Length));
-            RecordRefToInspection.Modify();
-        end;
-    end;
-
-    /// <summary>
-    /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing inspections.
-    /// Use this if you need to adjust the brick summary on all inspections.
-    /// </summary>
-    procedure UpdateBrickFieldsOnAllExistingInspection()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        if QltyInspectionHeader.FindSet(true) then
-            repeat
-                QltyInspectionHeader.UpdateBrickFields();
-#pragma warning disable AA0214
-                QltyInspectionHeader.Modify(false);
-#pragma warning restore AA0214
-            until QltyInspectionHeader.Next() = 0;
-
-        Message(MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg);
     end;
 
     internal procedure GetAppGuid(): Guid
@@ -763,13 +545,13 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// Occurs when changing settings on the quality inspector setup page.
+    /// Retrieves the Setup record from the database, caching the result to avoid repeated reads within the same session.
     /// </summary>
-    /// <param name="XOldQltyManagementSetup"></param>
-    /// <param name="NewQltyManagementSetup"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateQualityManagementSettings(var XOldQltyManagementSetup: Record "Qlty. Management Setup"; var NewQltyManagementSetup: Record "Qlty. Management Setup"; var Handled: Boolean)
+    internal procedure GetRecordOnce()
     begin
+        if RecordHasBeenRead then
+            exit;
+        Get();
+        RecordHasBeenRead := true;
     end;
 }
