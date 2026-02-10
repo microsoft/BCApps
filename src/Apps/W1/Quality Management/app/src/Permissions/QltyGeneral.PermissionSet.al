@@ -39,14 +39,15 @@ using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
-/// Used for supervising.
+/// Used for supervising quality inspections.
 /// </summary>
 permissionset 20403 QltyGeneral
 {
     Caption = 'Quality Inspection - Supervisor';
     Assignable = true;
+
     Permissions =
-        // codeunits
+        // Codeunits
         codeunit "Qlty. - Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
@@ -84,7 +85,8 @@ permissionset 20403 QltyGeneral
         codeunit "Qlty. Item Tracking" = X,
         codeunit "Qlty. Traversal" = X,
         codeunit "Qlty. Workflow Setup" = X,
-        // pages
+
+        // Pages
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Choose Existing Tests" = X,
@@ -118,10 +120,12 @@ permissionset 20403 QltyGeneral
         page "Qlty. Inspection List" = X,
         page "Qlty. Whse. Gen. Rule Wizard" = X,
         page "Qlty. Inspection" = X,
-        // queries
+
+        // Queries
         query "Qlty. Inspection Values" = X,
         query "Qlty. Item Ledger By Location" = X,
-        // reports
+
+        // Reports
         report "Qlty. Certificate of Analysis" = X,
         report "Qlty. Change Item Tracking" = X,
         report "Qlty. Create Internal Put-away" = X,
@@ -132,7 +136,8 @@ permissionset 20403 QltyGeneral
         report "Qlty. General Purpose Inspect." = X,
         report "Qlty. Move Inventory" = X,
         report "Qlty. Non-Conformance" = X,
-        // tables
+
+        // Tables
         table "Qlty. Express Config. Value" = X,
         table "Qlty. Test" = X,
         table "Qlty. Inspection Gen. Rule" = X,
@@ -148,7 +153,8 @@ permissionset 20403 QltyGeneral
         table "Qlty. Inspect. Source Config." = X,
         table "Qlty. Inspection Line" = X,
         table "Qlty. Inspection Header" = X,
-        // table data
+
+        // Table data
         tabledata "Qlty. Express Config. Value" = RIMD,
         tabledata "Qlty. Inspection Gen. Rule" = RIMD,
         tabledata "Qlty. I. Result Condit. Conf." = RIMD,

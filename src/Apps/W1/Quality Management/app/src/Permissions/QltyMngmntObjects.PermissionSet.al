@@ -42,8 +42,8 @@ using Microsoft.QualityManagement.Workflow;
 permissionset 20406 "QltyMngmnt - Objects"
 {
     Caption = 'Quality Management - Objects';
-    Assignable = true;
     Access = Internal;
+    Assignable = true;
 
     Permissions =
         // Codeunits

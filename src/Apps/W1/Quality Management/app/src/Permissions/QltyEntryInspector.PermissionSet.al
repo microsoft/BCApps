@@ -40,15 +40,17 @@ using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
-/// Used for data entry only.
+/// Used for data entry in quality inspections only.
 /// </summary>
 permissionset 20404 QltyEntryInspector
 {
     Caption = 'Quality Inspection - Data Entry';
     Assignable = true;
+
     IncludedPermissionSets = "QltyMngmnt - Objects";
+
     Permissions =
-        // codeunits
+        // Codeunits
         codeunit "Qlty. - Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
@@ -86,7 +88,8 @@ permissionset 20404 QltyEntryInspector
         codeunit "Qlty. Item Tracking" = X,
         codeunit "Qlty. Traversal" = X,
         codeunit "Qlty. Workflow Setup" = X,
-        // pages
+
+        // Pages
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Choose Existing Tests" = X,
@@ -124,10 +127,12 @@ permissionset 20404 QltyEntryInspector
         page "Qlty. Inspection List" = X,
         page "Qlty. Whse. Gen. Rule Wizard" = X,
         page "Qlty. Inspection" = X,
-        // queries
+
+        // Queries
         query "Qlty. Inspection Values" = X,
         query "Qlty. Item Ledger By Location" = X,
-        // reports
+
+        // Reports
         report "Qlty. Certificate of Analysis" = X,
         report "Qlty. Change Item Tracking" = X,
         report "Qlty. Create Internal Put-away" = X,
@@ -138,7 +143,8 @@ permissionset 20404 QltyEntryInspector
         report "Qlty. General Purpose Inspect." = X,
         report "Qlty. Move Inventory" = X,
         report "Qlty. Non-Conformance" = X,
-        // tables
+
+        // Tables
         table "Qlty. Express Config. Value" = X,
         table "Qlty. Test" = X,
         table "Qlty. Inspection Gen. Rule" = X,
@@ -154,7 +160,8 @@ permissionset 20404 QltyEntryInspector
         table "Qlty. Inspect. Source Config." = X,
         table "Qlty. Inspection Line" = X,
         table "Qlty. Inspection Header" = X,
-        // table data
+
+        // Table data
         tabledata "Qlty. Express Config. Value" = RIMD,
         tabledata "Qlty. Test" = RIMd,
         tabledata "Qlty. Inspection Gen. Rule" = RIMd,
