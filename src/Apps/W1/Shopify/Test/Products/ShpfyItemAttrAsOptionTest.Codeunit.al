@@ -43,7 +43,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     procedure UnitTestValidateUoMAsVariantWhenAsOptionAttributesExist()
     var
         ItemAttribute: Record "Item Attribute";
-        FailureMessageErr: Label 'UoM as Variant is unavailable due to existing Item Attributes marked as “As Option” which are utilized for Shopify Product Options.';
+        FailureMessageErr: Label 'You cannot enable this setting because one or more Item Attributes are configured with "Incl. in Product Sync" set to "As Option".';
         ExpectedErrorNotRaisedErr: Label 'Expected error was not raised.';
     begin
         // [SCENARIO] Enabling 'UoM as Variant' fails when 'As Option' Item Attributes exist
