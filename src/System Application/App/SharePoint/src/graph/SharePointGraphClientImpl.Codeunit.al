@@ -30,6 +30,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         IsInitialized: Boolean;
         NotInitializedErr: Label 'SharePoint Graph Client is not initialized. Call Initialize first.';
         InvalidSharePointUrlErr: Label 'Invalid SharePoint URL ''%1''.', Comment = '%1 = URL string';
+        SharePointUrlPatternLbl: Label '^https:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.sharepoint\.com(\/.*)?$', Locked = true;
         RetrieveSiteInfoErr: Label 'Failed to retrieve SharePoint site information from Graph API. %1', Comment = '%1 = Error message';
         ContentRangeHeaderLbl: Label 'bytes %1-%2/%3', Locked = true, Comment = '%1 = Start Bytes, %2 = End Bytes, %3 = Total Bytes';
         FailedToRetrieveListsErr: Label 'Failed to retrieve lists: %1', Comment = '%1 = Error message';
@@ -143,7 +144,15 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="NewSharePointUrl">SharePoint site URL.</param>
     local procedure InitializeCommon(NewSharePointUrl: Text)
+    var
+        Uri: Codeunit Uri;
     begin
+        // Validate that the URL points to a SharePoint domain to prevent sending credentials to external URLs
+        if not Uri.IsValidURIPattern(NewSharePointUrl, SharePointUrlPatternLbl) then begin
+            Session.LogMessage('', StrSubstNo(InvalidSharePointUrlErr, NewSharePointUrl), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Error(InvalidSharePointUrlErr, NewSharePointUrl);
+        end;
+
         // If we have a new URL, clear the cached IDs so they'll be re-acquired
         if SharePointUrl <> NewSharePointUrl then begin
             SharePointUrl := NewSharePointUrl;

@@ -351,6 +351,102 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.AreEqual('Unauthorized', SharePointHttpDiagnostics.GetResponseReasonPhrase(), 'Reason phrase should match');
     end;
 
+    [Test]
+    procedure TestValidSharePointUrl()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A valid SharePoint URL with site path
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with a valid SharePoint URL
+        // [THEN] No error should occur
+        SharePointGraphClient.Initialize('https://contoso.sharepoint.com/sites/test', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+    end;
+
+    [Test]
+    procedure TestValidSharePointUrlWithoutPath()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A valid SharePoint URL without a path
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with a valid SharePoint URL without path
+        // [THEN] No error should occur
+        SharePointGraphClient.Initialize('https://contoso.sharepoint.com', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+    end;
+
+    [Test]
+    procedure TestInvalidUrlNonSharePointDomain()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A non-SharePoint URL
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with a non-SharePoint URL
+        // [THEN] An error should occur
+        asserterror SharePointGraphClient.Initialize('https://evil-site.com/sites/test', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        LibraryAssert.ExpectedError('Invalid SharePoint URL');
+    end;
+
+    [Test]
+    procedure TestInvalidUrlHttpNotHttps()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A SharePoint URL using HTTP instead of HTTPS
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with an HTTP URL
+        // [THEN] An error should occur because only HTTPS is allowed
+        asserterror SharePointGraphClient.Initialize('http://contoso.sharepoint.com/sites/test', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        LibraryAssert.ExpectedError('Invalid SharePoint URL');
+    end;
+
+    [Test]
+    procedure TestInvalidUrlSharePointSubdomain()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A URL that includes sharepoint.com as a subdomain of another domain
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with a spoofed SharePoint URL
+        // [THEN] An error should occur
+        asserterror SharePointGraphClient.Initialize('https://contoso.sharepoint.com.evil.com/sites/test', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        LibraryAssert.ExpectedError('Invalid SharePoint URL');
+    end;
+
+    [Test]
+    procedure TestInvalidUrlNoTenantSubdomain()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] A SharePoint URL without a tenant subdomain
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with sharepoint.com directly (no tenant prefix)
+        // [THEN] An error should occur
+        asserterror SharePointGraphClient.Initialize('https://sharepoint.com/sites/test', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        LibraryAssert.ExpectedError('Invalid SharePoint URL');
+    end;
+
+    [Test]
+    procedure TestInvalidUrlEmptyString()
+    var
+        MockHttpClientHandler: Interface "Http Client Handler";
+    begin
+        // [GIVEN] An empty URL
+        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
+
+        // [WHEN] Initializing with an empty URL
+        // [THEN] An error should occur
+        asserterror SharePointGraphClient.Initialize('', Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        LibraryAssert.ExpectedError('Invalid SharePoint URL');
+    end;
+
     local procedure Initialize()
     var
         MockHttpClientHandler: Interface "Http Client Handler";
