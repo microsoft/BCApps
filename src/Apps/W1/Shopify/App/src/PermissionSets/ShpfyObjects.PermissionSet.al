@@ -144,6 +144,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Customer Export" = X,
         codeunit "Shpfy Customer Import" = X,
         codeunit "Shpfy Customer Mapping" = X,
+        codeunit "Shpfy Delete Webhook Subs." = X,
         codeunit "Shpfy Disabled Value" = X,
         codeunit "Shpfy Document Link Mgt." = X,
         codeunit "Shpfy Draft Orders API" = X,
@@ -161,7 +162,6 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL ApiKey" = X,
         codeunit "Shpfy GQL AssignedFFOrders" = X,
         codeunit "Shpfy GQL BulkOperation" = X,
-        codeunit "Shpfy GQL BulkOperations" = X,
         codeunit "Shpfy GQL BulkOpMutation" = X,
         codeunit "Shpfy GQL Catalog Markets" = X,
         codeunit "Shpfy GQL CatalogPrices" = X,
@@ -267,6 +267,8 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL Payment Terms" = X,
         codeunit "Shpfy GQL PaymentTransactions" = X,
         codeunit "Shpfy GQL Payouts" = X,
+        codeunit "Shpfy GQL PayoutsByIds" = X,
+        codeunit "Shpfy GQL PaymTransByIds" = X,
         codeunit "Shpfy GQL ProductById" = X,
         codeunit "Shpfy GQL ProductIds" = X,
         codeunit "Shpfy GQL ProductImages" = X,
@@ -495,6 +497,5 @@ permissionset 30104 "Shpfy - Objects"
         page "Shpfy Tax Areas" = X,
         page "Shpfy Transaction Gateways" = X,
         page "Shpfy Transactions" = X,
-        page "Shpfy Variants" = X,
-        query "Shpfy Shipment Location" = X;
+        page "Shpfy Variants" = X;
 }

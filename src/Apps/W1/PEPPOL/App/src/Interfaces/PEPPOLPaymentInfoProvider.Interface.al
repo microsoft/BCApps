@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Sales.Document;
 
 interface "PEPPOL Payment Info Provider"
@@ -58,4 +59,21 @@ interface "PEPPOL Payment Info Provider"
     /// <param name="SalesHeader">The sales header record.</param>
     /// <param name="PaymentTermsNote">Return value: Payment terms note.</param>
     procedure GetPaymentTermsInfo(SalesHeader: Record "Sales Header"; var PaymentTermsNote: Text)
+
+    /// <summary>
+    /// Gets allowance charge information for payment discounts from VAT amount line and sales header.
+    /// </summary>
+    /// <param name="VATAmtLine">The VAT amount line record containing allowance charge information.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="ChargeIndicator">Returns the charge indicator.</param>
+    /// <param name="AllowanceChargeReasonCode">Returns the allowance charge reason code.</param>
+    /// <param name="AllowanceChargeListID">Returns the allowance charge list ID.</param>
+    /// <param name="AllowanceChargeReason">Returns the allowance charge reason.</param>
+    /// <param name="Amount">Returns the amount.</param>
+    /// <param name="AllowanceChargeCurrencyID">Returns the allowance charge currency ID.</param>
+    /// <param name="TaxCategoryID">Returns the tax category ID.</param>
+    /// <param name="TaxCategorySchemeID">Returns the tax category scheme ID.</param>
+    /// <param name="Percent">Returns the percent.</param>
+    /// <param name="AllowanceChargeTaxSchemeID">Returns the allowance charge tax scheme ID.</param>
+    procedure GetAllowanceChargeInfoPaymentDiscount(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
 }

@@ -992,6 +992,7 @@ table 8057 "Subscription Header"
         if not ServiceCommitment.IsEmpty() then
             Error(CannotDeleteBecauseServiceCommitmentExistsErr, "No.", ServiceCommitment.TableCaption);
 
+        ServiceCommitment.SetRange("Subscription Contract No.");
         ServiceCommitment.DeleteAll(true);
 
         ServiceCommitmentArchive.SetRange("Subscription Header No.", Rec."No.");
@@ -1802,12 +1803,12 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Validate("Notice Period", ServiceCommPackageLine."Notice Period");
                         ServiceCommitment.Validate("Initial Term", ServiceCommPackageLine."Initial Term");
 
-                        if ServiceEndDate <> 0D then
-                            ServiceCommitment."Subscription Line End Date" := ServiceEndDate
-                        else
-                            ServiceCommitment.CalculateInitialServiceEndDate();
-                        ServiceCommitment.CalculateInitialCancellationPossibleUntilDate();
-                        ServiceCommitment.CalculateInitialTermUntilDate();
+                        if ServiceEndDate <> 0D then begin
+                            ServiceCommitment."Subscription Line End Date" := ServiceEndDate;
+                            ServiceCommitment.RefreshRenewalTerm();
+                            ServiceCommitment.CalculateTermUntilDate();
+                        end else
+                            ServiceCommitment.CalculateSubscriptionDates();
                         ServiceCommitment.ClearTerminationPeriodsWhenServiceEnded();
                         ServiceCommitment.UpdateNextBillingDate(ServiceCommitment."Subscription Line Start Date" - 1);
                         OnAfterDatesCalculatedOnInsertSubscriptionLinesFromSubscriptionPackage(ServiceCommitment, ServiceCommPackageLine);
@@ -1952,8 +1953,8 @@ table 8057 "Subscription Header"
                         repeat
                             ServiceCommitmentUpdated := false;
                             if Format(ServiceCommitment."Notice Period") <> '' then
-                                if ServiceCommitment.UpdateTermUntilUsingExtensionTerm() then begin
-                                    ServiceCommitment.UpdateCancellationPossibleUntil();
+                                if ServiceCommitment.CalculateTermUntilUsingExtensionTerm() then begin
+                                    ServiceCommitment.CalculateCancellationPossibleUntil();
                                     ServiceCommitment.Modify(false);
                                     ServiceCommitmentUpdated := true;
                                     ReferenceDateForComparison := ServiceCommitment.GetReferenceDate();

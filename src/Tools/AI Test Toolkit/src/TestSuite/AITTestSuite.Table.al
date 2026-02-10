@@ -12,7 +12,7 @@ using System.TestTools.TestRunner;
 table 149030 "AIT Test Suite"
 #pragma warning restore AS0002
 {
-    Caption = 'AI Test Suite';
+    Caption = 'AI Eval Suite';
     DataClassification = SystemMetadata;
     ReplicateData = false;
     Extensible = true;
@@ -24,42 +24,42 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Code';
             NotBlank = true;
-            ToolTip = 'Specifies the Code for the test suite.';
+            ToolTip = 'Specifies the Code for the eval suite.';
         }
         field(2; "Description"; Text[250])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the description for the test suite.';
+            ToolTip = 'Specifies the description for the eval suite.';
         }
         field(4; Status; Enum "AIT Test Suite Status")
         {
             Caption = 'Status';
             Editable = false;
-            ToolTip = 'Specifies the status of the test suite.';
+            ToolTip = 'Specifies the status of the eval suite.';
         }
         field(5; "Started at"; DateTime)
         {
             Caption = 'Started at';
             Editable = false;
-            ToolTip = 'Specifies when the test suite was started.';
+            ToolTip = 'Specifies when the eval suite was started.';
         }
         field(7; "Input Dataset"; Code[100])
         {
             Caption = 'Input Dataset';
             TableRelation = "Test Input Group".Code where("Parent Group Code" = const(''));
             ValidateTableRelation = false;
-            ToolTip = 'Specifies the dataset to be used by the test suite.';
+            ToolTip = 'Specifies the dataset to be used by the eval suite.';
         }
         field(8; "Ended at"; DateTime)
         {
             Caption = 'Ended at';
             Editable = false;
-            ToolTip = 'Specifies the end time of the test suite execution.';
+            ToolTip = 'Specifies the end time of the eval suite execution.';
         }
         field(10; "No. of Tests Running"; Integer)
         {
-            Caption = 'No. of tests running';
-            ToolTip = 'Specifies the number of tests running in the test suite.';
+            Caption = 'No. of evals running';
+            ToolTip = 'Specifies the number of evals running in the eval suite.';
 
             trigger OnValidate()
             var
@@ -95,7 +95,7 @@ table 149030 "AIT Test Suite"
         field(11; Tag; Text[20])
         {
             Caption = 'Tag';
-            ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables easier comparison between the tests.';
+            ToolTip = 'Specifies the tag for an eval run. The Tag will be transferred to the log entries and enables easier comparison between the evals.';
             DataClassification = CustomerContent;
         }
 #pragma warning disable AA0232
@@ -103,7 +103,7 @@ table 149030 "AIT Test Suite"
 #pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
-            ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
+            ToolTip = 'Specifies the time taken for executing the evals in the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -112,17 +112,17 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Version';
             Editable = false;
-            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. The version will be stored in the Log entries.';
+            ToolTip = 'Specifies the version of the current eval run. It is used for comparing the results of the current eval run with the results of the previous eval run. The version will be stored in the Log entries.';
         }
         field(14; "Copilot Capability"; Enum "Copilot Capability")
         {
             Caption = 'Capability';
-            ToolTip = 'Specifies the capability that the test suite tests.';
+            ToolTip = 'Specifies the capability that the eval suite evaluates.';
         }
         field(15; "Run Frequency"; Enum "AIT Run Frequency")
         {
             Caption = 'Run Frequency';
-            ToolTip = 'Specifies how frequently the test suite should be run.';
+            ToolTip = 'Specifies how frequently the eval suite should be run.';
         }
         field(16; "Base Version"; Integer)
         {
@@ -142,16 +142,16 @@ table 149030 "AIT Test Suite"
         }
         field(21; "No. of Tests Executed"; Integer)
         {
-            Caption = 'No. of Tests Executed';
-            ToolTip = 'Specifies the number of tests executed for the test suite.';
+            Caption = 'No. of Evals Executed';
+            ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
-            Caption = 'No. of Tests Passed';
-            ToolTip = 'Specifies the number of tests passed for the test suite.';
+            Caption = 'No. of Evals Passed';
+            ToolTip = 'Specifies the number of evals passed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
@@ -159,7 +159,7 @@ table 149030 "AIT Test Suite"
         field(23; "No. of Operations"; Integer)
         {
             Caption = 'No. of Operations';
-            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the test suite.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version")));
@@ -167,7 +167,7 @@ table 149030 "AIT Test Suite"
         field(24; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -175,7 +175,7 @@ table 149030 "AIT Test Suite"
         field(25; Accuracy; Decimal)
         {
             Caption = 'Accuracy';
-            ToolTip = 'Specifies the average accuracy of the test suite. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
+            ToolTip = 'Specifies the average accuracy of the eval suite. The accuracy is calculated as the percentage of turns that passed or can be set manually by the eval.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -184,7 +184,7 @@ table 149030 "AIT Test Suite"
         field(30; "Number of Evaluators"; Integer)
         {
             Caption = 'Evaluators';
-            ToolTip = 'Specifies the number of evaluators to use in the test suite.';
+            ToolTip = 'Specifies the number of evaluators to use in the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Evaluator" where("Test Suite Code" = field("Code")));
@@ -192,7 +192,7 @@ table 149030 "AIT Test Suite"
         field(31; "Number of Column Mappings"; Integer)
         {
             Caption = 'Column Mappings';
-            ToolTip = 'Specifies the number of evaluators to use in the test suite.';
+            ToolTip = 'Specifies the number of evaluators to use in the eval suite.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Column Mapping" where("Test Suite Code" = field("Code")));
@@ -202,7 +202,7 @@ table 149030 "AIT Test Suite"
             Caption = 'Language ID';
             TableRelation = "AIT Test Suite Language"."Language ID";
             ValidateTableRelation = true;
-            ToolTip = 'Specifies the language in which the test suite should be run.';
+            ToolTip = 'Specifies the language in which the eval suite should be run.';
         }
         field(41; "Run Language Tag"; Text[80])
         {
@@ -236,22 +236,22 @@ table 149030 "AIT Test Suite"
         field(60; "Imported by AppId"; Guid)
         {
             Caption = 'Imported from AppId';
-            ToolTip = 'Specifies the application id from which the test suite was created.';
+            ToolTip = 'Specifies the application id from which the eval suite was created.';
         }
         field(70; "Imported XML's MD5"; Code[32])
         {
             Caption = 'Imported XML''s MD5';
-            ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
+            ToolTip = 'Specifies the MD5 hash of the XML file from which the eval suite was imported.';
         }
         field(80; Validation; Boolean)
         {
             Caption = 'Validation';
-            ToolTip = 'Specifies whether this test suite is used for validation purposes.';
+            ToolTip = 'Specifies whether this eval suite is used for validation purposes.';
         }
         field(81; "Test Type"; Enum "AIT Test Type")
         {
-            Caption = 'Test Type';
-            ToolTip = 'Specifies the type of AI test (Copilot, Agent, or MCP).';
+            Caption = 'Eval Type';
+            ToolTip = 'Specifies the type of AI eval (Copilot, Agent, or MCP).';
         }
     }
     keys

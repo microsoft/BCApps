@@ -12,13 +12,13 @@ codeunit 99001554 "Subc. TempProdOrdBind"
     EventSubscriberInstance = Manual;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subc. Temp Data Initializer", OnBeforeBuildTemporaryStructureFromBOMRouting, '', false, false)]
-    local procedure "Sub. Temp Data Initializer_OnBeforeBuildTemporaryStructureFromBOMRouting"(TempDataInitializer: Codeunit "Subc. Temp Data Initializer")
+    local procedure "Sub. Temp Data Initializer_OnBeforeBuildTemporaryStructureFromBOMRouting"(SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
     var
         TempProdOrderLine: Record "Prod. Order Line" temporary;
         TempRoutingLine: Record "Routing Line" temporary;
     begin
-        TempDataInitializer.GetGlobalProdOrderLine(TempProdOrderLine);
-        TempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
+        SubcTempDataInitializer.GetGlobalProdOrderLine(TempProdOrderLine);
+        SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
         PrepareDummyProdOrderLine(TempProdOrderLine, TempRoutingLine."Routing No.");
     end;
 

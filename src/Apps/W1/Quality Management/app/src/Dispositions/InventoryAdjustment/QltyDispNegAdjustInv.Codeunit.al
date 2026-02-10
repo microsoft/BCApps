@@ -21,12 +21,10 @@ using Microsoft.Warehouse.Tracking;
 /// </summary>
 codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
 {
-    Description = 'Negative Adjust inventory.';
-
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
+        WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         CannotGetJournalBatchErr: Label 'Could not get journal batch %1,%2%3. Check the adjustment batch on the Quality Management Setup page.', Comment = '%1=template,%2=batch name,%3=location';
         LocationLbl: Label ' Location: %1', Comment = '%1=location';
         DocumentTypeLbl: Label 'Negative Adjustment';
@@ -80,24 +78,24 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         ItmItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        Handled: Boolean;
+        IsHandled: Boolean;
         CreatedLine: Boolean;
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Dispose with Negative Inventory Adjustment";
 
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, IsHandled);
+        if IsHandled then
             exit;
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
             if not QltyInspectionHeader.IsItemTrackingUsed() then
-                Error(WriteOffEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
+                Error(WriteOffEntireItemTrackingErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
         QltyManagementSetup.Get();
 
-        if Handled then
+        if IsHandled then
             exit;
 
         if not TempQuantityToActQltyDispositionBuffer.FindSet() then begin
@@ -110,10 +108,10 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
             if TempQuantityToActQltyDispositionBuffer."Location Filter" <> '' then
                 Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
             if Location."Directed Put-away and Pick" then begin
-                if QltyManagementSetup."Whse. Adjustment Batch Name" = '' then
+                if QltyManagementSetup."Whse. Item Journal Batch Name" = '' then
                     Error(MissingBatchErr);
-                if not WhseJnlWarehouseJournalBatch.Get(QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Adjustment Batch Name", Location.Code) then
-                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Adjustment Batch Name", StrSubstNo(LocationLbl, Location.Code));
+                if not WhseJnlWarehouseJournalBatch.Get(QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Item Journal Batch Name", Location.Code) then
+                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Item Journal Batch Name", StrSubstNo(LocationLbl, Location.Code));
 
                 Clear(WhseWarehouseJournalLine);
                 CreateNegativeWarehouseAdjustmentLine(
@@ -134,14 +132,14 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
                     end else
                         DidSomething := true;
 
-                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Adjustment Batch Name");
+                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Item Journal Batch Name");
                 end;
             end else begin
-                if QltyManagementSetup."Adjustment Batch Name" = '' then
+                if QltyManagementSetup."Item Journal Batch Name" = '' then
                     Error(MissingBatchErr);
                 NegativeAdjustItemJournalBatch.SetAutoCalcFields("Template Type");
-                if not NegativeAdjustItemJournalBatch.Get(QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Adjustment Batch Name") then
-                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Adjustment Batch Name", '');
+                if not NegativeAdjustItemJournalBatch.Get(QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Item Journal Batch Name") then
+                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Item Journal Batch Name", '');
                 Clear(ItemJournalLine);
                 CreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, NegativeAdjustItemJournalBatch, ItemJournalLine, ItemReservationEntry);
                 CreatedLine := ItemJournalLine."Line No." <> 0;
@@ -158,7 +156,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
                     end else
                         DidSomething := true;
 
-                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Adjustment Batch Name");
+                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Journal Batch Name");
                 end;
             end;
 
@@ -180,12 +178,12 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         QltyManagementSetup: Record "Qlty. Management Setup";
         WhseJnlWarehouseJournalBatch: Record "Warehouse Journal Batch";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(WarehouseJournalLine);
         WarehouseJournalLine.Reset();
-        OnBeforeCreateNegativeWarehouseAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseNegativeAdjustmentBatch, WarehouseJournalLine, WhseItemTrackingLine, Handled);
-        if Handled then
+        OnBeforeCreateNegativeWarehouseAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseNegativeAdjustmentBatch, WarehouseJournalLine, WhseItemTrackingLine, IsHandled);
+        if IsHandled then
             exit;
 
         QltyManagementSetup.Get();
@@ -208,12 +206,12 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         ItemJournalTemplate: Code[10];
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(ItemJournalLine);
 
-        OnBeforeCreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch.Name, ItemJournalLine, ReservationEntry, Handled);
-        if Handled then
+        OnBeforeCreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch.Name, ItemJournalLine, ReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         ItemJournalTemplate := QltyManagementSetup.GetInventoryAdjustmentJournalTemplate();
@@ -229,12 +227,12 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNegativeItemAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var AdjustmentBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeCreateNegativeItemAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var AdjustmentBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNegativeWarehouseAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseNegativeAdjustmentBatch: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateNegativeWarehouseAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseNegativeAdjustmentBatch: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -243,10 +241,10 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
-    /// <param name="Handled"></param>
+    /// <param name="Changed"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -255,9 +253,9 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
+    /// <param name="Changed"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
     end;
 }

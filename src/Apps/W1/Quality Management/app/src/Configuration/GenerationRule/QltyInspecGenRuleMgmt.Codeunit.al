@@ -21,6 +21,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection generation rule. Please review your Quality Inspection source table configuration.';
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
+        MissingTableErr: Label 'There are generation rules for the template %1, however the table is missing. Navigate to Quality Inspection Generation Rules page and ensure that table is populated for %2 rule.', Comment = '%1=the template, %2=the description';
         UnexpectedUnableWithADetailErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
         NoGenRuleErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
 
@@ -72,7 +73,10 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
             QltyInspectSourceConfig.SetFilter("From Table No.", Filter);
         end;
         if not CanCreateInspectionDirectly then
-            Error(CouldNotFindSourceErr, TemplateCode, TablesToConfigure);
+            if TablesToConfigure = '0' then
+                Error(MissingTableErr, TemplateCode, TemplateCode)
+            else
+                Error(CouldNotFindSourceErr, TemplateCode, TablesToConfigure);
     end;
 
     /// <summary>

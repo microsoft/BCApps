@@ -35,7 +35,7 @@ using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
-using Microsoft.QualityManagement.Setup.SetupWizard;
+using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
@@ -102,10 +102,11 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Lookup Code List" = X,
         page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
-        page "Qlty. Management Setup Wizard" = X,
+        page "Qlty. Management Setup Guide" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,
+        page "Qlty. Asm. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection - QM" = X,

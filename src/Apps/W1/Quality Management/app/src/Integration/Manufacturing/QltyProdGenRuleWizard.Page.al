@@ -4,21 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
-using Microsoft.Assembly.History;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 
 page 20462 "Qlty. Prod. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Production and Assembly Quality Inspection Generation Rule Wizard';
+    Caption = 'Production Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
-    ApplicationArea = QualityManagement;
+    ApplicationArea = Manufacturing;
     SourceTable = "Qlty. Management Setup";
 
     layout
@@ -33,7 +31,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                 group(SettingsFor_StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Define a rule for lot or serial related inspections when products are produced.';
+                    InstructionalText = 'Define a rule for item tracking related inspections when products are produced.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
@@ -46,7 +44,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 field(ChoosechooseTemplate; TemplateCode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 
@@ -56,39 +54,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_StepAssemblyOrProduction)
-            {
-                Caption = ' ';
-                ShowCaption = false;
-                Visible = (StepAssemblyOrProductionCounter = CurrentStepCounter);
-                InstructionalText = 'Choose whether this is for production orders or assembly orders.';
-
-                field(ChoosechooseProductionOrder; IsProductionOrder)
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Production Orders';
-                    ToolTip = 'Specifies to create an inspection generation rule for Production Orders';
-
-                    trigger OnValidate()
-                    begin
-                        if IsProductionOrder then
-                            IsAssemblyOrder := false;
-                    end;
-                }
-                field(ChoosechooseAssemblyOrder; IsAssemblyOrder)
-                {
-                    ApplicationArea = Assembly;
-                    Caption = 'Assembly Orders';
-                    ToolTip = 'Specifies to create an inspection generation rule for Assembly Orders';
-
-                    trigger OnValidate()
-                    begin
-                        if IsAssemblyOrder then
-                            IsProductionOrder := false;
-                    end;
-                }
-            }
-            group(SettingsFor_StepWhichProdOrderRoutingLine)
+            group(SettingsFor_iStepWhichProdOrderRoutingLine)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -112,6 +78,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(LocationFilterErr, GetLastErrorText());
                         end;
@@ -129,6 +96,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(FromBinFilterErr, GetLastErrorText());
                         end;
@@ -146,6 +114,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(ToBinFilterErr, GetLastErrorText());
                         end;
@@ -168,6 +137,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(RoutingNoFilterErr, GetLastErrorText());
                         end;
@@ -185,6 +155,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(OperationNoErr, GetLastErrorText());
                         end;
@@ -202,6 +173,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(WorkCenterNoErr, GetLastErrorText());
                         end;
@@ -219,6 +191,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(MachineNoFilterErr, GetLastErrorText());
                         end;
@@ -248,71 +221,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_StepWhichAssemblyOrder)
-            {
-                ShowCaption = false;
-                InstructionalText = 'An inspection should be created for an assembly order when these filters match. You can choose other fields on the last step.';
-                Visible = (StepWhichAssemblyOrderCounter = CurrentStepCounter);
-
-                field(ChoosechooseAssemblyLocation; LocationCodeFilter)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Location';
-                    ToolTip = 'Specifies a location filter';
-
-                    trigger OnAssistEdit()
-                    begin
-                        QltyFilterHelpers.AssistEditLocation(LocationCodeFilter);
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        if not UpdateFullTextRuleStringsFromFilters() then
-                            Error(LocationFilterErr, GetLastErrorText());
-                    end;
-                }
-                field(ToBinCodeFilter; ToBinCodeFilter)
-                {
-                    ApplicationArea = All;
-                    Caption = 'To Bin';
-                    ToolTip = 'Specifies a destination bin.';
-
-                    trigger OnAssistEdit()
-                    begin
-                        QltyFilterHelpers.AssistEditBin(LocationCodeFilter, '', ToBinCodeFilter);
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        if not UpdateFullTextRuleStringsFromFilters() then
-                            Error(ToBinFilterErr, GetLastErrorText());
-                    end;
-                }
-                field(ChooseAssemblyDescriptionPattern; DescriptionPattern)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Description';
-                    ToolTip = 'Specifies a filter for description';
-
-                    trigger OnValidate()
-                    begin
-                        UpdateFullTextRuleStringsFromFilters();
-                    end;
-                }
-                field(ChooseAdvancedAssembly; 'Click here to choose advanced fields...')
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        UpdateFullTextRuleStringsFromFilters();
-                        AssistEditFullPostedAssemblyHeaderFilter();
-                        UpdateTableVariablesFromRecordFilters();
-                    end;
-                }
-            }
-            group(SettingsFor_StepWhichItem)
+            group(SettingsFor_iStepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -332,6 +241,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -349,6 +259,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -366,6 +277,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;
@@ -404,7 +316,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 }
                 group(SettingsForWrapProdOrderRoutingLineRule)
                 {
-                    Visible = IsProductionOrder;
                     ShowCaption = false;
 
                     field(ChooseProdOrderRoutingLineRuleFilter; ProdOrderRoutingLineRuleFilter)
@@ -420,24 +331,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         end;
                     }
                 }
-                group(SettingsForWrapAssemblyOrderRule)
-                {
-                    Visible = IsAssemblyOrder;
-                    ShowCaption = false;
 
-                    field(ChoosePostedAssemblyOrderRuleFilter; PostedAssemblyOrderRuleFilter)
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Filters';
-                        ToolTip = 'Specifies additional filters you may need to review and set.';
-                        MultiLine = true;
-
-                        trigger OnAssistEdit()
-                        begin
-                            AssistEditFullPostedAssemblyHeaderFilter();
-                        end;
-                    }
-                }
                 field(ChooseFilters_Item; ItemRuleFilter)
                 {
                     ApplicationArea = All;
@@ -450,31 +344,18 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateInspection)
+                group(SettingsForAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
                     InstructionalText = 'Do you want to automatically create inspections when these are produced?  This will set the activation trigger for this rule and set the default trigger value for inspection generation rules of this record type.';
 
                     group(SettingsForAutoProductionTriggerWrapper)
                     {
-                        Visible = IsProductionOrder;
                         ShowCaption = false;
 
-                        field(ChooseeAutomaticallyCreateProductionInspection; QltyProductionTrigger)
+                        field(ChooseAutomaticallyCreateProductionInspection; QltyProductionTrigger)
                         {
                             ApplicationArea = Manufacturing;
-                            Caption = 'Automatically Create Inspection';
-                            ToolTip = 'Specifies whether to automatically create an inspection when product is produced.';
-                        }
-                    }
-                    group(SettingsForAutoAssemblyProductionTriggerWrapper)
-                    {
-                        Visible = IsAssemblyOrder;
-                        ShowCaption = false;
-
-                        field(ChooseeAutomaticallyCreateAssemblyInspection; QltyAssemblyTrigger)
-                        {
-                            ApplicationArea = All;
                             Caption = 'Automatically Create Inspection';
                             ToolTip = 'Specifies whether to automatically create an inspection when product is produced.';
                         }
@@ -535,7 +416,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         TempItem: Record "Item" temporary;
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
-        TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         CurrentStepCounter: Integer;
         LocationCodeFilter: Code[20];
@@ -550,23 +430,16 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         ItemNoFilter: Code[20];
         CategoryCodeFilter: Code[20];
         InventoryPostingGroupCode: Code[20];
-        QltyProductionTrigger: Enum "Qlty. Production Trigger";
-        QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
-        ProdOrderRoutingLineRuleFilter: Text[400];
-        PostedAssemblyOrderRuleFilter: Text[400];
-        ItemRuleFilter: Text[400];
+        QltyProductionTrigger: Enum "Qlty. Production Order Trigger";
+        ProdOrderRoutingLineRuleFilter: Text[2048];
+        ItemRuleFilter: Text[2048];
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
         IsMovingForward: Boolean;
-        IsMovingBackward: Boolean;
-        IsAssemblyOrder: Boolean;
-        IsProductionOrder: Boolean;
         StepWhichTemplateCounter: Integer;
         StepWhichLineCounter: Integer;
         StepWhichItemFilterCounter: Integer;
-        StepAssemblyOrProductionCounter: Integer;
-        StepWhichAssemblyOrderCounter: Integer;
         StepDoneCounter: Integer;
         MaxStep: Integer;
         LocationFilterErr: Label 'This Location filter needs an adjustment. Location codes are no more than 10 characters. %1', Comment = '%1 = Text of the original error message';
@@ -587,11 +460,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     begin
         QltyManagementSetup.Get();
         StepWhichTemplateCounter := 1;
-        StepAssemblyOrProductionCounter := 2;
-        StepWhichLineCounter := 3;
-        StepWhichAssemblyOrderCounter := 4;
-        StepWhichItemFilterCounter := 5;
-        StepDoneCounter := 6;
+        StepWhichLineCounter := 2;
+        StepWhichItemFilterCounter := 3;
+        StepDoneCounter := 4;
 
         InitializeDefaultValues();
 
@@ -610,8 +481,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     local procedure InitializeDefaultValues()
     begin
         InitializeDefaultTemplate();
-        if not IsProductionOrder and not IsAssemblyOrder then
-            IsProductionOrder := true;
     end;
 
     local procedure InitializeDefaultTemplate()
@@ -636,13 +505,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             Step := MaxStep;
 
         IsMovingForward := Step > CurrentStepCounter;
-        IsMovingBackward := Step < CurrentStepCounter;
 
         if IsMovingForward then
             LeavingStepMovingForward(CurrentStepCounter, Step);
-
-        if IsMovingBackward then
-            LeavingStepMovingBackward(CurrentStepCounter, Step);
 
         case Step of
             StepWhichTemplateCounter:
@@ -651,19 +516,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     IsNextEnabledd := true;
                     IsFinishEnabledd := false;
                 end;
-            StepAssemblyOrProductionCounter:
-                begin
-                    IsBackEnabledd := true;
-                    IsNextEnabledd := true;
-                    IsFinishEnabledd := false;
-                end;
             StepWhichLineCounter:
-                begin
-                    IsBackEnabledd := true;
-                    IsNextEnabledd := true;
-                    IsFinishEnabledd := false;
-                end;
-            StepWhichAssemblyOrderCounter:
                 begin
                     IsBackEnabledd := true;
                     IsNextEnabledd := true;
@@ -694,32 +547,15 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         if LeavingThisStep = StepWhichTemplateCounter then
-            if MovingToThisStep = StepAssemblyOrProductionCounter then
+            if MovingToThisStep = StepWhichLineCounter then begin
                 if not QltyInspectionTemplateHdr.Get(TemplateCode) then begin
                     Message(YouMustChooseATemplateFirstMsg);
                     MovingToThisStep := StepWhichTemplateCounter;
                 end;
-        if LeavingThisStep = StepAssemblyOrProductionCounter then
-            if IsProductionOrder then begin
-                MovingToThisStep := StepWhichLineCounter;
-                QltyProductionTrigger := QltyManagementSetup."Production Trigger";
-            end else begin
-                MovingToThisStep := StepWhichAssemblyOrderCounter;
-                QltyAssemblyTrigger := QltyManagementSetup."Assembly Trigger";
+                QltyProductionTrigger := QltyManagementSetup."Production Order Trigger";
             end;
         if LeavingThisStep = StepWhichLineCounter then
             MovingToThisStep := StepWhichItemFilterCounter;
-    end;
-
-    local procedure LeavingStepMovingBackward(LeavingThisStep: Integer; var MovingToThisStep: Integer)
-    begin
-        if LeavingThisStep = StepWhichItemFilterCounter then
-            if IsProductionOrder then
-                MovingToThisStep := StepWhichLineCounter
-            else
-                MovingToThisStep := StepWhichAssemblyOrderCounter;
-        if LeavingThisStep = StepWhichAssemblyOrderCounter then
-            MovingToThisStep := StepAssemblyOrProductionCounter;
     end;
 
     local procedure AssistEditFullProdOrderRoutingLineFilter()
@@ -748,27 +584,10 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         end;
     end;
 
-    local procedure AssistEditFullPostedAssemblyHeaderFilter()
-    begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
-        TempQltyInspectionGenRule."Condition Filter" := PostedAssemblyOrderRuleFilter;
-
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            PostedAssemblyOrderRuleFilter := TempQltyInspectionGenRule."Condition Filter";
-
-            TempPostedAssemblyHeader.SetView(PostedAssemblyOrderRuleFilter);
-            UpdateTableVariablesFromRecordFilters();
-            CleanUpWhereClause();
-        end;
-    end;
-
     local procedure CleanUpWhereClause()
     begin
-        if IsProductionOrder then
-            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ProdOrderRoutingLineRuleFilter);
-        if IsAssemblyOrder then
-            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(PostedAssemblyOrderRuleFilter);
-        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ItemRuleFilter);
+        ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(ProdOrderRoutingLineRuleFilter);
+        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(ItemRuleFilter);
     end;
 
     local procedure BackAction();
@@ -797,22 +616,13 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         end;
         QltyInspectionGenRule.Validate("Template Code", TemplateCode);
         QltyManagementSetup.Get();
-        if IsProductionOrder then begin
-            QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
-            QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Production;
-            QltyInspectionGenRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
-            QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-            QltyInspectionGenRule."Production Trigger" := QltyProductionTrigger;
+        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
+        QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Production;
+        QltyInspectionGenRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
+        QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+        QltyInspectionGenRule."Production Order Trigger" := QltyProductionTrigger;
 
-            QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
-        end else begin
-            QltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
-            QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Assembly;
-            QltyInspectionGenRule."Condition Filter" := PostedAssemblyOrderRuleFilter;
-            QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-            QltyInspectionGenRule."Assembly Trigger" := QltyAssemblyTrigger;
-            QltyManagementSetup."Assembly Trigger" := QltyAssemblyTrigger;
-        end;
+        QltyManagementSetup."Production Order Trigger" := QltyProductionTrigger;
         QltyManagementSetup.Modify(false);
         QltyInspectionGenRule."Item Filter" := ItemRuleFilter;
         QltyInspectionGenRule.Modify();
@@ -835,23 +645,14 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempProdOrderRoutingLine);
-        Clear(TempPostedAssemblyHeader);
         Clear(TempItem);
 
-        if QltyInspectionGenRule."Source Table No." = Database::"Prod. Order Routing Line" then begin
+        if QltyInspectionGenRule."Source Table No." = Database::"Prod. Order Routing Line" then
             TempProdOrderRoutingLine.SetView(TempQltyInspectionGenRule."Condition Filter");
-            IsProductionOrder := true;
-            IsAssemblyOrder := false;
-        end;
-        if QltyInspectionGenRule."Source Table No." = Database::"Posted Assembly Header" then begin
-            TempPostedAssemblyHeader.SetView(TempQltyInspectionGenRule."Condition Filter");
-            IsAssemblyOrder := true;
-            IsProductionOrder := false;
-        end;
 
         TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();
@@ -865,55 +666,40 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     [TryFunction]
     local procedure UpdateFullTextRuleStringsFromFilters()
     begin
-        if IsProductionOrder then begin
-            TempProdOrderRoutingLine.SetFilter("Location Code", LocationCodeFilter);
-            TempProdOrderRoutingLine.SetFilter("Routing No.", RoutingNoFilter);
-            TempProdOrderRoutingLine.SetFilter("Work Center No.", WorkCenterNo);
-            TempProdOrderRoutingLine.SetFilter("No.", SpecificNoFilter);
-            TempProdOrderRoutingLine.SetFilter("From-Production Bin Code", FromBinCodeFilter);
-            TempProdOrderRoutingLine.SetFilter("To-Production Bin Code", ToBinCodeFilter);
-            TempProdOrderRoutingLine.SetFilter("Operation No.", OperationNo);
-            TempProdOrderRoutingLine.SetFilter("Description", DescriptionPattern);
-            ProdOrderRoutingLineRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempProdOrderRoutingLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
-        end else begin
-            TempPostedAssemblyHeader.SetFilter("Location Code", LocationCodeFilter);
-            TempPostedAssemblyHeader.SetFilter(Description, DescriptionPattern);
-            PostedAssemblyOrderRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempPostedAssemblyHeader.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
-        end;
+        TempProdOrderRoutingLine.SetFilter("Location Code", LocationCodeFilter);
+        TempProdOrderRoutingLine.SetFilter("Routing No.", RoutingNoFilter);
+        TempProdOrderRoutingLine.SetFilter("Work Center No.", WorkCenterNo);
+        TempProdOrderRoutingLine.SetFilter("No.", SpecificNoFilter);
+        TempProdOrderRoutingLine.SetFilter("From-Production Bin Code", FromBinCodeFilter);
+        TempProdOrderRoutingLine.SetFilter("To-Production Bin Code", ToBinCodeFilter);
+        TempProdOrderRoutingLine.SetFilter("Operation No.", OperationNo);
+        TempProdOrderRoutingLine.SetFilter("Description", DescriptionPattern);
+        ProdOrderRoutingLineRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempProdOrderRoutingLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempProdOrderRoutingLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempProdOrderRoutingLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempPostedAssemblyHeader.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
-
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
     local procedure UpdateTableVariablesFromRecordFilters()
     begin
-        if IsProductionOrder then begin
-            LocationCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("Location Code"), 1, MaxStrLen(LocationCodeFilter));
-            RoutingNoFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("Routing No."), 1, MaxStrLen(RoutingNoFilter));
-            WorkCenterNo := CopyStr(TempProdOrderRoutingLine.GetFilter("Work Center No."), 1, MaxStrLen(WorkCenterNo));
-            SpecificNoFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("No."), 1, MaxStrLen(SpecificNoFilter));
-            FromBinCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("From-Production Bin Code"), 1, MaxStrLen(FromBinCodeFilter));
-            ToBinCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("To-Production Bin Code"), 1, MaxStrLen(ToBinCodeFilter));
-            OperationNo := CopyStr(TempProdOrderRoutingLine.GetFilter("Operation No."), 1, MaxStrLen(OperationNo));
-            DescriptionPattern := CopyStr(TempProdOrderRoutingLine.GetFilter("Description"), 1, MaxStrLen(DescriptionPattern));
-        end else begin
-            LocationCodeFilter := CopyStr(TempPostedAssemblyHeader.GetFilter("Location Code"), 1, MaxStrLen(LocationCodeFilter));
-            DescriptionPattern := CopyStr(TempPostedAssemblyHeader.GetFilter(Description), 1, MaxStrLen(DescriptionPattern));
-            ToBinCodeFilter := CopyStr(TempPostedAssemblyHeader.GetFilter("Bin Code"), 1, MaxStrLen(ToBinCodeFilter));
-        end;
+        LocationCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("Location Code"), 1, MaxStrLen(LocationCodeFilter));
+        RoutingNoFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("Routing No."), 1, MaxStrLen(RoutingNoFilter));
+        WorkCenterNo := CopyStr(TempProdOrderRoutingLine.GetFilter("Work Center No."), 1, MaxStrLen(WorkCenterNo));
+        SpecificNoFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("No."), 1, MaxStrLen(SpecificNoFilter));
+        FromBinCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("From-Production Bin Code"), 1, MaxStrLen(FromBinCodeFilter));
+        ToBinCodeFilter := CopyStr(TempProdOrderRoutingLine.GetFilter("To-Production Bin Code"), 1, MaxStrLen(ToBinCodeFilter));
+        OperationNo := CopyStr(TempProdOrderRoutingLine.GetFilter("Operation No."), 1, MaxStrLen(OperationNo));
+        DescriptionPattern := CopyStr(TempProdOrderRoutingLine.GetFilter("Description"), 1, MaxStrLen(DescriptionPattern));
 
         ItemNoFilter := CopyStr(TempItem.GetFilter("No."), 1, MaxStrLen(ItemNoFilter));
         CategoryCodeFilter := CopyStr(TempItem.GetFilter("Item Category Code"), 1, MaxStrLen(CategoryCodeFilter));

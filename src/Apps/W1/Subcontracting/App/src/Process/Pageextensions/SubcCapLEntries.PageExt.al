@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,8 +56,8 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
     }
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }

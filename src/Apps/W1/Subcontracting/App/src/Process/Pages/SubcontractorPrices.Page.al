@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,11 +35,11 @@ page 99001500 "Subcontractor Prices"
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
-                        VendList: Page "Vendor List";
+                        VendorList: Page "Vendor List";
                     begin
-                        VendList.LookupMode := true;
-                        if VendList.RunModal() = Action::LookupOK then
-                            Text := VendList.GetSelectionFilter()
+                        VendorList.LookupMode := true;
+                        if VendorList.RunModal() = Action::LookupOK then
+                            Text := VendorList.GetSelectionFilter()
                         else
                             exit(false);
 
@@ -247,7 +247,7 @@ page 99001500 "Subcontractor Prices"
     end;
 
     var
-        Vend: Record Vendor;
+        Vendor: Record Vendor;
         IsLookupMode: Boolean;
         MultipleVendorsSelectedErr: Label 'More than one vendor uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
         MultipleWorkCenterSelectedErr: Label 'More than one work center uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
@@ -307,7 +307,7 @@ page 99001500 "Subcontractor Prices"
 
     local procedure GetCaption(): Text
     var
-        ObjTransl: Record "Object Translation";
+        ObjectTranslation: Record "Object Translation";
         PlaceholderLbl: Label '%1 %2 %3 %4 ', Locked = true;
         Description: Text[100];
         SourceTableName: Text[250];
@@ -315,12 +315,12 @@ page 99001500 "Subcontractor Prices"
         GetRecFilters();
 
         if ItemNoFilter <> '' then
-            SourceTableName := ObjTransl.TranslateObject(ObjTransl."Object Type"::Table, 27)
+            SourceTableName := ObjectTranslation.TranslateObject(ObjectTranslation."Object Type"::Table, 27)
         else
             SourceTableName := '';
 
-        if Vend.Get(CopyStr(VendNoFilter, 1, MaxStrLen(Vend."No."))) then
-            Description := Vend.Name;
+        if Vendor.Get(CopyStr(VendNoFilter, 1, MaxStrLen(Vendor."No."))) then
+            Description := Vendor.Name;
 
         exit(StrSubstNo(PlaceholderLbl, VendNoFilter, Description, SourceTableName, ItemNoFilter));
     end;
@@ -378,14 +378,14 @@ page 99001500 "Subcontractor Prices"
     var
         SelectedSubcontractorPrice: Record "Subcontractor Price";
         SubcontractorPrice: Record "Subcontractor Price";
-        Vendor: Record Vendor;
+        ToVendor: Record Vendor;
         WorkCenter: Record "Work Center";
         SubcontractorPrices: Page "Subcontractor Prices";
         CopyToVendorNo: Code[20];
         CopyToWorkCenterNo: Code[20];
     begin
-        Vendor.SetFilter("No.", VendNoFilter);
-        if Vendor.Count() <> 1 then
+        ToVendor.SetFilter("No.", VendNoFilter);
+        if ToVendor.Count() <> 1 then
             Error(MultipleVendorsSelectedErr);
         CopyToVendorNo := CopyStr(VendNoFilter, 1, MaxStrLen(CopyToVendorNo));
 

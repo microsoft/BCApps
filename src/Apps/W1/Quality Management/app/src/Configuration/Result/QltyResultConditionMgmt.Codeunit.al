@@ -82,7 +82,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="Template">The template</param>
     /// <param name="LineNo">The template line</param>
     /// <param name="OptionalSpecificResult">Leave empty to copy all applicable results</param>
-    procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
+    internal procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
     begin
         CopyResultConditionsFromTestToTemplateLine(Template, LineNo, OptionalSpecificResult, OverwriteConditionIfExisting, '', '');
     end;
@@ -236,6 +236,28 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             end;
 
         until FromTemplateQltyIResultConditConf.Next() = 0;
+    end;
+
+    /// <summary>
+    /// This will copy any grade configurations configured to automatically copy to all existing templates.
+    /// This leverages how CopyGradeConditionsFromFieldToTemplateLine will already update fields via CopyGradeConditionsFromDefaultToField 
+    /// when a specific grade is supplied.
+    /// </summary>
+    procedure CopyGradeConditionsFromDefaultToAllTemplates()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
+        if QltyInspectionResult.FindSet() then
+            repeat
+                if QltyInspectionTemplateLine.FindSet(false) then
+                    repeat
+                        // We're using 'false' here because we do not want to replace the conditions, only add new ones.
+                        // We do not want to remove grades that were previously added to templates.
+                        CopyResultConditionsFromTestToTemplateLine(QltyInspectionTemplateLine."Template Code", QltyInspectionTemplateLine."Line No.", QltyInspectionResult.Code, false);
+                    until (QltyInspectionTemplateLine.Next() = 0);
+            until (QltyInspectionResult.Next() = 0);
     end;
 
     /// <summary>
@@ -415,7 +437,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
     /// <param name="MatrixArrayToSetCaptionSet"></param>
     /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetDefaultPromotedResults(
+    internal procedure GetDefaultPromotedResults(
         AllPromoted: Boolean;
         var MatrixArraySourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;
@@ -425,12 +447,16 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArraySourceRecordId);
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
         if not AllPromoted then
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
@@ -451,7 +477,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
                 MatrixArraySourceRecordId[Iterator] := QltyInspectionResult.RecordId();
-            until (QltyInspectionResult.Next() = 0) or (Iterator >= 10);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
         end;
     end;
 
@@ -518,11 +544,15 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
         QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
@@ -530,7 +560,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             repeat
                 if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
                     Iterator += 1;
-                    if Iterator <= 10 then begin
+                    if Iterator <= GetMaxResultConditions() then begin
                         MatrixVisibleStateToSet[Iterator] := true;
                         if QltyInspectionResult.Description <> '' then
                             MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
@@ -549,6 +579,11 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     end else
                         break;
                 end;
-            until (QltyIResultConditConf.Next() = 0) or (Iterator >= 10);
+            until (QltyIResultConditConf.Next() = 0) or (Iterator >= MaxResultConditions);
+    end;
+
+    local procedure GetMaxResultConditions(): Integer
+    begin
+        exit(10);
     end;
 }

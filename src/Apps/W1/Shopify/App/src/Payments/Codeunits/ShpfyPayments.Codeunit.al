@@ -22,16 +22,86 @@ codeunit 30169 "Shpfy Payments"
         PaymentsAPI.SetShop(Shop);
     end;
 
-    internal procedure SyncPaymentTransactions()
-    var
-        SinceId: BigInteger;
+    #region Payouts
+    internal procedure SyncPayouts()
     begin
-        SinceId := GetLastTransactionPayoutId(Shop.Code);
-        PaymentsAPI.ImportPaymentTransactions(SinceId);
-        if SinceId > 0 then
-            ImportPayouts(SinceId - 1);
+        UpdatePaymentTransactionPayoutIds();
+        UpdatePendingPayouts();
+        ImportNewPaymentTransactions();
+        ImportNewPayouts();
     end;
 
+    local procedure ImportNewPaymentTransactions()
+    var
+        PaymentTransaction: Record "Shpfy Payment Transaction";
+        SinceId: BigInteger;
+    begin
+        PaymentTransaction.SetRange("Shop Code", Shop.Code);
+        if PaymentTransaction.FindLast() then
+            SinceId := PaymentTransaction.Id;
+        PaymentsAPI.ImportPaymentTransactions(SinceId);
+    end;
+
+    local procedure ImportNewPayouts()
+    var
+        Payout: Record "Shpfy Payout";
+        SinceId: BigInteger;
+    begin
+        if Payout.FindLast() then
+            SinceId := Payout.Id;
+        PaymentsAPI.ImportPayouts(SinceId);
+    end;
+
+    local procedure UpdatePaymentTransactionPayoutIds()
+    var
+        PaymentTransaction: Record "Shpfy Payment Transaction";
+        PaymentTransactionIdFilter: Text;
+        PaymentTransactionCount: Integer;
+    begin
+        PaymentTransaction.SetRange("Payout Id", 0);
+        if PaymentTransaction.FindSet() then
+            repeat
+                if PaymentTransactionIdFilter <> '' then
+                    PaymentTransactionIdFilter += ' OR ';
+                PaymentTransactionIdFilter += Format(PaymentTransaction.Id);
+                PaymentTransactionCount += 1;
+                if PaymentTransactionCount = 200 then begin
+                    PaymentsAPI.UpdatePaymentTransactionPayoutIds(PaymentTransactionIdFilter);
+                    PaymentTransactionIdFilter := '';
+                    PaymentTransactionCount := 0;
+                end;
+            until PaymentTransaction.Next() = 0;
+
+        if PaymentTransactionIdFilter <> '' then
+            PaymentsAPI.UpdatePaymentTransactionPayoutIds(PaymentTransactionIdFilter);
+    end;
+
+    local procedure UpdatePendingPayouts()
+    var
+        Payout: Record "Shpfy Payout";
+        PayoutIdFilter: Text;
+        PayoutCount: Integer;
+    begin
+        Payout.SetFilter(Status, '<>%1&<>%2', "Shpfy Payout Status"::Paid, "Shpfy Payout Status"::Canceled);
+        if Payout.FindSet() then
+            repeat
+                if PayoutIdFilter <> '' then
+                    PayoutIdFilter += ' OR ';
+                PayoutIdFilter += Format(Payout.Id);
+                PayoutCount += 1;
+                if PayoutCount = 200 then begin
+                    PaymentsAPI.UpdatePayoutStatuses(PayoutIdFilter);
+                    PayoutIdFilter := '';
+                    PayoutCount := 0;
+                end;
+            until Payout.Next() = 0;
+
+        if PayoutIdFilter <> '' then
+            PaymentsAPI.UpdatePayoutStatuses(PayoutIdFilter);
+    end;
+    #endregion
+
+    #region Disputes
     internal procedure SyncDisputes()
     begin
         UpdateUnfinishedDisputes();
@@ -58,26 +128,5 @@ codeunit 30169 "Shpfy Payments"
             SinceId := Dispute.Id;
         PaymentsAPI.ImportDisputes(SinceId);
     end;
-
-    local procedure ImportPayouts(SinceId: BigInteger)
-    var
-        Payout: Record "Shpfy Payout";
-        Math: Codeunit "Shpfy Math";
-    begin
-        Payout.SetFilter(Status, '<>%1&<>%2', "Shpfy Payout Status"::Paid, "Shpfy Payout Status"::Canceled);
-        Payout.SetLoadFields(Id);
-        if Payout.FindFirst() then
-            SinceId := Math.Min(SinceId, Payout.Id);
-
-        PaymentsAPI.ImportPayouts(SinceId);
-    end;
-
-    local procedure GetLastTransactionPayoutId(ShopCode: Code[20]): BigInteger
-    var
-        PaymentTransaction: Record "Shpfy Payment Transaction";
-    begin
-        PaymentTransaction.SetRange("Shop Code", ShopCode);
-        if PaymentTransaction.FindLast() then
-            exit(PaymentTransaction."Payout Id");
-    end;
+    #endregion
 }
