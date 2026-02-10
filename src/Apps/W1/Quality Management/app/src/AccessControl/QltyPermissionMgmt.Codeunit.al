@@ -10,15 +10,15 @@ using System.Security.AccessControl;
 using System.Security.User;
 
 /// <summary>
-/// Permission management methods to help with functional permissions.
+/// Provides permission management methods for Quality Management functional permissions.
 /// </summary>
 codeunit 20406 "Qlty. Permission Mgmt."
 {
     InherentPermissions = X;
 
     var
-        ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
         ActionCreateInspectionAutomaticallyLbl: Label 'create inspection automatically';
+        ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
         ActionCreateReinspectionLbl: Label 'create re-inspection';
         ActionChangeOthersInspectionLbl: Label 'change others inspection';
         ActionFinishInspectionLbl: Label 'finish inspection';
@@ -32,9 +32,9 @@ codeunit 20406 "Qlty. Permission Mgmt."
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
-    /// CanReadInspectionResults returns true if the current user can has permission to read inspection results in general.
+    /// Checks if the current user has permission to read inspection results.
     /// </summary>
-    /// <returns>Return value of type Boolean, true if the current user can has permission to read inspection results in general</returns>
+    /// <returns>True if the user can read inspection results; otherwise, false.</returns>
     internal procedure CanReadInspectionResults(): Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -43,34 +43,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanCreateManualInspection. True if the user can create a manual inspection
+    /// Checks if the current user can create an automatic inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanCreateManualInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionCreateInspectionManuallyLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can create a manual inspection.
-    /// </summary>
-    internal procedure VerifyCanCreateManualInspection()
-    begin
-        if not CanCreateManualInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
-    end;
-
-    /// <summary>
-    /// CanCreateAutoInspection. True if the user can create an automatic inspection
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can create an automatic inspection; otherwise, false.</returns>
     internal procedure CanCreateAutoInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionCreateInspectionAutomaticallyLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can create an automatic inspection.
+    /// Verifies the current user can create an automatic inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanCreateAutoInspection()
     begin
@@ -79,16 +61,34 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanCreateReinspection. True if the user can create a re-inspection.
+    /// Checks if the current user can create a manual inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can create a manual inspection; otherwise, false.</returns>
+    internal procedure CanCreateManualInspection(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionCreateInspectionManuallyLbl));
+    end;
+
+    /// <summary>
+    /// Verifies the current user can create a manual inspection. Throws an error if not permitted.
+    /// </summary>
+    internal procedure VerifyCanCreateManualInspection()
+    begin
+        if not CanCreateManualInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
+    end;
+
+    /// <summary>
+    /// Checks if the current user can create a re-inspection.
+    /// </summary>
+    /// <returns>True if the user can create a re-inspection; otherwise, false.</returns>
     internal procedure CanCreateReinspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionCreateReinspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can create a re-inspection.
+    /// Verifies the current user can create a re-inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanCreateReinspection()
     begin
@@ -97,16 +97,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanChangeOtherInspections. True if the user can change someone else's inspections.
+    /// Checks if the current user can change other users' inspections.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
     internal procedure CanChangeOtherInspections(): Boolean
     begin
         exit(CheckPermissionDetails(ActionChangeOthersInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can change someone else's inspections.
+    /// Verifies the current user can change other users' inspections. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanChangeOtherInspections()
     begin
@@ -115,16 +115,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanFinishInspection. True if the user can can finish an inspection.
+    /// Checks if the current user can finish an inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can finish an inspection; otherwise, false.</returns>
     internal procedure CanFinishInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionFinishInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can finish an inspection.
+    /// Verifies the current user can finish an inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanFinishInspection()
     begin
@@ -133,16 +133,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanReopenInspection. True if the user can re-open an inspection.
+    /// Checks if the current user can reopen an inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can reopen an inspection; otherwise, false.</returns>
     internal procedure CanReopenInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionReopenInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can re-open an inspection.
+    /// Verifies the current user can reopen an inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
@@ -151,16 +151,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanDeleteOpenInspection. True if the user  can delete an open inspection.
+    /// Checks if the current user can delete an open inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can delete an open inspection; otherwise, false.</returns>
     internal procedure CanDeleteOpenInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionDeleteOpenInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can delete an open inspection.
+    /// Verifies the current user can delete an open inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
     begin
@@ -169,16 +169,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanDeleteFinishedInspection. True if the user can delete a finished inspection.
+    /// Checks if the current user can delete a finished inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
     internal procedure CanDeleteFinishedInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionDeleteFinishedInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can delete a finished inspection.
+    /// Verifies the current user can delete a finished inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
@@ -187,16 +187,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanChangeTrackingNo. True if the user can change the tracking on an inspection.
+    /// Checks if the current user can change the item tracking on an inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can change item tracking; otherwise, false.</returns>
     internal procedure CanChangeTrackingNo(): Boolean
     begin
         exit(CheckPermissionDetails(ActionChangeItemTrackingLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can change the tracking on an inspection.
+    /// Verifies the current user can change item tracking on an inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanChangeTrackingNo()
     begin
@@ -205,16 +205,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanChangeSourceQuantity. True if the user can change source quantities
+    /// Checks if the current user can change the source quantity on an inspection.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can change the source quantity; otherwise, false.</returns>
     internal procedure CanChangeSourceQuantity(): Boolean
     begin
         exit(CheckPermissionDetails(ActionChangeSourceQuantityLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can change the source quantity.
+    /// Verifies the current user can change the source quantity. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanChangeSourceQuantity()
     begin
@@ -223,16 +223,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanEditLineComments. True if the user can add line notes/comments.
+    /// Checks if the current user can edit line notes and comments.
     /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>True if the user can edit line comments; otherwise, false.</returns>
     internal procedure CanEditLineComments(): Boolean
     begin
         exit(CheckPermissionDetails(ActionEditLineCommentLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can edit line comments.
+    /// Verifies the current user can edit line comments. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanEditLineComments()
     begin
@@ -241,10 +241,10 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Returns whether or not auto assignment should occur based on the permissions records.
+    /// Determines whether auto-assignment should occur based on user permissions.
     /// </summary>
-    /// <param name="ShouldPrompt">Only set with interaction ability is available ( GuiAllowed() is true ) and also prompt when possible is chosen.</param>
-    /// <returns>Whether or not auto-assignment should occur.</returns>
+    /// <param name="ShouldPrompt">Set to true when GUI is available and prompting is enabled.</param>
+    /// <returns>True if auto-assignment should occur; otherwise, false.</returns>
     internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -254,17 +254,17 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// For the given function, this gives the suggested allowed state.
+    /// Evaluates whether the user is allowed to perform the specified functional permission.
     /// </summary>
-    /// <param name="FunctionalPermission"></param>
-    /// <returns></returns>
+    /// <param name="FunctionalPermission">The functional permission to check.</param>
+    /// <returns>True if the user has the required permission; otherwise, false.</returns>
     local procedure CheckPermissionDetails(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
-            ActionCreateInspectionManuallyLbl:
-                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionCreateInspectionAutomaticallyLbl:
                 Result := true;
+            ActionCreateInspectionManuallyLbl:
+                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionCreateReinspectionLbl:
                 Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionChangeOthersInspectionLbl:
@@ -303,9 +303,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Check if the role is directly assigned to the user, without considering app and scope filters.
-    /// Inspired by HasUserPermissionSetAssigned in codeunit 153 "User Permissions Impl."
+    /// Checks if a permission set is directly assigned to a user, ignoring app and scope filters.
+    /// Based on HasUserPermissionSetAssigned in codeunit 153 "User Permissions Impl."
     /// </summary>
+    /// <param name="UserSecurityId">The security ID of the user to check.</param>
+    /// <param name="RoleId">The role ID to look for.</param>
+    /// <returns>True if the role is directly assigned to the user; otherwise, false.</returns>
     local procedure HasUserPermissionSetDirectlyAssigned(UserSecurityId: Guid; RoleId: Code[20]): Boolean
     var
         AccessControl: Record "Access Control";
