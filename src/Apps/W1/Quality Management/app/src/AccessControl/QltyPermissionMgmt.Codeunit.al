@@ -217,11 +217,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ShouldPrompt := false;
     end;
 
-    local procedure LoadPermissionDetails(FunctionalPermission: Text): Boolean
-    begin
-        exit(GetSuggestedAllowedValueForFunction(FunctionalPermission));
-    end;
-
     /// <summary>
     /// Determines if the current user can edit line comments.
     /// </summary>
@@ -272,7 +267,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    local procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
+    local procedure LoadPermissionDetails(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
             ActionCreateInspectionAutoLbl:
@@ -284,7 +279,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
             ActionChangeOthersInspectionsLbl:
                 Result := HasSupervisorRole();
             ActionDeleteFinishedInspectionLbl:
-                Result := CanDeleteTableData(Database::"Qlty. Inspection Header") and HasSupervisorRole();
+                if CanDeleteTableData(Database::"Qlty. Inspection Header") then
+                    Result := HasSupervisorRole();
             ActionDeleteOpenInspectionLbl:
                 Result := CanDeleteTableData(Database::"Qlty. Inspection Header");
             ActionChangeTrackingNoLbl:
@@ -294,7 +290,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
             ActionReopenInspectionLbl:
                 Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionChangeSourceQuantityLbl:
-                Result := CanModifyTableData(Database::"Qlty. Inspection Header") and HasSupervisorRole();
+                if CanModifyTableData(Database::"Qlty. Inspection Header") then
+                    Result := HasSupervisorRole();
             ActionEditLineCommentsLbl:
                 Result := CanModifyTableData(Database::"Record Link");
         end;
