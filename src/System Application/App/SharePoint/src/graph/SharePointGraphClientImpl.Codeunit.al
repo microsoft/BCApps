@@ -166,7 +166,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         RelativePath := ExtractRelativePath(Url);
 
         if (HostName = '') or (RelativePath = '') then begin
-            Session.LogMessage('', StrSubstNo(InvalidSharePointUrlErr, Url), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RK6', StrSubstNo(InvalidSharePointUrlErr, Url), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Error(InvalidSharePointUrlErr, Url);
         end;
 
@@ -174,7 +174,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         Endpoint := SharePointGraphUriBuilder.GetSiteByHostAndPathEndpoint(HostName, RelativePath);
 
         if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse) then begin
-            Session.LogMessage('', StrSubstNo(RetrieveSiteInfoErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RK7', StrSubstNo(RetrieveSiteInfoErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Error(RetrieveSiteInfoErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
         end;
 
@@ -225,7 +225,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     local procedure EnsureInitialized()
     begin
         if not IsInitialized then begin
-            Session.LogMessage('', NotInitializedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RK8', NotInitializedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Error(NotInitializedErr);
         end;
     end;
@@ -267,19 +267,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetListsEndpoint(), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveListsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RK9', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseListCollection(JsonArray, GraphLists) then begin
             SharePointGraphResponse.SetError(FailedToParseListsErr);
-            Session.LogMessage('', FailedToParseListsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKA', FailedToParseListsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetLists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKB', StrSubstNo(OperationSuccessTelemetryMsg, 'GetLists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -317,7 +317,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ListId = '' then begin
             SharePointGraphResponse.SetError(InvalidListIdErr);
-            Session.LogMessage('', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKC', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -325,20 +325,20 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListEndpoint(ListId), JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveListErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         GraphList.Init();
         if not SharePointGraphParser.ParseListItem(JsonResponse, GraphList) then begin
             SharePointGraphResponse.SetError(FailedToParseListErr);
-            Session.LogMessage('', FailedToParseListErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKE', FailedToParseListErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphList.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetList'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetList'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -378,7 +378,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if DisplayName = '' then begin
             SharePointGraphResponse.SetError(InvalidDisplayNameErr);
-            Session.LogMessage('', InvalidDisplayNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKG', InvalidDisplayNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -394,20 +394,20 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetListsEndpoint(), RequestJsonObj, JsonResponse) then begin
             ErrorMessage := StrSubstNo(FailedToCreateListErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKH', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         GraphList.Init();
         if not SharePointGraphParser.ParseListItem(JsonResponse, GraphList) then begin
             SharePointGraphResponse.SetError(FailedToParseCreatedListErr);
-            Session.LogMessage('', FailedToParseCreatedListErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKI', FailedToParseCreatedListErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphList.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateList'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKJ', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateList'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -449,7 +449,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ListId = '' then begin
             SharePointGraphResponse.SetError(InvalidListIdErr);
-            Session.LogMessage('', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKK', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -457,19 +457,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetListItemsEndpoint(ListId), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveListItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKL', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseListItemCollection(JsonArray, ListId, GraphListItems) then begin
             SharePointGraphResponse.SetError(FailedToParseListItemsErr);
-            Session.LogMessage('', FailedToParseListItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKM', FailedToParseListItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetListItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKN', StrSubstNo(OperationSuccessTelemetryMsg, 'GetListItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -495,7 +495,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ListId = '' then begin
             SharePointGraphResponse.SetError(InvalidListIdErr);
-            Session.LogMessage('', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKO', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -506,7 +506,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetCreateListItemEndpoint(ListId), RequestJsonObj, JsonResponse) then begin
             ErrorMessage := StrSubstNo(FailedToCreateListItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKP', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -514,13 +514,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphListItem.ListId := CopyStr(ListId, 1, MaxStrLen(GraphListItem.ListId));
         if not SharePointGraphParser.ParseListItemDetail(JsonResponse, GraphListItem) then begin
             SharePointGraphResponse.SetError(FailedToParseCreatedListItemErr);
-            Session.LogMessage('', FailedToParseCreatedListItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKQ', FailedToParseCreatedListItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphListItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKR', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -563,13 +563,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if DefaultDriveId = '' then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDefaultDriveErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKS', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         DriveId := DefaultDriveId;
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDefaultDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKT', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDefaultDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -606,19 +606,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetDrivesEndpoint(), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDrivesErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKU', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseDriveCollection(JsonArray, GraphDrives) then begin
             SharePointGraphResponse.SetError(FailedToParseDrivesErr);
-            Session.LogMessage('', FailedToParseDrivesErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKV', FailedToParseDrivesErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDrives'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RKW', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDrives'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -657,7 +657,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if DriveId = '' then begin
             SharePointGraphResponse.SetError(InvalidDriveIdErr);
-            Session.LogMessage('', InvalidDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKX', InvalidDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -668,20 +668,20 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Get(DriveEndpoint, JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDriveErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKY', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         GraphDrive.Init();
         if not SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive) then begin
             SharePointGraphResponse.SetError(FailedToParseDriveErr);
-            Session.LogMessage('', FailedToParseDriveErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RKZ', FailedToParseDriveErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDrive.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RL0', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -706,14 +706,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveEndpoint(), JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDefaultDriveErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL1', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         GraphDrive.Init();
         if not SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive) then begin
             SharePointGraphResponse.SetError(FailedToParseDriveErr);
-            Session.LogMessage('', FailedToParseDriveErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL2', FailedToParseDriveErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDrive.Insert();
@@ -722,7 +722,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         DefaultDriveId := CopyStr(GraphDrive.Id, 1, MaxStrLen(DefaultDriveId));
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDefaultDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RL3', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDefaultDrive'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -759,7 +759,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureDefaultDriveId();
         if DefaultDriveId = '' then begin
             SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
-            Session.LogMessage('', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL4', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -767,19 +767,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetDriveRootChildrenEndpoint(), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveRootItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DefaultDriveId, GraphDriveItems) then begin
             SharePointGraphResponse.SetError(FailedToParseRootItemsErr);
-            Session.LogMessage('', FailedToParseRootItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL6', FailedToParseRootItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetRootItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RL7', StrSubstNo(OperationSuccessTelemetryMsg, 'GetRootItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -817,7 +817,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FolderId = '' then begin
             SharePointGraphResponse.SetError(InvalidFolderIdErr);
-            Session.LogMessage('', InvalidFolderIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL8', InvalidFolderIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -825,7 +825,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureDefaultDriveId();
         if DefaultDriveId = '' then begin
             SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
-            Session.LogMessage('', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RL9', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -833,19 +833,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetDriveItemChildrenByIdEndpoint(FolderId), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveFolderItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DefaultDriveId, GraphDriveItems) then begin
             SharePointGraphResponse.SetError(FailedToParseFolderItemsErr);
-            Session.LogMessage('', FailedToParseFolderItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLB', FailedToParseFolderItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetFolderItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLC', StrSubstNo(OperationSuccessTelemetryMsg, 'GetFolderItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -892,19 +892,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetDriveItemChildrenByPathEndpoint(FolderPath), GraphOptionalParameters, JsonArray) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveItemsByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // Parse the combined results from all pages
         if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DefaultDriveId, GraphDriveItems) then begin
             SharePointGraphResponse.SetError(FailedToParseItemsByPathErr);
-            Session.LogMessage('', FailedToParseItemsByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLE', FailedToParseItemsByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetItemsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetItemsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -934,7 +934,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FileName = '' then begin
             SharePointGraphResponse.SetError(InvalidFileNameErr);
-            Session.LogMessage('', InvalidFileNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLG', InvalidFileNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -955,7 +955,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.UploadFile(SharePointGraphUriBuilder.GetSpecificDriveUploadEndpoint(EffectiveDriveId, FolderPath, FileName), FileInStream, GraphOptionalParameters, JsonResponse) then begin
             ErrorMessage := StrSubstNo(FailedToUploadFileErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLH', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -963,13 +963,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
         if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
             SharePointGraphResponse.SetError(FailedToParseUploadedFileErr);
-            Session.LogMessage('', FailedToParseUploadedFileErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLI', FailedToParseUploadedFileErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDriveItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'UploadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLJ', StrSubstNo(OperationSuccessTelemetryMsg, 'UploadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1042,7 +1042,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FileName = '' then begin
             SharePointGraphResponse.SetError(InvalidFileNameErr);
-            Session.LogMessage('', InvalidFileNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLK', InvalidFileNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1051,7 +1051,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             EnsureDefaultDriveId();
             if DefaultDriveId = '' then begin
                 SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
-                Session.LogMessage('', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RLL', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
             EffectiveDriveId := DefaultDriveId;
@@ -1073,7 +1073,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         FileSize := FileInStream.Length();
         if FileSize <= 0 then begin
             SharePointGraphResponse.SetError(InvalidFileSizeErr);
-            Session.LogMessage('', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLM', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1081,7 +1081,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.CreateUploadSession(Endpoint, FileName, FileSize, GraphOptionalParameters, ConflictBehavior, UploadUrl) then begin
             ErrorMessage := StrSubstNo(FailedToCreateUploadSessionErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLN', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1134,7 +1134,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             if not SharePointGraphRequestHelper.UploadChunk(UploadUrl, ChunkInStream, ContentRange, JsonResponse) then begin
                 ErrorMessage := StrSubstNo(FailedToUploadChunkErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
                 SharePointGraphResponse.SetError(ErrorMessage);
-                Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RLO', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
@@ -1148,7 +1148,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
 
         if not CompleteResponseJson.Contains('id') then begin
             SharePointGraphResponse.SetError(NoUploadResponseErr);
-            Session.LogMessage('', NoUploadResponseErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLP', NoUploadResponseErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1156,13 +1156,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
         if not SharePointGraphParser.ParseDriveItemDetail(CompleteResponseJson, GraphDriveItem) then begin
             SharePointGraphResponse.SetError(FailedToParseChunkedUploadErr);
-            Session.LogMessage('', FailedToParseChunkedUploadErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLQ', FailedToParseChunkedUploadErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDriveItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'UploadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLR', StrSubstNo(OperationSuccessTelemetryMsg, 'UploadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1194,7 +1194,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FolderName = '' then begin
             SharePointGraphResponse.SetError(InvalidFolderNameErr);
-            Session.LogMessage('', InvalidFolderNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLS', InvalidFolderNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1225,7 +1225,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Post(Endpoint, RequestJsonObj, GraphOptionalParameters, JsonResponse) then begin
             ErrorMessage := StrSubstNo(FailedToCreateFolderErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLT', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1233,13 +1233,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
         if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
             SharePointGraphResponse.SetError(FailedToParseCreatedFolderErr);
-            Session.LogMessage('', FailedToParseCreatedFolderErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLU', FailedToParseCreatedFolderErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDriveItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateFolder'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLV', StrSubstNo(OperationSuccessTelemetryMsg, 'CreateFolder'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1275,7 +1275,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLW', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1283,12 +1283,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), TempBlob) then begin
             ErrorMessage := StrSubstNo(FailedToDownloadFileErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLX', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RLY', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1311,7 +1311,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FilePath = '' then begin
             SharePointGraphResponse.SetError(InvalidFilePathErr);
-            Session.LogMessage('', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RLZ', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1322,12 +1322,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), TempBlob) then begin
             ErrorMessage := StrSubstNo(FailedToDownloadFileByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM0', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RM1', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1360,7 +1360,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM2', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1368,14 +1368,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not GetDriveItem(ItemId, GraphDriveItem).IsSuccessful() then begin
             ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM3', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         FileSize := GraphDriveItem.Size;
         if FileSize <= 0 then begin
             SharePointGraphResponse.SetError(InvalidFileSizeErr);
-            Session.LogMessage('', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM4', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1398,7 +1398,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
                 ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
                 SharePointGraphResponse.SetError(ErrorMessage);
-                Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RM5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
@@ -1410,7 +1410,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RM6', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1443,7 +1443,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if FilePath = '' then begin
             SharePointGraphResponse.SetError(InvalidFilePathErr);
-            Session.LogMessage('', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM7', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1454,14 +1454,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not GetDriveItemByPath(FilePath, GraphDriveItem).IsSuccessful() then begin
             ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         FileSize := GraphDriveItem.Size;
         if FileSize <= 0 then begin
             SharePointGraphResponse.SetError(InvalidFileSizeErr);
-            Session.LogMessage('', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RM9', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1483,7 +1483,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
                 ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
                 SharePointGraphResponse.SetError(ErrorMessage);
-                Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RMA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
@@ -1495,7 +1495,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMB', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1547,7 +1547,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemPath = '' then begin
             SharePointGraphResponse.SetError(InvalidItemPathErr);
-            Session.LogMessage('', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMC', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1558,7 +1558,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1566,13 +1566,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
         if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
             SharePointGraphResponse.SetError(FailedToParseDriveItemByPathErr);
-            Session.LogMessage('', FailedToParseDriveItemByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RME', FailedToParseDriveItemByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDriveItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1598,7 +1598,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMG', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1606,7 +1606,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMH', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1614,13 +1614,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
         if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
             SharePointGraphResponse.SetError(FailedToParseDriveItemErr);
-            Session.LogMessage('', FailedToParseDriveItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMI', FailedToParseDriveItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         GraphDriveItem.Insert();
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMJ', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1643,7 +1643,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMK', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1652,18 +1652,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
             // 404 is success - item already doesn't exist
             if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
                 SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RML', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
             ErrorMessage := StrSubstNo(FailedToDeleteItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMM', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMN', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1686,7 +1686,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemPath = '' then begin
             SharePointGraphResponse.SetError(InvalidFilePathErr);
-            Session.LogMessage('', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMO', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1698,18 +1698,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
             // 404 is success - item already doesn't exist
             if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
                 SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RMP', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
             ErrorMessage := StrSubstNo(FailedToDeleteItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMQ', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMR', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1735,7 +1735,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMS', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Exists := false;
             exit(SharePointGraphResponse);
         end;
@@ -1748,14 +1748,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
             if HttpStatusCode = 404 then begin
                 Exists := false;
                 SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RMT', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
             // For other errors (401, 403, 429, 500, etc.), return error response
             ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMU', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Exists := false;
             exit(SharePointGraphResponse);
         end;
@@ -1763,7 +1763,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Item exists
         Exists := true;
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMV', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1789,7 +1789,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemPath = '' then begin
             SharePointGraphResponse.SetError(InvalidItemPathErr);
-            Session.LogMessage('', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMW', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Exists := false;
             exit(SharePointGraphResponse);
         end;
@@ -1805,14 +1805,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
             if HttpStatusCode = 404 then begin
                 Exists := false;
                 SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                Session.LogMessage('0000RMX', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
                 exit(SharePointGraphResponse);
             end;
 
             // For other errors (401, 403, 429, 500, etc.), return error response
             ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RMY', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Exists := false;
             exit(SharePointGraphResponse);
         end;
@@ -1820,7 +1820,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Item exists
         Exists := true;
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RMZ', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1850,13 +1850,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN0', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         if TargetFolderId = '' then begin
             SharePointGraphResponse.SetError(InvalidTargetPathErr);
-            Session.LogMessage('', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN1', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1875,12 +1875,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Post(CopyEndpoint, RequestBody, ResponseJson) then begin
             ErrorMessage := StrSubstNo(FailedToCopyItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN2', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'CopyItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RN3', StrSubstNo(OperationSuccessTelemetryMsg, 'CopyItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -1906,13 +1906,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemPath = '' then begin
             SharePointGraphResponse.SetError(InvalidFilePathErr);
-            Session.LogMessage('', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN4', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         if TargetFolderPath = '' then begin
             SharePointGraphResponse.SetError(InvalidTargetPathErr);
-            Session.LogMessage('', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN5', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1954,14 +1954,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemId = '' then begin
             SharePointGraphResponse.SetError(InvalidItemIdErr);
-            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN6', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // At least one of target folder or new name must be provided
         if (TargetFolderId = '') and (NewName = '') then begin
             SharePointGraphResponse.SetError(InvalidTargetPathErr);
-            Session.LogMessage('', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN7', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
@@ -1979,12 +1979,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if not SharePointGraphRequestHelper.Patch(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), RequestBody, ResponseJson) then begin
             ErrorMessage := StrSubstNo(FailedToMoveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RN8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'MoveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        Session.LogMessage('0000RN9', StrSubstNo(OperationSuccessTelemetryMsg, 'MoveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
         exit(SharePointGraphResponse);
     end;
 
@@ -2011,14 +2011,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         // Validate input
         if ItemPath = '' then begin
             SharePointGraphResponse.SetError(InvalidFilePathErr);
-            Session.LogMessage('', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RNA', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         // At least one of target folder or new name must be provided
         if (TargetFolderPath = '') and (NewName = '') then begin
             SharePointGraphResponse.SetError(InvalidTargetPathErr);
-            Session.LogMessage('', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RNB', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
