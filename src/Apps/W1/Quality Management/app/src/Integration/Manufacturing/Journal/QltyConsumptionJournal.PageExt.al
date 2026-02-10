@@ -33,7 +33,8 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_ShowQualityInspectionsForItemAndDocument)
@@ -51,7 +52,8 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
                 action(Qlty_ShowQualityInspectionsForItem)
@@ -69,7 +71,8 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
@@ -96,5 +99,13 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
             exit;
 
         QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
+    end;
+
+    local procedure CanBeProcessed(): Boolean
+    begin
+        if IsNullGuid(Rec.SystemId) then
+            exit(false);
+
+        exit(Rec."Item No." <> '');
     end;
 }

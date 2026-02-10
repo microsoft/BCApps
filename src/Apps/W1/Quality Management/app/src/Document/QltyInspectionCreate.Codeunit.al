@@ -46,6 +46,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
         RecordShouldBeTemporaryErr: Label 'This code is only intended to run in a temporary fashion. This error is likely occurring from an integration issue.';
+        CannotCreateInspectionWithoutSourceItemErr: Label 'Cannot create inspection without a source item.', Comment = 'This error occurs when attempting to create an inspection without a source item.';
         UnknownRecordTok: Label 'Unknown record', Locked = true;
 
     /// <summary>
@@ -490,6 +491,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         ShouldCreateReinspection: Boolean;
         CouldApplyAnyFields: Boolean;
     begin
+        VerifyMandatoryFields(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader);
+
         InspectionIsNew := false;
 
         QltyManagementSetup.Get();
@@ -572,6 +575,12 @@ codeunit 20404 "Qlty. Inspection - Create"
                 end;
 
         exit(HasInspection);
+    end;
+
+    local procedure VerifyMandatoryFields(var QltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
+    begin
+        if QltyInspectionHeader."Source Item No." = '' then
+            Error(CannotCreateInspectionWithoutSourceItemErr);
     end;
 
     /// <summary>
