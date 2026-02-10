@@ -254,29 +254,29 @@ codeunit 20406 "Qlty. Permission Mgmt."
             ActionCreateInspectionAutoLbl:
                 Result := true;
             ActionCreateInspectionManualLbl:
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
+                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionCreateReinspectionLbl:
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
+                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionChangeOthersInspectionsLbl:
-                Result := GetIsSuperVisorRoleAssigned();
+                Result := HasSupervisorRole();
             ActionDeleteFinishedInspectionLbl:
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
+                Result := CanDeleteTableData(Database::"Qlty. Inspection Header") and HasSupervisorRole();
             ActionDeleteOpenInspectionLbl:
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header");
+                Result := CanDeleteTableData(Database::"Qlty. Inspection Header");
             ActionChangeTrackingNoLbl:
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
+                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionFinishInspectionLbl:
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
+                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionReopenInspectionLbl:
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
+                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionChangeSourceQuantityLbl:
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
+                Result := CanModifyTableData(Database::"Qlty. Inspection Header") and HasSupervisorRole();
             ActionEditLineCommentsLbl:
-                Result := GetCanModifyTableData(Database::"Record Link");
+                Result := CanModifyTableData(Database::"Record Link");
         end;
     end;
 
-    local procedure GetCanDeleteTableData(TableId: Integer): Boolean
+    local procedure CanDeleteTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
@@ -285,7 +285,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Delete Permission" in [TempExpandedPermission."Delete Permission"::Yes, TempExpandedPermission."Delete Permission"::Indirect]);
     end;
 
-    local procedure GetCanInsertTableData(TableId: Integer): Boolean
+    local procedure CanInsertTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
@@ -294,7 +294,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Insert Permission" in [TempExpandedPermission."Insert Permission"::Yes, TempExpandedPermission."Insert Permission"::Indirect]);
     end;
 
-    local procedure GetCanModifyTableData(TableId: Integer): Boolean
+    local procedure CanModifyTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
@@ -303,7 +303,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Modify Permission" in [TempExpandedPermission."Modify Permission"::Yes, TempExpandedPermission."Modify Permission"::Indirect]);
     end;
 
-    local procedure GetIsSuperVisorRoleAssigned() IsAssigned: Boolean
+    local procedure HasSupervisorRole() IsAssigned: Boolean
     var
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
