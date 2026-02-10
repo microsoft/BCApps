@@ -13,6 +13,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
 /// Used for data entry in quality inspections only.
@@ -25,11 +26,6 @@ permissionset 20404 QltyEntryInspector
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        // Pages
-        page "Qlty. Inspect. Source Config." = X,
-        page "Qlty. Source Config Line Part" = X,
-        page "Qlty. Ins. Source Config. List" = X,
-
         // Table data
         tabledata "Qlty. Express Config. Value" = RIMD,
         tabledata "Qlty. Test" = RIMd,

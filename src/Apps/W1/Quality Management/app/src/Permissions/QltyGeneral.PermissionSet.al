@@ -13,6 +13,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
 /// Used for supervising quality inspections.
