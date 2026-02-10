@@ -392,7 +392,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the query-based trial balance for the current year
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
-        TrialBalance.ConfigureTrialBalance(true, false, false);
+        TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
 
         // [THEN] The buffer has correct amounts
@@ -443,7 +443,7 @@ codeunit 139544 "Trial Balance Excel Reports"
 
         // [WHEN] Running the trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
-        TrialBalance.ConfigureTrialBalance(true, false, false);
+        TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] End-Total has per-dimension rows with correct sums
@@ -506,7 +506,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running with budget data included
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", PeriodStart, PeriodEnd);
-        TrialBalance.ConfigureTrialBalance(true, false, true);
+        TrialBalance.ConfigureTrialBalance(false, true);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Budget fields are populated
@@ -543,7 +543,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running with BU breakdown
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
-        TrialBalance.ConfigureTrialBalance(true, true, false);
+        TrialBalance.ConfigureTrialBalance(true, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Two buffer records exist, one per BU, with correct amounts
@@ -580,7 +580,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running with a filter on the second account only
         GLAccount.SetRange("No.", GLAccount2."No.");
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
-        TrialBalance.ConfigureTrialBalance(true, false, false);
+        TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the filtered account appears in the buffer
@@ -614,7 +614,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the trial balance
         GLAccount.SetFilter("No.", '%1|%2', ZeroAccount, NonZeroAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
-        TrialBalance.ConfigureTrialBalance(true, false, false);
+        TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the non-zero account appears

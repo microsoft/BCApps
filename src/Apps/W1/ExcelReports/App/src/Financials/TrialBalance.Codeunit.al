@@ -18,14 +18,12 @@ using System.Environment.Configuration;
 codeunit 4410 "Trial Balance"
 {
     var
-        GlobalBreakdownByDimension: Boolean;
         GlobalBreakdownByBusinessUnit: Boolean;
         GlobalIncludeBudgetData: Boolean;
         BlankLbl: Label '(BLANK)';
 
-    internal procedure ConfigureTrialBalance(BreakdownByDimension: Boolean; BreakdownByBusinessUnit: Boolean; IncludeBudgetData: Boolean)
+    internal procedure ConfigureTrialBalance(BreakdownByBusinessUnit: Boolean; IncludeBudgetData: Boolean)
     begin
-        GlobalBreakdownByDimension := BreakdownByDimension;
         GlobalBreakdownByBusinessUnit := BreakdownByBusinessUnit;
         GlobalIncludeBudgetData := IncludeBudgetData;
     end;
@@ -72,12 +70,10 @@ codeunit 4410 "Trial Balance"
         DimensionValue: Record "Dimension Value";
         BusinessUnitFilters, Dimension1Filters, Dimension2Filters : List of [Code[20]];
     begin
-        if GlobalBreakdownByDimension then begin
-            DimensionValue.SetRange("Global Dimension No.", 1);
-            InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension1Filters);
-            DimensionValue.SetRange("Global Dimension No.", 2);
-            InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension2Filters);
-        end;
+        DimensionValue.SetRange("Global Dimension No.", 1);
+        InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension1Filters);
+        DimensionValue.SetRange("Global Dimension No.", 2);
+        InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension2Filters);
         if GlobalBreakdownByBusinessUnit then
             InsertBusinessUnitFilters(BusinessUnitFilters);
 
@@ -105,7 +101,9 @@ codeunit 4410 "Trial Balance"
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#pragma warning disable AL0432
         OnBeforeInsertDimensionFiltersFromDimensionValues(DimensionValue, DimensionFilters, IsHandled);
+#pragma warning restore AL0432
         if IsHandled then
             exit;
         DimensionFilters.Add('');
@@ -120,36 +118,13 @@ codeunit 4410 "Trial Balance"
     var
         i, j, k : Integer;
     begin
-        if GlobalBreakdownByDimension then
-            for i := 1 to Dimension1Filters.Count do
-                for j := 1 to Dimension2Filters.Count do
-                    if GlobalBreakdownByBusinessUnit then
-                        for k := 1 to BusinessUnitCodeFilters.Count do
-                            InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), BusinessUnitCodeFilters.Get(k), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
-                    else
-                        InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
-        else
-            if GlobalBreakdownByBusinessUnit then
-                for i := 1 to BusinessUnitCodeFilters.Count do
-                    InsertGLAccountTotalsForFilters(BusinessUnitCodeFilters.Get(i), GLAccount, TrialBalanceData)
-            else
-                InsertGLAccountTotalsForFilters(GLAccount, TrialBalanceData);
-    end;
-
-    local procedure InsertGLAccountTotalsForFilters(var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
-    var
-        TempDimension1Values: Record "Dimension Value" temporary;
-        TempDimension2Values: Record "Dimension Value" temporary;
-    begin
-        InsertGLAccountTotalsForFilters('', '', '', GLAccount, TrialBalanceData, TempDimension1Values, TempDimension2Values);
-    end;
-
-    local procedure InsertGLAccountTotalsForFilters(BusinessUnitCode: Code[20]; var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
-    var
-        TempDimension1Values: Record "Dimension Value" temporary;
-        TempDimension2Values: Record "Dimension Value" temporary;
-    begin
-        InsertGLAccountTotalsForFilters('', '', BusinessUnitCode, GLAccount, TrialBalanceData, TempDimension1Values, TempDimension2Values);
+        for i := 1 to Dimension1Filters.Count do
+            for j := 1 to Dimension2Filters.Count do
+                if GlobalBreakdownByBusinessUnit then
+                    for k := 1 to BusinessUnitCodeFilters.Count do
+                        InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), BusinessUnitCodeFilters.Get(k), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
+                else
+                    InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
     end;
 
     local procedure InsertGLAccountTotalsForFilters(Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
@@ -162,10 +137,8 @@ codeunit 4410 "Trial Balance"
         LocalGlAccount: Record "G/L Account";
     begin
         LocalGlAccount.Copy(GLAccount);
-        if GlobalBreakdownByDimension then begin
-            LocalGLAccount.SetFilter("Global Dimension 1 Filter", '= ''%1''', Dimension1ValueCode);
-            LocalGLAccount.SetFilter("Global Dimension 2 Filter", '= ''%1''', Dimension2ValueCode);
-        end;
+        LocalGLAccount.SetFilter("Global Dimension 1 Filter", '= ''%1''', Dimension1ValueCode);
+        LocalGLAccount.SetFilter("Global Dimension 2 Filter", '= ''%1''', Dimension2ValueCode);
         if GlobalBreakdownByBusinessUnit then
             LocalGLAccount.SetFilter("Business Unit Filter", '= %1', BusinessUnitCode);
         InsertTrialBalanceDataForGLAccountWithFilters(LocalGlAccount, Dimension1ValueCode, Dimension2ValueCode, BusinessUnitCode, TrialBalanceData, Dimension1Values, Dimension2Values);
@@ -202,10 +175,8 @@ codeunit 4410 "Trial Balance"
         TrialBalanceData.CheckAllZero();
         if not TrialBalanceData."All Zero" then begin
             TrialBalanceData.Insert(true);
-            if GlobalBreakdownByDimension then begin
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            end;
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
     end;
 #endif
@@ -487,12 +458,13 @@ codeunit 4410 "Trial Balance"
     end;
     #endregion
 
+#if not CLEAN27
     [IntegrationEvent(true, false)]
+    [Obsolete('This event is no longer called in the query based retrieval of the trial balance. ', '28.0')]
     local procedure OnBeforeInsertDimensionFiltersFromDimensionValues(var DimensionValue: Record "Dimension Value"; var DimensionFilters: List of [Code[20]]; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
     [Obsolete('This event is temporary to try the functionality before it''s officially released as a feature in feature management.', '27.0')]
     [IntegrationEvent(true, false)]
     local procedure OnIsPerformantTrialBalanceFeatureActive(var Active: Boolean)
