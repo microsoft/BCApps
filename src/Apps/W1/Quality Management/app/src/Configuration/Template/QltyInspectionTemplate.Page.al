@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Foundation.Attachment;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 using System.Telemetry;
@@ -166,15 +165,14 @@ page 20402 "Qlty. Inspection Template"
             }
             action(CreateInspection)
             {
+                AccessByPermission = TableData "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
-
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -220,8 +218,6 @@ page 20402 "Qlty. Inspection Template"
     }
 
     var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-        CanCreateInspection: Boolean;
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
@@ -236,7 +232,6 @@ page 20402 "Qlty. Inspection Template"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
         UpdateControls();
     end;
 

@@ -181,6 +181,7 @@ page 20408 "Qlty. Inspection List"
             action(CreateInspection)
             {
                 Scope = Repeater;
+                AccessByPermission = TableData "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection.';
                 Image = CreateForm;
@@ -188,7 +189,6 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -201,6 +201,7 @@ page 20408 "Qlty. Inspection List"
             }
             action("Create Re-inspection")
             {
+                AccessByPermission = TableData "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
@@ -230,6 +231,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = TableData "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -253,6 +255,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = TableData "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
@@ -678,7 +681,6 @@ page 20408 "Qlty. Inspection List"
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        CanCreateInspection: Boolean;
         CanAssignToSelf: Boolean;
         CanCreateReinspection: Boolean;
         CanUnassign: Boolean;
@@ -689,10 +691,9 @@ page 20408 "Qlty. Inspection List"
     trigger OnOpenPage()
     begin
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReinspection();
+        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
+        CanCreateReinspection := RowActionsAreEnabled;
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -700,8 +701,8 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
+        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;
