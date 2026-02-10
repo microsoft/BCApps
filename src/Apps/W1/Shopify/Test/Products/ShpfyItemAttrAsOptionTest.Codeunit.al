@@ -14,7 +14,7 @@ using System.TestLibraries.Utilities;
 /// Codeunit Shpfy Item Attr As Option Test (ID 139540).
 /// Tests for 'Item Attributes As Shopify Product Options' functionality.
 /// </summary>
-codeunit 139540 "Shpfy Item Attr As Option Test"
+codeunit 139596 "Shpfy Item Attr As Option Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
