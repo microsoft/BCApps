@@ -179,7 +179,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
-            LogFileUploadedTelemetry();
+            LogFileUploadedTelemetry(DocumentAttachment);
             exit(true);
         end;
 
@@ -225,7 +225,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.GetFile(ExternalFilePath, InStream);
 
         if DownloadFromStream(InStream, '', '', '', FileName) then begin
-            LogFileDownloadedTelemetry();
+            LogFileDownloadedTelemetry(DocumentAttachment);
             exit(true);
         end;
 
@@ -405,7 +405,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.Initialize(FileScenario);
         if ExternalFileStorage.DeleteFile(ExternalFilePath) then begin
             DocumentAttachment.MarkAsNotUploadedToExternal();
-            LogFileDeletedTelemetry();
+            LogFileDeletedTelemetry(DocumentAttachment);
             exit(true);
         end;
 
@@ -718,7 +718,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileName: Text;
         RootFolder: Text;
         TableNameFolder: Text[100];
-        EnvironmentHashFolder: Text[16];
+        EnvironmentHashFolder: Text[32];
         FileNamePart: Text;
     begin
         // Generate unique filename to prevent collisions
@@ -809,8 +809,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <summary>
     /// Gets the current environment hash for use in folder structure.
     /// </summary>
-    /// <returns>The hash value (first 16 characters of SHA256).</returns>
-    procedure GetCurrentEnvironmentHash(): Text[16]
+    /// <returns>The hash value</returns>
+    procedure GetCurrentEnvironmentHash(): Text[32]
     var
         Company: Record Company;
         EnvironmentInformation: Codeunit "Environment Information";
@@ -823,8 +823,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Combine Tenant ID + Environment Name + Company System ID
         IdentityString := TenantId() + '|' + EnvironmentInformation.GetEnvironmentName() + '|' + Format(Company.SystemId);
 
-        // Generate SHA256 hash and take first 16 characters
-        exit(CopyStr(CryptographyManagement.GenerateHash(IdentityString, HashAlgorithmType::SHA256), 1, 16));
+        // Generate MD5 hash (32 characters)
+        exit(CopyStr(CryptographyManagement.GenerateHash(IdentityString, HashAlgorithmType::MD5), 1, 32));
     end;
 
     /// <summary>
@@ -834,7 +834,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the file is from another environment or company, false otherwise.</returns>
     procedure IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        CurrentEnvironmentHash: Text[16];
+        CurrentEnvironmentHash: Text[32];
     begin
         // If no source environment hash is set, assume it belongs to current environment
         if DocumentAttachment."Source Environment Hash" = '' then
@@ -940,25 +940,25 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         DAFeatureTelemetry.LogFeatureUsed();
     end;
 
-    local procedure LogFileUploadedTelemetry()
+    local procedure LogFileUploadedTelemetry(DocumentAttachment: Record "Document Attachment")
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
-        DAFeatureTelemetry.LogFileUploaded();
+        DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
     end;
 
-    local procedure LogFileDownloadedTelemetry()
+    local procedure LogFileDownloadedTelemetry(DocumentAttachment: Record "Document Attachment")
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
-        DAFeatureTelemetry.LogFileDownloaded();
+        DAFeatureTelemetry.LogFileDownloaded(DocumentAttachment);
     end;
 
-    local procedure LogFileDeletedTelemetry()
+    local procedure LogFileDeletedTelemetry(DocumentAttachment: Record "Document Attachment")
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
-        DAFeatureTelemetry.LogFileDeleted();
+        DAFeatureTelemetry.LogFileDeleted(DocumentAttachment);
     end;
 
     local procedure LogCompanyMigrationTelemetry()

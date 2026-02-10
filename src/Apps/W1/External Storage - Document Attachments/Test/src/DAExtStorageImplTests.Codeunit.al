@@ -62,7 +62,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        EnvironmentHash: Text[16];
+        EnvironmentHash: Text[32];
     begin
         // [SCENARIO] Upload should set all required metadata fields
         Initialize();
@@ -485,8 +485,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure GetCurrentEnvironmentHashReturnsConsistentValue()
     var
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        Hash1: Text[16];
-        Hash2: Text[16];
+        Hash1: Text[32];
+        Hash2: Text[32];
     begin
         // [SCENARIO] Environment hash should be consistent
         Initialize();

@@ -25,6 +25,19 @@ page 8751 "Document Attachment - External"
     {
         area(Content)
         {
+            group(Statistics)
+            {
+                ShowCaption = false;
+                field(ExternalStorageStatistics; ExternalStorageStatsText)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ShowCaption = false;
+                    Style = Strong;
+                    StyleExpr = true;
+                    ToolTip = 'Shows the percentage of files uploaded to external storage.';
+                }
+            }
             repeater(General)
             {
                 field("Table ID"; Rec."Table ID")
@@ -259,12 +272,38 @@ page 8751 "Document Attachment - External"
         FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        ExternalStorageStatsTxt: Label '%1% (%2/%3) files are uploaded to external storage', Comment = '%1 = Percentage, %2 = External count, %3 = Total count';
         UploadActionEnabled: Boolean;
+        ExternalStorageStatsText: Text;
 
     trigger OnAfterGetRecord()
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
     begin
         UploadActionEnabled := (not Rec."Stored Externally") and ExternalStorageSetup.Get() and ExternalStorageSetup.Enabled;
+    end;
+
+    trigger OnOpenPage()
+    begin
+        UpdateExternalStorageStats();
+    end;
+
+    local procedure UpdateExternalStorageStats()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TotalCount: Integer;
+        ExternalCount: Integer;
+        Percentage: Decimal;
+    begin
+        TotalCount := DocumentAttachment.Count();
+        DocumentAttachment.SetRange("Stored Externally", true);
+        ExternalCount := DocumentAttachment.Count();
+
+        if TotalCount > 0 then
+            Percentage := Round((ExternalCount / TotalCount) * 100, 0.01)
+        else
+            Percentage := 0;
+
+        ExternalStorageStatsText := StrSubstNo(ExternalStorageStatsTxt, Percentage, ExternalCount, TotalCount);
     end;
 }
