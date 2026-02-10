@@ -372,7 +372,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     procedure QueryPathProducesCorrectAmounts()
     var
         GLAccount: Record "G/L Account";
-        DimensionValue: Record "Dimension Value" temporary;
+        TempDimensionValue: Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
@@ -393,7 +393,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, DimensionValue, DimensionValue, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
 
         // [THEN] The buffer has correct amounts
         TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
@@ -409,7 +409,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         PostingAccount1, PostingAccount2, EndTotalAccount, TotalAccount, GLAccount : Record "G/L Account";
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
-        Dimension1Values, Dimension2Values : Record "Dimension Value" temporary;
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         Amount1Dim1, Amount2Dim1, Amount1Dim2 : Decimal;
@@ -444,7 +444,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] End-Total has per-dimension rows with correct sums
         TrialBalanceData.Reset();
@@ -475,7 +475,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount: Record "G/L Account";
         GLBudgetName: Record "G/L Budget Name";
         GLBudgetEntry: Record "G/L Budget Entry";
-        Dimension1Values, Dimension2Values : Record "Dimension Value" temporary;
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
@@ -507,7 +507,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", PeriodStart, PeriodEnd);
         TrialBalance.ConfigureTrialBalance(true, false, true);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Budget fields are populated
         TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
@@ -521,7 +521,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount: Record "G/L Account";
         BusinessUnit1, BusinessUnit2 : Record "Business Unit";
-        Dimension1Values, Dimension2Values : Record "Dimension Value" temporary;
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
@@ -544,7 +544,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, true, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Two buffer records exist, one per BU, with correct amounts
         TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
@@ -563,7 +563,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     procedure QueryPathRespectsAccountNoFilter()
     var
         GLAccount1, GLAccount2, GLAccount3, GLAccount : Record "G/L Account";
-        Dimension1Values, Dimension2Values : Record "Dimension Value" temporary;
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
     begin
@@ -581,7 +581,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", GLAccount2."No.");
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the filtered account appears in the buffer
         Assert.AreEqual(1, TrialBalanceData.Count(), 'Only one account should be in the buffer');
@@ -594,7 +594,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     procedure QueryPathSkipsAllZeroRecords()
     var
         GLAccount: Record "G/L Account";
-        Dimension1Values, Dimension2Values : Record "Dimension Value" temporary;
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         ZeroAccount, NonZeroAccount : Code[20];
@@ -615,7 +615,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetFilter("No.", '%1|%2', ZeroAccount, NonZeroAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the non-zero account appears
         Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
@@ -662,7 +662,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount."Account Type" := AccountType;
-        GLAccount.Totaling := Totaling;
+        GLAccount.Totaling := CopyStr(Totaling, 1, 250);
         GLAccount.Modify();
     end;
 
@@ -716,9 +716,6 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     local procedure CreateGLEntry(GLAccountNo: Code[20]; DimensionValue2Code: Code[20])
-    var
-        GLEntry: Record "G/L Entry";
-        EntryNo: Integer;
     begin
         CreateGLEntryWithAmount(GLAccountNo, '', DimensionValue2Code, '', WorkDate(), 1337);
     end;
