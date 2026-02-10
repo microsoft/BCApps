@@ -10,7 +10,7 @@ namespace Microsoft.Integration.Shopify;
 /// </summary>
 enum 30179 "Shpfy Incl. in Product Sync"
 {
-    Caption = 'Incl. in Product Sync';
+    Caption = 'Include in Product Sync';
     Extensible = false;
 
     value(0; " ")
