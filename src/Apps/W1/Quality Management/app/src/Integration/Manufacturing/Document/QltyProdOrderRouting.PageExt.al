@@ -72,9 +72,6 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
 
     local procedure CanBeProcessed(): Boolean
     begin
-        if IsNullGuid(Rec.SystemId) then
-            exit(false);
-
-        exit(true);
+        exit(not IsNullGuid(Rec.SystemId));
     end;
 }
