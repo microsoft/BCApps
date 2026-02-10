@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Subform Page for Quality Inspections.
@@ -244,7 +245,7 @@ page 20407 "Qlty. Inspection Subform"
                 field(ChooseMeasurementNote; MeasurementNote)
                 {
                     Caption = 'Note';
-                    Visible = CanSeeLineNotes;
+                    AccessByPermission = tabledata "Record Link" = R;
                     Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
@@ -288,7 +289,6 @@ page 20407 "Qlty. Inspection Subform"
         Visible9: Boolean;
         Visible10: Boolean;
         CanEditLineNotes: Boolean;
-        CanSeeLineNotes: Boolean;
         ShowUnitOfMeasure: Boolean;
         ResultStyleExpr: Text;
         MeasurementNote: Text;
@@ -301,7 +301,6 @@ page 20407 "Qlty. Inspection Subform"
     trigger OnOpenPage()
     begin
         CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments() and CurrPage.Editable();
-        CanSeeLineNotes := QltyPermissionMgmt.CanReadLineComments();
     end;
 
     trigger OnFindRecord(Which: Text): Boolean

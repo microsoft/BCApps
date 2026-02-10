@@ -18,16 +18,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     var
         ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
-        ActionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
-        ActionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
-        ActionCreateReinspectionLbl: Label 'Create Re-inspection';
-        ActionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
-        ActionDeleteFinishedInspectionLbl: Label 'Delete Finished Inspection';
-        ActionChangeOthersInspectionsLbl: Label 'Change Others Inspections';
-        ActionReopenInspectionLbl: Label 'Reopen Inspection';
-        ActionFinishInspectionLbl: Label 'Finish Inspection';
-        ActionChangeTrackingNoLbl: Label 'Change Tracking No.';
-        ActionChangeSourceQuantityLbl: Label 'Change Source Quantity';
+        ActionCreateInspectionAutomaticallyLbl: Label 'create inspection automatically';
+        ActionCreateReinspectionLbl: Label 'create re-inspection';
+        ActionChangeOthersInspectionLbl: Label 'change others inspection';
+        ActionFinishInspectionLbl: Label 'finish inspection';
+        ActionReopenInspectionLbl: Label 'reopen inspection';
+        ActionDeleteOpenInspectionLbl: Label 'delete open inspection';
+        ActionDeleteFinishedInspectionLbl: Label 'delete finished inspection';
+        ActionChangeItemTrackingLbl: Label 'change item tracking';
+        ActionChangeSourceQuantityLbl: Label 'change source quantity';
+        ActionEditLineCommentLbl: Label 'edit line note/comment';
         SupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
@@ -48,7 +48,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateManualInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionCreateInspectionManuallyLbl));
+        exit(CheckPermissionDetails(ActionCreateInspectionManuallyLbl));
     end;
 
     /// <summary>
@@ -61,21 +61,30 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines if the current user can create an automatic inspection.
-    /// </summary>
-    internal procedure VerifyCanCreateAutoInspection()
-    begin
-        if not CanCreateAutoInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionAutoLbl);
-    end;
-
-    /// <summary>
     /// CanCreateAutoInspection. True if the user can create an automatic inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateAutoInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionCreateInspectionAutoLbl));
+        exit(CheckPermissionDetails(ActionCreateInspectionAutomaticallyLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can create an automatic inspection.
+    /// </summary>
+    internal procedure VerifyCanCreateAutoInspection()
+    begin
+        if not CanCreateAutoInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionAutomaticallyLbl);
+    end;
+
+    /// <summary>
+    /// CanCreateReinspection. True if the user can create a re-inspection.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanCreateReinspection(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionCreateReinspectionLbl));
     end;
 
     /// <summary>
@@ -88,48 +97,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanCreateReinspection. True if the user can create a re-inspection.
+    /// CanChangeOtherInspections. True if the user can change someone else's inspections.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanCreateReinspection(): Boolean
+    internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionCreateReinspectionLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can delete an open inspection.
-    /// </summary>
-    internal procedure VerifyCanDeleteOpenInspection()
-    begin
-        if not CanDeleteOpenInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
-    end;
-
-    /// <summary>
-    /// CanDeleteOpenInspection. True if the user  can delete an open inspection.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanDeleteOpenInspection(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionDeleteOpenInspectionLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can delete a finished inspection.
-    /// </summary>
-    internal procedure VerifyCanDeleteFinishedInspection()
-    begin
-        if not CanDeleteFinishedInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
-    end;
-
-    /// <summary>
-    /// CanDeleteFinishedInspection. True if the user can delete a finished inspection.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanDeleteFinishedInspection(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionDeleteFinishedInspectionLbl));
+        exit(CheckPermissionDetails(ActionChangeOthersInspectionLbl));
     end;
 
     /// <summary>
@@ -138,34 +111,16 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeOtherInspections()
     begin
         if not CanChangeOtherInspections() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeOthersInspectionsLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeOthersInspectionLbl);
     end;
 
     /// <summary>
-    /// CanChangeOtherInspections. True if the user can change someone else's inspections.
+    /// CanFinishInspection. True if the user can can finish an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanChangeOtherInspections(): Boolean
+    internal procedure CanFinishInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionChangeOthersInspectionsLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can re-open an inspection.
-    /// </summary>
-    internal procedure VerifyCanReopenInspection()
-    begin
-        if not CanReopenInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
-    end;
-
-    /// <summary>
-    /// CanReopenInspection. True if the user can re-open an inspection.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanReopenInspection(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionReopenInspectionLbl));
+        exit(CheckPermissionDetails(ActionFinishInspectionLbl));
     end;
 
     /// <summary>
@@ -178,21 +133,57 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanFinishInspection. True if the user can can finish an inspection.
+    /// CanReopenInspection. True if the user can re-open an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanFinishInspection(): Boolean
+    internal procedure CanReopenInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionFinishInspectionLbl));
+        exit(CheckPermissionDetails(ActionReopenInspectionLbl));
     end;
 
     /// <summary>
-    /// Determines if the current user can change the tracking on an inspection.
+    /// Determines if the current user can re-open an inspection.
     /// </summary>
-    internal procedure VerifyCanChangeTrackingNo()
+    internal procedure VerifyCanReopenInspection()
     begin
-        if not CanChangeTrackingNo() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeTrackingNoLbl);
+        if not CanReopenInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
+    end;
+
+    /// <summary>
+    /// CanDeleteOpenInspection. True if the user  can delete an open inspection.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanDeleteOpenInspection(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionDeleteOpenInspectionLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can delete an open inspection.
+    /// </summary>
+    internal procedure VerifyCanDeleteOpenInspection()
+    begin
+        if not CanDeleteOpenInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
+    end;
+
+    /// <summary>
+    /// CanDeleteFinishedInspection. True if the user can delete a finished inspection.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanDeleteFinishedInspection(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionDeleteFinishedInspectionLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can delete a finished inspection.
+    /// </summary>
+    internal procedure VerifyCanDeleteFinishedInspection()
+    begin
+        if not CanDeleteFinishedInspection() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
     end;
 
     /// <summary>
@@ -201,7 +192,52 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanChangeTrackingNo(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionChangeTrackingNoLbl));
+        exit(CheckPermissionDetails(ActionChangeItemTrackingLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can change the tracking on an inspection.
+    /// </summary>
+    internal procedure VerifyCanChangeTrackingNo()
+    begin
+        if not CanChangeTrackingNo() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeItemTrackingLbl);
+    end;
+
+    /// <summary>
+    /// CanChangeSourceQuantity. True if the user can change source quantities
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanChangeSourceQuantity(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionChangeSourceQuantityLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can change the source quantity.
+    /// </summary>
+    internal procedure VerifyCanChangeSourceQuantity()
+    begin
+        if not CanChangeSourceQuantity() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
+    end;
+
+    /// <summary>
+    /// CanEditLineComments. True if the user can add line notes/comments.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanEditLineComments(): Boolean
+    begin
+        exit(CheckPermissionDetails(ActionEditLineCommentLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can edit line comments.
+    /// </summary>
+    internal procedure VerifyCanEditLineComments()
+    begin
+        if not CanEditLineComments() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentLbl);
     end;
 
     /// <summary>
@@ -218,81 +254,36 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines if the current user can edit line comments.
-    /// </summary>
-    internal procedure VerifyCanEditLineComments()
-    begin
-        if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentsLbl);
-    end;
-
-    /// <summary>
-    /// CanEditLineComments. True if the user can add line notes/comments.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanEditLineComments(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can change the source quantity.
-    /// </summary>
-    internal procedure VerifyCanChangeSourceQuantity()
-    begin
-        if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
-    end;
-
-    /// <summary>
-    /// CanChangeSourceQuantity. True if the user can change source quantities
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanChangeSourceQuantity(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionChangeSourceQuantityLbl));
-    end;
-
-    /// <summary>
-    /// CanReadLineComments. True if the user can read or write line comments.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanReadLineComments(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
-    end;
-
-    /// <summary>
     /// For the given function, this gives the suggested allowed state.
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    local procedure LoadPermissionDetails(FunctionalPermission: Text) Result: Boolean
+    local procedure CheckPermissionDetails(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
-            ActionCreateInspectionAutoLbl:
-                Result := true;
             ActionCreateInspectionManuallyLbl:
                 Result := CanInsertTableData(Database::"Qlty. Inspection Header");
+            ActionCreateInspectionAutomaticallyLbl:
+                Result := true;
             ActionCreateReinspectionLbl:
                 Result := CanInsertTableData(Database::"Qlty. Inspection Header");
-            ActionChangeOthersInspectionsLbl:
+            ActionChangeOthersInspectionLbl:
                 Result := HasSupervisorRole();
-            ActionDeleteFinishedInspectionLbl:
-                if CanDeleteTableData(Database::"Qlty. Inspection Header") then
-                    Result := HasSupervisorRole();
-            ActionDeleteOpenInspectionLbl:
-                Result := CanDeleteTableData(Database::"Qlty. Inspection Header");
-            ActionChangeTrackingNoLbl:
-                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionFinishInspectionLbl:
                 Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionReopenInspectionLbl:
                 Result := CanModifyTableData(Database::"Qlty. Inspection Header");
+            ActionDeleteOpenInspectionLbl:
+                Result := CanDeleteTableData(Database::"Qlty. Inspection Header");
+            ActionDeleteFinishedInspectionLbl:
+                if CanDeleteTableData(Database::"Qlty. Inspection Header") then
+                    Result := HasSupervisorRole();
+            ActionChangeItemTrackingLbl:
+                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
             ActionChangeSourceQuantityLbl:
                 if CanModifyTableData(Database::"Qlty. Inspection Header") then
                     Result := HasSupervisorRole();
-            ActionEditLineCommentsLbl:
+            ActionEditLineCommentLbl:
                 Result := CanModifyTableData(Database::"Record Link");
         end;
     end;

@@ -89,7 +89,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanCreateReinspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Re-inspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'create re-inspection'));
         end;
     end;
 
@@ -118,7 +118,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanDeleteOpenInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Delete Open Inspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'delete open inspection'));
         end;
     end;
 
@@ -147,7 +147,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Delete Finished Inspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'delete finished inspection'));
         end;
     end;
 
@@ -191,7 +191,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanReopenInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Reopen Inspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'reopen inspection'));
         end;
     end;
 
@@ -220,7 +220,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanFinishInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Finish Inspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'finish inspection'));
         end;
     end;
 
@@ -249,7 +249,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanChangeTrackingNo();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Change Tracking No.'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change item tracking'));
         end;
     end;
 
@@ -278,7 +278,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyInspectionUtility.VerifyCanChangeSourceQuantity();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Change Source Quantity'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change source quantity'));
         end;
     end;
 
