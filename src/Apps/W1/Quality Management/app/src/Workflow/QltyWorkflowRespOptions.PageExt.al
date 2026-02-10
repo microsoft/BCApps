@@ -337,7 +337,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpSource;
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(Qlty_SourceLocationCodeFilter; OptionalSourceLocationCodeFilter)
                     {
@@ -828,9 +828,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyShouldShowReasonCode: Boolean;
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
         QltyShouldShowGrpItemTrackingChange: Boolean;
-        NewLotNoExpression: Text;
-        NewSerialNoExpression: Text;
-        NewPackageNoExpression: Text;
+        NewLotNoExpression, NewSerialNoExpression, NewPackageNoExpression : Text;
         NewExpirationDate: Date;
         QltyReasonCode: Code[10];
         QltyReturnReasonCode: Code[10];

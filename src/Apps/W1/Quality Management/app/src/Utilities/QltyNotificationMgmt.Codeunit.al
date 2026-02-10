@@ -9,6 +9,7 @@ using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
+using System.Environment.Configuration;
 using System.Reflection;
 
 /// <summary>
@@ -30,8 +31,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         DocumentCreatedAMsg: Label 'A %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
         DocumentCreatedAnMsg: Label 'An %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
-        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
-        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
         ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
         ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
         ChangeTrackingFailMsg: Label 'Unable to update tracking information to%1%2. Check batch setup on the Quality Management Setup page.', Comment = '%1=new item tracking information,%2=optional location';
@@ -50,7 +51,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=inspection no., %2=re-inspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
         BlockedStateChangedLbl: Label 'Inspection %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the inspection number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
         BlockedLbl: Label 'blocked';
-        UnBlockedLbl: Label 'un-blocked';
+        UnblockedLbl: Label 'un-blocked';
         OpenTheInfoCardLbl: Label 'Open the %1 No. Information.', Comment = '%1 =the info type.';
         VariantTok: Label ':%1', Comment = '%1=variant';
         LotTok: Label ' Lot: %1', Comment = '%1=lot no.';
@@ -60,6 +61,74 @@ codeunit 20437 "Qlty. Notification Mgmt."
         SerialMsg: Label ' Serial: %1', Comment = '%1=serial no.';
         PackageMsg: Label ' Package: %1', Comment = '%1=package no.';
         OriginTok: Label 'origin', Locked = true;
+        InspectionCreatedMsg: Label 'Quality Inspection %1 has been created.', Comment = '%1=the test friendly identifier';
+        MultipleInspectionsCreatedMsg: Label '%1 Quality Inspections have been created.', Comment = '%1=the number of inspections';
+        ViewTheInspectionsPageLbl: Label 'View the created inspections';
+        MultipleInspectionsNotificationDataFilterTok: Label 'InspectionsFilter', Locked = true;
+        HandleOpenMultipleInspectionsTok: Label 'HandleOpenMultipleInspections', Locked = true;
+        OpenTheInspectionPageLbl: Label 'Open the inspection';
+        AssignToYourselfTok: Label 'Assign Quality Inspection to yourself', Locked = true;
+        AssignToYourselfDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
+        InspectionCreatedNameTok: Label 'Quality Inspection created', Locked = true;
+        InspectionCreatedDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
+
+    /// <summary>
+    /// Ensures that configurable notifications are inserted.
+    /// </summary>
+    internal procedure EnsureDefaultNotifications()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetAssignToYourselfNotificationId(), AssignToYourselfTok, AssignToYourselfDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNameTok, InspectionCreatedDescriptionTxt, true);
+    end;
+
+    /// <summary>
+    /// Creates a notification that an inspection has been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    internal procedure NotifyInspectionCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationInspectionCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(InspectionCreatedMsg, QltyInspectionHeader.GetFriendlyIdentifier());
+        NotificationOptions.Add(OpenTheInspectionPageLbl, HandleOpenDocumentTok);
+        NotificationInspectionCreated.SetData(NotificationDataRelatedRecordIdTok, Format(QltyInspectionHeader.RecordId));
+        CreateActionNotification(NotificationInspectionCreated, Message, NotificationOptions);
+    end;
+
+    /// <summary>
+    /// Creates a notification that multiple inspections have been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationTestCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(
+            MultipleInspectionsCreatedMsg,
+            QltyInspectionHeader.Count()
+        );
+        NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
+        NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
+        CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
+    end;
 
     /// <summary>
     /// Call this to create a notification if you want to assign to yourself.
@@ -67,12 +136,18 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     procedure NotifyDoYouWantToAssignToYourself(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
+        MyNotifications: Record "My Notifications";
         AssignToSelfNotification: Notification;
         AvailableOptions: Dictionary of [Text, Text];
     begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetAssignToYourselfNotificationId()) then
+            exit;
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
         AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
-        AssignToSelfNotification.Id := QltyInspectionHeader.SystemId;
+        AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
         AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
         CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
     end;
@@ -133,7 +208,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentType">Used to display in the action.</param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
     var
         DummyVariant: Variant;
     begin
@@ -148,7 +223,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="DocumentType"></param>
     /// <param name="OptionalAdditionalMessageContext"></param>
     /// <param name="OptionalRelatedDocumentVariant"></param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -199,7 +274,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="Success"></param>
     /// <param name="ChangedBaseQuantity"></param>
     /// <param name="DocumentOrBatchName"></param>
-    procedure NotifyItemTrackingChanged(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
+    internal procedure NotifyItemTrackingChanged(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
     var
         Item: Record Item;
         Source: Text;
@@ -234,7 +309,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentOrBatchName"></param>   
-    procedure NotifyMovementOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
+    internal procedure NotifyMovementOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
     var
         Item: Record Item;
         Source: Text;
@@ -348,7 +423,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// procedure name *must* mah tcHandleOpenDocumentTok 
+    /// procedure name *must* match HandleOpenDocumentTok 
     /// This is the event handle for the 'open the document' 
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
@@ -389,6 +464,18 @@ codeunit 20437 "Qlty. Notification Mgmt."
 
                 Page.RunModal(CurrentPage, RecordRefVariant);
             end;
+    end;
+
+    /// <summary>
+    /// procedure name must match HandleOpenMultipleInspectionsTok.
+    /// </summary>
+    /// <param name="pNotification"></param>
+    internal procedure HandleOpenMultipleInspections(pNotification: Notification)
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        QltyInspectionHeader.SetView(pNotification.GetData(MultipleInspectionsNotificationDataFilterTok));
+        Page.RunModal(Page::"Qlty. Inspection List", QltyInspectionHeader);
     end;
 
     /// <summary>
@@ -435,7 +522,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="Type">The label for Lot or Serial or Package</param>
     /// <param name="ItemTrackingDetail">The content for Lot or Serial or Package</param>
     /// <param name="BlockedState"></param>
-    procedure NotifyItemTrackingBlockStateChanged(
+    internal procedure NotifyItemTrackingBlockStateChanged(
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         InformationType: RecordId;
         Type: Text;
@@ -450,7 +537,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         if BlockedState then
             BlockOrUnblock := BlockedLbl
         else
-            BlockOrUnblock := UnBlockedLbl;
+            BlockOrUnblock := UnblockedLbl;
         CurrentMessage := StrSubstNo(
             BlockedStateChangedLbl,
             QltyInspectionHeader."No.",
@@ -478,12 +565,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     var
         ActionMessage: Text;
         ActionProcedureCallback: Text;
-        Handled: Boolean;
     begin
-        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, Handled);
-        if Handled then
-            exit;
-
         NotificationToShow.Message(CurrentMessage);
         foreach ActionMessage in AvailableOptions.Keys do
             if AvailableOptions.Get(ActionMessage, ActionProcedureCallback) then
@@ -514,7 +596,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <returns></returns>   
-    procedure GetSourceSummaryText(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Text
+    internal procedure GetSourceSummaryText(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
         TextBuilder: TextBuilder;
     begin
@@ -558,15 +640,13 @@ codeunit 20437 "Qlty. Notification Mgmt."
         exit(TextBuilder.ToText());
     end;
 
-    /// <summary>
-    /// Use this to supplment, extend, or replace base action handling.
-    /// </summary>
-    /// <param name="NotificationToShow"></param>
-    /// <param name="CurrentMessage"></param>
-    /// <param name="Options"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
+    local procedure GetAssignToYourselfNotificationId(): Guid
     begin
+        exit('de535e9b-2727-4d23-8be4-e2ff33a2c586');
+    end;
+
+    local procedure GetInspectionCreatedNotificationId(): Guid
+    begin
+        exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
     end;
 }

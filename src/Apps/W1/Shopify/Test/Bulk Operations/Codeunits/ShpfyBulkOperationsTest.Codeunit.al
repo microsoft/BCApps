@@ -52,7 +52,6 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ShopifyVariant.DeleteAll();
     end;
 
-
     [Test]
     [HandlerFunctions('BulkMessageHandler')]
     procedure TestSendBulkOperation()
@@ -225,10 +224,12 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             ShopifyVariant."Product Id" := ProductId;
             ShopifyVariant.Id := VariantId;
             ShopifyVariant.Price := 200;
+            ShopifyVariant."Compare at Price" := 250;
+            ShopifyVariant."Unit Cost" := 75;
             ShopifyVariant.Insert();
         end;
         BulkOperationUrl := Any.AlphabeticText(50);
-        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100));
+        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100, 150, 50));
 
         // [WHEN] Bulk operation is completed
         BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
@@ -237,17 +238,25 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         BulkOperation.Status := BulkOperation.Status::Completed;
         BulkOperation.Modify(true);
 
-        // [THEN] The bulk operation is processed and one variant is reverted
+        // [THEN] The bulk operation is processed and failed variants are reverted
         BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
         LibraryAssert.IsTrue(BulkOperation.Processed, 'Bulk operation should be processed.');
         ShopifyVariant.Get(VariantIds.Get(1));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 200, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(200, ShopifyVariant.Price, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(250, ShopifyVariant."Compare at Price", 'Variant compare at price should not be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should not be reverted.');
         ShopifyVariant.Get(VariantIds.Get(2));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 100, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(50, ShopifyVariant."Unit Cost", 'Variant unit cost should be reverted.');
         ShopifyVariant.Get(VariantIds.Get(3));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 100, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(50, ShopifyVariant."Unit Cost", 'Variant unit cost should be reverted.');
         ShopifyVariant.Get(VariantIds.Get(4));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 200, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(200, ShopifyVariant.Price, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(250, ShopifyVariant."Compare at Price", 'Variant compare at price should not be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should not be reverted.');
         ClearSetup();
     end;
 
@@ -277,22 +286,28 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             ShopifyVariant."Product Id" := ProductId;
             ShopifyVariant.Id := VariantId;
             ShopifyVariant.Price := 200;
+            ShopifyVariant."Compare at Price" := 250;
+            ShopifyVariant."Unit Cost" := 75;
             ShopifyVariant.Insert();
         end;
         BulkOperationUrl := Any.AlphabeticText(50);
-        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100));
+        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100, 150, 50));
 
         // [WHEN] Bulk operation is failed
         BulkOperation.Status := BulkOperation.Status::Failed;
         BulkOperation.Modify(true);
 
-        // [THEN] The bulk operation is processed and one variant is reverted
+        // [THEN] The bulk operation is processed and all variants are reverted
         BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
         LibraryAssert.IsTrue(BulkOperation.Processed, 'Bulk operation should be processed.');
         ShopifyVariant.Get(VariantIds.Get(1));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 100, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(50, ShopifyVariant."Unit Cost", 'Variant unit cost should be reverted.');
         ShopifyVariant.Get(VariantIds.Get(2));
-        LibraryAssert.AreEqual(ShopifyVariant.Price, 100, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(50, ShopifyVariant."Unit Cost", 'Variant unit cost should be reverted.');
         ClearSetup();
     end;
 
@@ -311,7 +326,7 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         exit(BulkOperation);
     end;
 
-    local procedure GenerateRequestData(VariantIds: List of [BigInteger]; Price: Decimal): JsonArray
+    local procedure GenerateRequestData(VariantIds: List of [BigInteger]; Price: Decimal; CompareAtPrice: Decimal; UnitCost: Decimal): JsonArray
     var
         RequestData: JsonArray;
         VariantId: BigInteger;
@@ -321,7 +336,8 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             Clear(Data);
             Data.Add('id', VariantId);
             Data.Add('price', Price);
-            Data.Add('compareAtPrice', 0);
+            Data.Add('compareAtPrice', CompareAtPrice);
+            Data.Add('unitCost', UnitCost);
             Data.Add('updatedAt', '2025-02-25T13:40:15.6530000Z');
             RequestData.Add(Data);
         end;

@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149032 "AIT Run History"
 {
-    Caption = 'AI Test Suite Run History';
+    Caption = 'AI Eval Suite Run History';
     PageType = Worksheet;
     ApplicationArea = All;
     UsageCategory = None;
@@ -27,8 +27,8 @@ page 149032 "AIT Run History"
 
                 field("Test Suite Code"; TestSuiteCode)
                 {
-                    Caption = 'Test Suite Code';
-                    ToolTip = 'Specifies the code of the test suite to view results for.';
+                    Caption = 'Eval Suite Code';
+                    ToolTip = 'Specifies the code of the eval suite to view results for.';
                     TableRelation = "AIT Test Suite".Code;
 
                     trigger OnValidate()
@@ -62,12 +62,12 @@ page 149032 "AIT Run History"
 
             group("Line Filter")
             {
-                Caption = 'Test Line Filter';
+                Caption = 'Eval Line Filter';
                 Visible = ApplyLineFilter;
 
                 field("Line No."; LineNoFilter)
                 {
-                    Caption = 'Test Line';
+                    Caption = 'Eval Line';
                     ToolTip = 'Specifies the line to filter to.';
                     Editable = false;
 
@@ -96,22 +96,22 @@ page 149032 "AIT Run History"
                     field("No. of Tests - By Version"; Rec."No. of Tests Executed")
                     {
                         Visible = ViewBy = ViewBy::Version;
-                        Caption = 'No. of Tests';
-                        ToolTip = 'Specifies the number of tests in the version.';
+                        Caption = 'No. of Evals';
+                        ToolTip = 'Specifies the number of evals in the version.';
                     }
                     field("No. of Tests Passed - By Version"; Rec."No. of Tests Passed")
                     {
                         Visible = ViewBy = ViewBy::Version;
-                        Caption = 'No. of Tests Passed';
-                        ToolTip = 'Specifies the number of tests passed in the version.';
+                        Caption = 'No. of Evals Passed';
+                        ToolTip = 'Specifies the number of evals passed in the version.';
                         Style = Favorable;
                     }
                     field("No. of Tests Failed - By Version"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Editable = false;
-                        Caption = 'No. of Tests Failed';
-                        ToolTip = 'Specifies the number of tests that failed in the version.';
+                        Caption = 'No. of Evals Failed';
+                        ToolTip = 'Specifies the number of evals that failed in the version.';
                         Style = Unfavorable;
 
                         trigger OnDrillDown()
@@ -131,33 +131,33 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Total Duration (ms)';
-                        ToolTip = 'Specifies Total Duration of the tests for the base version.';
+                        ToolTip = 'Specifies Total Duration of the evals for the base version.';
                     }
                     field("Tokens - By Version"; Rec."Tokens Consumed")
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
                     }
                     field("No. of Tests - By Tag"; Rec."No. of Tests Executed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
-                        Caption = 'No. of Tests';
-                        ToolTip = 'Specifies the number of tests for the tag.';
+                        Caption = 'No. of Evals';
+                        ToolTip = 'Specifies the number of evals for the tag.';
                     }
                     field("No. of Tests Passed - By Tag"; Rec."No. of Tests Passed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
-                        Caption = 'No. of Tests Passed';
-                        ToolTip = 'Specifies the number of tests passed for the tag.';
+                        Caption = 'No. of Evals Passed';
+                        ToolTip = 'Specifies the number of evals passed for the tag.';
                         Style = Favorable;
                     }
                     field("No. of Tests Failed - By Tag"; Rec."No. of Tests Executed - By Tag" - Rec."No. of Tests Passed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
                         Editable = false;
-                        Caption = 'No. of Tests Failed';
-                        ToolTip = 'Specifies the number of tests that failed for the tag.';
+                        Caption = 'No. of Evals Failed';
+                        ToolTip = 'Specifies the number of evals that failed for the tag.';
                         Style = Unfavorable;
 
                         trigger OnDrillDown()
@@ -177,13 +177,13 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Duration (ms)';
-                        ToolTip = 'Specifies Total Duration of the tests for the base version.';
+                        ToolTip = 'Specifies Total Duration of the evals for the base version.';
                     }
                     field("Tokens - By Tag"; Rec."Tokens Consumed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
                     }
                 }
             }

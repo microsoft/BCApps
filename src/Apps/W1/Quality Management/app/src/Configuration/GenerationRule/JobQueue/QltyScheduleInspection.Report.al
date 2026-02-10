@@ -11,8 +11,8 @@ using Microsoft.QualityManagement.Setup;
 report 20412 "Qlty. Schedule Inspection"
 {
     Caption = 'Quality Management - Schedule Inspection';
-    AdditionalSearchTerms = 'Periodic inspections, scheduled inspections,schedule test,schedule inspection';
-    Description = 'This report is intended to be scheduled in the job queue to allow the ability to schedule inspections.';
+    AdditionalSearchTerms = 'Periodic inspections';
+    ToolTip = 'This report is intended to be scheduled in the job queue to allow the ability to schedule inspections.';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
@@ -48,7 +48,7 @@ report 20412 "Qlty. Schedule Inspection"
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateInspection;
-                    InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and lot. Make sure this is compatible with the scenario you are solving.';
+                    InstructionalText = 'On your Quality Management Setup page you have the Inspection Creation Option set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and item tracking. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
                     {
@@ -58,7 +58,7 @@ report 20412 "Qlty. Schedule Inspection"
                         trigger OnDrillDown()
                         begin
                             QltyManagementSetup.Get();
-                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Create Inspection Behavior"));
+                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Inspection Creation Option"));
                         end;
                     }
                 }
@@ -73,12 +73,12 @@ report 20412 "Qlty. Schedule Inspection"
         CreatedQltyInspectionIds: List of [Code[20]];
         ZeroInspectionsCreatedMsg: Label 'No inspections were created.';
         SomeInspectionsWereCreatedQst: Label '%1 inspections were created. Do you want to see them?', Comment = '%1=the count of inspections that were created.';
-        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the inspection generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive inspection generation. ';
+        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the inspection generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive inspection generation.';
 
     trigger OnInitReport()
     begin
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection"] then
+        if QltyManagementSetup."Inspection Creation Option" in [QltyManagementSetup."Inspection Creation Option"::"Always create new inspection", QltyManagementSetup."Inspection Creation Option"::"Always create re-inspection"] then
             ShowWarningIfCreateInspection := true;
     end;
 

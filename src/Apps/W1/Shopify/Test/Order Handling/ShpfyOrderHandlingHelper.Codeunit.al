@@ -59,6 +59,7 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JShopMoney: JsonObject;
         JPurchasingEntity: JsonObject;
         JCompany: JsonObject;
+        JRetailLocation: JsonObject;
         JCustomAttributes: JsonArray;
         JTags: JsonArray;
     begin
@@ -75,6 +76,9 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JNode.Add('displayFinancialStatus', 'PENDING');
         JNode.Add('displayFulfillmentStatus', 'UNFULFILLED');
         JNode.Add('subtotalLineItemsQuantity', 1);
+        JRetailLocation.Add('legacyResourceId', 1234567890);
+        JRetailLocation.Add('name', 'Retail Test Location');
+        JNode.Add('retailLocation', JRetailLocation);
         JShopMoney.Add('amount', Any.DecimalInRange(10, 1000, 2));
         JShopMoney.Add('currencyCode', GeneralLedgerSetup.GetCurrencyCode(''));
         JTotalPriceSet.Add('shopMoney', JShopMoney);
@@ -114,6 +118,7 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JStaffMember: JsonObject;
         JDefaultEmailAddress: JsonObject;
         JDefaultPhoneNumber: JsonObject;
+        JRetailLocation: JsonObject;
         JArray: JsonArray;
         Price: Decimal;
         ItemPrice: Decimal;
@@ -166,6 +171,9 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JOrder.Add('unpaid', false);
         JOrder.Add('location', JNull);
         JOrder.Add('physicalLocation', JNull);
+        JRetailLocation.Add('legacyResourceId', 1234567890);
+        JRetailLocation.Add('name', 'Retail Test Location');
+        JOrder.Add('retailLocation', JRetailLocation);
         JOrder.Add('note', Any.AlphabeticText(Any.IntegerInRange(100, 500)));
         JOrder.Add('customAttributes', JArray);
         JOrder.Add('discountCodes', JNull);
