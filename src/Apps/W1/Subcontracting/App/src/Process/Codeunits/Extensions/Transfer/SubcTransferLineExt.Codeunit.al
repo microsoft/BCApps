@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,10 +17,10 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Transfer Line"; RunTrigger: Boolean)
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if not Rec.IsTemporary() then
             if RunTrigger then
-                SubcontractingMgmt.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
+                SubcontractingManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
     end;
 }

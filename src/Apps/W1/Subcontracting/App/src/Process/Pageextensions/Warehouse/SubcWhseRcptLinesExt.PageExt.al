@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrder(PurchLine);
+                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrder(PurchaseLine);
                     end;
                 }
                 action("Production Order Routing")
@@ -38,8 +38,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrderRouting(PurchLine);
+                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrderRouting(PurchaseLine);
                     end;
                 }
                 action("Production Order Components")
@@ -51,8 +51,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrderComponents(PurchLine);
+                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrderComponents(PurchaseLine);
                     end;
                 }
                 action("Transfer Order")
@@ -64,8 +64,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                     end;
                 }
                 action("Return Transfer Order")
@@ -77,29 +77,29 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                     end;
                 }
             }
         }
     }
     var
-        PurchLine: Record "Purchase Line";
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        PurchaseLine: Record "Purchase Line";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }

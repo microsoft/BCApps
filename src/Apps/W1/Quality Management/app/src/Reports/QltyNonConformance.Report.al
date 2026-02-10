@@ -21,13 +21,13 @@ report 20403 "Qlty. Non-Conformance"
     Caption = 'Quality Management - Non-Conformance Report';
     DefaultRenderingLayout = QltyNonConformanceDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'NCR,CAR,Printable Certificate,Non Conformance';
+    AdditionalSearchTerms = 'NCR,CAR';
 
     dataset
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }

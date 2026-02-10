@@ -52,7 +52,6 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ShopifyVariant.DeleteAll();
     end;
 
-
     [Test]
     [HandlerFunctions('BulkMessageHandler')]
     procedure TestSendBulkOperation()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,21 +53,21 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 
     local procedure CheckExistingPostedSubcontractingTransferOrder(ProdOrderComponent: Record "Prod. Order Component"): Boolean
     var
-        TransferShipLine: Record "Transfer Shipment Line";
-        ConfirmMgt: Codeunit "Confirm Management";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        ConfirmManagement: Codeunit "Confirm Management";
         ExistingTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
     begin
         if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
             exit;
 
-        TransferShipLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-        TransferShipLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        TransferShipLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
-        TransferShipLine.SetRange("Item No.", ProdOrderComponent."Item No.");
-        if not TransferShipLine.IsEmpty() then begin
-            TransferShipLine.SetLoadFields(SystemId);
-            TransferShipLine.FindFirst();
-            if not ConfirmMgt.GetResponse(StrSubstNo(ExistingTransferLineQst, TransferShipLine."Document No.")) then
+        TransferShipmentLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferShipmentLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferShipmentLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        TransferShipmentLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        if not TransferShipmentLine.IsEmpty() then begin
+            TransferShipmentLine.SetLoadFields(SystemId);
+            TransferShipmentLine.FindFirst();
+            if not ConfirmManagement.GetResponse(StrSubstNo(ExistingTransferLineQst, TransferShipmentLine."Document No.")) then
                 Error('');
         end;
     end;
@@ -240,10 +240,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure HandleRoutingLinkCodeValidation(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
     var
         ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        SKU: Record "Stockkeeping Unit";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
         Vendor: Record Vendor;
-        GetPlanningParameters: Codeunit "Planning-Get Parameters";
+        PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if ProdOrderComponent."Subcontracting Type" = ProdOrderComponent."Subcontracting Type"::Transfer then
@@ -252,16 +252,16 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         ProdOrderLine.SetLoadFields("Routing No.", "Routing Reference No.", "Item No.", "Variant Code", "Location Code");
         ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
         if ProdOrderComponent."Routing Link Code" <> '' then begin
-            ProdOrderRtngLine.SetRange(Status, ProdOrderComponent.Status);
-            ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-            ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
-            ProdOrderRtngLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            ProdOrderRtngLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
-            if ProdOrderRtngLine.FindFirst() then begin
-                ProdOrderComponent."Due Date" := ProdOrderRtngLine."Starting Date";
-                ProdOrderComponent."Due Time" := ProdOrderRtngLine."Starting Time";
-                if (ProdOrderRtngLine.Type = ProdOrderRtngLine.Type::"Work Center") then
-                    if SubcontractingManagement.GetSubcontractor(ProdOrderRtngLine."No.", Vendor) then
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderComponent.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+            ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+            if ProdOrderRoutingLine.FindFirst() then begin
+                ProdOrderComponent."Due Date" := ProdOrderRoutingLine."Starting Date";
+                ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
+                if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
+                    if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
                         SubcontractingManagement.ChangeLocation_OnProdOrderComponent(ProdOrderComponent, Vendor."Subcontr. Location Code", ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
             end;
         end else
@@ -274,12 +274,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
                         ProdOrderComponent."Orig. Bin Code" := '';
                     end;
                 end else begin
-                    GetPlanningParameters.AtSKU(
-                      SKU,
+                    PlanningGetParameters.AtSKU(
+                      StockkeepingUnit,
                       ProdOrderLine."Item No.",
                       ProdOrderLine."Variant Code",
                       ProdOrderLine."Location Code");
-                    ProdOrderComponent.Validate("Location Code", SKU."Components at Location");
+                    ProdOrderComponent.Validate("Location Code", StockkeepingUnit."Components at Location");
                 end;
     end;
 

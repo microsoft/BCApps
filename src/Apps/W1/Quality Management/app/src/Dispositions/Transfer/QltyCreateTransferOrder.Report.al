@@ -13,11 +13,10 @@ report 20410 "Qlty. Create Transfer Order"
 {
     Caption = 'Quality Management - Create Transfer Order';
     ApplicationArea = QualityManagement;
-    AdditionalSearchTerms = 'transfer, external, lab, laboratory';
     ProcessingOnly = true;
     UsageCategory = Tasks;
     AllowScheduling = false;
-    Description = 'Use this to transfer items to another location.';
+    ToolTip = 'Use this to transfer items to another location.';
 
     dataset
     {

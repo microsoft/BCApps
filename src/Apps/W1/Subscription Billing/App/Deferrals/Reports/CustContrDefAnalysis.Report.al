@@ -10,6 +10,7 @@ report 8052 "Cust. Contr. Def. Analysis"
     ExcelLayoutMultipleDataSheets = true;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
+    AdditionalSearchTerms = 'Customer Deferrals, Deferral Analysis, Revenue Deferrals, Contract Analysis, Deferral Report, Deferred Revenue';
 
     dataset
     {
@@ -49,6 +50,9 @@ report 8052 "Cust. Contr. Def. Analysis"
 
     requestpage
     {
+        AboutTitle = 'About Customer Subscription Contract Deferrals Analysis';
+        AboutText = 'Download the contract deferrals as an Excel file filtered based on your own criteria.';
+
         layout
         {
             area(content)

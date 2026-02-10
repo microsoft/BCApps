@@ -22,8 +22,8 @@ codeunit 20415 "Qlty. Tracking Integration"
     InherentPermissions = X;
 
     var
-        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
-        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
+        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
+        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterCheckItemTrackingInformation', '', true, true)]
@@ -34,7 +34,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         TrackingDetails: Text;
     begin
         case true of
@@ -49,21 +49,21 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Lot No.", TrackingSpecification."Lot No.");
         QltyInspectionHeader.SetRange("Source Serial No.", TrackingSpecification."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", TrackingSpecification."Package No.");
-        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, Handled);
-        if Handled then
+        OnCheckItemTrackingOnAfterSetFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
-        case QltyManagementSetup."Conditional Lot Find Behavior" of
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches":
+        case QltyManagementSetup."Inspection Selection Criteria" of
+            QltyManagementSetup."Inspection Selection Criteria"::"Any inspection that matches":
                 if not QltyInspectionHeader.FindSet() then
                     exit;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches":
+            QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     if not QltyInspectionHeader.FindSet() then
                         exit;
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
@@ -71,7 +71,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
@@ -80,7 +80,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
                     QltyInspectionHeader.Ascending(false);
@@ -88,7 +88,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
@@ -105,32 +105,32 @@ codeunit 20415 "Qlty. Tracking Integration"
                 if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case ItemJnlLine2."Entry Type" of
                         ItemJnlLine2."Entry Type"::"Assembly Consumption":
-                            Blocked := (QltyInspectionResult."Lot Allow Assembly Consumption" = QltyInspectionResult."Lot Allow Assembly Consumption"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Assembly Consumption" = QltyInspectionResult."Lot Allow Assembly Consumption"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Asm. Cons." = QltyInspectionResult."Item Tracking Allow Asm. Cons."::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Asm. Cons." = QltyInspectionResult."Item Tracking Allow Asm. Cons."::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::"Assembly Output":
-                            Blocked := (QltyInspectionResult."Lot Allow Assembly Output" = QltyInspectionResult."Lot Allow Assembly Output"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Assembly Output" = QltyInspectionResult."Lot Allow Assembly Output"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Asm. Out." = QltyInspectionResult."Item Tracking Allow Asm. Out."::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Asm. Out." = QltyInspectionResult."Item Tracking Allow Asm. Out."::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Consumption:
-                            Blocked := (QltyInspectionResult."Lot Allow Consumption" = QltyInspectionResult."Lot Allow Consumption"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Consumption" = QltyInspectionResult."Lot Allow Consumption"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Consump." = QltyInspectionResult."Item Tracking Allow Consump."::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Consump." = QltyInspectionResult."Item Tracking Allow Consump."::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Output:
-                            Blocked := (QltyInspectionResult."Lot Allow Output" = QltyInspectionResult."Lot Allow Output"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Output" = QltyInspectionResult."Lot Allow Output"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Output" = QltyInspectionResult."Item Tracking Allow Output"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Output" = QltyInspectionResult."Item Tracking Allow Output"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Purchase:
-                            Blocked := (QltyInspectionResult."Lot Allow Purchase" = QltyInspectionResult."Lot Allow Purchase"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Purchase" = QltyInspectionResult."Lot Allow Purchase"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Purchase" = QltyInspectionResult."Item Tracking Allow Purchase"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Purchase" = QltyInspectionResult."Item Tracking Allow Purchase"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Sale:
-                            Blocked := (QltyInspectionResult."Lot Allow Sales" = QltyInspectionResult."Lot Allow Sales"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Sales" = QltyInspectionResult."Lot Allow Sales"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Sales" = QltyInspectionResult."Item Tracking Allow Sales"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Sales" = QltyInspectionResult."Item Tracking Allow Sales"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Transfer:
-                            Blocked := (QltyInspectionResult."Lot Allow Transfer" = QltyInspectionResult."Lot Allow Transfer"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Transfer" = QltyInspectionResult."Lot Allow Transfer"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Transfer" = QltyInspectionResult."Item Tracking Allow Transfer"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Transfer" = QltyInspectionResult."Item Tracking Allow Transfer"::"Allow finished only"));
                     end;
                     OnHandleCheckItemTrackingBeforeBlockErrorCheck(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, QltyInspectionResult, Blocked);
 
@@ -183,7 +183,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         case true of
             not QltyInspectionHeader.ReadPermission(),
@@ -197,23 +197,22 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Lot No.", WarehouseActivityLine."Lot No.");
         QltyInspectionHeader.SetRange("Source Serial No.", WarehouseActivityLine."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", WarehouseActivityLine."Package No.");
-
-        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionHeader, Handled);
-        if Handled then
+        OnCheckWhseItemTrackingOnAfterSetFilters(WarehouseActivityLine, QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
-        case QltyManagementSetup."Conditional Lot Find Behavior" of
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches":
+        case QltyManagementSetup."Inspection Selection Criteria" of
+            QltyManagementSetup."Inspection Selection Criteria"::"Any inspection that matches":
                 if not QltyInspectionHeader.FindSet() then
                     exit;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches":
+            QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     if not QltyInspectionHeader.FindSet() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
@@ -221,7 +220,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
@@ -230,7 +229,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
                     QltyInspectionHeader.Ascending(false);
@@ -238,7 +237,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection":
+            QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
 
@@ -257,28 +256,28 @@ codeunit 20415 "Qlty. Tracking Integration"
                 if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case WarehouseActivityLine."Activity Type" of
                         WarehouseActivityLine."Activity Type"::"Invt. Movement":
-                            Blocked := (QltyInspectionResult."Lot Allow Invt. Movement" = QltyInspectionResult."Lot Allow Invt. Movement"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Movement" = QltyInspectionResult."Lot Allow Invt. Movement"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Invt. Mov." = QltyInspectionResult."Item Tracking Allow Invt. Mov."::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Invt. Mov." = QltyInspectionResult."Item Tracking Allow Invt. Mov."::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Invt. Pick":
-                            Blocked := (QltyInspectionResult."Lot Allow Invt. Pick" = QltyInspectionResult."Lot Allow Invt. Pick"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Pick" = QltyInspectionResult."Lot Allow Invt. Pick"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Invt. Pick" = QltyInspectionResult."Item Tracking Allow Invt. Pick"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Invt. Pick" = QltyInspectionResult."Item Tracking Allow Invt. Pick"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Invt. Put-away":
-                            Blocked := (QltyInspectionResult."Lot Allow Invt. Put-away" = QltyInspectionResult."Lot Allow Invt. Put-away"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Put-away" = QltyInspectionResult."Lot Allow Invt. Put-away"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Invt. PA" = QltyInspectionResult."Item Tracking Allow Invt. PA"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Invt. PA" = QltyInspectionResult."Item Tracking Allow Invt. PA"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::Movement:
-                            Blocked := (QltyInspectionResult."Lot Allow Movement" = QltyInspectionResult."Lot Allow Movement"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Movement" = QltyInspectionResult."Lot Allow Movement"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Movement" = QltyInspectionResult."Item Tracking Allow Movement"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Movement" = QltyInspectionResult."Item Tracking Allow Movement"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::Pick:
-                            Blocked := (QltyInspectionResult."Lot Allow Pick" = QltyInspectionResult."Lot Allow Pick"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Pick" = QltyInspectionResult."Lot Allow Pick"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Pick" = QltyInspectionResult."Item Tracking Allow Pick"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Pick" = QltyInspectionResult."Item Tracking Allow Pick"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Put-away":
-                            Blocked := (QltyInspectionResult."Lot Allow Put-Away" = QltyInspectionResult."Lot Allow Put-Away"::Block) or
-                                (not IsFinished and (QltyInspectionResult."Lot Allow Put-away" = QltyInspectionResult."Lot Allow Put-away"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Item Tracking Allow Put-Away" = QltyInspectionResult."Item Tracking Allow Put-Away"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Item Tracking Allow Put-Away" = QltyInspectionResult."Item Tracking Allow Put-Away"::"Allow finished only"));
                     end;
                     OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(WarehouseActivityLine, QltyInspectionHeader, QltyInspectionResult, Blocked);
 
@@ -290,16 +289,17 @@ codeunit 20415 "Qlty. Tracking Integration"
                             WarehouseActivityLine."Activity Type",
                             WarehouseActivityLine."Item No.",
                             WarehouseActivityLine."Lot No.",
-                            WarehouseActivityLine."Serial No.");
+                            WarehouseActivityLine."Serial No.",
+                            WarehouseActivityLine."Package No.");
                 end;
             end;
         until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
-    /// Used to help assist edits find serial and lot numbers.
+    /// Used to help assist edits find item tracking numbers.
     /// In the context of Quality Inspections location doesn't really matter.
-    /// Used as part of the AssistEdit Lot Number functionality.
+    /// Used as part of the AssistEdit Item Tracking Number functionality.
     /// </summary>
     /// <param name="ReservEntry"></param>
     /// <param name="TempTrackingSpecification"></param>
@@ -316,7 +316,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     end;
 
     /// <summary>
-    /// Used as part of the AssistEdit Lot Number functionality.
+    /// Used as part of the AssistEdit Item Tracking Number functionality.
     /// </summary>
     /// <param name="TempTrackingSpecification"></param>
     /// <param name="TempReservationEntry"></param>
@@ -370,7 +370,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     end;
 
     /// <summary>
-    /// Used as part of the AssistEdit Lot Number functionality.
+    /// Used as part of the AssistEdit Item Tracking Number functionality.
     /// </summary>
     /// <param name="TempGlobalEntrySummary"></param>
     /// <param name="TempReservEntry"></param>
@@ -428,21 +428,21 @@ codeunit 20415 "Qlty. Tracking Integration"
     end;
 
     /// <summary>
-    /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
+    /// This occurs when checking item tracking to determine if the item tracking is allowed for the given type of activity.
     /// This occurs *before* the inspection find occurs, and gives an opportunity to adjust inspection filters.
     /// Used for assembly consumption, assembly output, consumption, output, purchase, sale, transfer
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
-    /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
+    /// <param name="IsHandled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnCheckItemTrackingOnAfterSetFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
+    /// This occurs when checking item tracking to determine if the item tracking is allowed for the given type of activity.
     /// This occurs after an inspection has been found.
     /// Used for assembly consumption, assembly output, consumption, output, purchase, sale, transfer
     /// </summary>
@@ -457,20 +457,20 @@ codeunit 20415 "Qlty. Tracking Integration"
     end;
 
     /// <summary>
-    /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
+    /// This occurs when checking item tracking to determine if the item tracking is allowed for the given type of activity.
     /// This occurs *before* the inspection find occurs, and gives an opportunity to adjust inspection filters.
     /// Used for inventory movements, inventory picks, inventory put aways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
-    /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
+    /// <param name="IsHandled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnCheckWhseItemTrackingOnAfterSetFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
+    /// This occurs when checking item tracking to determine if the item tracking is allowed for the given type of activity.
     /// This occurs after an inspection has been found.
     /// Used for inventory movements, inventory picks, inventory putaways, movements, picks, putaways.
     /// </summary>

@@ -13,7 +13,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
 {
     layout
     {
-        addafter("Total Available Quantity")
+        addafter("Selected Quantity")
         {
             field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {

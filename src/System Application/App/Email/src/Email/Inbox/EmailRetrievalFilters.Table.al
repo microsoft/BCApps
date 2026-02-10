@@ -61,6 +61,12 @@ table 8885 "Email Retrieval Filters"
             Caption = 'Folder Id';
             DataClassification = CustomerContent;
         }
+        field(10; "Category Filter Type"; Option)
+        {
+            OptionMembers = "Include","Exclude";
+            InitValue = "Include";
+            Caption = 'Category Filter Type';
+        }
     }
 
     keys
@@ -70,4 +76,27 @@ table 8885 "Email Retrieval Filters"
             Clustered = true;
         }
     }
+
+    var
+        CategoryFilters: List of [Text];
+
+    /// <summary>Clears all category filters.</summary>
+    procedure ClearCategoryFilters()
+    begin
+        Clear(CategoryFilters);
+    end;
+
+    /// <summary>Adds a category to the filter list.</summary>
+    /// <param name="Category">The category to add to the filter.</param>
+    procedure AddCategoryFilter(Category: Text)
+    begin
+        CategoryFilters.Add(Category);
+    end;
+
+    /// <summary>Gets the list of category filters.</summary>
+    /// <returns>The list of category filters.</returns>
+    procedure GetCategoryFilters(): List of [Text]
+    begin
+        exit(CategoryFilters);
+    end;
 }

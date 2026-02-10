@@ -6,14 +6,14 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// Specifies the run frequency for AI Test Suites.
+/// Specifies the run frequency for AI Eval Suites.
 /// </summary>
 enum 149040 "AIT Run Frequency"
 {
     Extensible = false;
 
     /// <summary>
-    /// Specifies tests that are not included in automation, but can be run manually by engineers.
+    /// Specifies evals that are not included in automation, but can be run manually by engineers.
     /// </summary>
     value(0; Manual)
     {
@@ -21,7 +21,7 @@ enum 149040 "AIT Run Frequency"
     }
 
     /// <summary>
-    /// Specifies that automation tests run on a daily basis.
+    /// Specifies that automation evals run on a daily basis.
     /// </summary>
     value(1; Daily)
     {
@@ -29,7 +29,7 @@ enum 149040 "AIT Run Frequency"
     }
 
     /// <summary>
-    /// Specifies that automation tests run every week.
+    /// Specifies that automation evals run every week.
     /// </summary>
     value(2; Weekly)
     {

@@ -39,7 +39,7 @@ page 149047 "AIT Test Suite Languages Part"
                 field("Run Frequency"; Rec."Run Frequency")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies how frequently the test suite should be run for this language.';
+                    ToolTip = 'Specifies how frequently the eval suite should be run for this language.';
                 }
             }
         }
