@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Journal;
 
 using Microsoft.Manufacturing.Journal;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
@@ -21,13 +20,12 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
                 action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = I;
                     Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this output journal line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this output journal line.';
-                    Enabled = QltyCreateQualityInspection;
-                    Visible = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
@@ -39,13 +37,12 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
                 action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item and document.';
-                    Enabled = QltyReadQualityInspections;
-                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -57,13 +54,12 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item';
                     ToolTip = 'Shows Quality Inspections for Item';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
-                    Enabled = QltyReadQualityInspections;
-                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -81,20 +77,4 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
             }
         }
     }
-
-    var
-        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
-
-        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
-            exit;
-
-        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
-    end;
 }

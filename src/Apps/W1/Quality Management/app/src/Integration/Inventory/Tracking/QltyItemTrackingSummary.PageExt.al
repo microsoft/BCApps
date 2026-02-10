@@ -17,8 +17,8 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
         {
             field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Result';
                 ToolTip = 'Specifies the most recent result for this item tracking specification.';
                 Editable = false;
@@ -36,8 +36,8 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
             }
             field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Editable = false;
             }
         }

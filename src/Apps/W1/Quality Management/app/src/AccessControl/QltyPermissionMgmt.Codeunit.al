@@ -32,32 +32,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
-    /// Checks if the current user has permission to read inspection results.
-    /// </summary>
-    /// <returns>True if the user can read inspection results; otherwise, false.</returns>
-    internal procedure CanReadInspectionResults(): Boolean
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        exit(QltyInspectionHeader.ReadPermission());
-    end;
-
-    /// <summary>
     /// Checks if the current user can create an automatic inspection.
     /// </summary>
     /// <returns>True if the user can create an automatic inspection; otherwise, false.</returns>
     internal procedure CanCreateAutoInspection(): Boolean
     begin
         exit(CheckPermissionDetails(ActionCreateInspectionAutomaticallyLbl));
-    end;
-
-    /// <summary>
-    /// Verifies the current user can create an automatic inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanCreateAutoInspection()
-    begin
-        if not CanCreateAutoInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionAutomaticallyLbl);
     end;
 
     /// <summary>

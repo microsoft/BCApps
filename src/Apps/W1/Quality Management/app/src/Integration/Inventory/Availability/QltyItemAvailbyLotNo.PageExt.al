@@ -16,8 +16,8 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
         {
             field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Result';
                 ToolTip = 'Specifies the most recent result for this lot number.';
                 Editable = false;
@@ -39,8 +39,8 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
             }
             field("Qlty. Inspection for Lot Count"; Rec."Qlty. Inspection for Lot Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Editable = false;
             }
         }

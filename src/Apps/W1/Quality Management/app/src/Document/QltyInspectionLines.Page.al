@@ -91,8 +91,8 @@ page 20413 "Qlty. Inspection Lines"
                 }
                 field(ChooseMeasurementNote; MeasurementNote)
                 {
-                    Caption = 'Note';
                     AccessByPermission = tabledata "Record Link" = R;
+                    Caption = 'Note';
                     Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 

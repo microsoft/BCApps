@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Inventory;
 
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20431 "Qlty. Item List" extends "Item List"
@@ -17,24 +16,14 @@ pageextension 20431 "Qlty. Item List" extends "Item List"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = TableData "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item.';
-                Visible = QltyReadQualityInspections;
                 RunObject = Page "Qlty. Inspection List";
                 RunPageLink = "Source Item No." = field("No.");
                 RunPageView = sorting("Source Item No.");
             }
         }
     }
-
-    var
-        QltyReadQualityInspections: Boolean;
-
-    trigger OnOpenPage()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
 }

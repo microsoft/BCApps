@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Sales.Document;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Sales.Document;
 
@@ -21,13 +20,12 @@ pageextension 20406 "Qlty. Sales Return Order Subf." extends "Sales Return Order
                 action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = I;
                     Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this sales return order line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this sales return order line.';
-                    Enabled = QltyCreateQualityInspection;
-                    Visible = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
@@ -39,13 +37,12 @@ pageextension 20406 "Qlty. Sales Return Order Subf." extends "Sales Return Order
                 action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item and document.';
-                    Enabled = QltyReadQualityInspections;
-                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -57,13 +54,12 @@ pageextension 20406 "Qlty. Sales Return Order Subf." extends "Sales Return Order
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item';
                     ToolTip = 'Shows Quality Inspections for Item';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
-                    Enabled = QltyReadQualityInspections;
-                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -75,20 +71,4 @@ pageextension 20406 "Qlty. Sales Return Order Subf." extends "Sales Return Order
             }
         }
     }
-
-    var
-        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
-
-        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
-            exit;
-
-        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
-    end;
 }
