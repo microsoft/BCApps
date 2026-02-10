@@ -72,7 +72,8 @@ table 8052 "Customer Subscription Contract"
                     SkipBillToContact := false;
                 end;
 
-                Validate("Ship-to Code", Cust."Ship-to Code");
+                if "Bill-to Customer No." = "Sell-to Customer No." then
+                    Validate("Ship-to Code", Cust."Ship-to Code");
                 if not SkipSellToContact then
                     UpdateSellToCont("Sell-to Customer No.");
 
