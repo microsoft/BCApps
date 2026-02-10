@@ -17,7 +17,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
     InherentPermissions = X;
 
     var
-        CurrentUserId: Text;
         ActionCreateInspectionManuallyLbl: Label 'Create Inspection manually';
         ActionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
         ActionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
@@ -49,7 +48,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateManualInspection()
     begin
         if not CanCreateManualInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionManuallyLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
     end;
 
     /// <summary>
@@ -67,7 +66,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateAutoInspection()
     begin
         if not CanCreateAutoInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionAutoLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionAutoLbl);
     end;
 
     /// <summary>
@@ -85,7 +84,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanCreateReinspection()
     begin
         if not CanCreateReinspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateReinspectionLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateReinspectionLbl);
     end;
 
     /// <summary>
@@ -103,7 +102,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanDeleteOpenInspection()
     begin
         if not CanDeleteOpenInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionDeleteOpenInspectionLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
     end;
 
     /// <summary>
@@ -121,7 +120,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
         if not CanDeleteFinishedInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionDeleteFinishedInspectionLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
     end;
 
     /// <summary>
@@ -139,7 +138,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeOtherInspections()
     begin
         if not CanChangeOtherInspections() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeOthersInspectionsLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeOthersInspectionsLbl);
     end;
 
     /// <summary>
@@ -157,7 +156,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanReopenInspection()
     begin
         if not CanReopenInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionReopenInspectionLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
     end;
 
     /// <summary>
@@ -175,7 +174,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanFinishInspection()
     begin
         if not CanFinishInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionFinishInspectionLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionFinishInspectionLbl);
     end;
 
     /// <summary>
@@ -193,7 +192,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeTrackingNo()
     begin
         if not CanChangeTrackingNo() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeTrackingNoLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeTrackingNoLbl);
     end;
 
     /// <summary>
@@ -220,8 +219,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     local procedure LoadPermissionDetails(FunctionalPermission: Text): Boolean
     begin
-        CurrentUserId := UserId();
-
         exit(GetSuggestedAllowedValueForFunction(FunctionalPermission));
     end;
 
@@ -231,7 +228,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanEditLineComments()
     begin
         if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionEditLineCommentsLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentsLbl);
     end;
 
     /// <summary>
@@ -249,7 +246,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure VerifyCanChangeSourceQuantity()
     begin
         if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeSourceQuantityLbl);
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
     end;
 
     /// <summary>
@@ -275,7 +272,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    internal procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
+    local procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
             ActionCreateInspectionAutoLbl:
