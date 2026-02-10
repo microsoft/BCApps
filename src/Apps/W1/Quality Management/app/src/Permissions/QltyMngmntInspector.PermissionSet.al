@@ -16,11 +16,12 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
-/// Used for data entry in quality inspections only.
+/// Used for working with Quality Inspections.
 /// </summary>
-permissionset 20404 QltyEntryInspector
+permissionset 20404 QltyMngmntInspector
 {
-    Caption = 'Quality Inspection - Data Entry';
+    Caption = 'Quality Management - Quality Inspector';
+    Access = Public;
     Assignable = true;
 
     IncludedPermissionSets = "QltyMngmnt - Objects";

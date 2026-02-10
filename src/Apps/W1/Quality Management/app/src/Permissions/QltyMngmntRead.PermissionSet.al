@@ -15,9 +15,12 @@ using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Workflow;
 
+/// <summary>
+/// Used for full read-only access to Quality Management.
+/// </summary>
 permissionset 20401 "QltyMngmnt - Read"
 {
-    Caption = 'Quality Management - Read';
+    Caption = 'Quality Management - Read access';
     Access = Public;
     Assignable = true;
 
