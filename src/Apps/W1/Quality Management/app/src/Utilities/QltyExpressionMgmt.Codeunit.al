@@ -61,7 +61,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="QltyInspectionLine">The inspection line containing the expression to evaluate</param>
     /// <param name="CurrentQltyInspectionHeader">The inspection header providing context for evaluation</param>
     /// <returns>The evaluated text result</returns>
-    procedure EvaluateTextExpression(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header") Result: Text
+    internal procedure EvaluateTextExpression(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header") Result: Text
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         Value: Text;
@@ -100,7 +100,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
     /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
@@ -119,7 +119,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <param name="CurrentQltyInspectionLine">If the inspection line doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
     begin
         exit(EvaluateTextExpression(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, false));
     end;
@@ -158,7 +158,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="SpecificQltyInspectionLine">When supplied, a specific inspection line providing additional context</param>
     /// <param name="EvaluateEmbeddedNumericExpressions">True to evaluate {expression} patterns; False to skip</param>
     /// <returns>The fully evaluated text result</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; SpecificQltyInspectionLine: Record "Qlty. Inspection Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; SpecificQltyInspectionLine: Record "Qlty. Inspection Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
     var
         InputCurrentQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -210,7 +210,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="RecordVariant"></param>
     /// <param name="FormatText">Set to true to use localization format, set to false to not format.</param>
     /// <returns></returns>
-    procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
+    internal procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -349,7 +349,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// </summary>
     /// <param name="Input">The text expression containing special functions to validate</param>
     /// <returns>The text with validated function syntax (not fully evaluated)</returns>
-    procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
+    internal procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
     var
         TempCurrentQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyCurrentQltyInspectionLine: Record "Qlty. Inspection Line" temporary;

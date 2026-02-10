@@ -35,7 +35,7 @@ using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
-using Microsoft.QualityManagement.Setup.SetupWizard;
+using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
@@ -72,7 +72,11 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Utilities Integration" = X,
         codeunit "Qlty. Navigate Integration" = X,
         codeunit "Qlty. Tracking Integration" = X,
+        codeunit "Qlty. Configuration Helpers" = X,
+        codeunit "Qlty. File Import" = X,
+        codeunit "Qlty. Localization" = X,
         codeunit "Qlty. Misc Helpers" = X,
+        codeunit "Qlty. Value Parsing" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
@@ -102,7 +106,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Lookup Code List" = X,
         page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
-        page "Qlty. Management Setup Wizard" = X,
+        page "Qlty. Management Setup Guide" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,

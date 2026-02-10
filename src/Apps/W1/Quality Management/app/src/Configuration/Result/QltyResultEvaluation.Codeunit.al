@@ -60,7 +60,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
-    procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
+    internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary;
@@ -326,6 +326,7 @@ codeunit 20410 "Qlty. Result Evaluation"
 
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
+        QltyLocalization: Codeunit "Qlty. Localization";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         ValueAsDecimal: Decimal;
@@ -377,15 +378,15 @@ codeunit 20410 "Qlty. Result Evaluation"
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                         if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
-                            TextToValidate := QltyMiscHelpers.GetTranslatedYes250()
+                            TextToValidate := QltyLocalization.GetTranslatedYes()
                         else
-                            TextToValidate := QltyMiscHelpers.GetTranslatedNo250();
+                            TextToValidate := QltyLocalization.GetTranslatedNo();
 
                     if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
                         if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                     end else
-                        if not (TextToValidate in [QltyMiscHelpers.GetTranslatedYes250(), QltyMiscHelpers.GetTranslatedNo250(), '']) then
+                        if not (TextToValidate in [QltyLocalization.GetTranslatedYes(), QltyLocalization.GetTranslatedNo(), '']) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
             QltyTestValueType::"Value Type Text":
@@ -396,6 +397,8 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyTestValueType::"Value Type Option",
                 QltyTestValueType::"Value Type Table Lookup":
                 begin
+                    TextToValidate := CopyStr(TextToValidate.Trim(), 1, MaxStrLen(TextToValidate));
+
                     TempBufferQltyLookupCode.Reset();
                     TempBufferQltyLookupCode.SetRange("Custom 1", TextToValidate);
                     if TempBufferQltyLookupCode.IsEmpty() and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
@@ -479,7 +482,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         Result := AcceptableValue in [IsDefaultNumberTok, IsDefaultTextTok];
     end;
 
-    procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
+    internal procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         ValueAsDateTime: DateTime;
@@ -523,7 +526,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(IsGood);
     end;
 
-    procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
+    internal procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
         ValueAsDate: Date;
