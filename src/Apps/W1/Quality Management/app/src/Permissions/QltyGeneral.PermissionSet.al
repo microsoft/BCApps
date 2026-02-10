@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.GuidedExperience;
 using Microsoft.QualityManagement.Installation;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
@@ -59,6 +60,7 @@ permissionset 20403 QltyGeneral
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
+        codeunit "Qlty. Guided Experience" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
