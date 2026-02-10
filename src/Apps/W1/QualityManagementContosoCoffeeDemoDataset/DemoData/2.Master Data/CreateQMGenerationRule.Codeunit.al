@@ -8,7 +8,7 @@ using Microsoft.DemoTool.Helpers;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 
-codeunit 5220 "Create QM Generation Rule"
+codeunit 5598 "Create QM Generation Rule"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

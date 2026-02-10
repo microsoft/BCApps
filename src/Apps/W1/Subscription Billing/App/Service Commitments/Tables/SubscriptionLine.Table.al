@@ -58,6 +58,7 @@ table 8059 "Subscription Line"
                 CheckServiceDates();
                 RecalculateHarmonizedBillingFieldsOnCustomerContract();
                 UpdateNextPriceUpdate();
+                CalculateSubscriptionDates();
             end;
         }
         field(7; "Subscription Line End Date"; Date)
@@ -230,7 +231,7 @@ table 8059 "Subscription Line"
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Notice Period");
 
                 if "Term until" <> 0D then
-                    UpdateCancellationPossibleUntil();
+                    CalculateCancellationPossibleUntil();
             end;
         }
         field(21; "Initial Term"; DateFormula)
@@ -270,7 +271,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateTermUntilUsingNoticePeriod();
+                CalculateTermUntilFromCancellationPossibleUntil();
             end;
         }
         field(25; "Term Until"; Date)
@@ -279,7 +280,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateCancellationPossibleUntil();
+                CalculateCancellationPossibleUntil();
             end;
         }
         field(26; "Sub. Header Customer No."; Code[20])
@@ -739,11 +740,15 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    internal procedure CalculateInitialServiceEndDate()
+    internal procedure CalculateSubscriptionDates()
+    begin
+        CalculateServiceEndDate();
+        CalculateTermUntilDate();
+    end;
+
+    internal procedure CalculateServiceEndDate()
     begin
         if IsInitialTermEmpty() then
-            exit;
-        if not IsExtensionTermEmpty() then
             exit;
 
         TestField("Subscription Line Start Date");
@@ -752,58 +757,20 @@ table 8059 "Subscription Line"
         RefreshRenewalTerm();
     end;
 
-    internal procedure CalculateInitialCancellationPossibleUntilDate()
+    internal procedure CalculateTermUntilDate()
     begin
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() then
-            exit;
-        if IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        "Cancellation Possible Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-        CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
-        "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Cancellation Possible Until");
-        "Cancellation Possible Until" := CalcDate('<-1D>', "Cancellation Possible Until");
+        if "Subscription Line End Date" <> 0D then
+            "Term Until" := "Subscription Line End Date"
+        else
+            if not IsNoticePeriodEmpty() then begin
+                TestField("Subscription Line Start Date");
+                "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                "Term Until" := CalcDate('<-1D>', "Term Until");
+            end;
+        CalculateCancellationPossibleUntil();
     end;
 
-    internal procedure CalculateInitialTermUntilDate()
-    begin
-        if "Subscription Line End Date" <> 0D then begin
-            "Term Until" := "Subscription Line End Date";
-            exit;
-        end;
-
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() and IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        if IsInitialTermEmpty() then begin
-            "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-            UpdateCancellationPossibleUntil();
-        end else begin
-            "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-        end;
-    end;
-
-    internal procedure GetReferenceDate(): Date
-    begin
-        case true of
-            "Cancellation Possible Until" <> 0D:
-                exit("Cancellation Possible Until");
-            "Term Until" <> 0D:
-                exit("Term Until");
-            "Subscription Line Start Date" <> 0D:
-                exit("Subscription Line Start Date");
-        end;
-    end;
-
-    internal procedure UpdateTermUntilUsingExtensionTerm(): Boolean
+    internal procedure CalculateTermUntilUsingExtensionTerm(): Boolean
     var
         PreviousTermUntil: Date;
     begin
@@ -823,7 +790,7 @@ table 8059 "Subscription Line"
         exit(true);
     end;
 
-    local procedure UpdateTermUntilUsingNoticePeriod()
+    local procedure CalculateTermUntilFromCancellationPossibleUntil()
     begin
         if IsNoticePeriodEmpty() then
             exit;
@@ -835,7 +802,7 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
     end;
 
-    internal procedure UpdateCancellationPossibleUntil(): Boolean
+    internal procedure CalculateCancellationPossibleUntil(): Boolean
     begin
         if IsNoticePeriodEmpty() or ("Term until" = 0D) then
             exit(false);
@@ -845,6 +812,18 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Cancellation possible until");
 
         exit(true);
+    end;
+
+    internal procedure GetReferenceDate(): Date
+    begin
+        case true of
+            "Cancellation Possible Until" <> 0D:
+                exit("Cancellation Possible Until");
+            "Term Until" <> 0D:
+                exit("Term Until");
+            "Subscription Line Start Date" <> 0D:
+                exit("Subscription Line Start Date");
+        end;
     end;
 
     internal procedure CalculatePrice()
@@ -1547,7 +1526,7 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    local procedure RefreshRenewalTerm()
+    internal procedure RefreshRenewalTerm()
     var
         BlankDateFormula: DateFormula;
     begin
@@ -1917,7 +1896,10 @@ table 8059 "Subscription Line"
         until LastDayInNextPeriod >= EndDate;
         if FollowUpDaysExist then begin
             FollowUpDays := EndDate - LastDayInPreviousPeriod;
-            FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
+            if SinglePeriodDaysCount(StartDate, EndDate, PeriodFormula) then
+                FollowUpPeriodDays := Date2DMY(CalcDate('<CM>', EndDate), 1)
+            else
+                FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
         end;
     end;
 
@@ -2033,6 +2015,15 @@ table 8059 "Subscription Line"
                 if VendorContractLine.FindFirstSubscriptionLine(Rec) then
                     exit(VendorContractLine.Closed);
         end;
+    end;
+
+    local procedure SinglePeriodDaysCount(StartDate: Date; EndDate: Date; PeriodFormula: DateFormula): Boolean
+    begin
+        if Format(PeriodFormula) <> '1M' then
+            exit(false);
+
+        if (Date2DMY(StartDate, 2) = Date2DMY(EndDate, 2)) and (Date2DMY(StartDate, 3) = Date2DMY(EndDate, 3)) then
+            exit(true);
     end;
 
     [IntegrationEvent(false, false)]

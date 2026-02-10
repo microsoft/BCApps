@@ -72,11 +72,8 @@ codeunit 20424 "Qlty. Workflow Response"
         Peek: Text;
         ValueToSet: Text;
         TableFilter: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         Peek := ResponseWorkflowStepInstance."Function Name";
         if not Peek.StartsWith(QltyWorkflowSetup.GetQualityInspectionPrefix()) then
             exit;
@@ -122,8 +119,8 @@ codeunit 20424 "Qlty. Workflow Response"
         if OriginalWorkflowStep.FindFirst() then
             if ForOriginalWorkflowStepArgument.Get(OriginalWorkflowStep.Argument) then;
 
-        OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, Handled);
-        if Handled then
+        OnExecuteWorkflowResponseOnAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, IsHandled);
+        if IsHandled then
             exit;
 
         if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Header" then
@@ -133,7 +130,7 @@ codeunit 20424 "Qlty. Workflow Response"
             case WorkflowResponse."Function Name" of
                 QltyWorkflowSetup.GetWorkflowResponseCreateInspection():
                     begin
-                        if QltyInspectionCreate.CreateInspection(PrimaryRecordRefInWorkflow, GuiAllowed()) then
+                        if QltyInspectionCreate.CreateInspection(PrimaryRecordRefInWorkflow, false) then
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
                         ResponseExecuted := true;
@@ -193,7 +190,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockLot():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockLot():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -202,7 +199,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockSerial():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -211,7 +208,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage():
+                QltyWorkflowSetup.GetWorkflowResponseUnblockPackage():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -348,7 +345,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDecimal: Decimal
+    internal procedure GetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDecimal: Decimal
     var
         StepConfigurationValue: Text;
     begin
@@ -362,7 +359,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultBoolean: Boolean
+    internal procedure GetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultBoolean: Boolean
     var
         StepConfigurationValue: Text;
     begin
@@ -376,7 +373,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsCode10(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[10]
+    internal procedure GetStepConfigurationValueAsCode10(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[10]
     var
         StepConfigurationValue: Text;
     begin
@@ -390,7 +387,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsCode20(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[20]
+    internal procedure GetStepConfigurationValueAsCode20(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[20]
     var
         StepConfigurationValue: Text;
     begin
@@ -472,7 +469,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
     /// <returns>Value as Date</returns>
-    procedure GetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDate: Date
+    internal procedure GetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDate: Date
     var
         StepConfigurationValue: Text;
     begin
@@ -530,7 +527,7 @@ codeunit 20424 "Qlty. Workflow Response"
     end;
 
     /// <summary>
-    /// Returns the key for a flag to move the entire lot/serial
+    /// Returns the key for a flag to move the entire item tracking
     /// </summary>
     /// <returns></returns>
     procedure GetWellKnownMoveAll(): Text
@@ -632,7 +629,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new serial no.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewSerialNo(): Text
+    internal procedure GetWellKnownNewSerialNo(): Text
     begin
         exit('NEWSERIALNO');
     end;
@@ -641,7 +638,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new package no.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewPackageNo(): Text
+    internal procedure GetWellKnownNewPackageNo(): Text
     begin
         exit('NEWPACKAGENO');
     end;
@@ -677,7 +674,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for the in-transit code.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownInTransit(): Text
+    internal procedure GetWellKnownInTransit(): Text
     begin
         exit('INTRANSIT');
     end;
@@ -853,16 +850,16 @@ codeunit 20424 "Qlty. Workflow Response"
     end;
 
     /// <summary>
-    /// OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord occurs after the system has found the related record for the workflow step.
+    /// OnExecuteWorkflowResponseOnAfterFindRelatedRecord occurs after the system has found the related record for the workflow step.
     /// </summary>
     /// <param name="ResponseExecuted">var Boolean.</param>
-    /// <param name="pVariant">var Variant.</param>
-    /// <param name="pxVariant">Variant.</param>
+    /// <param name="SourceVariant">var Variant.</param>
+    /// <param name="PreviousVariant">Variant.</param>
     /// <param name="ResponseWorkflowStepInstance">Record "Workflow Step Instance".</param>
     /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var Handled: Boolean)
+    local procedure OnExecuteWorkflowResponseOnAfterFindRelatedRecord(var ResponseExecuted: Boolean; var SourceVariant: Variant; PreviousVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

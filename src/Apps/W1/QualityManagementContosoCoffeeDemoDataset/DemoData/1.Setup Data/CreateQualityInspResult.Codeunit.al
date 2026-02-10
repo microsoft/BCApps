@@ -7,7 +7,7 @@ namespace Microsoft.DemoData.QualityManagement;
 using Microsoft.DemoTool.Helpers;
 using Microsoft.QualityManagement.Configuration.Result;
 
-codeunit 5216 "Create Quality Insp. Result"
+codeunit 5595 "Create Quality Insp. Result"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

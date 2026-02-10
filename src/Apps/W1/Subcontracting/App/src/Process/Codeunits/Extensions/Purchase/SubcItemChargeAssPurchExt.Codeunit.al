@@ -22,23 +22,23 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
         CreateRcptChargeAssgnt(FromPurchRcptLine, ItemChargeAssignmentPurch);
     end;
 
-    local procedure CreateRcptChargeAssgnt(var FromPurchRcptLine: Record "Purch. Rcpt. Line"; ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)")
+    local procedure CreateRcptChargeAssgnt(var FromPurchRcptLine: Record "Purch. Rcpt. Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     var
         ItemChargeAssignmentPurch2: Record "Item Charge Assignment (Purch)";
-        ItemChargeAssgntPurchCU: Codeunit "Item Charge Assgnt. (Purch.)";
+        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
         NextLine: Integer;
     begin
-        NextLine := ItemChargeAssgntPurch."Line No.";
-        ItemChargeAssignmentPurch2.SetRange("Document Type", ItemChargeAssgntPurch."Document Type");
-        ItemChargeAssignmentPurch2.SetRange("Document No.", ItemChargeAssgntPurch."Document No.");
-        ItemChargeAssignmentPurch2.SetRange("Document Line No.", ItemChargeAssgntPurch."Document Line No.");
+        NextLine := ItemChargeAssignmentPurch."Line No.";
+        ItemChargeAssignmentPurch2.SetRange("Document Type", ItemChargeAssignmentPurch."Document Type");
+        ItemChargeAssignmentPurch2.SetRange("Document No.", ItemChargeAssignmentPurch."Document No.");
+        ItemChargeAssignmentPurch2.SetRange("Document Line No.", ItemChargeAssignmentPurch."Document Line No.");
         ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. Type", "Purchase Applies-to Document Type"::Receipt);
         repeat
             ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. No.", FromPurchRcptLine."Document No.");
             ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. Line No.", FromPurchRcptLine."Line No.");
             if ItemChargeAssignmentPurch2.IsEmpty() then
-                ItemChargeAssgntPurchCU.InsertItemChargeAssignment(
-                    ItemChargeAssgntPurch, "Purchase Applies-to Document Type"::Receipt,
+                ItemChargeAssgntPurch.InsertItemChargeAssignment(
+                    ItemChargeAssignmentPurch, "Purchase Applies-to Document Type"::Receipt,
                     FromPurchRcptLine."Document No.", FromPurchRcptLine."Line No.",
                     FromPurchRcptLine."No.", FromPurchRcptLine.Description, NextLine);
         until FromPurchRcptLine.Next() = 0;

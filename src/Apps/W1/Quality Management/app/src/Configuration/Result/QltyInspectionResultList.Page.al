@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
+/// Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first.
 /// </summary>
 page 20416 "Qlty. Inspection Result List"
 {
@@ -16,7 +16,7 @@ page 20416 "Qlty. Inspection Result List"
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Results';
-    AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+    AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific item tracking blocking is for item+variant+item tracking combinations, and can be used for serial-only tracking, or package-only tracking.';
 
     layout
     {
@@ -61,43 +61,47 @@ page 20416 "Qlty. Inspection Result List"
                 {
                     Visible = false;
                 }
-                field("Lot Allow Sales"; Rec."Lot Allow Sales")
+                field("Item Tracking Allow Sales"; Rec."Item Tracking Allow Sales")
                 {
                 }
-                field("Lot Allow Purchase"; Rec."Lot Allow Purchase")
+                field("Item Tracking Allow Purchase"; Rec."Item Tracking Allow Purchase")
                 {
                 }
-                field("Lot Allow Transfer"; Rec."Lot Allow Transfer")
+                field("Item Tracking Allow Transfer"; Rec."Item Tracking Allow Transfer")
                 {
                 }
-                field("Lot Allow Consumption"; Rec."Lot Allow Consumption")
+                field("Item Tracking Allow Consump."; Rec."Item Tracking Allow Consump.")
+                {
+                    ApplicationArea = Manufacturing;
+                }
+                field("Item Tracking Allow Output"; Rec."Item Tracking Allow Output")
+                {
+                    ApplicationArea = Manufacturing;
+                }
+                field("Item Tracking Allow Asm. Cons."; Rec."Item Tracking Allow Asm. Cons.")
+                {
+                    ApplicationArea = Assembly;
+                }
+                field("Item Tracking Allow Asm. Out."; Rec."Item Tracking Allow Asm. Out.")
+                {
+                    ApplicationArea = Assembly;
+                }
+                field("Item Tracking Allow Invt. Mov."; Rec."Item Tracking Allow Invt. Mov.")
                 {
                 }
-                field("Lot Allow Output"; Rec."Lot Allow Output")
+                field("Item Tracking Allow Invt. Pick"; Rec."Item Tracking Allow Invt. Pick")
                 {
                 }
-                field("Lot Allow Assembly Consumption"; Rec."Lot Allow Assembly Consumption")
+                field("Item Tracking Allow Invt. PA"; Rec."Item Tracking Allow Invt. PA")
                 {
                 }
-                field("Lot Allow Assembly Output"; Rec."Lot Allow Assembly Output")
+                field("Item Tracking Allow Movement"; Rec."Item Tracking Allow Movement")
                 {
                 }
-                field("Lot Allow Invt. Movement"; Rec."Lot Allow Invt. Movement")
+                field("Item Tracking Allow Pick"; Rec."Item Tracking Allow Pick")
                 {
                 }
-                field("Lot Allow Invt. Pick"; Rec."Lot Allow Invt. Pick")
-                {
-                }
-                field("Lot Allow Invt. Put-Away"; Rec."Lot Allow Invt. Put-Away")
-                {
-                }
-                field("Lot Allow Movement"; Rec."Lot Allow Movement")
-                {
-                }
-                field("Lot Allow Pick"; Rec."Lot Allow Pick")
-                {
-                }
-                field("Lot Allow Put-Away"; Rec."Lot Allow Put-Away")
+                field("Item Tracking Allow Put-Away"; Rec."Item Tracking Allow Put-Away")
                 {
                 }
                 field("Override Style"; Rec."Override Style")
@@ -109,6 +113,25 @@ page 20416 "Qlty. Inspection Result List"
                         Rec.AssistEditResultStyle();
                     end;
                 }
+            }
+        }
+    }
+    actions
+    {
+        area(Processing)
+        {
+            action(CopyResultsToAllTemplates)
+            {
+                ApplicationArea = QualityManagement;
+                Caption = 'Copy Results to Existing Templates';
+                ToolTip = 'Use this to add newly created results configured to Automatically Copy on to existing tests and existing templates.';
+                Image = Copy;
+                trigger OnAction()
+                var
+                    QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
+                begin
+                    QltyResultConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+                end;
             }
         }
     }

@@ -7,7 +7,7 @@ namespace Microsoft.DemoData.QualityManagement;
 using Microsoft.DemoTool.Helpers;
 using Microsoft.QualityManagement.Configuration.Result;
 
-codeunit 5221 "Create QM Result Condit. Conf."
+codeunit 5599 "Create QM Result Condit. Conf."
 {
     InherentEntitlements = X;
     InherentPermissions = X;

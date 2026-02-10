@@ -8,7 +8,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149036 "AIT Test Suite Compare"
 {
-    Caption = 'AI Test Suite Compare';
+    Caption = 'AI Eval Suite Compare';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Test Suite";
@@ -61,28 +61,28 @@ page 149036 "AIT Test Suite Compare"
                         ShowCaption = false;
                         label(NoOfTests)
                         {
-                            Caption = 'Number of Tests';
-                            ToolTip = 'Specifies the number of tests in this Line';
+                            Caption = 'Number of Evals';
+                            ToolTip = 'Specifies the number of evals in this Line';
                         }
                         label(NoOfTestsPassed)
                         {
-                            Caption = 'Number of Tests Passed';
-                            ToolTip = 'Specifies the number of tests passed in the version.';
+                            Caption = 'Number of Evals Passed';
+                            ToolTip = 'Specifies the number of evals passed in the version.';
                         }
                         label(NoOfTestsFailed)
                         {
-                            Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the version.';
+                            Caption = 'Number of Evals Failed';
+                            ToolTip = 'Specifies the number of evals that failed in the version.';
                         }
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
-                            ToolTip = 'Specifies Total Duration of the tests for the version.';
+                            ToolTip = 'Specifies Total Duration of the evals for the version.';
                         }
                         label(TokensConsumed)
                         {
                             Caption = 'Total Tokens Consumed';
-                            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+                            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module.';
                         }
                     }
                     group("Latest Version")
@@ -90,20 +90,20 @@ page 149036 "AIT Test Suite Compare"
                         Caption = 'Latest Version';
                         field("No. of Tests"; Rec."No. of Tests Executed")
                         {
-                            ToolTip = 'Specifies the number of tests in this line.';
+                            ToolTip = 'Specifies the number of evals in this line.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed"; Rec."No. of Tests Passed")
                         {
                             Style = Favorable;
-                            ToolTip = 'Specifies the number of tests passed in the current version.';
+                            ToolTip = 'Specifies the number of evals passed in the current version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
-                            Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the current version.';
+                            Caption = 'Number of Evals Failed';
+                            ToolTip = 'Specifies the number of evals that failed in the current version.';
                             ShowCaption = false;
                             Style = Unfavorable;
 
@@ -116,7 +116,7 @@ page 149036 "AIT Test Suite Compare"
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the tests for this version.';
+                            ToolTip = 'Specifies Total Duration of the evals for this version.';
                             ShowCaption = false;
                         }
                         field("Tokens Consumed"; Rec."Tokens Consumed")
@@ -129,20 +129,20 @@ page 149036 "AIT Test Suite Compare"
                         Caption = 'Base Version';
                         field("No. of Tests - Base"; Rec."No. of Tests Executed")
                         {
-                            ToolTip = 'Specifies the number of tests in this Line for the base version.';
+                            ToolTip = 'Specifies the number of evals in this Line for the base version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed - Base"; Rec."No. of Tests Passed")
                         {
-                            ToolTip = 'Specifies the number of tests passed in the base Version.';
+                            ToolTip = 'Specifies the number of evals passed in the base Version.';
                             Style = Favorable;
                             ShowCaption = false;
                         }
                         field("No. of Tests Failed - Base"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
-                            Caption = 'Number of Tests Failed - Base';
-                            ToolTip = 'Specifies the number of tests that failed in the base Version.';
+                            Caption = 'Number of Evals Failed - Base';
+                            ToolTip = 'Specifies the number of evals that failed in the base Version.';
                             Style = Unfavorable;
                             ShowCaption = false;
 
@@ -155,7 +155,7 @@ page 149036 "AIT Test Suite Compare"
                         }
                         field(DurationBase; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the tests for the version.';
+                            ToolTip = 'Specifies Total Duration of the evals for the version.';
                             Caption = 'Total Duration Base (ms)';
                             ShowCaption = false;
                         }

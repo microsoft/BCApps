@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Environment.Consumption;
@@ -19,6 +20,7 @@ codeunit 4301 "Agent Impl."
     Permissions = tabledata Agent = rim,
                   tabledata "All Profile" = r,
                   tabledata Company = r,
+                  tabledata "Copilot Settings" = r,
                   tabledata "Agent Access Control" = d,
                   tabledata "Application User Settings" = rim,
                   tabledata User = r,
@@ -525,6 +527,20 @@ codeunit 4301 "Agent Impl."
         exit(true);
     end;
 
+    procedure GetCopilotAvailabilityDisplayText(Agent: Record Agent) CopilotAvailabilityTxt: Text
+    var
+        CopilotSettings: Record "Copilot Settings";
+        IAgentFactory: Interface IAgentFactory;
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        IAgentFactory := Agent."Agent Metadata Provider";
+        CopilotCapability := IAgentFactory.GetCopilotCapability();
+
+        CopilotAvailabilityTxt := CopilotSettings.Get(CopilotCapability, Agent."App ID")
+            ? Format(CopilotSettings.Availability)
+            : UnknownCopilotAvailabilityLbl;
+    end;
+
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
@@ -535,4 +551,5 @@ codeunit 4301 "Agent Impl."
         SetupPageMissingSourceTableErr: Label 'Setup page with ID %1 must specify a source table.', Comment = '%1 = Setup page ID.';
         SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
         SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
+        UnknownCopilotAvailabilityLbl: Label 'Unknown';
 }

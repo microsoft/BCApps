@@ -175,11 +175,11 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure GetRoutingVersionNoSeries(RoutingNo: Code[20]): Code[20]
     var
-        Routing: Record "Routing Header";
+        RoutingHeader: Record "Routing Header";
     begin
-        Routing.SetLoadFields("Version Nos.");
-        Routing.Get(RoutingNo);
-        Routing.TestField("Version Nos.");
-        exit(Routing."Version Nos.");
+        RoutingHeader.SetLoadFields("Version Nos.");
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.TestField("Version Nos.");
+        exit(RoutingHeader."Version Nos.");
     end;
 }

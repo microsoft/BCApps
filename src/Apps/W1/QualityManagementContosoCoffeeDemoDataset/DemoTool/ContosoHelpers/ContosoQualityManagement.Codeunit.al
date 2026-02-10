@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 
-codeunit 5222 "Contoso Quality Management"
+codeunit 5710 "Contoso Quality Management"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

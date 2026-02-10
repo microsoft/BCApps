@@ -210,4 +210,46 @@ codeunit 8350 "MCP Config"
     begin
         MCPConfigImplementation.AllowBoundActions(ToolSystemId, Allow);
     end;
+
+    /// <summary>
+    /// Creates a new MCP Entra Application with the specified name, description, and client ID.
+    /// </summary>
+    /// <param name="Name">The name for the Entra application registration.</param>
+    /// <param name="Description">The description for the Entra application registration.</param>
+    /// <param name="ClientId">The Entra application (client) ID.</param>
+    procedure CreateEntraApplication(Name: Text[100]; Description: Text[250]; ClientId: Guid)
+    begin
+        MCPConfigImplementation.CreateEntraApplication(Name, Description, ClientId);
+    end;
+
+    /// <summary>
+    /// Deletes the specified MCP Entra Application.
+    /// </summary>
+    /// <param name="Name">The name of the Entra application to delete.</param>
+    procedure DeleteEntraApplication(Name: Text[100])
+    begin
+        MCPConfigImplementation.DeleteEntraApplication(Name);
+    end;
+
+    /// <summary>
+    /// Exports the specified MCP configuration and its tools to a JSON stream.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to export.</param>
+    /// <param name="OutStream">The output stream to write the JSON to.</param>
+    procedure ExportConfiguration(ConfigId: Guid; var OutStream: OutStream)
+    begin
+        MCPConfigImplementation.ExportConfiguration(ConfigId, OutStream);
+    end;
+
+    /// <summary>
+    /// Imports an MCP configuration and its tools from a JSON stream.
+    /// </summary>
+    /// <param name="InStream">The input stream containing the JSON configuration.</param>
+    /// <param name="NewName">The name for the imported configuration.</param>
+    /// <param name="NewDescription">The description for the imported configuration.</param>
+    /// <returns>The SystemId (GUID) of the imported configuration.</returns>
+    procedure ImportConfiguration(var InStream: InStream; NewName: Text[100]; NewDescription: Text[250]): Guid
+    begin
+        exit(MCPConfigImplementation.ImportConfiguration(InStream, NewName, NewDescription));
+    end;
 }

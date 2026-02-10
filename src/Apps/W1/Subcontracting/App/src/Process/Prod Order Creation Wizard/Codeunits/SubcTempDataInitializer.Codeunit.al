@@ -36,10 +36,10 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Initializes the temporary structure for production order processing based on a purchase line.
     /// </summary>
-    /// <param name="PurchLine">The purchase line to base the temporary structure on.</param>
-    procedure InitializeTemporaryProdOrder(PurchLine: Record "Purchase Line")
+    /// <param name="PurchaseLine">The purchase line to base the temporary structure on.</param>
+    procedure InitializeTemporaryProdOrder(PurchaseLine: Record "Purchase Line")
     begin
-        InitGlobalPurchLine(PurchLine);
+        InitGlobalPurchLine(PurchaseLine);
         CreateTemporaryProductionOrder();
         CreateTemporaryProdOrderLine();
         ClearTemporaryProductionTables();
@@ -48,12 +48,12 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Initializes the temporary structure for production order processing based on a purchase line.
     /// </summary>
-    /// <param name="PurchLine">The purchase line to base the temporary structure on.</param>
-    procedure InitGlobalPurchLine(var PurchLine: Record "Purchase Line")
+    /// <param name="PurchaseLine">The purchase line to base the temporary structure on.</param>
+    procedure InitGlobalPurchLine(var PurchaseLine: Record "Purchase Line")
     begin
         TempGlobalPurchaseLine.Reset();
         TempGlobalPurchaseLine.DeleteAll();
-        TempGlobalPurchaseLine := PurchLine;
+        TempGlobalPurchaseLine := PurchaseLine;
         TempGlobalPurchaseLine.Insert();
     end;
 
@@ -580,25 +580,25 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Sets new BOM information from temporary records.
     /// </summary>
-    /// <param name="TempBOMHeader">The temporary BOM header to copy from.</param>
-    /// <param name="TempBOMLines">The temporary BOM lines to copy from.</param>
-    procedure SetNewBOMInformation(var TempBOMHeader: Record "Production BOM Header" temporary; var TempBOMLines: Record "Production BOM Line" temporary)
+    /// <param name="TempProductionBOMHeader">The temporary BOM header to copy from.</param>
+    /// <param name="TempProductionBOMLine">The temporary BOM lines to copy from.</param>
+    procedure SetNewBOMInformation(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary)
     begin
         ClearBOMTables();
-        TempGlobalProductionBOMHeader.Copy(TempBOMHeader, true);
-        TempGlobalProductionBOMLine.Copy(TempBOMLines, true);
+        TempGlobalProductionBOMHeader.Copy(TempProductionBOMHeader, true);
+        TempGlobalProductionBOMLine.Copy(TempProductionBOMLine, true);
     end;
 
     /// <summary>
     /// Sets new routing information from temporary records.
     /// </summary>
     /// <param name="TempRoutingHeader">The temporary routing header to copy from.</param>
-    /// <param name="TempRoutingLines">The temporary routing lines to copy from.</param>
-    procedure SetNewRoutingInformation(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLines: Record "Routing Line" temporary)
+    /// <param name="TempRoutingLine">The temporary routing lines to copy from.</param>
+    procedure SetNewRoutingInformation(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary)
     begin
         ClearRoutingTables();
         TempGlobalRoutingHeader.Copy(TempRoutingHeader, true);
-        TempGlobalRoutingLine.Copy(TempRoutingLines, true);
+        TempGlobalRoutingLine.Copy(TempRoutingLine, true);
     end;
 
     /// <summary>
@@ -615,23 +615,23 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Sets new production order routing lines from temporary records.
     /// </summary>
-    /// <param name="TempProdOrderRtngLine">The temporary production order routing lines to copy from.</param>
-    procedure SetNewProdOrderRoutingLine(var TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary)
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing lines to copy from.</param>
+    procedure SetNewProdOrderRoutingLine(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin
         TempGlobalProdOrderRoutingLine.Reset();
         TempGlobalProdOrderRoutingLine.DeleteAll();
-        TempGlobalProdOrderRoutingLine.Copy(TempProdOrderRtngLine, true);
+        TempGlobalProdOrderRoutingLine.Copy(TempProdOrderRoutingLine, true);
     end;
 
     /// <summary>
     /// Sets new production order from temporary records.
     /// </summary>
-    /// <param name="TempProdOrder">The temporary production order to copy from.</param>
-    procedure SetNewProdOrder(var TempProdOrder: Record "Production Order" temporary)
+    /// <param name="TempProductionOrder">The temporary production order to copy from.</param>
+    procedure SetNewProdOrder(var TempProductionOrder: Record "Production Order" temporary)
     begin
         TempGlobalProductionOrder.Reset();
         TempGlobalProductionOrder.DeleteAll();
-        TempGlobalProductionOrder.Copy(TempProdOrder, true);
+        TempGlobalProductionOrder.Copy(TempProductionOrder, true);
     end;
 
     /// <summary>
@@ -646,28 +646,28 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Gets the global BOM lines.
     /// </summary>
-    /// <param name="TempBOMLines">The temporary BOM lines to copy to.</param>
-    procedure GetGlobalBOMLines(var TempBOMLines: Record "Production BOM Line" temporary)
+    /// <param name="TempProductionBOMLine">The temporary BOM lines to copy to.</param>
+    procedure GetGlobalBOMLines(var TempProductionBOMLine: Record "Production BOM Line" temporary)
     begin
-        TempBOMLines.Copy(TempGlobalProductionBOMLine, true);
+        TempProductionBOMLine.Copy(TempGlobalProductionBOMLine, true);
     end;
 
     /// <summary>
     /// Gets the global routing lines.
     /// </summary>
-    /// <param name="TempRoutingLines">The temporary routing lines to copy to.</param>
-    procedure GetGlobalRoutingLines(var TempRoutingLines: Record "Routing Line" temporary)
+    /// <param name="TempRoutingLine">The temporary routing lines to copy to.</param>
+    procedure GetGlobalRoutingLines(var TempRoutingLine: Record "Routing Line" temporary)
     begin
-        TempRoutingLines.Copy(TempGlobalRoutingLine, true);
+        TempRoutingLine.Copy(TempGlobalRoutingLine, true);
     end;
 
     /// <summary>
     /// Gets the global BOM header.
     /// </summary>
-    /// <param name="TempBOMHeader">The temporary BOM header to copy to.</param>
-    procedure GetGlobalBOMHeader(var TempBOMHeader: Record "Production BOM Header" temporary)
+    /// <param name="TempProductionBOMHeader">The temporary BOM header to copy to.</param>
+    procedure GetGlobalBOMHeader(var TempProductionBOMHeader: Record "Production BOM Header" temporary)
     begin
-        TempBOMHeader.Copy(TempGlobalProductionBOMHeader, true);
+        TempProductionBOMHeader.Copy(TempGlobalProductionBOMHeader, true);
     end;
 
     /// <summary>
@@ -691,10 +691,10 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Gets the global production order routing lines.
     /// </summary>
-    /// <param name="TempProdOrderRtngLine">The temporary production order routing lines to copy to.</param>
-    procedure GetGlobalProdOrderRoutingLine(var TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary)
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing lines to copy to.</param>
+    procedure GetGlobalProdOrderRoutingLine(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin
-        TempProdOrderRtngLine.Copy(TempGlobalProdOrderRoutingLine, true);
+        TempProdOrderRoutingLine.Copy(TempGlobalProdOrderRoutingLine, true);
     end;
 
     /// <summary>
@@ -709,10 +709,10 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <summary>
     /// Gets the global production order line.
     /// </summary>
-    /// <param name="TempProductionOrderLine">The temporary production order line to copy to.</param>
-    procedure GetGlobalProdOrderLine(var TempProductionOrderLine: Record "Prod. Order Line" temporary)
+    /// <param name="TempProdOrderLine">The temporary production order line to copy to.</param>
+    procedure GetGlobalProdOrderLine(var TempProdOrderLine: Record "Prod. Order Line" temporary)
     begin
-        TempProductionOrderLine.Copy(TempGlobalProdOrderLine, true);
+        TempProdOrderLine.Copy(TempGlobalProdOrderLine, true);
     end;
 
     /// <summary>

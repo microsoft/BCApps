@@ -34,9 +34,9 @@ codeunit 99001555 "Subc. ProdOrderCreateBind"
         TransferSubcontractingFieldsBOMComponentForPurchaseProvision(ProdOrderComponent);
     end;
 
-    procedure SetSubcontractingPurchaseLine(PurchLine: Record "Purchase Line")
+    procedure SetSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line")
     begin
-        SubcontractingPurchaseLine := PurchLine;
+        SubcontractingPurchaseLine := PurchaseLine;
     end;
 
     local procedure TransferSubcontractingFieldsBOMComponentForPurchaseProvision(var ProdOrderComponent: Record "Prod. Order Component")

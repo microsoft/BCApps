@@ -155,7 +155,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         exit(false);
     end;
 
-    local procedure HandleSubcontractingForPurchLine(PurchLine: Record "Purchase Line"; InsertLine: Boolean; var QtyToPost: Decimal): Boolean
+    local procedure HandleSubcontractingForPurchLine(PurchaseLine: Record "Purchase Line"; InsertLine: Boolean; var QtyToPost: Decimal): Boolean
     var
         Item: Record Item;
         ProdOrderComponent: Record "Prod. Order Component";
@@ -166,31 +166,31 @@ report 99001502 "Subc. Create SubCReturnOrder"
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         QtyPerUom: Decimal;
     begin
-        if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchLine."Prod. Order No.", PurchLine."Prod. Order Line No.") then
+        if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
 
-        if not ProdOrderRoutingLine.Get(ProdOrderRoutingLine.Status::Released, PurchLine."Prod. Order No.",
-             PurchLine."Routing Reference No.", PurchLine."Routing No.", PurchLine."Operation No.")
+        if not ProdOrderRoutingLine.Get(ProdOrderRoutingLine.Status::Released, PurchaseLine."Prod. Order No.",
+             PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.")
         then
-            Error(OrderNoDoesNotExistInProdOrderErr, PurchLine."Operation No.", PurchOrderNo, PurchLine."Routing No.", PurchLine."Prod. Order No.");
+            Error(OrderNoDoesNotExistInProdOrderErr, PurchaseLine."Operation No.", PurchOrderNo, PurchaseLine."Routing No.", PurchaseLine."Prod. Order No.");
 
         Item.SetLoadFields("Base Unit of Measure", "Rounding Precision");
-        Item.Get(PurchLine."No.");
-        QtyPerUom := UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, PurchLine."Unit of Measure Code");
+        Item.Get(PurchaseLine."No.");
+        QtyPerUom := UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
 
         ProdOrderComponent.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code");
         ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", PurchLine."Prod. Order No.");
-        ProdOrderComponent.SetRange("Prod. Order Line No.", PurchLine."Prod. Order Line No.");
+        ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Purchase Order Filter", PurchLine."Document No.");
+        ProdOrderComponent.SetRange("Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
         if ProdOrderComponent.FindSet() then begin
             CheckTransferLineExists();
             repeat
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
-                    Round(PurchLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
+                    Round(PurchaseLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields("Qty. in Transit (Base)", "Qty. transf. to Subcontr");
                 if QtyToPost > (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")) then
                     QtyToPost := (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr"));
@@ -209,10 +209,10 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         TransferLine."Unit of Measure Code" := ProdOrderComponent."Unit of Measure Code";
                         TransferLine."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
-                        TransferLine."Subcontr. Purch. Order No." := PurchLine."Document No.";
-                        TransferLine."Subcontr. PO Line No." := PurchLine."Line No.";
-                        TransferLine."Prod. Order No." := PurchLine."Prod. Order No.";
-                        TransferLine."Prod. Order Line No." := PurchLine."Prod. Order Line No.";
+                        TransferLine."Subcontr. Purch. Order No." := PurchaseLine."Document No.";
+                        TransferLine."Subcontr. PO Line No." := PurchaseLine."Line No.";
+                        TransferLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
+                        TransferLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
                         TransferLine."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
 
                         TransferLine.Insert();

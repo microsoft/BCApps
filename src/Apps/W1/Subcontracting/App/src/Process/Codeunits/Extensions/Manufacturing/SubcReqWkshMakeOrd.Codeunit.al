@@ -15,11 +15,11 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
     end;
 
-    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
+    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
-        SubcontractingManagement.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchOrderLine, RequisitionLine);
-        SubcontractingManagement.TransferSubcontractingProdOrderComp(PurchOrderLine, RequisitionLine, NextLineNo);
+        SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderComp(PurchaseLine, RequisitionLine, NextLineNo);
     end;
 }
