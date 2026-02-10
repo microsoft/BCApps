@@ -95,8 +95,12 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
+        IsHandled: Boolean;
     begin
         ResultRowsCount := DefaultMaxRowsFieldLookup();
+        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, IsHandled);
+        if IsHandled then
+            exit;
 
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
@@ -768,6 +772,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Automatically determines the correct page to display based on the source record type.
     /// 
     /// Behavior:
+    /// - Fires OnBeforeNavigateToSourceDocument event for extensibility
     /// - Exits if no source document is linked (Source RecordId is empty)
     /// - Uses Page Management to find the appropriate page for the record type
     /// - Opens the page in modal mode displaying the source document
@@ -782,7 +787,12 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToNavigateTo: RecordRef;
         VariantContainer: Variant;
         CurrentPage: Integer;
+        IsHandled: Boolean;
     begin
+        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
             exit;
 
@@ -937,5 +947,27 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit(false);
 
         exit(RecordRef.Number() <> 0);
+    end;
+
+    /// <summary>
+    /// Provides an ability to override the handling of navigating to a source document.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    /// <param name="IsHandled"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Provides an opportunity for customizations to alter the default maximum rows shown
+    /// for a table lookup in a quality inspector field.
+    /// Changing the default to a larger number can introduce performance issues.
+    /// </summary>
+    /// <param name="Rows"></param>
+    /// <param name="IsHandled"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var IsHandled: Boolean)
+    begin
     end;
 }

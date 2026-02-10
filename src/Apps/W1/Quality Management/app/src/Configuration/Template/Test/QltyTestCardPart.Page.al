@@ -175,5 +175,16 @@ page 20437 "Qlty. Test Card Part"
             Rec."Test Value Type"::"Value Type Boolean",
             Rec."Test Value Type"::"Value Type Text"]);
         IsNumber := Rec.IsNumericFieldType();
+
+        OnAfterUpdateControlVisibilityState(Rec);
+    end;
+
+    /// <summary>
+    /// Use this to update the control visibility state with any page extensions.
+    /// </summary>
+    /// <param name="QltyTest"></param>
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterUpdateControlVisibilityState(var QltyTest: Record "Qlty. Test")
+    begin
     end;
 }

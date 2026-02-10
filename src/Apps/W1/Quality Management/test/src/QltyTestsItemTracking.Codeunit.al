@@ -42,6 +42,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     var
         LibraryAssert: Codeunit "Library Assert";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
+        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -2740,7 +2741,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyInspectionHeader."Source Lot No." := LotNo;
 
         // [WHEN] Setting lot block state to blocked
-        QltyInspectionUtility.SetLotBlockState(TempQltyInspectionHeader, true);
+        QltyItemTracking.SetLotBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Lot number information shows lot is blocked
         LotNoInformation.Get(Item."No.", '', LotNo);
@@ -2777,7 +2778,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LotNoInformation.Modify();
 
         // [WHEN] Setting lot block state to unblocked
-        QltyInspectionUtility.SetLotBlockState(TempQltyInspectionHeader, false);
+        QltyItemTracking.SetLotBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Lot number information shows lot is not blocked
         LotNoInformation.Get(Item."No.", '', LotNo);
@@ -2806,7 +2807,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyInspectionHeader."Source Serial No." := SerialNo;
 
         // [WHEN] Setting serial block state to blocked
-        QltyInspectionUtility.SetSerialBlockState(TempQltyInspectionHeader, true);
+        QltyItemTracking.SetSerialBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Serial number information shows serial is blocked
         SerialNoInformation.Get(Item."No.", '', SerialNo);
@@ -2843,7 +2844,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         SerialNoInformation.Modify();
 
         // [WHEN] Setting serial block state to unblocked
-        QltyInspectionUtility.SetSerialBlockState(TempQltyInspectionHeader, false);
+        QltyItemTracking.SetSerialBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Serial number information shows serial is not blocked
         SerialNoInformation.Get(Item."No.", '', SerialNo);
@@ -2872,7 +2873,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyInspectionHeader."Source Package No." := PackageNo;
 
         // [WHEN] Setting package block state to blocked
-        QltyInspectionUtility.SetPackageBlockState(TempQltyInspectionHeader, true);
+        QltyItemTracking.SetPackageBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Package number information shows package is blocked
         PackageNoInformation.Get(Item."No.", '', PackageNo);
@@ -2909,7 +2910,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PackageNoInformation.Modify();
 
         // [WHEN] Setting package block state to unblocked
-        QltyInspectionUtility.SetPackageBlockState(TempQltyInspectionHeader, false);
+        QltyItemTracking.SetPackageBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Package number information shows package is not blocked
         PackageNoInformation.Get(Item."No.", '', PackageNo);

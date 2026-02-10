@@ -12,5 +12,4 @@ enum 6123 "E-Document Source Type"
     value(0; Customer) { Caption = 'Customer'; }
     value(1; Vendor) { Caption = 'Vendor'; }
     value(2; Location) { Caption = 'Location'; }
-    value(3; Company) { Caption = 'Company'; }
 }

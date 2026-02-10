@@ -366,7 +366,7 @@ page 20432 "Qlty. Test Wizard"
         IsMovingForward := Step > CurrentStepCounter;
 
         if IsMovingForward then
-            LeavingStepMovingForward(CurrentStepCounter);
+            LeavingStepMovingForward(CurrentStepCounter, Step);
 
         EvaluateStep(Step);
         CurrentStepCounter := Step;
@@ -375,6 +375,7 @@ page 20432 "Qlty. Test Wizard"
 
     local procedure EvaluateStep(Step: Integer)
     begin
+        OnBeforeEvaluateStep(Step, IsBackEnabled, IsNextEnabled, IsFinishEnabled);
         case Step of
             Step1NewOrExisting:
                 begin
@@ -412,8 +413,9 @@ page 20432 "Qlty. Test Wizard"
         CurrPage."Qlty. Choose Existing Tests".Page.GetTestsToAdd(TestsToAdd);
     end;
 
-    local procedure LeavingStepMovingForward(LeavingThisStep: Integer);
+    local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToStep: Integer);
     begin
+        OnBeforeLeavingStepMovingForward(LeavingThisStep, MovingToStep);
         case LeavingThisStep of
             Step2AddNewTest:
                 AddOrUpdateInternalField();
@@ -438,6 +440,7 @@ page 20432 "Qlty. Test Wizard"
     begin
         FinishActionChosen := true;
         AddOrUpdateInternalField();
+        OnFinishActionOnAfterAddUpdateInternalField();
         AddedOrChooseATest := NewTest or EditingExistingTest or (ChooseExistingTestOrTests and (TestsToAdd.Count() > 0));
 
         if AddedOrChooseATest and NewTest then
@@ -621,4 +624,18 @@ page 20432 "Qlty. Test Wizard"
         end;
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLeavingStepMovingForward(LeavingThisStep: Integer; var MovingToStep: Integer);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeEvaluateStep(Step: Integer; var IsBackEnabled: Boolean; var IsNextEnabled: Boolean; var IsFinishEnabled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinishActionOnAfterAddUpdateInternalField()
+    begin
+    end;
 }

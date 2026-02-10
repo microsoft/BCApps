@@ -2398,17 +2398,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyExpressionMgmt.EvaluateExpressionForRecord(Input, RecordVariant, EvaluateEmbeddedExpressions));
     end;
 
-    /// <summary>
-    /// Wrapper for QltyExpressionMgmt.TestEvaluateSpecialStringFunctions
-    /// Used for validation of special string function syntax.
-    /// </summary>
-    internal procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
-    var
-        QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
-    begin
-        exit(QltyExpressionMgmt.TestEvaluateSpecialStringFunctions(Input));
-    end;
-
     #endregion Qlty. Expression Mgmt. Wrappers
 
     #region Qlty. Result Evaluation Wrappers
@@ -2472,41 +2461,4 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Disp. Move Auto Choose Wrappers
-
-    #region Qlty. Item Tracking Wrappers
-
-    /// <summary>
-    /// Wrapper for QltyItemTracking.SetLotBlockState
-    /// Sets the lot block state for an inspection.
-    /// </summary>
-    internal procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
-    var
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
-    begin
-        QltyItemTracking.SetLotBlockState(QltyInspectionHeader, Blocked);
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyItemTracking.SetSerialBlockState
-    /// Sets the serial block state for an inspection.
-    /// </summary>
-    internal procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
-    var
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
-    begin
-        QltyItemTracking.SetSerialBlockState(QltyInspectionHeader, Blocked);
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyItemTracking.SetPackageBlockState
-    /// Sets the package block state for an inspection.
-    /// </summary>
-    internal procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
-    var
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
-    begin
-        QltyItemTracking.SetPackageBlockState(QltyInspectionHeader, Blocked);
-    end;
-
-    #endregion Qlty. Item Tracking Wrappers
 }
