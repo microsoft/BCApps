@@ -3,15 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.Agents.Troubleshooting;
 
-#pragma warning disable AS0125
+using System.Agents;
+
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
     ApplicationArea = All;
     SourceTable = "Agent Task Log Entry";
-    Caption = 'Agent Task Log (Preview)';
+    Caption = 'Agent Task Log';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -96,18 +97,21 @@ page 4303 "Agent Task Log Entry List"
                     ShowCaption = false;
                     label(Empty)
                     {
-                        ApplicationArea = All;
                         Caption = '', Locked = true;
                     }
                 }
                 group(Right)
                 {
                     ShowCaption = false;
-                    label(Disclaimer)
+                    field(Disclaimer; AIGeneratedContentDisclaimerLbl)
                     {
-                        ApplicationArea = All;
-                        Caption = 'AI-generated content may be incorrect.';
+                        ShowCaption = false;
                         Style = Subordinate;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2349003');
+                        end;
                     }
                 }
             }
@@ -123,13 +127,23 @@ page 4303 "Agent Task Log Entry List"
                 AboutText = 'Shows context information such as the agent name, task ID, and company name.';
                 SubPageLink = ID = field("Task ID");
             }
+            part(TaskLogEntryDetails; "Agent Task Log Entry Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Log entry details';
+                AboutTitle = 'Details of the selected log entry';
+                AboutText = 'Shows details of the selected log entry, including the reason and description provided by the agent.';
+                SubPageLink = "Task ID" = field("Task ID"), ID = field(ID);
+            }
         }
     }
-
     actions
     {
         area(Promoted)
         {
+            actionref(ViewDetails_Promoted; ViewDetails)
+            {
+            }
             actionref(Refresh_Promoted; Refresh)
             {
             }
@@ -153,7 +167,7 @@ page 4303 "Agent Task Log Entry List"
             action(Feedback)
             {
                 ApplicationArea = All;
-                Caption = 'Give Feedback';
+                Caption = 'Give feedback';
                 ToolTip = 'Tell us what you think about the agent and suggest new features or improvements.';
                 Image = Comment;
                 Enabled = IsFeedbackActionEnabled;
@@ -166,6 +180,22 @@ page 4303 "Agent Task Log Entry List"
                 begin
                     ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
                     AgentUserFeedback.RequestFeedback('Agent Task Log Entries', ContextProperties);
+                end;
+            }
+        }
+        area(Processing)
+        {
+            action(ViewDetails)
+            {
+                ApplicationArea = All;
+                Caption = 'View details';
+                ToolTip = 'View details of the selected log entry.';
+                Image = View;
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    Page.Run(Page::"Agent Task Log Entry", Rec);
                 end;
             }
         }
@@ -203,8 +233,8 @@ page 4303 "Agent Task Log Entry List"
     end;
 
     var
+        AIGeneratedContentDisclaimerLbl: Label 'AI-generated content may be incorrect.';
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
 }
-#pragma warning restore AS0125

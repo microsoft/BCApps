@@ -2,21 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Document;
+
+namespace System.ExternalFileStorage;
 
 /// <summary>
-/// Used to help lists and filters quickly identify which inspection is the most recent re-inspection.
+/// Enum extension to register the SFTP connector.
 /// </summary>
-enum 20412 "Qlty. Iteration State"
+enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
-    Caption = 'Quality Iteration State';
-
-    value(0; "Newer re-inspection available")
+    /// <summary>
+    /// The SFTP connector.
+    /// </summary>
+    value(4621; "SFTP")
     {
-        Caption = 'Newer re-inspection available';
-    }
-    value(1; "Most recent")
-    {
-        Caption = 'Most recent';
+        Caption = 'SFTP';
+        Implementation = "External File Storage Connector" = "Ext. SFTP Connector Impl";
     }
 }

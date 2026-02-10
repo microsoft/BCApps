@@ -31,7 +31,7 @@ codeunit 20412 "Qlty. Assembly Integration"
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         HasInspection: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
@@ -39,8 +39,8 @@ codeunit 20412 "Qlty. Assembly Integration"
             exit;
 
         MgtItemTrackingDocManagement.FindShptRcptEntries(TempSpecTrackingSpecification, Database::"Posted Assembly Header", 0, PostedAssemblyHeader."No.", '', 0, 0, '');
-        OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
-        if Handled then
+        OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
         if not TempSpecTrackingSpecification.IsEmpty() then
@@ -55,8 +55,8 @@ codeunit 20412 "Qlty. Assembly Integration"
             until TempSpecTrackingSpecification.Next(-1) = 0
         else begin
             TempQltyInspectionGenRule.CopyFilters(QltyInspectionGenRule);
-            OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
-            if Handled then
+            OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, IsHandled);
+            if IsHandled then
                 exit;
             HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
             if HasInspection then
@@ -72,9 +72,9 @@ codeunit 20412 "Qlty. Assembly Integration"
     /// <param name="PostedAssemblyHeader">Posted Assembly Header</param>
     /// <param name="TempTrackingSpecification">Tracking Specification</param>
     /// <param name="QltyInspectionHeader">Quality Inspection to be created</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAttemptCreateInspectionFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean);
+    procedure OnBeforeAttemptCreateInspectionFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean);
     begin
     end;
 

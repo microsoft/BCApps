@@ -46,6 +46,10 @@ page 20408 "Qlty. Inspection List"
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                 }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Visible = false;
+                }
                 field("Template Code"; Rec."Template Code")
                 {
                 }
@@ -80,16 +84,15 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Source Document No."; Rec."Source Document No.")
                 {
-                    Visible = false;
                 }
                 field("Source Line No."; Rec."Source Document Line No.")
                 {
                     Visible = false;
                 }
-                field("Serial No."; Rec."Source Serial No.")
+                field("Lot No."; Rec."Source Lot No.")
                 {
                 }
-                field("Lot No."; Rec."Source Lot No.")
+                field("Serial No."; Rec."Source Serial No.")
                 {
                 }
                 field("Package No."; Rec."Source Package No.")
@@ -222,7 +225,7 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ChangeStatusFinish)

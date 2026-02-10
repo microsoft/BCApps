@@ -84,7 +84,6 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Init();
         CopilotSettings.Capability := CopilotCapability;
         CopilotSettings."App Id" := CallerModuleInfo.Id();
-        CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings."Service Type" := AzureAIServiceType;

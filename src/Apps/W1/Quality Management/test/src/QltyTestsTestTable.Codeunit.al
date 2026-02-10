@@ -54,12 +54,12 @@ codeunit 139967 "Qlty. Tests - Test Table"
         StatusTok: Label 'Status';
         UserTok: Label 'OrigUser';
         TestValueTxt: Label 'test value.';
-        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
+        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token';
         LotTok: Label 'lot', Locked = true;
         SerialTok: Label 'serial', Locked = true;
         PackageTok: Label 'package', Locked = true;
-        ItemInsufficientPostedErr: Label 'The item [%1] is %2 tracked and requires posted inventory before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
-        ItemInsufficientPostedOrUnpostedErr: Label 'The item [%1] is %2 tracked and requires either posted inventory or a reservation entry for it before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
+        ItemInsufficientPostedErr: Label 'The item [%1] is %2 tracked and requires posted inventory before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token, %3=Item tracking, %4=';
+        ItemInsufficientPostedOrUnpostedErr: Label 'The item [%1] is %2 tracked and requires either posted inventory or a reservation entry for it before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token, %3=Item tracking, %4=';
         MeasurementNoteTxt: Label 'A measurement note for the associated line item.';
         UpdatedMeasurementNoteTxt: Label 'An updated measurement note for the associated line item.';
         OptionsTok: Label 'Option1,Option2,Option3';
@@ -527,7 +527,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals 198 (99% of 200, rounded)
-        LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template. ');
+        LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template.');
     end;
 
     [Test]
@@ -672,15 +672,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase line with its lot number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on the Lot No. field
-        QltyInspection."Lot No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on the Source Lot No. field
+        QltyInspection."Source Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to the first lot number through modal page handler
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -741,15 +741,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the purchase line with its serial number
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on the Serial No. field
-        QltyInspection."Serial No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on the Source Serial No. field
+        QltyInspection."Source Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number through modal page handler
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -816,7 +816,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase line with its package number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
@@ -888,15 +888,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on Lot No. field (handler chooses from single document)
-        QltyInspection."Lot No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on Source Lot No. field (handler chooses from single document)
+        QltyInspection."Source Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to first lot number from same document
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -957,15 +957,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the purchase line
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on Serial No. field (handler chooses from single document)
-        QltyInspection."Serial No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on Source Serial No. field (handler chooses from single document)
+        QltyInspection."Source Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -1030,7 +1030,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
@@ -1102,15 +1102,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on Lot No. field (handler chooses from any document)
-        QltyInspection."Lot No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on Source Lot No. field (handler chooses from any document)
+        QltyInspection."Source Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to lot number from different document
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -1175,15 +1175,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
-        // [WHEN] AssistEdit is invoked on Serial No. field (handler chooses from any document)
-        QltyInspection."Serial No.".AssistEdit();
+        // [WHEN] AssistEdit is invoked on Source Serial No. field (handler chooses from any document)
+        QltyInspection."Source Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to serial number from different document
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -1248,7 +1248,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
@@ -1414,7 +1414,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
@@ -1478,7 +1478,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
@@ -1542,7 +1542,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
