@@ -865,7 +865,7 @@ page 20406 "Qlty. Inspection"
         CanReopen := not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if Rec.Status = Rec.Status::Open then
-            if QltyPermissionMgmt.CanChangeTrackingNo() then begin
+            if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
                 TempItemTrackingSetup."Package No. Required" := true;

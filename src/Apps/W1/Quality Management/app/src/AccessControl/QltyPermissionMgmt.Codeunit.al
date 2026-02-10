@@ -17,7 +17,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
     InherentPermissions = X;
 
     var
-        ActionCreateInspectionAutomaticallyLbl: Label 'create inspection automatically';
         ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
         ActionCreateReinspectionLbl: Label 'create re-inspection';
         ActionChangeOthersInspectionLbl: Label 'change others inspection';
@@ -32,20 +31,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
-    /// Checks if the current user can create an automatic inspection.
-    /// </summary>
-    /// <returns>True if the user can create an automatic inspection; otherwise, false.</returns>
-    internal procedure CanCreateAutoInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionCreateInspectionAutomaticallyLbl));
-    end;
-
-    /// <summary>
     /// Verifies the current user can create a manual inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanCreateManualInspection()
     begin
-        if not CheckPermissionDetails(ActionCreateInspectionManuallyLbl) then
+        if not CanInsertTableData(Database::"Qlty. Inspection Header") then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
     end;
 
@@ -54,17 +44,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanCreateReinspection()
     begin
-        if not CheckPermissionDetails(ActionCreateReinspectionLbl) then
+        if not CanInsertTableData(Database::"Qlty. Inspection Header") then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateReinspectionLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can change other users' inspections.
-    /// </summary>
-    /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
-    internal procedure CanChangeOtherInspections(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionChangeOthersInspectionLbl));
     end;
 
     /// <summary>
@@ -77,12 +58,21 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
+    /// Checks if the current user can change other users' inspections.
+    /// </summary>
+    /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
+    internal procedure CanChangeOtherInspections(): Boolean
+    begin
+        exit(HasSupervisorRole());
+    end;
+
+    /// <summary>
     /// Checks if the current user can finish an inspection.
     /// </summary>
     /// <returns>True if the user can finish an inspection; otherwise, false.</returns>
     internal procedure CanFinishInspection(): Boolean
     begin
-        exit(CheckPermissionDetails(ActionFinishInspectionLbl));
+        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
     end;
 
     /// <summary>
@@ -99,7 +89,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
-        if not CheckPermissionDetails(ActionReopenInspectionLbl) then
+        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
     end;
 
@@ -108,7 +98,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
     begin
-        if not CheckPermissionDetails(ActionDeleteOpenInspectionLbl) then
+        if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
     end;
 
@@ -117,25 +107,37 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
-        if not CheckPermissionDetails(ActionDeleteFinishedInspectionLbl) then
+        if not CanDeleteFinishedInspection() then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
+    end;
+
+    /// <summary>
+    /// Checks if the current user can delete a finished inspection.
+    /// </summary>
+    /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
+    local procedure CanDeleteFinishedInspection(): Boolean
+    begin
+        if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
+            exit(false);
+
+        exit(HasSupervisorRole());
     end;
 
     /// <summary>
     /// Checks if the current user can change the item tracking on an inspection.
     /// </summary>
     /// <returns>True if the user can change item tracking; otherwise, false.</returns>
-    internal procedure CanChangeTrackingNo(): Boolean
+    internal procedure CanChangeItemTracking(): Boolean
     begin
-        exit(CheckPermissionDetails(ActionChangeItemTrackingLbl));
+        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
     end;
 
     /// <summary>
     /// Verifies the current user can change item tracking on an inspection. Throws an error if not permitted.
     /// </summary>
-    internal procedure VerifyCanChangeTrackingNo()
+    internal procedure VerifyCanChangeItemTracking()
     begin
-        if not CanChangeTrackingNo() then
+        if not CanChangeItemTracking() then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeItemTrackingLbl);
     end;
 
@@ -145,7 +147,10 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change the source quantity; otherwise, false.</returns>
     internal procedure CanChangeSourceQuantity(): Boolean
     begin
-        exit(CheckPermissionDetails(ActionChangeSourceQuantityLbl));
+        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
+            exit(false);
+
+        exit(HasSupervisorRole());
     end;
 
     /// <summary>
@@ -163,7 +168,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can edit line comments; otherwise, false.</returns>
     internal procedure CanEditLineComments(): Boolean
     begin
-        exit(CheckPermissionDetails(ActionEditLineCommentLbl));
+        exit(CanModifyTableData(Database::"Record Link"));
     end;
 
     /// <summary>
@@ -186,41 +191,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
     begin
         ShouldAssign := QltyInspectionHeader.WritePermission();
         ShouldPrompt := false;
-    end;
-
-    /// <summary>
-    /// Evaluates whether the user is allowed to perform the specified functional permission.
-    /// </summary>
-    /// <param name="FunctionalPermission">The functional permission to check.</param>
-    /// <returns>True if the user has the required permission; otherwise, false.</returns>
-    local procedure CheckPermissionDetails(FunctionalPermission: Text) Result: Boolean
-    begin
-        case FunctionalPermission of
-            ActionCreateInspectionAutomaticallyLbl:
-                Result := true;
-            ActionCreateInspectionManuallyLbl:
-                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
-            ActionCreateReinspectionLbl:
-                Result := CanInsertTableData(Database::"Qlty. Inspection Header");
-            ActionChangeOthersInspectionLbl:
-                Result := HasSupervisorRole();
-            ActionFinishInspectionLbl:
-                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
-            ActionReopenInspectionLbl:
-                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
-            ActionDeleteOpenInspectionLbl:
-                Result := CanDeleteTableData(Database::"Qlty. Inspection Header");
-            ActionDeleteFinishedInspectionLbl:
-                if CanDeleteTableData(Database::"Qlty. Inspection Header") then
-                    Result := HasSupervisorRole();
-            ActionChangeItemTrackingLbl:
-                Result := CanModifyTableData(Database::"Qlty. Inspection Header");
-            ActionChangeSourceQuantityLbl:
-                if CanModifyTableData(Database::"Qlty. Inspection Header") then
-                    Result := HasSupervisorRole();
-            ActionEditLineCommentLbl:
-                Result := CanModifyTableData(Database::"Record Link");
-        end;
     end;
 
     #region Verify Permissions
