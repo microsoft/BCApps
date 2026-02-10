@@ -67,21 +67,21 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Checks if the current user can finish an inspection.
-    /// </summary>
-    /// <returns>True if the user can finish an inspection; otherwise, false.</returns>
-    internal procedure CanFinishInspection(): Boolean
-    begin
-        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
-    end;
-
-    /// <summary>
     /// Verifies the current user can finish an inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanFinishInspection()
     begin
         if not CanFinishInspection() then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionFinishInspectionLbl);
+    end;
+
+    /// <summary>
+    /// Checks if the current user can finish an inspection.
+    /// </summary>
+    /// <returns>True if the user can finish an inspection; otherwise, false.</returns>
+    internal procedure CanFinishInspection(): Boolean
+    begin
+        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
     end;
 
     /// <summary>
@@ -124,6 +124,15 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
+    /// Verifies the current user can change item tracking on an inspection. Throws an error if not permitted.
+    /// </summary>
+    internal procedure VerifyCanChangeItemTracking()
+    begin
+        if not CanChangeItemTracking() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeItemTrackingLbl);
+    end;
+
+    /// <summary>
     /// Checks if the current user can change the item tracking on an inspection.
     /// </summary>
     /// <returns>True if the user can change item tracking; otherwise, false.</returns>
@@ -133,12 +142,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Verifies the current user can change item tracking on an inspection. Throws an error if not permitted.
+    /// Verifies the current user can change the source quantity. Throws an error if not permitted.
     /// </summary>
-    internal procedure VerifyCanChangeItemTracking()
+    internal procedure VerifyCanChangeSourceQuantity()
     begin
-        if not CanChangeItemTracking() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeItemTrackingLbl);
+        if not CanChangeSourceQuantity() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
     end;
 
     /// <summary>
@@ -154,12 +163,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Verifies the current user can change the source quantity. Throws an error if not permitted.
+    /// Verifies the current user can edit line comments. Throws an error if not permitted.
     /// </summary>
-    internal procedure VerifyCanChangeSourceQuantity()
+    internal procedure VerifyCanEditLineComments()
     begin
-        if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
+        if not CanEditLineComments() then
+            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentLbl);
     end;
 
     /// <summary>
@@ -169,15 +178,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
     internal procedure CanEditLineComments(): Boolean
     begin
         exit(CanModifyTableData(Database::"Record Link"));
-    end;
-
-    /// <summary>
-    /// Verifies the current user can edit line comments. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanEditLineComments()
-    begin
-        if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentLbl);
     end;
 
     /// <summary>
