@@ -18,8 +18,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     var
         CurrentUserId: Text;
+        ActionCreateInspectionManuallyLbl: Label 'Create Inspection manually';
         ActionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
-        ActionCreateInspectionManualLbl: Label 'Create Inspection Manual';
         ActionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
         ActionCreateReinspectionLbl: Label 'Create Re-inspection';
         ActionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
@@ -45,13 +45,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can create a manual inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanCreateManualInspection()
     begin
         if not CanCreateManualInspection() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionManualLbl);
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionCreateInspectionManuallyLbl);
     end;
 
     /// <summary>
@@ -60,13 +58,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean.</returns>
     internal procedure CanCreateManualInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(ActionCreateInspectionManualLbl));
+        exit(LoadPermissionDetails(ActionCreateInspectionManuallyLbl));
     end;
 
     /// <summary>
     /// Determines if the current user can create an automatic inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanCreateAutoInspection()
     begin
@@ -85,8 +81,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can create a re-inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanCreateReinspection()
     begin
@@ -105,8 +99,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can delete an open inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
     begin
@@ -125,8 +117,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can delete a finished inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
@@ -145,8 +135,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can change someone else's inspections.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanChangeOtherInspections()
     begin
@@ -165,8 +153,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can re-open an inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
@@ -185,8 +171,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can finish an inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanFinishInspection()
     begin
@@ -205,8 +189,6 @@ codeunit 20406 "Qlty. Permission Mgmt."
 
     /// <summary>
     /// Determines if the current user can change the tracking on an inspection.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
     /// </summary>
     internal procedure VerifyCanChangeTrackingNo()
     begin
@@ -244,6 +226,51 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
+    /// Determines if the current user can edit line comments.
+    /// </summary>
+    internal procedure VerifyCanEditLineComments()
+    begin
+        if not CanEditLineComments() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionEditLineCommentsLbl);
+    end;
+
+    /// <summary>
+    /// CanEditLineComments. True if the user can add line notes/comments.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanEditLineComments(): Boolean
+    begin
+        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
+    end;
+
+    /// <summary>
+    /// Determines if the current user can change the source quantity.
+    /// </summary>
+    internal procedure VerifyCanChangeSourceQuantity()
+    begin
+        if not CanChangeSourceQuantity() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeSourceQuantityLbl);
+    end;
+
+    /// <summary>
+    /// CanChangeSourceQuantity. True if the user can change source quantities
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanChangeSourceQuantity(): Boolean
+    begin
+        exit(LoadPermissionDetails(ActionChangeSourceQuantityLbl));
+    end;
+
+    /// <summary>
+    /// CanReadLineComments. True if the user can read or write line comments.
+    /// </summary>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CanReadLineComments(): Boolean
+    begin
+        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
+    end;
+
+    /// <summary>
     /// For the given function, this gives the suggested allowed state.
     /// </summary>
     /// <param name="FunctionalPermission"></param>
@@ -253,7 +280,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         case FunctionalPermission of
             ActionCreateInspectionAutoLbl:
                 Result := true;
-            ActionCreateInspectionManualLbl:
+            ActionCreateInspectionManuallyLbl:
                 Result := CanInsertTableData(Database::"Qlty. Inspection Header");
             ActionCreateReinspectionLbl:
                 Result := CanInsertTableData(Database::"Qlty. Inspection Header");
@@ -276,13 +303,32 @@ codeunit 20406 "Qlty. Permission Mgmt."
         end;
     end;
 
-    local procedure CanDeleteTableData(TableId: Integer): Boolean
+    #region Verify Permissions
+    local procedure HasSupervisorRole() IsAssigned: Boolean
     var
-        TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
+        CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
-        exit(TempExpandedPermission."Delete Permission" in [TempExpandedPermission."Delete Permission"::Yes, TempExpandedPermission."Delete Permission"::Indirect]);
+        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), SupervisorRoleIDTxt);
+        if not IsAssigned then
+            if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
+                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), SupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
+        if not IsAssigned then
+            IsAssigned := UserPermissions.IsSuper(UserSecurityId());
+    end;
+
+    /// <summary>
+    /// Check if the role is directly assigned to the user, without considering app and scope filters.
+    /// Inspired by HasUserPermissionSetAssigned in codeunit 153 "User Permissions Impl."
+    /// </summary>
+    local procedure HasUserPermissionSetDirectlyAssigned(UserSecurityId: Guid; RoleId: Code[20]): Boolean
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityId);
+        AccessControl.SetRange("Role ID", RoleId);
+        AccessControl.SetFilter("Company Name", '%1|%2', '', CompanyName());
+        exit(not AccessControl.IsEmpty());
     end;
 
     local procedure CanInsertTableData(TableId: Integer): Boolean
@@ -303,83 +349,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Modify Permission" in [TempExpandedPermission."Modify Permission"::Yes, TempExpandedPermission."Modify Permission"::Indirect]);
     end;
 
-    local procedure HasSupervisorRole() IsAssigned: Boolean
+    local procedure CanDeleteTableData(TableId: Integer): Boolean
     var
+        TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
-        CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), SupervisorRoleIDTxt);
-        if not IsAssigned then
-            if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
-                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), SupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id);
-        if not IsAssigned then
-            IsAssigned := UserPermissions.IsSuper(UserSecurityId());
+        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
+        exit(TempExpandedPermission."Delete Permission" in [TempExpandedPermission."Delete Permission"::Yes, TempExpandedPermission."Delete Permission"::Indirect]);
     end;
-
-    /// <summary>
-    /// This is based on HasUserPermissionSetAssigned in codeunit 153 "User Permissions Impl.", but unfortunately 
-    /// that method will force check the app and scope, which won't always be correct.  We just want if the role is assigned
-    /// to the user.
-    /// </summary>
-    /// <param name="UserSecurityId"></param>
-    /// <param name="RoleId"></param>
-    /// <returns></returns>
-    local procedure HasUserPermissionSetDirectlyAssigned(UserSecurityId: Guid; RoleId: Code[20]): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        AccessControl.SetRange("User Security ID", UserSecurityId);
-        AccessControl.SetRange("Role ID", RoleId);
-        AccessControl.SetFilter("Company Name", '%1|%2', '', CompanyName());
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    /// <summary>
-    /// Determines if the current user can change the source quantity.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
-    /// </summary>
-    internal procedure VerifyCanChangeSourceQuantity()
-    begin
-        if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionChangeSourceQuantityLbl);
-    end;
-
-    /// <summary>
-    /// CanChangeSourceQuantity. True if the user can change source quantities
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanChangeSourceQuantity(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionChangeSourceQuantityLbl));
-    end;
-
-    /// <summary>
-    /// Determines if the current user can edit line comments.
-    /// If they can, nothing happens.
-    /// If they cannot then an error will be thrown.
-    /// </summary>
-    internal procedure VerifyCanEditLineComments()
-    begin
-        if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, ActionEditLineCommentsLbl);
-    end;
-
-    /// <summary>
-    /// CanEditLineComments. True if the user can add line notes/comments.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanEditLineComments(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
-    end;
-
-    /// <summary>
-    /// CanReadLineComments. True if the user can read or write line comments.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    internal procedure CanReadLineComments(): Boolean
-    begin
-        exit(LoadPermissionDetails(ActionEditLineCommentsLbl));
-    end;
+    #endregion Verify Permissions
 }
