@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Apps;
 using System.Privacy;
 
 /// <summary>
@@ -31,10 +32,20 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA31
         field(4; Publisher; Text[2048])
         {
             DataClassification = SystemMetadata;
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
+            ObsoleteReason = 'Replaced by "App Publisher" field which is populated from NAV App Installed table based on the App Id.';
         }
+#endif
         field(5; Status; Enum "Copilot Status")
         {
             DataClassification = SystemMetadata;
@@ -52,6 +63,16 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
             ValuesAllowed = "Not Billed", "Microsoft Billed", "Custom Billed";
+        }
+        field(9; "App Installed"; Boolean)
+        {
+            FieldClass = FlowField;
+            CalcFormula = exist("NAV App Installed App" where("App ID" = field("App Id")));
+        }
+        field(10; "App Publisher"; Text[250])
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("NAV App Installed App".Publisher where("App ID" = field("App Id")));
         }
     }
 
