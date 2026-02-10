@@ -5,6 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Globalization;
 using System.Security.Encryption;
 
 xmlport 149031 "AIT Test Suite Import/Export"
@@ -94,6 +95,30 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     trigger OnAfterAssignVariable()
                     begin
                         AITSuite.Validation := UpperCase(ValidationAttr) = 'TRUE';
+                    end;
+                }
+                textattribute(RunLanguageAttr)
+                {
+                    XmlName = 'RunLanguage';
+                    Occurrence = Optional;
+
+                    trigger OnBeforePassVariable()
+                    var
+                        WindowsLanguage: Record "Windows Language";
+                    begin
+                        if AITSuite."Run Language ID" <> 0 then begin
+                            if WindowsLanguage.Get(AITSuite."Run Language ID") then
+                                RunLanguageAttr := WindowsLanguage."Language Tag";
+                        end else
+                            RunLanguageAttr := '';
+                    end;
+
+                    trigger OnAfterAssignVariable()
+                    var
+                        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+                    begin
+                        if RunLanguageAttr <> '' then
+                            AITSuite."Run Language ID" := AITTestSuiteLanguage.GetLanguageIDByTag(RunLanguageAttr);
                     end;
                 }
                 tableelement(AITLanguage; "AIT Test Suite Language")
