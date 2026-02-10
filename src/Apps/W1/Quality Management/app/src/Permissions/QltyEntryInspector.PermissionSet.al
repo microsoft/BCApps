@@ -6,7 +6,6 @@ namespace Microsoft.QualityManagement.Permissions;
 
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.API;
-using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Result;
@@ -34,7 +33,6 @@ using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
@@ -50,15 +48,7 @@ permissionset 20404 QltyEntryInspector
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        // Codeunits
-        codeunit "Qlty. - Warehouse Integration" = X,
-        codeunit "Qlty. Application Area Mgmt." = X,
-        codeunit "Qlty. Auto Configure" = X,
-        codeunit "Qlty. Inspection - Create" = X,
-        codeunit "Qlty. Disp. Change Tracking" = X,
-        codeunit "Qlty. Disp. Internal Put-away" = X,
-        codeunit "Qlty. Disp. Move Auto Choose" = X,
-        codeunit "Qlty. Disp. Neg. Adjust Inv." = X,
+        // Codeunits        
         codeunit "Qlty. Disp. Purchase Return" = X,
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
