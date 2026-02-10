@@ -17,7 +17,7 @@ page 774 "User Details"
     AboutText = 'View detailed user information, such as unique identifiers, information about permission sets, login activity etc. in a list view, which allows for easy searching and filtering.';
     AboutTitle = 'About the users detailed view';
     ApplicationArea = Basic, Suite;
-    Caption = 'Users (detailed view)';
+    Caption = 'Users (Detailed View)';
     DeleteAllowed = false;
     Editable = false;
     InsertAllowed = false;
