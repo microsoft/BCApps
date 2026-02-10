@@ -460,8 +460,8 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
         if not AllPromoted then
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
-        QltyInspectionResult.SetCurrentKey("Evaluation Sequence");
-        QltyInspectionResult.Ascending();
+        QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
+        QltyInspectionResult.Ascending(false);
         if QltyInspectionResult.FindSet() then begin
             Iterator := 0;
             repeat
