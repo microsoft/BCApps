@@ -13,7 +13,7 @@ tableextension 30112 "Shpfy Item Attribute" extends "Item Attribute"
     {
         field(30100; "Shpfy Incl. in Product Sync"; Enum "Shpfy Incl. in Product Sync")
         {
-            Caption = 'Incl. in Product Sync';
+            Caption = 'Include in Product Sync';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies whether to include this item attribute in product synchronization to Shopify. Select "As Option" to export the attribute as a Shopify Product Option.';
         }
