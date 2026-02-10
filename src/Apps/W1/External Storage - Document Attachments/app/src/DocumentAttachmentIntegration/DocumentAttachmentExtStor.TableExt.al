@@ -44,7 +44,7 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
             Editable = false;
             ToolTip = 'Specifies if the file is stored in internal database storage.';
         }
-        field(8754; "Source Environment Hash"; Text[16])
+        field(8754; "Source Environment Hash"; Text[32])
         {
             Caption = 'Source Environment Hash';
             DataClassification = SystemMetadata;

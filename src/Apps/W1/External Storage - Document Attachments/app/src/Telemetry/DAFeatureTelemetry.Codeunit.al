@@ -5,6 +5,7 @@
 
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
+using Microsoft.Foundation.Attachment;
 using System.Telemetry;
 
 /// <summary>
@@ -17,6 +18,7 @@ codeunit 8754 "DA Feature Telemetry"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ExternalStorageTok: Label 'External Storage - Document Attachments', Locked = true;
+        ExternalStorageCategoryLbl: Label 'External Storage', Locked = true;
 
     internal procedure LogFeatureEnabled()
     begin
@@ -33,19 +35,28 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUptake('', ExternalStorageTok, Enum::"Feature Uptake Status"::Used);
     end;
 
-    internal procedure LogFileUploaded()
+    internal procedure LogFileUploaded(DocumentAttachment: Record "Document Attachment")
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Uploaded');
+        GetTelemetryDimensions(DocumentAttachment, 'Upload', Dimensions);
+        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Uploaded', Dimensions);
     end;
 
-    internal procedure LogFileDownloaded()
+    internal procedure LogFileDownloaded(DocumentAttachment: Record "Document Attachment")
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Downloaded');
+        GetTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
+        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Downloaded', Dimensions);
     end;
 
-    internal procedure LogFileDeleted()
+    internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Deleted');
+        GetTelemetryDimensions(DocumentAttachment, 'Delete', Dimensions);
+        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Deleted', Dimensions);
     end;
 
     internal procedure LogCompanyMigration()
@@ -66,5 +77,43 @@ codeunit 8754 "DA Feature Telemetry"
     internal procedure LogRootFolderConfigured()
     begin
         FeatureTelemetry.LogUsage('', ExternalStorageTok, 'Root Folder Configured');
+    end;
+
+    local procedure GetTelemetryDimensions(DocumentAttachment: Record "Document Attachment"; Operation: Text; var Dimensions: Dictionary of [Text, Text])
+    var
+        TableName: Text;
+    begin
+        Clear(Dimensions);
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('Operation', Operation);
+        Dimensions.Add('User ID', UserId());
+        Dimensions.Add('File Name', DocumentAttachment."File Name");
+        Dimensions.Add('File Extension', DocumentAttachment."File Extension");
+        Dimensions.Add('Table ID', Format(DocumentAttachment."Table ID"));
+        
+        if TryGetTableName(DocumentAttachment."Table ID", TableName) then
+            Dimensions.Add('Table Name', TableName);
+        
+        Dimensions.Add('Document No.', DocumentAttachment."No.");
+        Dimensions.Add('Stored Externally', Format(DocumentAttachment."Stored Externally"));
+        Dimensions.Add('Stored Internally', Format(DocumentAttachment."Stored Internally"));
+        
+        if DocumentAttachment."External File Path" <> '' then
+            Dimensions.Add('Has External Path', 'Yes')
+        else
+            Dimensions.Add('Has External Path', 'No');
+        
+        if DocumentAttachment."External Upload Date" <> 0DT then
+            Dimensions.Add('Upload Date', Format(DocumentAttachment."External Upload Date", 0, 9));
+    end;
+
+    [TryFunction]
+    local procedure TryGetTableName(TableID: Integer; var TableName: Text)
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(TableID, false);
+        TableName := RecRef.Name;
+        RecRef.Close();
     end;
 }

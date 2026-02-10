@@ -122,7 +122,7 @@ page 8750 "DA External Storage Setup"
     end;
 
     var
-        CurrentEnvironmentHash: Text[16];
+        CurrentEnvironmentHash: Text[32];
 
     local procedure SelectRootFolder()
     var
