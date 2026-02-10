@@ -41,30 +41,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Checks if the current user can create a manual inspection.
-    /// </summary>
-    /// <returns>True if the user can create a manual inspection; otherwise, false.</returns>
-    internal procedure CanCreateManualInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionCreateInspectionManuallyLbl));
-    end;
-
-    /// <summary>
     /// Verifies the current user can create a manual inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanCreateManualInspection()
     begin
-        if not CanCreateManualInspection() then
+        if not CheckPermissionDetails(ActionCreateInspectionManuallyLbl) then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can create a re-inspection.
-    /// </summary>
-    /// <returns>True if the user can create a re-inspection; otherwise, false.</returns>
-    internal procedure CanCreateReinspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionCreateReinspectionLbl));
     end;
 
     /// <summary>
@@ -72,7 +54,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanCreateReinspection()
     begin
-        if not CanCreateReinspection() then
+        if not CheckPermissionDetails(ActionCreateReinspectionLbl) then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateReinspectionLbl);
     end;
 
@@ -113,30 +95,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Checks if the current user can reopen an inspection.
-    /// </summary>
-    /// <returns>True if the user can reopen an inspection; otherwise, false.</returns>
-    internal procedure CanReopenInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionReopenInspectionLbl));
-    end;
-
-    /// <summary>
     /// Verifies the current user can reopen an inspection. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
-        if not CanReopenInspection() then
+        if not CheckPermissionDetails(ActionReopenInspectionLbl) then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can delete an open inspection.
-    /// </summary>
-    /// <returns>True if the user can delete an open inspection; otherwise, false.</returns>
-    internal procedure CanDeleteOpenInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionDeleteOpenInspectionLbl));
     end;
 
     /// <summary>
@@ -144,17 +108,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
     begin
-        if not CanDeleteOpenInspection() then
+        if not CheckPermissionDetails(ActionDeleteOpenInspectionLbl) then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can delete a finished inspection.
-    /// </summary>
-    /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
-    internal procedure CanDeleteFinishedInspection(): Boolean
-    begin
-        exit(CheckPermissionDetails(ActionDeleteFinishedInspectionLbl));
     end;
 
     /// <summary>
@@ -162,7 +117,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
-        if not CanDeleteFinishedInspection() then
+        if not CheckPermissionDetails(ActionDeleteFinishedInspectionLbl) then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
     end;
 

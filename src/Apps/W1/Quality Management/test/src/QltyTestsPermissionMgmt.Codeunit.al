@@ -38,7 +38,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanCreateManualInspection_ShouldError()
+    procedure VerifyCanCreateManualInspection_ShouldError()
     begin
         // [SCENARIO] Verify that creating a manual inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -52,7 +52,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanCreateManualInspection()
+    procedure VerifyCanCreateManualInspection()
     begin
         // [SCENARIO] Verify that creating a manual inspection succeeds with proper supervisor permissions
 
@@ -67,7 +67,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanCreateAutoInspection()
+    procedure VerifyCanCreateAutoInspection()
     begin
         // [SCENARIO] Verify that creating an auto inspection is allowed for all users
         // [GIVEN] No specific permission set is required
@@ -80,7 +80,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanCreateReinspection_ShouldError()
+    procedure VerifyCanCreateReinspection_ShouldError()
     begin
         // [SCENARIO] Verify that creating a re-inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -94,7 +94,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanCreateReinspection()
+    procedure VerifyCanCreateReinspection()
     begin
         // [SCENARIO] Verify that creating a re-inspection succeeds with proper supervisor permissions
 
@@ -109,7 +109,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanDeleteOpenInspection_ShouldError()
+    procedure VerifyCanDeleteOpenInspection_ShouldError()
     begin
         // [SCENARIO] Verify that deleting an open inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -123,7 +123,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanDeleteOpenInspection()
+    procedure VerifyCanDeleteOpenInspection()
     begin
         // [SCENARIO] Verify that deleting an open inspection succeeds with proper supervisor permissions
 
@@ -138,7 +138,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanDeleteFinishedInspection_ShouldError()
+    procedure VerifyCanDeleteFinishedInspection_ShouldError()
     begin
         // [SCENARIO] Verify that deleting a finished inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -152,7 +152,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanDeleteFinishedInspection()
+    procedure VerifyCanDeleteFinishedInspection()
     begin
         // [SCENARIO] Verify that deleting a finished inspection succeeds with proper supervisor permissions
 
@@ -167,7 +167,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanChangeOtherInspections()
+    procedure VerifyCanChangeOtherInspections()
     begin
         // [SCENARIO] Verify that changing other users' inspections succeeds with proper supervisor permissions
 
@@ -182,7 +182,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanReopenInspection_ShouldError()
+    procedure VerifyCanReopenInspection_ShouldError()
     begin
         // [SCENARIO] Verify that reopening an inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -196,7 +196,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanReopenInspection()
+    procedure VerifyCanReopenInspection()
     begin
         // [SCENARIO] Verify that reopening an inspection succeeds with proper supervisor permissions
 
@@ -211,7 +211,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanFinishInspection_ShouldError()
+    procedure VerifyCanFinishInspection_ShouldError()
     begin
         // [SCENARIO] Verify that finishing an inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -225,7 +225,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanFinishInspection()
+    procedure VerifyCanFinishInspection()
     begin
         // [SCENARIO] Verify that finishing an inspection succeeds with proper supervisor permissions
 
@@ -240,7 +240,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanChangeTrackingNo_ShouldError()
+    procedure VerifyCanChangeTrackingNo_ShouldError()
     begin
         // [SCENARIO] Verify that changing tracking number without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -254,7 +254,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanChangeTrackingNo()
+    procedure VerifyCanChangeTrackingNo()
     begin
         // [SCENARIO] Verify that changing tracking number succeeds with proper supervisor permissions
 
@@ -269,7 +269,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanChangeSourceQuantity_ShouldError()
+    procedure VerifyCanChangeSourceQuantity_ShouldError()
     begin
         // [SCENARIO] Verify that changing source quantity without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
@@ -283,7 +283,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanChangeSourceQuantity()
+    procedure VerifyCanChangeSourceQuantity()
     begin
         // [SCENARIO] Verify that changing source quantity succeeds with proper supervisor permissions
 
@@ -298,7 +298,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_VerifyCanEditLineComments()
+    procedure VerifyCanEditLineComments()
     begin
         // [SCENARIO] Verify that editing line comments is allowed for users with record link modification permissions
         // [GIVEN] The user has permission to modify record links
