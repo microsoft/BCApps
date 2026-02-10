@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Utilities;
 
-using Microsoft.Manufacturing.Document;
-
 /// <summary>
 /// This exists to help keep track of variables to work around a variety of BC issues.
 /// </summary>
@@ -15,24 +13,11 @@ codeunit 20430 "Qlty. Session Helper"
     InherentPermissions = X;
 
     var
-        ProductionOrderBeforeChangingStatus: Record "Production Order";
         MiscKeyValuePairs: Dictionary of [Text, Text];
         ItemTrackingFlagAllOrSingleTok: Label 'Qlty::ItemTracking::AllOrSingle', Locked = true;
         ItemTrackingFlagAllDocsTok: Label 'Qlty::ItemTracking::AllOrSingle::ALLDOCS', Locked = true;
         ItemTrackingFlagSourceDocOnlyTok: Label 'Qlty::ItemTracking::AllOrSingle::SOURCEDOCONLY', Locked = true;
         ItemTrackingIsFromQltyInspectionModeTok: Label 'Qlty::ItemTracking::StartingFromQltyInspection', Locked = true;
-
-    #region Manufacturing - Production Order Status Change Handling
-    internal procedure SetProductionOrderBeforeChangingStatus(var ProductionOrderToSet: Record "Production Order")
-    begin
-        ProductionOrderBeforeChangingStatus := ProductionOrderToSet;
-    end;
-
-    internal procedure GetProductionOrderBeforeChangingStatus(var ProductionOrderToGet: Record "Production Order")
-    begin
-        ProductionOrderToGet := ProductionOrderBeforeChangingStatus;
-    end;
-    #endregion Manufacturing - Production Order Status Change Handling
 
     internal procedure SetSessionValue(CurrentKey: Text; Value: Text)
     begin
