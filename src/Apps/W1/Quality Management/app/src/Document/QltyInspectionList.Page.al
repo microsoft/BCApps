@@ -630,7 +630,7 @@ page 20408 "Qlty. Inspection List"
         {
             Caption = 'Open and Due (all)';
             Filters = where(Status = const(Open),
-                            "Planned Start Date" = filter('<=T'));
+                            "Planned Start Date" = filter('<=%NOW'));
             OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewFinished)
@@ -651,7 +651,7 @@ page 20408 "Qlty. Inspection List"
             Caption = 'Open and Due (mine)';
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'),
-                            "Planned Start Date" = filter('<=T'));
+                            "Planned Start Date" = filter('<=%NOW'));
             OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewMyFinished)
