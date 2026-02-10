@@ -574,6 +574,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     begin
         ShpfyVariant.SetRange("Product Id", ParentProductId);
         ShpfyVariant.SetRange("Shop Code", Shop.Code);
+#pragma warning restore AA0210
         ShpfyVariant.FindLast();
         LibraryAssert.AreEqual(HttpHandlerParams.PeekText(1), ShpfyVariant."Option 1 Name", Option1NameMismatchMsg);
         LibraryAssert.AreEqual(ItemNo, ShpfyVariant."Option 1 Value", Option1ValueShouldBeItemNoMsg);
@@ -589,6 +590,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     begin
         ShpfyVariant.SetRange("Product Id", ParentProductId);
         ShpfyVariant.SetRange("Shop Code", Shop.Code);
+#pragma warning restore AA0210
         ShpfyVariant.FindLast();
         LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), ShpfyVariant."Option 1 Name", Option1NameMismatchMsg);
         LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), ShpfyVariant."Option 1 Value", Option1ValueMismatchMsg);
