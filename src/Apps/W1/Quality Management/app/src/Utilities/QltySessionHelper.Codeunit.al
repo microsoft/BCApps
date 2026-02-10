@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Utilities;
 
 /// <summary>
-/// This exists to help keep track of variables to work around a variety of BC issues.
+/// Keep track of global session values related to quality management, for example for item tracking.
 /// </summary>
 codeunit 20430 "Qlty. Session Helper"
 {
