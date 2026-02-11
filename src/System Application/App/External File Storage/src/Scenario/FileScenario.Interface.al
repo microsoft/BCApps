@@ -36,5 +36,5 @@ interface "File Scenario"
     /// </summary>
     /// <param name="CurrentScenario">The ID of the old file scenario.</param>
     /// <returns>True if the reassign operation is handled and should not proceed, otherwise false.</returns>
-    procedure BeforeReassignFileScenarioCheck(CurrentScenario: Enum "File Scenario") SkipReassign: Boolean
+    procedure BeforeReassignFileScenarioCheck(Scenario: Enum "File Scenario") SkipReassign: Boolean
 }
