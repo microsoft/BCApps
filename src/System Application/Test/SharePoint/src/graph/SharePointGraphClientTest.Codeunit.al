@@ -736,17 +736,6 @@ codeunit 132984 "SharePoint Graph Client Test"
         exit(ResponseText.ToText());
     end;
 
-    local procedure GetUploadSessionResponseWithUntrustedUrl(): Text
-    var
-        ResponseText: TextBuilder;
-    begin
-        ResponseText.Append('{');
-        ResponseText.Append('  "uploadUrl": "https://evil.com/upload-session-abc123",');
-        ResponseText.Append('  "expirationDateTime": "2025-12-31T23:59:59.000Z"');
-        ResponseText.Append('}');
-        exit(ResponseText.ToText());
-    end;
-
     local procedure GetErrorResponse(): Text
     var
         ResponseText: TextBuilder;
