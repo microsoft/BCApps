@@ -35,6 +35,6 @@ pageextension 6168 PostedSalesCrdMemoWithQR extends "Posted Sales Credit Memo"
 
     trigger OnAfterGetRecord()
     begin
-        ShowQRCodeAction := Rec."QR Code Image".Count > 0;
+        ShowQRCodeAction := Rec."QRCode Pic".Count > 0;
     end;
 }
