@@ -71,16 +71,15 @@ codeunit 6168 "E-Document Upgrade"
     local procedure MigrateSalesCrMemoQRCodeFields()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        SalesCrMemoDataTransfer: DataTransfer;
     begin
-        // Use DataTransfer to copy data by field ID (works even after field is deleted from code)
-        // Field 6167 (old "QR Code Image") -> Field 6165 (new "QR Code Image")
-        // Field 6168 (old "QR Code Base64") -> Field 6166 (new "QR Code Base64")
-        SalesCrMemoDataTransfer.SetTables(Database::"Sales Cr.Memo Header", Database::"Sales Cr.Memo Header");
-        SalesCrMemoDataTransfer.AddFieldValue(6167, SalesCrMemoHeader.FieldNo("QR Code Image"));
-        SalesCrMemoDataTransfer.AddFieldValue(6168, SalesCrMemoHeader.FieldNo("QR Code Base64"));
-        SalesCrMemoDataTransfer.UpdateAuditFields(false);
-        SalesCrMemoDataTransfer.CopyFields();
+        if SalesCrMemoHeader.FindSet(true) then
+            repeat
+                if (SalesCrMemoHeader."QR Code Image".Count > 0) or SalesCrMemoHeader."QR Code Base64".HasValue() then begin
+                    SalesCrMemoHeader."QRCode Pic" := SalesCrMemoHeader."QR Code Image";
+                    SalesCrMemoHeader."QRCode Base64 Data" := SalesCrMemoHeader."QR Code Base64";
+                    SalesCrMemoHeader.Modify();
+                end;
+            until SalesCrMemoHeader.Next() = 0;
     end;
 
     local procedure GetQRCodeFieldsUpgradeTag(): Code[250]
