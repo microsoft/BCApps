@@ -27,71 +27,69 @@ using Microsoft.Warehouse.Ledger;
 codeunit 20402 "Qlty. Auto Configure"
 {
     var
-        DefaultQltyInspectionNoSeriesTxt: Label 'QltyDEFAULT', Locked = true;
-        DefaultQltyInspectionNoSeriesLabelTxt: Label 'Quality Inspection Default';
-        DefaultSeriesStartingNoTok: Label 'QI00000001', Locked = true;
-        DefaultResult0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
-        DefaultResult0InProgressDescriptionTxt: Label 'In Progress';
-        DefaultResult0InProgressConditionNumberTok: Label '', Locked = true;
-        DefaultResult0InProgressConditionTextTok: Label '', Locked = true;
-        DefaultResult0InProgressConditionBooleanTok: Label '', Locked = true;
-        DefaultResult1FailCodeTok: Label 'FAIL', Locked = true;
-        DefaultResult1FailDescriptionTxt: Label 'Fail';
-        DefaultResult1FailConditionNumberTok: Label '<>0', Locked = true;
-        DefaultResult1FailConditionTextTok: Label '<>''''', Locked = true;
-        DefaultResult1FailConditionBooleanTok: Label 'No', Locked = true;
-        DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
-        DefaultResult2PassDescriptionTxt: Label 'Pass';
-        DefaultResult2PassConditionNumberTok: Label '<>0', Locked = true;
-        DefaultResult2PassConditionTextTok: Label '<>''''', Locked = true;
-        DefaultResult2PassConditionBooleanTok: Label 'Yes', Locked = true;
         BasicDefaultRecordsConfiguredMsg: Label 'Basic default configuration records have been configured. If you have previously adjusted those defaults then they have not been replaced.';
-        WarehouseEntryToInspectTok: Label 'WHSEENTRYTOINSPECT', Locked = true;
-        WarehouseEntryToInspectDescriptionTxt: Label 'Warehouse Entry to Inspect';
-        WarehouseJournalToInspectTok: Label 'WHSEJNLTOINSPECT', Locked = true;
-        WarehouseJournalToInspectDescriptionTxt: Label 'Warehouse Journal to Inspect';
-        SalesLineToTrackingTok: Label 'TRACKINGTOSALES', Locked = true;
-        SalesLineToTrackingDescriptionTxt: Label 'Tracking Specification to Sales Line';
-        WhseReceiptToPurchLineTok: Label 'WRTOPURCH', Locked = true;
-        WhseReceiptToPurchLineDescriptionTxt: Label 'Whse. Receipt to Purchase Line';
-        ProdLineToTrackingTok: Label 'TRACKINGTOPROD', Locked = true;
-        ProdLineToTrackingDescriptionTxt: Label 'Tracking Specification to Prod. Order Line';
-        PurchLineToTrackingTok: Label 'TRACKINGTOPURCH', Locked = true;
-        PurchLineToTrackingDescriptionTxt: Label 'Tracking Specification to Purchase Line';
-        WhseReceiptToSalesLineTok: Label 'WRTOSALESRET', Locked = true;
-        WhseReceiptToSalesLineDescriptionTxt: Label 'Whse. Receipt to Sales Return';
-        WhseJournalToPurchLineTok: Label 'WJNLTOPURCH', Locked = true;
-        WhseJournalToPurchLineDescriptionTxt: Label 'Whse. Journal to Purchase Line';
-        WhseJournalToSalesLineTok: Label 'WJNLTOSALES', Locked = true;
-        WhseJournalToSalesLineDescriptionTxt: Label 'Whse. Journal to Sales Line';
-        TrackingSpecToInspectTok: Label 'TRACKINGSPEC', Locked = true;
-        TrackingSpecToInspectDescriptionTxt: Label 'Tracking Specification to Inspect';
-        PurchLineToInspectTok: Label 'PURCHTOINSPECT', Locked = true;
-        PurchLineToInspectDescriptionTxt: Label 'Purchase Line to Inspect';
-        SalesLineToInspectTok: Label 'SALESTOINSPECT', Locked = true;
-        SalesLineToInspectDescriptionTxt: Label 'Sales Order to Inspect';
-        SalesLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Order),Type=FILTER(Item))', Locked = true;
-        SalesReturnLineToInspectTok: Label 'SALESRETURNTOINSPECT', Locked = true;
-        SalesReturnLineToInspectDescriptionTxt: Label 'Sales Return to Inspect';
-        SalesReturnLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))', Locked = true;
-        ProdJnlToInspectTok: Label 'PRODJNLTOINSPECT', Locked = true;
-        ProdJnlToInspectDescriptionTxt: Label 'Production Output Journal to Inspect';
-        LedgerToInspectTok: Label 'ITEMLDGEROUTTOINSPECT', Locked = true;
-        LedgerToInspectDescriptionTxt: Label 'Output Item Ledger to Inspect';
-        RtngToItemJnlTok: Label 'ROUTINGLINETOITEMJNL', Locked = true;
-        RtngToItemJnlDescriptionTxt: Label 'Prod. Routing Line to Item Journal Line';
-        ProdLineToJnlTok: Label 'PRODLINETOITEMJNL', Locked = true;
-        ProdLineToJnlDescriptionTxt: Label 'Prod. Order Line to Item Journal Line';
-        ProdLineToRoutingTok: Label 'PRODLINETOROUTING', Locked = true;
-        ProdLineToRoutingDescriptionTxt: Label 'Prod. Order Line to Prod. Rtng.';
-        InTransLineToInspectTok: Label 'TRANSFERRECEIPTTOINSPECT', Locked = true;
-        InTransLineToInspectDescriptionTxt: Label 'Inbound Transfer Line to Inspect';
-        ProdLineToLedgerTok: Label 'PRODLINETOITEMLEDGER', Locked = true;
-        ProdLineToLedgerDescriptionTxt: Label 'Prod. Order Line to Item Ledger Entry.';
-        ProdRoutingToInspectTok: Label 'ROUTINGTOINSPECT', Locked = true;
-        ProdRoutingToInspectDescriptionTxt: Label 'Prod. Order Routing Line to Inspect';
-        AssemblyOutputToInspectTok: Label 'ASSEMBLYOUTPUTTOINSPECT', Locked = true;
-        AssemblyOutputToInspectDescriptionTxt: Label 'Posted Assembly Header to Inspect';
+        DefaultQltyInspectionNoSeriesTok: Label 'QltyDEFAULT', MaxLength = 20, Locked = true;
+        DefaultQltyInspectionNoSeriesLabelTxt: Label 'Quality Inspection Default', MaxLength = 100;
+        DefaultSeriesStartingNoTok: Label 'QI00000001', MaxLength = 20, Locked = true;
+        DefaultResult0InProgressCodeTok: Label 'INPROGRESS', MaxLength = 20, Locked = true;
+        DefaultResult0InProgressDescriptionTxt: Label 'In Progress', MaxLength = 100;
+        DefaultResult0InProgressConditionNumberTok: Label '', MaxLength = 500, Locked = true;
+        DefaultResult0InProgressConditionTextTok: Label '', MaxLength = 500, Locked = true;
+        DefaultResult0InProgressConditionBooleanTok: Label '', MaxLength = 500, Locked = true;
+        DefaultResult1FailCodeTok: Label 'FAIL', MaxLength = 20, Locked = true;
+        DefaultResult1FailDescriptionTxt: Label 'Fail', MaxLength = 100;
+        DefaultResult1FailConditionNumberTok: Label '<>0', MaxLength = 500, Locked = true;
+        DefaultResult1FailConditionTextTok: Label '<>''''', MaxLength = 500, Locked = true;
+        DefaultResult1FailConditionBooleanTok: Label 'No', MaxLength = 500, Locked = true;
+        DefaultResult2PassCodeTok: Label 'PASS', MaxLength = 20, Locked = true;
+        DefaultResult2PassDescriptionTxt: Label 'Pass', MaxLength = 100;
+        DefaultResult2PassConditionNumberTok: Label '<>0', MaxLength = 500, Locked = true;
+        DefaultResult2PassConditionTextTok: Label '<>''''', MaxLength = 500, Locked = true;
+        DefaultResult2PassConditionBooleanTok: Label 'Yes', MaxLength = 500, Locked = true;
+        WarehouseEntryToInspectTok: Label 'WHSEENTRYTOINSPECT', MaxLength = 20, Locked = true;
+        WarehouseEntryToInspectDescriptionTxt: Label 'Warehouse Entry to Inspection', MaxLength = 100;
+        WarehouseJournalToInspectTok: Label 'WHSEJNLTOINSPECT', MaxLength = 20, Locked = true;
+        WarehouseJournalToInspectDescriptionTxt: Label 'Warehouse Journal to Inspection', MaxLength = 100;
+        SalesLineToTrackingTok: Label 'TRACKINGTOSALES', MaxLength = 20, Locked = true;
+        SalesLineToTrackingDescriptionTxt: Label 'Tracking Specification to Sales Line', MaxLength = 100;
+        WhseReceiptToPurchLineTok: Label 'WRTOPURCH', MaxLength = 20, Locked = true;
+        WhseReceiptToPurchLineDescriptionTxt: Label 'Whse. Receipt to Purchase Line', MaxLength = 100;
+        ProdLineToTrackingTok: Label 'TRACKINGTOPROD', MaxLength = 20, Locked = true;
+        ProdLineToTrackingDescriptionTxt: Label 'Tracking Specification to Prod. Order Line', MaxLength = 100;
+        PurchLineToTrackingTok: Label 'TRACKINGTOPURCH', MaxLength = 20, Locked = true;
+        PurchLineToTrackingDescriptionTxt: Label 'Tracking Specification to Purchase Line', MaxLength = 100;
+        WhseReceiptToSalesLineTok: Label 'WRTOSALESRET', MaxLength = 20, Locked = true;
+        WhseReceiptToSalesLineDescriptionTxt: Label 'Whse. Receipt to Sales Return', MaxLength = 100;
+        WhseJournalToPurchLineTok: Label 'WJNLTOPURCH', MaxLength = 20, Locked = true;
+        WhseJournalToPurchLineDescriptionTxt: Label 'Whse. Journal to Purchase Line', MaxLength = 100;
+        WhseJournalToSalesLineTok: Label 'WJNLTOSALES', MaxLength = 20, Locked = true;
+        WhseJournalToSalesLineDescriptionTxt: Label 'Whse. Journal to Sales Line', MaxLength = 100;
+        TrackingSpecToInspectTok: Label 'TRACKINGSPEC', MaxLength = 20, Locked = true;
+        TrackingSpecToInspectDescriptionTxt: Label 'Tracking Specification to Inspection', MaxLength = 100;
+        PurchLineToInspectTok: Label 'PURCHTOINSPECT', MaxLength = 20, Locked = true;
+        PurchLineToInspectDescriptionTxt: Label 'Purchase Line to Inspection', MaxLength = 100;
+        SalesLineToInspectTok: Label 'SALESTOINSPECT', MaxLength = 20, Locked = true;
+        SalesLineToInspectDescriptionTxt: Label 'Sales Order to Inspection', MaxLength = 100;
+        SalesReturnLineToInspectTok: Label 'SALESRETURNTOINSPECT', MaxLength = 20, Locked = true;
+        SalesReturnLineToInspectDescriptionTxt: Label 'Sales Return to Inspection', MaxLength = 100;
+        ProdJnlToInspectTok: Label 'PRODJNLTOINSPECT', MaxLength = 20, Locked = true;
+        ProdJnlToInspectDescriptionTxt: Label 'Production Output Journal to Inspection', MaxLength = 100;
+        LedgerToInspectTok: Label 'ITEMLDGROUTINSPECT', MaxLength = 20, Locked = true;
+        LedgerToInspectDescriptionTxt: Label 'Output Item Ledger to Inspection', MaxLength = 100;
+        RtngToItemJnlTok: Label 'ROUTINGLINETOITEMJNL', MaxLength = 20, Locked = true;
+        RtngToItemJnlDescriptionTxt: Label 'Prod. Routing Line to Item Journal Line', MaxLength = 100;
+        ProdLineToJnlTok: Label 'PRODLINETOITEMJNL', MaxLength = 20, Locked = true;
+        ProdLineToJnlDescriptionTxt: Label 'Prod. Order Line to Item Journal Line', MaxLength = 100;
+        ProdLineToRoutingTok: Label 'PRODLINETOROUTING', MaxLength = 20, Locked = true;
+        ProdLineToRoutingDescriptionTxt: Label 'Prod. Order Line to Prod. Rtng.', MaxLength = 100;
+        InTransLineToInspectTok: Label 'TRANSRECPTINSPECT', MaxLength = 20, Locked = true;
+        InTransLineToInspectDescriptionTxt: Label 'Inbound Transfer Line to Inspection', MaxLength = 100;
+        ProdLineToLedgerTok: Label 'PRODLINETOITEMLEDGER', MaxLength = 20, Locked = true;
+        ProdLineToLedgerDescriptionTxt: Label 'Prod. Order Line to Item Ledger Entry.', MaxLength = 100;
+        ProdRoutingToInspectTok: Label 'ROUTINGTOINSPECT', MaxLength = 20, Locked = true;
+        ProdRoutingToInspectDescriptionTxt: Label 'Prod. Order Routing Line to Inspection', MaxLength = 100;
+        AssemblyOutputToInspectTok: Label 'ASMOUTPUTTOINSPECT', MaxLength = 20, Locked = true;
+        AssemblyOutputToInspectDescriptionTxt: Label 'Posted Assembly Header to Inspection', MaxLength = 100;
 
     internal procedure GetDefaultPassResult(): Text
     begin
@@ -143,9 +141,9 @@ codeunit 20402 "Qlty. Auto Configure"
         if not NoSeriesLine.WritePermission() then
             exit;
 
-        if not NoSeries.Get(DefaultQltyInspectionNoSeriesTxt) then begin
+        if not NoSeries.Get(DefaultQltyInspectionNoSeriesTok) then begin
             NoSeries.Init();
-            NoSeries.Code := DefaultQltyInspectionNoSeriesTxt;
+            NoSeries.Code := DefaultQltyInspectionNoSeriesTok;
             NoSeries.Description := CopyStr(DefaultQltyInspectionNoSeriesLabelTxt, 1, MaxStrLen(NoSeries.Description));
             if NoSeries.Insert() then begin
                 NoSeriesLine.SetRange("Series Code", NoSeries.Code);
@@ -1037,7 +1035,7 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
-            SalesLineToInspectFilterTok);
+            'WHERE(Document Type=FILTER(Order),Type=FILTER(Item))');
         EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Document No."),
@@ -1094,7 +1092,7 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
-            SalesReturnLineToInspectFilterTok);
+            'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))');
         EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Document No."),
