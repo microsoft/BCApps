@@ -39,7 +39,7 @@ page 20426 "Qlty. Manager Role Center"
     {
         area(RoleCenter)
         {
-            group(SettingsForRoleCenterMain)
+            group(RoleCenterMain)
             {
                 ShowCaption = false;
 

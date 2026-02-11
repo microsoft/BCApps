@@ -535,7 +535,7 @@ page 20408 "Qlty. Inspection List"
                     QltyMiscHelpers.NavigateToFindEntries(Rec);
                 end;
             }
-            group(SettingsForItemAvailabilityBy)
+            group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
                 Enabled = RowActionsAreEnabled;

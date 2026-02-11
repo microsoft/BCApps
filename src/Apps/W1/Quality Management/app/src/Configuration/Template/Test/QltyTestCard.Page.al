@@ -27,7 +27,7 @@ page 20479 "Qlty. Test Card"
     {
         area(Content)
         {
-            group(SettingsForGeneral)
+            group(General)
             {
                 Caption = 'General';
 
@@ -99,7 +99,7 @@ page 20479 "Qlty. Test Card"
                     AboutText = 'Choose if case sensitivity will be enabled for text based fields.';
                 }
             }
-            group(SettingsForResults)
+            group(Results)
             {
                 Caption = 'Result Conditions';
 
@@ -457,7 +457,7 @@ page 20479 "Qlty. Test Card"
                     end;
                 }
             }
-            group(SettingsForLookup)
+            group(Lookup)
             {
                 Caption = 'Table Lookup Configuration';
 

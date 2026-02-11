@@ -27,10 +27,10 @@ page 20400 "Qlty. Management Setup"
     {
         area(Content)
         {
-            group(SettingsForDefaults)
+            group(Defaults)
             {
                 Caption = 'General';
-                group(SettingsForNumbering)
+                group(Numbering)
                 {
                     Caption = 'Number Series';
 
@@ -42,7 +42,7 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
-                group(SettingsForInspections)
+                group(Inspections)
                 {
                     Caption = 'Creating and finding inspections';
 
@@ -62,7 +62,7 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Specifies the criteria the system uses to search for existing inspections.';
                     }
                 }
-                group(SettingsForMiscellaneous)
+                group(Miscellaneous)
                 {
                     Caption = 'Miscellaneous';
 
@@ -96,7 +96,7 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Generation Rule Trigger Defaults';
                 InstructionalText = 'Manage receiving, production, and warehousing options here, such as automatically creating inspections when receipts or output are posted, and defining default automation and trigger settings for inspection generation rules.';
 
-                group(SettingsForReceiveAutomation)
+                group(ReceiveAutomation)
                 {
                     Caption = 'Receiving';
                     AboutTitle = 'Receiving Related Automation Settings';
@@ -123,7 +123,7 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Transfer Orders Trigger';
                     }
                 }
-                group(SettingsForProductionAutomation)
+                group(ProductionAutomation)
                 {
                     Caption = 'Production';
                     AboutTitle = 'Production Related Automation Settings';
@@ -164,7 +164,7 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
-                group(SettingsForWarehouseAutomation)
+                group(WarehouseAutomation)
                 {
                     Caption = 'Inventory and Warehousing';
                     AboutTitle = 'Warehousing Related Automation Settings';
@@ -180,7 +180,7 @@ page 20400 "Qlty. Management Setup"
                     }
                 }
             }
-            group(SettingsForBinMovements)
+            group(BinMovements)
             {
                 Caption = 'Bin Movements and Reclassifications';
                 InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
@@ -207,7 +207,7 @@ page 20400 "Qlty. Management Setup"
                     AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
                 }
             }
-            group(SettingsForAdjustments)
+            group(Adjustments)
             {
                 Caption = 'Inventory Adjustments';
                 InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
@@ -228,7 +228,7 @@ page 20400 "Qlty. Management Setup"
                 }
             }
 
-            group(SettingsForTracking)
+            group(Tracking)
             {
                 Caption = 'Item Tracking';
                 InstructionalText = 'Will your item tracking numbers always be posted when performing quality inspections?';

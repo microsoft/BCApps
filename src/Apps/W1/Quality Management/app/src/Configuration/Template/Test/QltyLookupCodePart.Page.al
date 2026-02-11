@@ -24,7 +24,7 @@ page 20435 "Qlty. Lookup Code Part"
     {
         area(Content)
         {
-            group(SettingsForGeneralConfig)
+            group(GeneralConfig)
             {
                 ShowCaption = false;
                 Caption = ' ';
@@ -66,7 +66,7 @@ page 20435 "Qlty. Lookup Code Part"
                         AssistEditDefaultValue();
                     end;
                 }
-                group(SettingsForExistingTable)
+                group(ExistingTable)
                 {
                     Caption = 'Existing Table';
                     Visible = ExistingTable;

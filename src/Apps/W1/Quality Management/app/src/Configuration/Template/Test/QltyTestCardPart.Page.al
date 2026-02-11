@@ -69,7 +69,7 @@ page 20437 "Qlty. Test Card Part"
                     Rec.AssistEditAllowableValues();
                 end;
             }
-            group(SettingsForUOMWrapper)
+            group(UOMWrapper)
             {
                 Visible = IsNumber;
                 Caption = ' ';
@@ -81,7 +81,7 @@ page 20437 "Qlty. Test Card Part"
                     AboutText = 'Optionally enter the unit of measure for the field';
                 }
             }
-            group(SettingsForLookupWrapper)
+            group(LookupWrapper)
             {
                 Visible = IsLookup;
                 Caption = ' ';

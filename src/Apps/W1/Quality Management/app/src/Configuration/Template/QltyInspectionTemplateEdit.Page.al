@@ -25,7 +25,7 @@ page 20440 "Qlty. Inspection Template Edit"
     {
         area(Content)
         {
-            group(SettingsForRawHtml)
+            group(RawHtml)
             {
                 ShowCaption = false;
                 Caption = ' ';
@@ -40,7 +40,7 @@ page 20440 "Qlty. Inspection Template Edit"
                     MultiLine = true;
                 }
             }
-            group(SettingsForTestExpressionWithAInspection)
+            group(TestExpressionWithAInspection)
             {
                 Caption = 'Test expression with an existing Quality Inspection';
                 Visible = ShowAddTestFromInspection;

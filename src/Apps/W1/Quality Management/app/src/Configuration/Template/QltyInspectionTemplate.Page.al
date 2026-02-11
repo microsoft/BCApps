@@ -64,7 +64,7 @@ page 20402 "Qlty. Inspection Template"
                         UpdateControls();
                     end;
                 }
-                group(SettingsForSampleFixedAmountVisibilityWrapper)
+                group(SampleFixedAmountVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -77,7 +77,7 @@ page 20402 "Qlty. Inspection Template"
                         AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
-                group(SettingsForSamplePercentVisibilityWrapper)
+                group(SamplePercentVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
