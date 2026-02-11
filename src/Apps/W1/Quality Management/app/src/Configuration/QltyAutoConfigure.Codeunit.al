@@ -1728,7 +1728,7 @@ codeunit 20402 "Qlty. Auto Configure"
                 QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::Inspection
             else
                 if TrackingOnly then
-                    QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::"Item Tracking only"
+                    QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::"Item Tracking"
                 else
                     QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::"Chained table";
 
@@ -1774,7 +1774,7 @@ codeunit 20402 "Qlty. Auto Configure"
                 QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::Inspection
             else
                 if TrackingOnly then
-                    QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::"Item Tracking only"
+                    QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::"Item Tracking"
                 else
                     QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::"Chained table";
 
