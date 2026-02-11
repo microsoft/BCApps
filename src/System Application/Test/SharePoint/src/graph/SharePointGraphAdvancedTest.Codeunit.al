@@ -20,7 +20,7 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     TestPermissions = Disabled;
 
     var
-        SharePointGraphAuthSpy: Codeunit "SharePoint Graph Auth Spy";
+        SharePointGraphAuthMock: Codeunit "SharePoint Graph Auth Mock";
         SharePointGraphTestLibrary: Codeunit "SharePoint Graph Test Library";
         SharePointGraphClient: Codeunit "SharePoint Graph Client";
         LibraryAssert: Codeunit "Library Assert";
@@ -685,7 +685,7 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
 
         // Initialize with the mock handler
-        SharePointGraphClient.Initialize(SharePointUrlLbl, Enum::"Graph API Version"::"v1.0", SharePointGraphAuthSpy, MockHttpClientHandler);
+        SharePointGraphClient.Initialize(SharePointUrlLbl, Enum::"Graph API Version"::"v1.0", SharePointGraphAuthMock, MockHttpClientHandler);
 
         // Set test IDs to prevent HTTP calls for site and drive discovery
         SharePointGraphClient.SetSiteIdForTesting('contoso.sharepoint.com,e6991d99-75d5-4be4-4ede-2c82b1d40cd6,1b58abad-4105-4125-a0e0-7a6d39571a5b');

@@ -7,7 +7,7 @@ namespace System.Test.Integration.Sharepoint;
 using System.Integration.Graph.Authorization;
 using System.RestClient;
 
-codeunit 132974 "SharePoint Graph Auth Spy" implements "Graph Authorization"
+codeunit 132974 "SharePoint Graph Auth Mock" implements "Graph Authorization"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
