@@ -103,358 +103,408 @@ page 20479 "Qlty. Test Card"
             {
                 Caption = 'Result Conditions';
 
-                field(Field1; MatrixArrayConditionCellData[1])
+                group(ResultGroup1)
                 {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
-                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    Visible = Visible1;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(1);
-                    end;
+                    field(Field1; MatrixArrayConditionCellData[1])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
+                        ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        AboutTitle = 'Result Condition Expression';
+                        AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        Visible = Visible1;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(1);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(1);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(1);
+                        end;
+                    }
+                    field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
+                        ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        AboutTitle = 'Result Condition Description';
+                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        Visible = Visible1;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(1);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(1);
+                        end;
+                    }
                 }
-                field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
+                group(ResultGroup2)
                 {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
-                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    Visible = Visible1;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(1);
-                    end;
+                    field(Field2; MatrixArrayConditionCellData[2])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
+                        ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        AboutTitle = 'Result Condition Expression';
+                        AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        Visible = Visible2;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(1);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(2);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(2);
+                        end;
+                    }
+                    field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
+                        ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        AboutTitle = 'Result Condition Description';
+                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        Visible = Visible2;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(2);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(2);
+                        end;
+                    }
                 }
-                field(Field2; MatrixArrayConditionCellData[2])
+                group(ResultGroup3)
                 {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
-                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    Visible = Visible2;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(2);
-                    end;
+                    field(Field3; MatrixArrayConditionCellData[3])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
+                        ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        AboutTitle = 'Result Condition Expression';
+                        AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                        Visible = Visible3;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(2);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(3);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(3);
+                        end;
+                    }
+                    field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
+                        Editable = EditableResult;
+                        ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        AboutTitle = 'Result Condition Description';
+                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                        Visible = Visible3;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(3);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(3);
+                        end;
+                    }
                 }
-                field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
+                group(ResultGroup4)
                 {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
-                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    Visible = Visible2;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(2);
-                    end;
+                    field(Field4; MatrixArrayConditionCellData[4])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                        Visible = Visible4;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(2);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(4);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(4);
+                        end;
+
+                    }
+                    field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                        Visible = Visible4;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(4);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(4);
+                        end;
+                    }
                 }
-                field(Field3; MatrixArrayConditionCellData[3])
+                group(ResultGroup5)
                 {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
-                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    Visible = Visible3;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(3);
-                    end;
+                    field(Field5; MatrixArrayConditionCellData[5])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                        Visible = Visible5;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(3);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(5);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(5);
+                        end;
+                    }
+                    field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                        Visible = Visible5;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(5);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(5);
+                        end;
+                    }
                 }
-                field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
+                group(ResultGroup6)
                 {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
-                    Editable = EditableResult;
-                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    Visible = Visible3;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(3);
-                    end;
+                    field(Field6; MatrixArrayConditionCellData[6])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                        Visible = Visible6;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(3);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(6);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(6);
+                        end;
+                    }
+                    field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                        Visible = Visible6;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(6);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(6);
+                        end;
+                    }
                 }
-                field(Field4; MatrixArrayConditionCellData[4])
+                group(ResultGroup7)
                 {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
-                    Visible = Visible4;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(4);
-                    end;
+                    field(Field7; MatrixArrayConditionCellData[7])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                        Visible = Visible7;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(4);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(7);
+                        end;
 
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(7);
+                        end;
+                    }
+                    field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                        Visible = Visible7;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(7);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(7);
+                        end;
+                    }
                 }
-                field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
+                group(ResultGroup8)
                 {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
-                    Visible = Visible4;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(4);
-                    end;
+                    field(Field8; MatrixArrayConditionCellData[8])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                        Visible = Visible8;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(4);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(8);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(8);
+                        end;
+                    }
+                    field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                        Visible = Visible8;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(8);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(8);
+                        end;
+                    }
                 }
-                field(Field5; MatrixArrayConditionCellData[5])
+                group(ResultGroup9)
                 {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
-                    Visible = Visible5;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(5);
-                    end;
+                    field(Field9; MatrixArrayConditionCellData[9])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                        Visible = Visible9;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(5);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(9);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(9);
+                        end;
+                    }
+                    field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                        Visible = Visible9;
+                        Editable = EditableResult;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(9);
+                        end;
+
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(9);
+                        end;
+                    }
                 }
-                field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
+                group(ResultGroup10)
                 {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
-                    Visible = Visible5;
-                    Editable = EditableResult;
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(5);
-                    end;
+                    field(Field10; MatrixArrayConditionCellData[10])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                        Visible = Visible10;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(5);
-                    end;
-                }
-                field(Field6; MatrixArrayConditionCellData[6])
-                {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
-                    Visible = Visible6;
-                    Editable = EditableResult;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataCondition(10);
+                        end;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(6);
-                    end;
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditCondition(10);
+                        end;
+                    }
+                    field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
+                    {
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                        Visible = Visible10;
+                        Editable = EditableResult;
 
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(6);
-                    end;
-                }
-                field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
-                {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
-                    Visible = Visible6;
-                    Editable = EditableResult;
+                        trigger OnValidate()
+                        begin
+                            UpdateMatrixDataConditionDescription(10);
+                        end;
 
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(6);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(6);
-                    end;
-                }
-                field(Field7; MatrixArrayConditionCellData[7])
-                {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
-                    Visible = Visible7;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(7);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(7);
-                    end;
-                }
-                field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
-                {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
-                    Visible = Visible7;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(7);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(7);
-                    end;
-                }
-                field(Field8; MatrixArrayConditionCellData[8])
-                {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
-                    Visible = Visible8;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(8);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(8);
-                    end;
-                }
-                field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
-                {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
-                    Visible = Visible8;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(8);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(8);
-                    end;
-                }
-                field(Field9; MatrixArrayConditionCellData[9])
-                {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
-                    Visible = Visible9;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(9);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(9);
-                    end;
-                }
-                field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
-                {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
-                    Visible = Visible9;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(9);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(9);
-                    end;
-                }
-                field(Field10; MatrixArrayConditionCellData[10])
-                {
-                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
-                    Visible = Visible10;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataCondition(10);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditCondition(10);
-                    end;
-                }
-                field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
-                {
-                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
-                    Visible = Visible10;
-                    Editable = EditableResult;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateMatrixDataConditionDescription(10);
-                    end;
-
-                    trigger OnAssistEdit()
-                    begin
-                        AssistEditConditionDescription(10);
-                    end;
+                        trigger OnAssistEdit()
+                        begin
+                            AssistEditConditionDescription(10);
+                        end;
+                    }
                 }
             }
             group(TableLookupConfiguration)
