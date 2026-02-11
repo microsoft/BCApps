@@ -28,7 +28,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="Scenario">The ID of the file scenario.</param>
     /// <param name="Connector">The file storage connector.</param>
     /// <returns>True if the operation is allowed, otherwise false.</returns>
-    procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipInsertOrModify: Boolean;
+    procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum "Ext. File Storage Connector"): Boolean;
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
         FileAccount: Record "File Account";
@@ -48,16 +48,15 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
                 if ExternalStorageSetup.Enabled then begin
                     ExternalStorageSetup.CalcFields("Has Uploaded Files");
                     if ExternalStorageSetup."Has Uploaded Files" then begin
-                        SkipInsertOrModify := true;
                         Message(CannotReassignScenarioErr);
-                        exit;
+                        exit(true);
                     end;
                 end;
 
         // Open setup page for additional configuration automatically
         if ConfirmManagement.GetResponseOrDefault(ConfigureExternalStorageQst, true) then
             ExternalStorageSetupPage.Run();
-        SkipInsertOrModify := false;
+        exit(false);
     end;
 
     /// <summary>
@@ -66,7 +65,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="Scenario">The ID of the file scenario.</param>
     /// <param name="Connector">The file storage connector.</param>
     /// <returns>True if additional setup is available, otherwise false.</returns>
-    procedure GetAdditionalScenarioSetup(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SetupExist: Boolean;
+    procedure GetAdditionalScenarioSetup(Scenario: Enum "File Scenario"; Connector: Enum "Ext. File Storage Connector"): Boolean;
     var
         ExternalStorageSetup: Page "DA External Storage Setup";
     begin
@@ -74,7 +73,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         ExternalStorageSetup.RunModal();
-        SetupExist := true;
+        exit(true);
     end;
 
     /// <summary>
@@ -83,7 +82,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="Scenario">The ID of the file scenario.</param>
     /// <param name="Connector">The file storage connector.</param>
     /// <returns>True if the delete operation is handled and should not proceed, otherwise false.</returns>
-    procedure BeforeDeleteFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipDelete: Boolean;
+    procedure BeforeDeleteFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum "Ext. File Storage Connector"): Boolean;
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
         NotPossibleToUnassignScenarioMsg: Label 'External Storage scenario can not be unassigned when there are uploaded files.';
@@ -98,16 +97,16 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageSetup."Has Uploaded Files" then
             exit;
 
-        SkipDelete := true;
         Message(NotPossibleToUnassignScenarioMsg);
+        exit(true);
     end;
 
-    procedure BeforeReassignFileScenarioCheck(CurrentScenario: Enum "File Scenario") SkipReassign: Boolean
+    procedure BeforeReassignFileScenarioCheck(Scenario: Enum "File Scenario"): Boolean
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
         NotPossibleToReassignScenarioMsg: Label 'External Storage scenario can not be reassigned when there are uploaded files.';
     begin
-        if not (CurrentScenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
+        if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
 
         if not ExternalStorageSetup.Get() then
@@ -117,8 +116,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageSetup."Has Uploaded Files" then
             exit;
 
-        SkipReassign := true;
         Message(NotPossibleToReassignScenarioMsg);
+        exit(true);
     end;
     #endregion
 
@@ -511,186 +510,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
     #endregion
 
-    #region Document Attachment Handling
-    /// <summary>
-    /// Handles automatic upload of new document attachments to external storage upon insertion of the attachment record.
-    /// </summary>
-    /// <param name="Rec">The document attachment record.</param>
-    /// <param name="RunTrigger">Indicates if the trigger should run.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterInsertEvent, '', true, true)]
-    local procedure OnAfterInsertDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Exit early if trigger is not running
-        if not RunTrigger then
-            exit;
-
-        // Temporary records are not processed
-        if Rec.IsTemporary() then
-            exit;
-
-        // Check if auto upload is enabled
-        if not ExternalStorageSetup.Get() then
-            exit;
-
-        // Only process files with actual content
-        if not Rec."Document Reference ID".HasValue() then
-            exit;
-
-        // Upload to external storage
-        if not ExternalStorageImpl.UploadToExternalStorage(Rec) then
-            exit;
-
-        ExternalStorageImpl.DeleteFromInternalStorage(Rec);
-    end;
-
-    /// <summary>
-    /// Handles automatic deletion of document attachments from external storage upon deletion of the attachment record.
-    /// </summary>
-    /// <param name="Rec">The document attachment record.</param>
-    /// <param name="RunTrigger">Indicates if the trigger should run.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
-    local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Exit early if trigger is not running
-        if not RunTrigger then
-            exit;
-
-        // Temporary records are not processed
-        if Rec.IsTemporary() then
-            exit;
-
-        // Check if auto upload is enabled
-        if not ExternalStorageSetup.Get() then
-            exit;
-
-        if not ExternalStorageSetup."Delete from External Storage" then
-            exit;
-
-        // Only process files that were uploaded to external storage
-        if not Rec."Stored Externally" then
-            exit;
-
-        // Delete from external storage
-        ExternalStorageImpl.DeleteFromExternalStorage(Rec);
-
-        if Rec."Skip Delete On Copy" then begin
-            Rec."Skip Delete On Copy" := false;
-            Rec.Modify();
-        end;
-    end;
-
-    /// <summary>
-    /// Handles exporting document attachment content to a stream for externally stored attachments.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment record.</param>
-    /// <param name="AttachmentOutStream">The output stream for the attachment content.</param>
-    /// <param name="IsHandled">Indicates if the event has been handled.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeExportToStream, '', false, false)]
-    local procedure DocumentAttachment_OnBeforeExportToStream(var DocumentAttachment: Record "Document Attachment"; var AttachmentOutStream: OutStream; var IsHandled: Boolean)
-    var
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Only handle if file is uploaded externally and not available internally
-        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
-            exit;
-
-        ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream);
-        IsHandled := true;
-    end;
-
-    /// <summary>
-    /// Handles getting the temporary blob for externally stored document attachments.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment record.</param>
-    /// <param name="TempBlob">The temporary blob to be filled.</param>
-    /// <param name="IsHandled">Indicates if the event has been handled.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetAsTempBlob, '', false, false)]
-    local procedure DocumentAttachment_OnBeforeGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
-    var
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Only handle if file is uploaded externally and not available internally
-        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
-            exit;
-
-        ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob);
-        IsHandled := true;
-    end;
-
-    /// <summary>
-    /// Handles getting content type for externally stored document attachments.
-    /// </summary>
-    /// <param name="Rec">The document attachment record.</param>
-    /// <param name="ContentType">The content type to be set.</param>
-    /// <param name="IsHandled">Indicates if the event has been handled.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetContentType, '', false, false)]
-    local procedure DocumentAttachment_OnBeforeGetContentType(var Rec: Record "Document Attachment"; var ContentType: Text[100]; var IsHandled: Boolean)
-    var
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Only handle if file is uploaded externally and not available internally
-        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(Rec) then
-            exit;
-
-        ExternalStorageImpl.FileExtensionToContentMimeType(Rec, ContentType);
-        IsHandled := true;
-    end;
-
-    /// <summary>
-    /// Handles checking if attachment content is available for externally stored document attachments.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment record.</param>
-    /// <param name="AttachmentIsAvailable">Indicates if the attachment is available.</param>
-    /// <param name="IsHandled">Indicates if the event has been handled.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeHasContent, '', false, false)]
-    local procedure DocumentAttachment_OnBeforeHasContent(var DocumentAttachment: Record "Document Attachment"; var AttachmentIsAvailable: Boolean; var IsHandled: Boolean)
-    var
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        // Only handle if file is uploaded externally and not available internally
-        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
-            exit;
-
-        AttachmentIsAvailable := ExternalStorageImpl.CheckIfFileExistInExternalStorage(DocumentAttachment."External File Path");
-        IsHandled := true;
-    end;
-
-    /// <summary>
-    /// Event handler for before checking Document Reference ID on insert.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment record.</param>
-    /// <param name="IsHandled">Indicates if the event has been handled.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnInsertOnBeforeCheckDocRefID, '', false, false)]
-    local procedure "Document Attachment_OnInsertOnBeforeCheckDocRefID"(var DocumentAttachment: Record "Document Attachment"; var IsHandled: Boolean)
-    begin
-        if DocumentAttachment."Stored Externally" then
-            IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", OnCopyAttachmentsOnAfterSetToDocumentFilters, '', false, false)]
-    local procedure "Document Attachment Mgmt_OnCopyAttachmentsOnAfterSetToDocumentFilters"(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
-    begin
-        ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Stored Externally";
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeOpenInOneDrive, '', false, false)]
-    local procedure "Document Attachment_OnBeforeOpenInOneDrive"(var Rec: Record "Document Attachment"; var IsHandled: Boolean)
-    var
-        NotSupportedMsg: Label 'Opening Document Attachments stored in External Storage via OneDrive is not supported.';
-    begin
-        if Rec."Stored Externally" then begin
-            IsHandled := true;
-            Message(NotSupportedMsg);
-        end;
-    end;
-    #endregion
-
     /// <summary>
     /// Opens a folder selection dialog for choosing the root folder.
     /// </summary>
@@ -720,9 +539,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         TableNameFolder: Text[100];
         EnvironmentHashFolder: Text[32];
         FileNamePart: Text;
+        FileNameFormatLbl: Label '%1-%2.%3', Comment = '%1 = File Name, %2 = GUID, %3 = File Extension', Locked = true;
     begin
         // Generate unique filename to prevent collisions
-        FileNamePart := DocumentAttachment."File Name" + '-' + DelChr(Format(CreateGuid()), '=', '{}') + '.' + DocumentAttachment."File Extension";
+        FileNamePart := StrSubstNo(FileNameFormatLbl, DocumentAttachment."File Name", DelChr(Format(CreateGuid()), '=', '{}'), DocumentAttachment."File Extension");
 
         // Get table name folder (based on the source table of the attachment)
         TableNameFolder := GetTableNameFolder(DocumentAttachment."Table ID");
@@ -931,6 +751,186 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         exit(MigratedCount);
     end;
+
+    #region Document Attachment Handling
+    /// <summary>
+    /// Handles automatic upload of new document attachments to external storage upon insertion of the attachment record.
+    /// </summary>
+    /// <param name="Rec">The document attachment record.</param>
+    /// <param name="RunTrigger">Indicates if the trigger should run.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterInsertEvent, '', true, true)]
+    local procedure OnAfterInsertDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Exit early if trigger is not running
+        if not RunTrigger then
+            exit;
+
+        // Temporary records are not processed
+        if Rec.IsTemporary() then
+            exit;
+
+        // Check if auto upload is enabled
+        if not ExternalStorageSetup.Get() then
+            exit;
+
+        // Only process files with actual content
+        if not Rec."Document Reference ID".HasValue() then
+            exit;
+
+        // Upload to external storage
+        if not ExternalStorageImpl.UploadToExternalStorage(Rec) then
+            exit;
+
+        ExternalStorageImpl.DeleteFromInternalStorage(Rec);
+    end;
+
+    /// <summary>
+    /// Handles automatic deletion of document attachments from external storage upon deletion of the attachment record.
+    /// </summary>
+    /// <param name="Rec">The document attachment record.</param>
+    /// <param name="RunTrigger">Indicates if the trigger should run.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
+    local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Exit early if trigger is not running
+        if not RunTrigger then
+            exit;
+
+        // Temporary records are not processed
+        if Rec.IsTemporary() then
+            exit;
+
+        // Check if auto upload is enabled
+        if not ExternalStorageSetup.Get() then
+            exit;
+
+        if not ExternalStorageSetup."Delete from External Storage" then
+            exit;
+
+        // Only process files that were uploaded to external storage
+        if not Rec."Stored Externally" then
+            exit;
+
+        // Delete from external storage
+        ExternalStorageImpl.DeleteFromExternalStorage(Rec);
+
+        if Rec."Skip Delete On Copy" then begin
+            Rec."Skip Delete On Copy" := false;
+            Rec.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Handles exporting document attachment content to a stream for externally stored attachments.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record.</param>
+    /// <param name="AttachmentOutStream">The output stream for the attachment content.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeExportToStream, '', false, false)]
+    local procedure DocumentAttachment_OnBeforeExportToStream(var DocumentAttachment: Record "Document Attachment"; var AttachmentOutStream: OutStream; var IsHandled: Boolean)
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Only handle if file is uploaded externally and not available internally
+        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
+            exit;
+
+        ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream);
+        IsHandled := true;
+    end;
+
+    /// <summary>
+    /// Handles getting the temporary blob for externally stored document attachments.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record.</param>
+    /// <param name="TempBlob">The temporary blob to be filled.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetAsTempBlob, '', false, false)]
+    local procedure DocumentAttachment_OnBeforeGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Only handle if file is uploaded externally and not available internally
+        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
+            exit;
+
+        ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob);
+        IsHandled := true;
+    end;
+
+    /// <summary>
+    /// Handles getting content type for externally stored document attachments.
+    /// </summary>
+    /// <param name="Rec">The document attachment record.</param>
+    /// <param name="ContentType">The content type to be set.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetContentType, '', false, false)]
+    local procedure DocumentAttachment_OnBeforeGetContentType(var Rec: Record "Document Attachment"; var ContentType: Text[100]; var IsHandled: Boolean)
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Only handle if file is uploaded externally and not available internally
+        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(Rec) then
+            exit;
+
+        ExternalStorageImpl.FileExtensionToContentMimeType(Rec, ContentType);
+        IsHandled := true;
+    end;
+
+    /// <summary>
+    /// Handles checking if attachment content is available for externally stored document attachments.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record.</param>
+    /// <param name="AttachmentIsAvailable">Indicates if the attachment is available.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeHasContent, '', false, false)]
+    local procedure DocumentAttachment_OnBeforeHasContent(var DocumentAttachment: Record "Document Attachment"; var AttachmentIsAvailable: Boolean; var IsHandled: Boolean)
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // Only handle if file is uploaded externally and not available internally
+        if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
+            exit;
+
+        AttachmentIsAvailable := ExternalStorageImpl.CheckIfFileExistInExternalStorage(DocumentAttachment."External File Path");
+        IsHandled := true;
+    end;
+
+    /// <summary>
+    /// Event handler for before checking Document Reference ID on insert.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnInsertOnBeforeCheckDocRefID, '', false, false)]
+    local procedure "Document Attachment_OnInsertOnBeforeCheckDocRefID"(var DocumentAttachment: Record "Document Attachment"; var IsHandled: Boolean)
+    begin
+        if DocumentAttachment."Stored Externally" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", OnCopyAttachmentsOnAfterSetToDocumentFilters, '', false, false)]
+    local procedure "Document Attachment Mgmt_OnCopyAttachmentsOnAfterSetToDocumentFilters"(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
+    begin
+        ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Stored Externally";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeOpenInOneDrive, '', false, false)]
+    local procedure "Document Attachment_OnBeforeOpenInOneDrive"(var Rec: Record "Document Attachment"; var IsHandled: Boolean)
+    var
+        NotSupportedErr: Label 'Opening Document Attachments stored in External Storage via OneDrive is not supported.';
+    begin
+        if Rec."Stored Externally" then begin
+            IsHandled := true;
+            Error(NotSupportedErr);
+        end;
+    end;
+    #endregion
 
     #region Telemetry Logging
     local procedure LogFeatureUsedTelemetry()

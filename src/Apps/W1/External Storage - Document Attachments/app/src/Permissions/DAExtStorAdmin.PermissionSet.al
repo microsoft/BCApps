@@ -12,5 +12,5 @@ permissionset 8751 "DA Ext. Stor. Admin"
 {
     Assignable = true;
     Caption = 'DA - External Storage Admin';
-    Permissions = tabledata "DA External Storage Setup" = RIMD;
+    Permissions = tabledata "DA External Storage Setup" = rimd;
 }
