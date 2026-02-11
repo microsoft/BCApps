@@ -3769,8 +3769,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     local procedure GetFormat(): Enum "PEPPOL 3.0 Format";
+    var
+        Peppol30Setup: Record "PEPPOL 3.0 Setup";
     begin
-        exit(Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+        Peppol30Setup.GetSetup();
+        exit(Peppol30Setup."PEPPOL 3.0 Sales Format");
     end;
 
     local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]) Data: Text
