@@ -22,17 +22,17 @@ codeunit 8754 "DA Feature Telemetry"
 
     internal procedure LogFeatureEnabled()
     begin
-        FeatureTelemetry.LogUptake('', ExternalStorageTok, Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000RNO', ExternalStorageTok, Enum::"Feature Uptake Status"::"Set up");
     end;
 
     internal procedure LogFeatureDisabled()
     begin
-        FeatureTelemetry.LogUptake('', ExternalStorageTok, Enum::"Feature Uptake Status"::"Undiscovered");
+        FeatureTelemetry.LogUptake('0000RNP', ExternalStorageTok, Enum::"Feature Uptake Status"::"Undiscovered");
     end;
 
     internal procedure LogFeatureUsed()
     begin
-        FeatureTelemetry.LogUptake('', ExternalStorageTok, Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000RNQ', ExternalStorageTok, Enum::"Feature Uptake Status"::Used);
     end;
 
     internal procedure LogFileUploaded(DocumentAttachment: Record "Document Attachment")
@@ -40,7 +40,7 @@ codeunit 8754 "DA Feature Telemetry"
         Dimensions: Dictionary of [Text, Text];
     begin
         GetTelemetryDimensions(DocumentAttachment, 'Upload', Dimensions);
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Uploaded', Dimensions);
+        FeatureTelemetry.LogUsage('0000RNR', ExternalStorageTok, 'File Uploaded', Dimensions);
     end;
 
     internal procedure LogFileDownloaded(DocumentAttachment: Record "Document Attachment")
@@ -48,7 +48,7 @@ codeunit 8754 "DA Feature Telemetry"
         Dimensions: Dictionary of [Text, Text];
     begin
         GetTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Downloaded', Dimensions);
+        FeatureTelemetry.LogUsage('0000RNS', ExternalStorageTok, 'File Downloaded', Dimensions);
     end;
 
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
@@ -56,27 +56,27 @@ codeunit 8754 "DA Feature Telemetry"
         Dimensions: Dictionary of [Text, Text];
     begin
         GetTelemetryDimensions(DocumentAttachment, 'Delete', Dimensions);
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'File Deleted', Dimensions);
+        FeatureTelemetry.LogUsage('0000RNT', ExternalStorageTok, 'File Deleted', Dimensions);
     end;
 
     internal procedure LogCompanyMigration()
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'Company Migration');
+        FeatureTelemetry.LogUsage('0000RNU', ExternalStorageTok, 'Company Migration');
     end;
 
     internal procedure LogManualSync()
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'Manual Sync');
+        FeatureTelemetry.LogUsage('0000RNV', ExternalStorageTok, 'Manual Sync');
     end;
 
     internal procedure LogAutoSync()
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'Auto Sync');
+        FeatureTelemetry.LogUsage('0000RNW', ExternalStorageTok, 'Auto Sync');
     end;
 
     internal procedure LogRootFolderConfigured()
     begin
-        FeatureTelemetry.LogUsage('', ExternalStorageTok, 'Root Folder Configured');
+        FeatureTelemetry.LogUsage('0000RNX', ExternalStorageTok, 'Root Folder Configured');
     end;
 
     local procedure GetTelemetryDimensions(DocumentAttachment: Record "Document Attachment"; Operation: Text; var Dimensions: Dictionary of [Text, Text])
