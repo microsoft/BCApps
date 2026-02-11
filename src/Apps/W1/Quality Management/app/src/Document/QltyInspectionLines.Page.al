@@ -138,7 +138,7 @@ page 20413 "Qlty. Inspection Lines"
         }
     }
 
-    protected var
+    var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         CanEditLineNotes: Boolean;
         CanSeeLineNotes: Boolean;

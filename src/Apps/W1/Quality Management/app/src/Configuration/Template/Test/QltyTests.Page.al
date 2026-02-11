@@ -268,37 +268,14 @@ page 20401 "Qlty. Tests"
 
                 trigger OnAction()
                 begin
-                    Rec.EnsureCanBeDeleted(true);
+                    Rec.CheckDeleteConstraints(true);
                     Rec.Delete(true);
                     CurrPage.Update(false);
                 end;
             }
         }
-        area(Creation)
-        {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add a Test';
-                ToolTip = 'Add a new Test.';
-                Scope = Repeater;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-        }
-        area(Reporting)
-        {
-        }
         area(Promoted)
         {
-            actionref(NewTest_Promoted; NewTest)
-            {
-            }
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
             {
             }
@@ -331,7 +308,7 @@ page 20401 "Qlty. Tests"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        Rec.EnsureCanBeDeleted(true);
+        Rec.CheckDeleteConstraints(true);
     end;
 
     trigger OnAfterGetRecord()
@@ -403,16 +380,5 @@ page 20401 "Qlty. Tests"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyTestWizard: Page "Qlty. Test Wizard";
-    begin
-        QltyTestWizard.RunModalForTest();
-        CurrPage.Update(false);
     end;
 }

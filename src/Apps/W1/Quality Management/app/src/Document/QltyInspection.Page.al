@@ -814,7 +814,7 @@ page 20406 "Qlty. Inspection"
         }
     }
 
-    protected var
+    var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
