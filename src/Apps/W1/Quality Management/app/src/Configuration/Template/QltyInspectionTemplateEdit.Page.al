@@ -160,8 +160,8 @@ page 20440 "Qlty. Inspection Template Edit"
             action(AddInspectionTest)
             {
                 ApplicationArea = All;
-                Caption = 'Add Inspection Test';
-                Image = CopyToTask;
+                Caption = 'Add Test';
+                Image = CopyFromTask;
                 ToolTip = 'Click here to use a Quality Inspection test in this expression.';
                 AboutTitle = 'Add inspection test';
                 AboutText = 'Click here to use a Quality Inspection test in this expression.';

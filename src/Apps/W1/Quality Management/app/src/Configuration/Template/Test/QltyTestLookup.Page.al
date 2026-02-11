@@ -388,7 +388,7 @@ page 20445 "Qlty. Test Lookup"
             action(NewTest)
             {
                 Image = CopyFromTask;
-                Caption = 'Add a Test';
+                Caption = 'Add Test';
                 ToolTip = 'Add a new Test.';
                 Scope = Repeater;
                 Promoted = true;
