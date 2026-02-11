@@ -211,7 +211,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         UriBuilder: Codeunit "Uri Builder";
     begin
         UriBuilder.Init(Url);
-        exit(UriBuilder.GetHost()); // Returns contoso.sharepoint.com
+        exit(UriBuilder.GetHost()); // e.g. contoso.sharepoint.com
     end;
 
     local procedure ExtractRelativePath(Url: Text): Text

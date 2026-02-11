@@ -28,6 +28,7 @@ table 9133 "SharePoint Graph Drive"
         {
             Caption = 'Name';
             Description = 'Name of the drive (document library)';
+            DataClassification = CustomerContent;
         }
         field(3; DriveType; Text[50])
         {
@@ -43,11 +44,13 @@ table 9133 "SharePoint Graph Drive"
         {
             Caption = 'Owner Name';
             Description = 'Display name of the drive owner';
+            DataClassification = CustomerContent;
         }
         field(6; OwnerEmail; Text[250])
         {
             Caption = 'Owner Email';
             Description = 'Email address of the drive owner';
+            DataClassification = CustomerContent;
         }
         field(7; CreatedDateTime; DateTime)
         {
@@ -63,6 +66,7 @@ table 9133 "SharePoint Graph Drive"
         {
             Caption = 'Description';
             Description = 'Description of the drive';
+            DataClassification = CustomerContent;
         }
         field(10; QuotaTotal; BigInteger)
         {

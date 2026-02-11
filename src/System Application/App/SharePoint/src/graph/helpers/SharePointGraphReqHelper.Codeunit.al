@@ -314,6 +314,7 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     /// <param name="ChunkContent">The content of the chunk.</param>
     /// <param name="ContentRange">The content range header value (e.g., "bytes 0-1023/5000").</param>
     /// <param name="ResponseJson">The JSON response.</param>
+    /// <remarks>Uses a separate RestClient instead of GraphClient because the upload URL is a complete URL and must not include the Authorization header.</remarks>
     /// <returns>True if the chunk was uploaded successfully; otherwise false.</returns>
     procedure UploadChunk(UploadUrl: Text; var ChunkContent: InStream; ContentRange: Text; var ResponseJson: JsonObject): Boolean
     var
@@ -321,8 +322,6 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         HttpContent: Codeunit "Http Content";
         HttpResponseMessage: Codeunit "Http Response Message";
     begin
-        // Important: For upload sessions, we don't use GraphClient
-        // because the upload URL is a complete URL and we shouldn't send the Authorization header
         Clear(ResponseJson);
 
         // Validate that the upload URL points to a trusted Microsoft host

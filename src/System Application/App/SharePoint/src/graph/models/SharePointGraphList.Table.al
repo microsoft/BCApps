@@ -28,16 +28,19 @@ table 9130 "SharePoint Graph List"
         {
             Caption = 'Display Name';
             Description = 'Name of the list for display purposes';
+            DataClassification = CustomerContent;
         }
         field(3; Name; Text[250])
         {
             Caption = 'Name';
             Description = 'Name of the list';
+            DataClassification = CustomerContent;
         }
         field(4; Description; Text[2048])
         {
             Caption = 'Description';
             Description = 'Description of the list';
+            DataClassification = CustomerContent;
         }
         field(5; WebUrl; Text[2048])
         {

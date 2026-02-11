@@ -33,6 +33,7 @@ table 9132 "SharePoint Graph Drive Item"
         {
             Caption = 'Name';
             Description = 'Name of the item (file or folder name)';
+            DataClassification = CustomerContent;
         }
         field(4; ParentId; Text[250])
         {
@@ -43,6 +44,7 @@ table 9132 "SharePoint Graph Drive Item"
         {
             Caption = 'Path';
             Description = 'Path to the item from the drive root';
+            DataClassification = CustomerContent;
         }
         field(6; WebUrl; Text[2048])
         {

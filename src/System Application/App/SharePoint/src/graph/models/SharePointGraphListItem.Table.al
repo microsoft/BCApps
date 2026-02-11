@@ -33,6 +33,7 @@ table 9131 "SharePoint Graph List Item"
         {
             Caption = 'Title';
             Description = 'Title of the list item';
+            DataClassification = CustomerContent;
         }
         field(4; ContentType; Text[100])
         {

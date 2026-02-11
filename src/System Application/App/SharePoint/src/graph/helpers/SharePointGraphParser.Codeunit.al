@@ -57,7 +57,7 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonArray">The JSON array to parse.</param>
     /// <param name="GraphLists">The temporary record to populate.</param>
-    /// <returns>True if successfully parsed; otherwise false.</returns>
+    /// <returns>True if successfully parsed; throws an exception on failure.</returns>
     procedure ParseListCollection(JsonArray: JsonArray; var GraphLists: Record "SharePoint Graph List" temporary): Boolean
     var
         JsonToken: JsonToken;
@@ -83,7 +83,7 @@ codeunit 9122 "SharePoint Graph Parser"
     procedure ParseListItem(JsonListObject: JsonObject; var GraphList: Record "SharePoint Graph List" temporary): Boolean
     var
         JsonToken: JsonToken;
-        DtToken: JsonToken;
+        NestedJsonToken: JsonToken;
     begin
         if not JsonListObject.Get('id', JsonToken) then
             exit(false);
@@ -104,13 +104,13 @@ codeunit 9122 "SharePoint Graph Parser"
 
         if JsonListObject.Get('list', JsonToken) then
             if JsonToken.IsObject() then
-                if JsonToken.AsObject().Get('template', DtToken) then
-                    GraphList.Template := CopyStr(DtToken.AsValue().AsText(), 1, MaxStrLen(GraphList.Template));
+                if JsonToken.AsObject().Get('template', NestedJsonToken) then
+                    GraphList.Template := CopyStr(NestedJsonToken.AsValue().AsText(), 1, MaxStrLen(GraphList.Template));
 
         if JsonListObject.Get('drive', JsonToken) then
             if JsonToken.IsObject() then
-                if JsonToken.AsObject().Get('id', DtToken) then
-                    GraphList.DriveId := CopyStr(DtToken.AsValue().AsText(), 1, MaxStrLen(GraphList.DriveId));
+                if JsonToken.AsObject().Get('id', NestedJsonToken) then
+                    GraphList.DriveId := CopyStr(NestedJsonToken.AsValue().AsText(), 1, MaxStrLen(GraphList.DriveId));
 
         if JsonListObject.Get('createdDateTime', JsonToken) then
             GraphList.CreatedDateTime := JsonToken.AsValue().AsDateTime();
@@ -240,7 +240,7 @@ codeunit 9122 "SharePoint Graph Parser"
     /// <param name="JsonArray">The JSON array to parse.</param>
     /// <param name="DriveId">The ID of the drive the items belong to.</param>
     /// <param name="GraphDriveItems">The temporary record to populate.</param>
-    /// <returns>True if successfully parsed; otherwise false.</returns>
+    /// <returns>True if successfully parsed; throws an exception on failure.</returns>
     procedure ParseDriveItemCollection(JsonArray: JsonArray; DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
     var
         JsonToken: JsonToken;
@@ -339,7 +339,7 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonArray">The JSON array to parse.</param>
     /// <param name="GraphDrives">The temporary record to populate.</param>
-    /// <returns>True if successfully parsed; otherwise false.</returns>
+    /// <returns>True if successfully parsed; throws an exception on failure.</returns>
     procedure ParseDriveCollection(JsonArray: JsonArray; var GraphDrives: Record "SharePoint Graph Drive" temporary): Boolean
     var
         JsonToken: JsonToken;
