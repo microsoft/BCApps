@@ -29,7 +29,7 @@ table 20407 "Qlty. Inspect. Source Config."
     DrillDownPageId = "Qlty. Ins. Source Config. List";
     LookupPageId = "Qlty. Ins. Source Config. List";
     DataClassification = CustomerContent;
-    Description = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    Description = 'Use this page to configure what will automatically populate from other tables into quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
 
     fields
     {
