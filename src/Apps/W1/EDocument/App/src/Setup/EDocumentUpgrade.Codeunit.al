@@ -76,8 +76,8 @@ codeunit 6168 "E-Document Upgrade"
         if SalesCrMemoHeader.FindSet(true) then
             repeat
                 if (SalesCrMemoHeader."QR Code Image".Count > 0) or SalesCrMemoHeader."QR Code Base64".HasValue() then begin
-                    SalesCrMemoHeader."QRCode Pic" := SalesCrMemoHeader."QR Code Image";
-                    SalesCrMemoHeader."QRCode Base64 Data" := SalesCrMemoHeader."QR Code Base64";
+                    SalesCrMemoHeader."CrdMemo QR Code Image" := SalesCrMemoHeader."QR Code Image";
+                    SalesCrMemoHeader."CrdMemo QR Code Base64" := SalesCrMemoHeader."QR Code Base64";
                     SalesCrMemoHeader.Modify();
                 end;
             until SalesCrMemoHeader.Next() = 0;
