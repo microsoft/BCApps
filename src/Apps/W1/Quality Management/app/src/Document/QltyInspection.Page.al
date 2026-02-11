@@ -66,11 +66,11 @@ page 20406 "Qlty. Inspection"
                 {
                     Importance = Additional;
                 }
-                group(SettingsForPassAndFailQty)
+                group(PassAndFailQty)
                 {
                     ShowCaption = false;
 
-                    group(SettingsForSourceQuantityNonAQL)
+                    group(SourceQuantityNonAQL)
                     {
                         Caption = 'Quantity';
 
@@ -95,7 +95,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForGradingAndStatus)
+                group(GradingAndStatus)
                 {
                     Caption = 'Status';
 
@@ -125,7 +125,7 @@ page 20406 "Qlty. Inspection"
                         Visible = false;
                     }
                 }
-                group(SettingsForItemTracking)
+                group(ItemTracking)
                 {
                     Caption = 'Item Tracking';
 
@@ -165,7 +165,7 @@ page 20406 "Qlty. Inspection"
                         end;
                     }
                 }
-                group(SettingsForStatistics)
+                group(Statistics)
                 {
                     Caption = 'Statistics';
 
@@ -251,7 +251,7 @@ page 20406 "Qlty. Inspection"
                     ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
                     Importance = Additional;
                 }
-                group(SettingsForSourceTypeVisibility)
+                group(SourceTypeVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceType;
@@ -263,7 +263,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Type');
                     }
                 }
-                group(SettingsForSourceSubTypeVisibility)
+                group(SourceSubTypeVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceSubType;
@@ -275,7 +275,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Sub Type');
                     }
                 }
-                group(SettingsForSourceDocNoVisibility)
+                group(SourceDocNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleDocumentNo;
@@ -286,7 +286,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Document No.');
                     }
                 }
-                group(SettingsForSourceDocLineNoVisibility)
+                group(SourceDocLineNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleDocumentLineNo;
@@ -297,7 +297,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Document Line No.');
                     }
                 }
-                group(SettingsForSourceTaskNoVisibility)
+                group(SourceTaskNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceTaskNo;
@@ -308,7 +308,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Task No.');
                     }
                 }
-                group(SettingsForSourceCustom1Visibility)
+                group(SourceCustom1Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom1;
@@ -319,7 +319,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Custom 1');
                     }
                 }
-                group(SettingsForSourceCustom2Visibility)
+                group(SourceCustom2Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom2;
@@ -330,7 +330,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Custom 2');
                     }
                 }
-                group(SettingsForSourceCustom3Visibility)
+                group(SourceCustom3Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom3;
@@ -342,7 +342,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom4Visibility)
+                group(SourceCustom4Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom4;
@@ -354,7 +354,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom5Visibility)
+                group(SourceCustom5Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom5;
@@ -366,7 +366,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom6Visibility)
+                group(SourceCustom6Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom6;
@@ -378,7 +378,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom7Visibility)
+                group(SourceCustom7Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom7;
@@ -390,7 +390,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom8Visibility)
+                group(SourceCustom8Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom8;
@@ -402,7 +402,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom9Visibility)
+                group(SourceCustom9Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom9;
@@ -414,7 +414,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom10Visibility)
+                group(SourceCustom10Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom10;
@@ -726,7 +726,7 @@ page 20406 "Qlty. Inspection"
                     QltyMiscHelpers.NavigateToFindEntries(Rec);
                 end;
             }
-            group(SettingsForItemAvailabilityBy)
+            group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
                 Image = ItemAvailability;

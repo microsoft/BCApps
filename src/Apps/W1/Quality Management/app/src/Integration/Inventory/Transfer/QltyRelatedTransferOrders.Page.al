@@ -175,7 +175,7 @@ page 20480 "Qlty. Related Transfer Orders"
                     end;
                 end;
             }
-            group(SettingsForOrderDocuments)
+            group(OrderDocuments)
             {
                 Caption = 'Documents';
                 Image = Documents;
@@ -199,7 +199,7 @@ page 20480 "Qlty. Related Transfer Orders"
                     ToolTip = 'View related posted transfer receipts.';
                 }
             }
-            group(SettingsForWarehouse)
+            group(Warehouse)
             {
                 Caption = 'Warehouse';
                 Image = Warehouse;

@@ -21,7 +21,7 @@ page 20432 "Qlty. Test Wizard"
     {
         area(Content)
         {
-            group(SettingsForStepNewOrExisting)
+            group(StepNewOrExisting)
             {
                 Visible = (CurrentStepCounter = Step1NewOrExisting) and (not EditingExistingTest);
 
@@ -47,7 +47,7 @@ page 20432 "Qlty. Test Wizard"
                         CurrPage.Update();
                     end;
                 }
-                group(SettingsForWrapExistingTests)
+                group(WrapExistingTests)
                 {
                     Visible = ChooseExistingTestOrTests or NewTest;
                     ShowCaption = false;
@@ -60,13 +60,13 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForEditingExistingTest)
+            group(EditingExistingTest)
             {
                 Caption = 'Edit Existing Test';
                 ShowCaption = false;
                 Visible = (Step2AddNewTest = CurrentStepCounter) and EditingExistingTest;
 
-                group(SettingsForEditExistingShortName)
+                group(EditExistingShortName)
                 {
                     Caption = 'Short name (Test Code)';
                     InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
@@ -80,7 +80,7 @@ page 20432 "Qlty. Test Wizard"
                         Editable = false;
                     }
                 }
-                group(SettingsForExistingTestDescription)
+                group(ExistingTestDescription)
                 {
                     Caption = 'Description';
                     InstructionalText = 'Change the description for what this test represents.';
@@ -98,7 +98,7 @@ page 20432 "Qlty. Test Wizard"
                         end;
                     }
                 }
-                group(SettingsForEditExistingType)
+                group(EditExistingType)
                 {
                     Caption = 'What type of data is it?';
                     InstructionalText = 'Is this a number, a choice from a pre-defined list, or something else?';
@@ -117,13 +117,13 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForCreateSingleNewTest)
+            group(CreateSingleNewTest)
             {
                 Caption = 'Add a New Test';
                 ShowCaption = false;
                 Visible = (Step2AddNewTest = CurrentStepCounter) and not EditingExistingTest;
 
-                group(SettingsForDescription)
+                group(Description)
                 {
                     Caption = 'Description';
                     InstructionalText = 'Type a relevant description for what this new test represents.';
@@ -140,7 +140,7 @@ page 20432 "Qlty. Test Wizard"
                             HandleTestDescriptionOnValidate();
                         end;
                     }
-                    group(SettingsForChooseDataLink)
+                    group(ChooseDataLink)
                     {
                         Visible = not ShowNewTestCode;
                         Caption = ' ';
@@ -161,7 +161,7 @@ page 20432 "Qlty. Test Wizard"
                         }
                     }
                 }
-                group(SettingsForShortName)
+                group(ShortName)
                 {
                     Caption = 'Short name (Test Code)';
                     InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
@@ -180,7 +180,7 @@ page 20432 "Qlty. Test Wizard"
                         end;
                     }
                 }
-                group(SettingsForType)
+                group(Type)
                 {
                     Caption = 'What type of data is it?';
                     InstructionalText = 'Is this a number, a choice from a pre-defined list, or something else?';
@@ -200,7 +200,7 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForFieldDataTypeDetails)
+            group(FieldDataTypeDetails)
             {
                 Visible = (Step3FieldDataTypeDetails = CurrentStepCounter);
 
