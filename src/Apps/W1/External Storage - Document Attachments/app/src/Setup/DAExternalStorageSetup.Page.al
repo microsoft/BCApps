@@ -18,7 +18,7 @@ page 8750 "DA External Storage Setup"
     SourceTable = "DA External Storage Setup";
     Caption = 'External Storage Setup';
     UsageCategory = None;
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = All;
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
