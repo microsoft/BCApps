@@ -301,9 +301,6 @@ codeunit 9122 "SharePoint Graph Parser"
         if JsonItemObject.Get('webUrl', JsonToken) then
             GraphDriveItem.WebUrl := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDriveItem.WebUrl));
 
-        if JsonItemObject.Get('@microsoft.graph.downloadUrl', JsonToken) then
-            GraphDriveItem.DownloadUrl := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDriveItem.DownloadUrl));
-
         if JsonItemObject.Get('createdDateTime', JsonToken) then
             GraphDriveItem.CreatedDateTime := JsonToken.AsValue().AsDateTime();
 

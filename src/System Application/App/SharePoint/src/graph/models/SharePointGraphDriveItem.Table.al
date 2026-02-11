@@ -49,32 +49,27 @@ table 9132 "SharePoint Graph Drive Item"
             Caption = 'Web URL';
             Description = 'URL to view the item in a web browser';
         }
-        field(7; DownloadUrl; Text[2048])
-        {
-            Caption = 'Download URL';
-            Description = 'URL to download the item content';
-        }
-        field(8; CreatedDateTime; DateTime)
+        field(7; CreatedDateTime; DateTime)
         {
             Caption = 'Created Date Time';
             Description = 'Date and time when the item was created';
         }
-        field(9; LastModifiedDateTime; DateTime)
+        field(8; LastModifiedDateTime; DateTime)
         {
             Caption = 'Last Modified Date Time';
             Description = 'Date and time when the item was last modified';
         }
-        field(10; Size; BigInteger)
+        field(9; Size; BigInteger)
         {
             Caption = 'Size';
             Description = 'Size of the item in bytes';
         }
-        field(11; IsFolder; Boolean)
+        field(10; IsFolder; Boolean)
         {
             Caption = 'Is Folder';
             Description = 'Indicates if the item is a folder';
         }
-        field(12; FileType; Text[50])
+        field(11; FileType; Text[50])
         {
             Caption = 'File Type';
             Description = 'Type/extension of the file';
