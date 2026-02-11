@@ -16,30 +16,31 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Workflow;
 
 /// <summary>
-/// Used for full read-only access to Quality Management.
+/// Used for working with Quality Inspections.
 /// </summary>
-permissionset 20401 "QltyMngmnt - Read"
+permissionset 20404 QltyMngmntInspector
 {
-    Caption = 'Quality Management - Read access';
+    Caption = 'Quality Management - Quality Inspector';
     Access = Public;
     Assignable = true;
 
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        tabledata "Qlty. Management Setup" = R,
-        tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
-        tabledata "Qlty. Express Config. Value" = R,
-        tabledata "Qlty. Inspection Gen. Rule" = R,
-        tabledata "Qlty. I. Result Condit. Conf." = R,
-        tabledata "Qlty. Inspect. Source Config." = R,
-        tabledata "Qlty. Inspect. Src. Fld. Conf." = R,
-        tabledata "Qlty. Lookup Code" = R,
+        tabledata "Qlty. Express Config. Value" = RIMD,
+        tabledata "Qlty. Inspection Gen. Rule" = RIMd,
+        tabledata "Qlty. I. Result Condit. Conf." = RIMd,
+        tabledata "Qlty. Inspection Result" = RIMd,
+        tabledata "Qlty. Inspection Template Hdr." = RIMd,
+        tabledata "Qlty. Inspection Template Line" = RIMd,
+        tabledata "Qlty. Lookup Code" = RIMd,
+        tabledata "Qlty. Management Setup" = RIMd,
         tabledata "Qlty. Related Transfers Buffer" = RIMD,
-        tabledata "Qlty. Inspection Template Hdr." = R,
-        tabledata "Qlty. Inspection Template Line" = R,
-        tabledata "Qlty. Test" = R,
-        tabledata "Qlty. Inspection Result" = R,
-        tabledata "Qlty. Inspection Header" = R,
-        tabledata "Qlty. Inspection Line" = R;
+        tabledata "Qlty. Mgmt. Role Center Cue" = RIMd,
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = RIMd,
+        tabledata "Qlty. Inspect. Source Config." = RIMd,
+        tabledata "Qlty. Inspection Line" = RIMd,
+        tabledata "Qlty. Inspection Header" = RIMd,
+        tabledata "Qlty. Test" = RIMd;
 }
+
