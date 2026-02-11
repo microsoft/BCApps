@@ -744,11 +744,6 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure CleanUpWhereClause250(Input: Text) ResultText: Text[250]
-    begin
-        ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
-    end;
-
     procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
@@ -851,94 +846,6 @@ codeunit 20403 "Qlty. Filter Helpers"
     internal procedure SetItemFilterForItemAttributeFilterSearching(ItemNo: Code[20])
     begin
         SearchingForSpecificItemForItemAttributeManagementEventBinding := ItemNo;
-    end;
-
-    /// <summary>
-    /// Gets the standard task code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetStandardTaskCodeFromRecordOrFilter(var StandardChecklist: Record "Standard Task Quality Measure") StandardTaskCode: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if StandardChecklist."Standard Task Code" <> '' then
-            exit(StandardChecklist."Standard Task Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            StandardChecklist.FilterGroup(FilterGroupIterator);
-            if StandardChecklist.GetFilter("Standard Task Code") <> '' then
-                StandardTaskCode := StandardChecklist.GetRangeMin("Standard Task Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (StandardTaskCode <> '');
-        StandardChecklist.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the routing code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetRoutingCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingNo: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Routing No." <> '' then
-            exit(RoutingQualityMeasure."Routing No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Routing No.") <> '' then
-                RoutingNo := RoutingQualityMeasure.GetRangeMin("Routing No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the operation no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetOperationNoFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") OperationNo: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Operation No." <> '' then
-            exit(RoutingQualityMeasure."Operation No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Operation No.") <> '' then
-                OperationNo := RoutingQualityMeasure.GetRangeMin("Operation No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (OperationNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the version no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure VersionCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingVersionCode: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Version Code" <> '' then
-            exit(RoutingQualityMeasure."Version Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Version Code") <> '' then
-                RoutingVersionCode := RoutingQualityMeasure.GetRangeMin("Version Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingVersionCode <> '');
-        RoutingQualityMeasure.FilterGroup(0);
     end;
 
     /// <summary>
