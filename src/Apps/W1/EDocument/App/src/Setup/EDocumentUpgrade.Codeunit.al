@@ -68,6 +68,7 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeTag.SetUpgradeTag(GetQRCodeFieldsUpgradeTag());
     end;
 
+#pragma warning disable AL0432
     local procedure MigrateSalesCrMemoQRCodeFields()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -81,6 +82,7 @@ codeunit 6168 "E-Document Upgrade"
                 end;
             until SalesCrMemoHeader.Next() = 0;
     end;
+#pragma warning restore AL0432
 
     local procedure GetQRCodeFieldsUpgradeTag(): Code[250]
     begin
