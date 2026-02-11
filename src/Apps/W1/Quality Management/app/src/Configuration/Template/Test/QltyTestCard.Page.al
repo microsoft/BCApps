@@ -460,43 +460,52 @@ page 20479 "Qlty. Test Card"
             group(TableLookupConfiguration)
             {
                 Caption = 'Table Lookup Configuration';
-                Visible = IsLookupField;
 
-                field("Lookup Table No."; Rec."Lookup Table No.")
+                group(TableLookup)
                 {
-                    Editable = IsLookupField;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'When using a table lookup as a data type then this defines which table you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
-                }
-                field("Lookup Table Name"; Rec."Lookup Table Caption")
-                {
-                    Editable = IsLookupField;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'The name of the lookup table. When using a table lookup as a data type then this is the name of the table that you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
-                }
-                field("Lookup Field No."; Rec."Lookup Field No.")
-                {
-                    Editable = IsLookupField;
-                    AboutTitle = 'Lookup Field No.';
-                    AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
-                }
-                field("Lookup Field Name"; Rec."Lookup Field Caption")
-                {
-                    Editable = IsLookupField;
-                    AboutTitle = 'Lookup Field Name';
-                    AboutText = 'This is the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
-                }
-                field("Lookup Table Filter"; Rec."Lookup Table Filter")
-                {
-                    Editable = IsLookupField;
-                    AboutTitle = 'Lookup Table Filter';
-                    AboutText = 'This allows you to restrict which data are available from the Lookup Table by using a standard Business Central filter expression. For example if you were using table 231 "Reason Code" as your lookup table and wanted to restrict the options to codes that started with "R" then you could enter: where("Code"=filter(R*))';
+                    ShowCaption = false;
 
-                    trigger OnAssistEdit()
-                    begin
-                        if IsLookupField then
-                            Rec.AssistEditLookupTableFilter();
-                    end;
+                    field("Lookup Table No."; Rec."Lookup Table No.")
+                    {
+                        Editable = IsLookupField;
+                        AboutTitle = 'Lookup Table No.';
+                        AboutText = 'When using a table lookup as a data type then this defines which table you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
+                    }
+                    field("Lookup Table Name"; Rec."Lookup Table Caption")
+                    {
+                        Editable = IsLookupField;
+                        AboutTitle = 'Lookup Table No.';
+                        AboutText = 'The name of the lookup table. When using a table lookup as a data type then this is the name of the table that you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
+                    }
+                    field("Lookup Table Filter"; Rec."Lookup Table Filter")
+                    {
+                        Editable = IsLookupField;
+                        AboutTitle = 'Lookup Table Filter';
+                        AboutText = 'This allows you to restrict which data are available from the Lookup Table by using a standard Business Central filter expression. For example if you were using table 231 "Reason Code" as your lookup table and wanted to restrict the options to codes that started with "R" then you could enter: where("Code"=filter(R*))';
+
+                        trigger OnAssistEdit()
+                        begin
+                            if IsLookupField then
+                                Rec.AssistEditLookupTableFilter();
+                        end;
+                    }
+                }
+                group(FieldLookup)
+                {
+                    ShowCaption = false;
+
+                    field("Lookup Field No."; Rec."Lookup Field No.")
+                    {
+                        Editable = IsLookupField;
+                        AboutTitle = 'Lookup Field No.';
+                        AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
+                    }
+                    field("Lookup Field Name"; Rec."Lookup Field Caption")
+                    {
+                        Editable = IsLookupField;
+                        AboutTitle = 'Lookup Field Name';
+                        AboutText = 'This is the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
+                    }
                 }
             }
         }
