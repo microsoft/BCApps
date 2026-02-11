@@ -9,7 +9,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-query 4405 "EXR Trial Balance"
+query 4407 "EXR Trial Balance BU"
 {
     Access = Internal;
     DataAccessIntent = ReadOnly;
@@ -36,6 +36,9 @@ query 4405 "EXR Trial Balance"
                 column(ACYAmount; "Additional-Currency Amount")
                 {
                     Method = sum;
+                }
+                column(BusinessUnitCode; "Business Unit Code")
+                {
                 }
                 filter(PostingDate; "Posting Date")
                 {
