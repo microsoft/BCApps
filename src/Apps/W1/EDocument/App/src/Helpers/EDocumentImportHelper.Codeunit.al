@@ -623,6 +623,9 @@ codeunit 6109 "E-Document Import Helper"
     begin
         if not Vendor.Get(VendorNo) then
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(VendorNotFoundErr, EDocument."Bill-to/Pay-to Name"));
+
+        if Vendor."Self-Billing Agreement" then
+            LogErrorIfVendorIsSelfBilling(EDocument, Vendor);
     end;
 
     /// <summary>
@@ -644,6 +647,12 @@ codeunit 6109 "E-Document Import Helper"
         ServiceParticipant.SetRange(Service);
         if ServiceParticipant.FindFirst() then
             exit(ServiceParticipant.Participant);
+    end;
+
+    procedure LogErrorIfVendorIsSelfBilling(var EDocument: Record "E-Document"; Vendor: Record Vendor)
+    begin
+        if (EDocument."Direction" = Enum::"E-Document Direction"::"Incoming") then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBillingVendorErr, Vendor."No."));
     end;
 
 #if not CLEAN26
@@ -1034,5 +1043,6 @@ codeunit 6109 "E-Document Import Helper"
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';
         TotalsMismatchErr: Label 'The total amount %1 on the created document is different than the total amount %2 in the electronic document.', Comment = '%1 total amount, %2 expected total amount';
         VendorNotFoundErr: Label 'Cannot find vendor ''%1'' based on the vendor''s name, address or VAT registration number on the electronic document. Make sure that a card for the vendor exists with the corresponding name, address or VAT Registration No.', Comment = '%1 Vendor name (e.g. London Postmaster)';
+        SelfBillingVendorErr: Label 'Inbound E-Document blocked for vendor %1 due to Self-Billing Agreement. Supplier-issued invoices cannot be processed for this vendor.', Comment = '%1 Vendor name (e.g. London Postmaster)';
         NotSpecifiedUnitOfMeasureTxt: Label '<NONE>';
 }
