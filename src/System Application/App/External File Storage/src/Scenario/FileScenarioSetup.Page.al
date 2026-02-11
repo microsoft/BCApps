@@ -87,6 +87,7 @@ page 9452 "File Scenario Setup"
                     ToolTip = 'Additional scenario setup for the selected scenario.';
                     Image = Setup;
                     Scope = Repeater;
+
                     trigger OnAction()
                     var
                         FileScenarioInterface: Interface "File Scenario";
