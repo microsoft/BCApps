@@ -671,7 +671,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Construct drive endpoint for specific drive ID
-        DriveEndpoint := SharePointGraphUriBuilder.GetSiteEndpoint() + '/drives/' + DriveId;
+        DriveEndpoint := SharePointGraphUriBuilder.GetSpecificDriveEndpoint(DriveId);
 
         // Make the API request
         if not SharePointGraphRequestHelper.Get(DriveEndpoint, JsonResponse, GraphOptionalParameters) then begin
@@ -1848,7 +1848,6 @@ codeunit 9120 "SharePoint Graph Client Impl."
         ResponseJson: JsonObject;
         CopyEndpoint: Text;
         ErrorMessage: Text;
-        CopyItemEndpointLbl: Label '/sites/%1/drive/items/%2/copy', Locked = true;
     begin
         EnsureInitialized();
         EnsureSiteId();
@@ -1870,7 +1869,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Build the copy endpoint
-        CopyEndpoint := StrSubstNo(CopyItemEndpointLbl, SiteId, ItemId);
+        CopyEndpoint := SharePointGraphUriBuilder.GetCopyItemEndpoint(ItemId);
 
         // Build request body
         ParentReference.Add('driveId', DefaultDriveId);

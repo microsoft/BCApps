@@ -26,6 +26,8 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         CustomBaseUrl: Text;
         MicrosoftGraphDefaultBaseUrlLbl: Label 'https://graph.microsoft.com/%1', Comment = '%1 = Graph API Version', Locked = true;
         RangeHeaderLbl: Label 'bytes=%1-%2', Locked = true;
+        UntrustedUploadHostErr: Label 'Upload URL points to an untrusted host.', Locked = true;
+        AllowedUploadUrlPatternLbl: Label '^https:\/\/[a-zA-Z0-9][a-zA-Z0-9\.\-]*\.(sharepoint\.com|microsoft\.com|microsoftonline\.com)(\/.*)?$', Locked = true;
 
     /// <summary>
     /// Initializes the Graph Request Helper with an authorization.
@@ -323,6 +325,12 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         // because the upload URL is a complete URL and we shouldn't send the Authorization header
         Clear(ResponseJson);
 
+        // Validate that the upload URL points to a trusted Microsoft host
+        if not IsAllowedUploadUrl(UploadUrl) then begin
+            SharePointDiagnostics.SetParameters(false, 0, UntrustedUploadHostErr, 0, '');
+            exit(false);
+        end;
+
         // Initialize a fresh RestClient without passing any authorization
         RestClient.Initialize();
 
@@ -616,6 +624,13 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         TempBlob := HttpResponseMessage.GetContent().AsBlob();
 
         exit(true);
+    end;
+
+    local procedure IsAllowedUploadUrl(Url: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        exit(Uri.IsValidURIPattern(Url, AllowedUploadUrlPatternLbl));
     end;
 
     local procedure TryGetRetryAfterHeaderValue(HttpResponseMessage: Codeunit "Http Response Message") RetryAfterAsInteger: Integer

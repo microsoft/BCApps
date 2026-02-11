@@ -40,6 +40,8 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         SpecificDriveRootChildrenLbl: Label '/sites/%1/drives/%2/root/children', Locked = true;
         SpecificDriveItemChildrenByPathLbl: Label '/sites/%1/drives/%2/root:/%3:/children', Locked = true;
         SpecificDriveItemContentByPathLbl: Label '/sites/%1/drives/%2/root:/%3:/content', Locked = true;
+        SpecificDriveLbl: Label '/sites/%1/drives/%2', Locked = true;
+        CopyItemLbl: Label '/sites/%1/drive/items/%2/copy', Locked = true;
 
     /// <summary>
     /// Initializes the Graph URI Builder with a specific request helper.
@@ -60,7 +62,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetSiteByHostAndPathEndpoint(HostName: Text; RelativePath: Text): Text
     begin
-        exit(StrSubstNo(SiteByHostAndPathLbl, HostName, RelativePath));
+        exit(StrSubstNo(SiteByHostAndPathLbl, EscapeDataString(HostName), RelativePath));
     end;
 
     /// <summary>
@@ -88,7 +90,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetListEndpoint(ListId: Text): Text
     begin
-        exit(StrSubstNo(ListByIdLbl, SiteId, ListId));
+        exit(StrSubstNo(ListByIdLbl, SiteId, EscapeDataString(ListId)));
     end;
 
     /// <summary>
@@ -98,7 +100,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetListItemsEndpoint(ListId: Text): Text
     begin
-        exit(StrSubstNo(ListItemsLbl, SiteId, ListId));
+        exit(StrSubstNo(ListItemsLbl, SiteId, EscapeDataString(ListId)));
     end;
 
     /// <summary>
@@ -108,7 +110,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetCreateListItemEndpoint(ListId: Text): Text
     begin
-        exit(StrSubstNo(CreateListItemLbl, SiteId, ListId));
+        exit(StrSubstNo(CreateListItemLbl, SiteId, EscapeDataString(ListId)));
     end;
 
     /// <summary>
@@ -154,7 +156,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemByPathEndpoint(ItemPath: Text): Text
     begin
-        exit(StrSubstNo(DriveRootItemByPathLbl, SiteId, ItemPath));
+        exit(StrSubstNo(DriveRootItemByPathLbl, SiteId, EscapePathSegments(ItemPath)));
     end;
 
     /// <summary>
@@ -164,7 +166,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemByIdEndpoint(ItemId: Text): Text
     begin
-        exit(StrSubstNo(DriveItemByIdLbl, SiteId, ItemId));
+        exit(StrSubstNo(DriveItemByIdLbl, SiteId, EscapeDataString(ItemId)));
     end;
 
     /// <summary>
@@ -174,7 +176,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemChildrenByIdEndpoint(ItemId: Text): Text
     begin
-        exit(StrSubstNo(DriveItemChildrenLbl, SiteId, ItemId));
+        exit(StrSubstNo(DriveItemChildrenLbl, SiteId, EscapeDataString(ItemId)));
     end;
 
     /// <summary>
@@ -184,7 +186,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemChildrenByPathEndpoint(ItemPath: Text): Text
     begin
-        exit(StrSubstNo(DriveItemChildrenByPathLbl, SiteId, ItemPath));
+        exit(StrSubstNo(DriveItemChildrenByPathLbl, SiteId, EscapePathSegments(ItemPath)));
     end;
 
     /// <summary>
@@ -194,7 +196,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemContentByIdEndpoint(ItemId: Text): Text
     begin
-        exit(StrSubstNo(DriveItemContentLbl, SiteId, ItemId));
+        exit(StrSubstNo(DriveItemContentLbl, SiteId, EscapeDataString(ItemId)));
     end;
 
     /// <summary>
@@ -204,7 +206,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetDriveItemContentByPathEndpoint(ItemPath: Text): Text
     begin
-        exit(StrSubstNo(DriveItemContentByPathLbl, SiteId, ItemPath));
+        exit(StrSubstNo(DriveItemContentByPathLbl, SiteId, EscapePathSegments(ItemPath)));
     end;
 
     /// <summary>
@@ -218,9 +220,9 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         ItemPath: Text;
     begin
         if FolderPath = '' then
-            ItemPath := FileName
+            ItemPath := EscapeDataString(FileName)
         else
-            ItemPath := FolderPath + '/' + FileName;
+            ItemPath := EscapePathSegments(FolderPath) + '/' + EscapeDataString(FileName);
 
         exit(StrSubstNo(DriveItemContentByPathLbl, SiteId, ItemPath));
     end;
@@ -312,7 +314,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetSpecificDriveRootEndpoint(DriveId: Text): Text
     begin
-        exit(StrSubstNo(SpecificDriveRootLbl, SiteId, DriveId));
+        exit(StrSubstNo(SpecificDriveRootLbl, SiteId, EscapeDataString(DriveId)));
     end;
 
     /// <summary>
@@ -322,7 +324,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetSpecificDriveRootChildrenEndpoint(DriveId: Text): Text
     begin
-        exit(StrSubstNo(SpecificDriveRootChildrenLbl, SiteId, DriveId));
+        exit(StrSubstNo(SpecificDriveRootChildrenLbl, SiteId, EscapeDataString(DriveId)));
     end;
 
     /// <summary>
@@ -333,7 +335,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <returns>The endpoint.</returns>
     procedure GetSpecificDriveItemChildrenByPathEndpoint(DriveId: Text; ItemPath: Text): Text
     begin
-        exit(StrSubstNo(SpecificDriveItemChildrenByPathLbl, SiteId, DriveId, ItemPath));
+        exit(StrSubstNo(SpecificDriveItemChildrenByPathLbl, SiteId, EscapeDataString(DriveId), EscapePathSegments(ItemPath)));
     end;
 
     /// <summary>
@@ -348,11 +350,57 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         ItemPath: Text;
     begin
         if FolderPath = '' then
-            ItemPath := FileName
+            ItemPath := EscapeDataString(FileName)
         else
-            ItemPath := FolderPath + '/' + FileName;
+            ItemPath := EscapePathSegments(FolderPath) + '/' + EscapeDataString(FileName);
 
-        exit(StrSubstNo(SpecificDriveItemContentByPathLbl, SiteId, DriveId, ItemPath));
+        exit(StrSubstNo(SpecificDriveItemContentByPathLbl, SiteId, EscapeDataString(DriveId), ItemPath));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for getting a specific drive by ID.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveEndpoint(DriveId: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveLbl, SiteId, EscapeDataString(DriveId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for copying a drive item.
+    /// </summary>
+    /// <param name="ItemId">The ID of the item to copy.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetCopyItemEndpoint(ItemId: Text): Text
+    begin
+        exit(StrSubstNo(CopyItemLbl, SiteId, EscapeDataString(ItemId)));
+    end;
+
+    local procedure EscapeDataString(TextToEscape: Text): Text
+    var
+        Uri: Codeunit Uri;
+    begin
+        exit(Uri.EscapeDataString(TextToEscape));
+    end;
+
+    local procedure EscapePathSegments(PathToEscape: Text): Text
+    var
+        Uri: Codeunit Uri;
+        Segments: List of [Text];
+        Segment: Text;
+        Result: Text;
+        i: Integer;
+    begin
+        PathToEscape := PathToEscape.TrimStart('/');
+        Segments := PathToEscape.Split('/');
+        for i := 1 to Segments.Count() do begin
+            Segments.Get(i, Segment);
+            if i > 1 then
+                Result += '/';
+            Result += Uri.EscapeDataString(Segment);
+        end;
+        exit(Result);
     end;
 
 }

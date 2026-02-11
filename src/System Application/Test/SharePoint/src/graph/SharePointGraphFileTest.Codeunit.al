@@ -184,6 +184,73 @@ codeunit 132983 "SharePoint Graph File Test"
         LibraryAssert.IsFalse(TempDriveItem.IsFolder, 'Should be a file');
     end;
 
+    [Test]
+    procedure TestUploadFileNameEncoded()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TempBlob: Codeunit "Temp Blob";
+        FileInStream: InStream;
+        FileOutStream: OutStream;
+        RequestUri: Text;
+    begin
+        // [GIVEN] Mock response and a file with special characters in its name
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(201);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        TempBlob.CreateOutStream(FileOutStream);
+        FileOutStream.WriteText('Test file content');
+        TempBlob.CreateInStream(FileInStream);
+
+        // [WHEN] Calling UploadFile with special characters in folder path and file name
+        SharePointGraphResponse := SharePointGraphClient.UploadFile('My Folder', 'Report #2.txt', FileInStream, TempDriveItem);
+
+        // [THEN] Special characters in both folder name and file name should be encoded
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        RequestUri := HttpRequestMessage.GetRequestUri();
+        LibraryAssert.IsTrue(RequestUri.Contains('My%20Folder'), 'Space in folder name should be percent-encoded');
+        LibraryAssert.IsTrue(RequestUri.Contains('%23'), 'Hash in file name should be percent-encoded');
+    end;
+
+    [Test]
+    procedure TestUploadRejectsUntrustedUploadUrl()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TempBlob: Codeunit "Temp Blob";
+        FileInStream: InStream;
+        FileOutStream: OutStream;
+    begin
+        // [GIVEN] Mock CreateUploadSession response with an untrusted upload URL
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetUploadSessionResponseWithUntrustedUrl());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // Create a file stream with content
+        TempBlob.CreateOutStream(FileOutStream);
+        FileOutStream.WriteText('Test content for chunked upload');
+        TempBlob.CreateInStream(FileInStream);
+
+        // [WHEN] Calling UploadLargeFile (which internally calls UploadChunk with the untrusted URL)
+        SharePointGraphResponse := SharePointGraphClient.UploadLargeFile('Documents', 'test.txt', FileInStream, TempDriveItem);
+
+        // [THEN] Operation should fail because the upload URL points to an untrusted host
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UploadLargeFile should fail for untrusted upload URL');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('Upload URL points to an untrusted host'), 'Error should mention untrusted host');
+    end;
+
     local procedure Initialize()
     var
         MockHttpClientHandler: Interface "Http Client Handler";

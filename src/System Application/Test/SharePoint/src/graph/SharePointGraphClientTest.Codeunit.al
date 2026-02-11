@@ -447,6 +447,61 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.ExpectedError('Invalid SharePoint URL');
     end;
 
+    [Test]
+    procedure TestItemIdWithPathTraversalIsEncoded()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        RequestUri: Text;
+    begin
+        // [GIVEN] Mock response and an item ID containing path traversal characters
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling GetDriveItem with a malicious ID containing ../
+        SharePointGraphClient.GetDriveItem('../sensitive-data', TempDriveItem);
+
+        // [THEN] The forward slash in the ID should be percent-encoded to prevent path traversal
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        RequestUri := HttpRequestMessage.GetRequestUri();
+        LibraryAssert.IsTrue(RequestUri.Contains('..%2Fsensitive-data'), 'Forward slash in item ID should be encoded as %2F');
+        LibraryAssert.IsFalse(RequestUri.Contains('/items/../'), 'Path traversal should not be present in the URL');
+    end;
+
+    [Test]
+    procedure TestPathWithSpecialCharsIsEncoded()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        RequestUri: Text;
+    begin
+        // [GIVEN] Mock response and a path with special characters
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling GetDriveItemByPath with a path containing # and spaces
+        SharePointGraphClient.GetDriveItemByPath('Documents/Report #1.docx', TempDriveItem);
+
+        // [THEN] Special characters should be encoded but path separators preserved
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        RequestUri := HttpRequestMessage.GetRequestUri();
+        LibraryAssert.IsTrue(RequestUri.Contains('%23'), 'Hash character should be percent-encoded');
+        LibraryAssert.IsTrue(RequestUri.Contains('%20'), 'Space character should be percent-encoded');
+        LibraryAssert.IsTrue(RequestUri.Contains('Documents/Report'), 'Path separator between segments should be preserved');
+    end;
+
     local procedure Initialize()
     var
         MockHttpClientHandler: Interface "Http Client Handler";
@@ -655,6 +710,39 @@ codeunit 132984 "SharePoint Graph Client Test"
         ResponseText.Append('  "folder": {');
         ResponseText.Append('    "childCount": 0');
         ResponseText.Append('  }');
+        ResponseText.Append('}');
+        exit(ResponseText.ToText());
+    end;
+
+    local procedure GetDriveItemResponse(): Text
+    var
+        ResponseText: TextBuilder;
+    begin
+        ResponseText.Append('{');
+        ResponseText.Append('  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#driveItems/$entity",');
+        ResponseText.Append('  "id": "01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ",');
+        ResponseText.Append('  "name": "Report.docx",');
+        ResponseText.Append('  "createdDateTime": "2023-05-10T14:25:37Z",');
+        ResponseText.Append('  "lastModifiedDateTime": "2023-06-20T09:42:13Z",');
+        ResponseText.Append('  "webUrl": "https://contoso.sharepoint.com/sites/test/Shared%20Documents/Report.docx",');
+        ResponseText.Append('  "file": {');
+        ResponseText.Append('    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",');
+        ResponseText.Append('    "hashes": {');
+        ResponseText.Append('      "quickXorHash": "dF5GC7lcTJbHDrcPKJc8rJtEhCo="');
+        ResponseText.Append('    }');
+        ResponseText.Append('  },');
+        ResponseText.Append('  "size": 45321');
+        ResponseText.Append('}');
+        exit(ResponseText.ToText());
+    end;
+
+    local procedure GetUploadSessionResponseWithUntrustedUrl(): Text
+    var
+        ResponseText: TextBuilder;
+    begin
+        ResponseText.Append('{');
+        ResponseText.Append('  "uploadUrl": "https://evil.com/upload-session-abc123",');
+        ResponseText.Append('  "expirationDateTime": "2025-12-31T23:59:59.000Z"');
         ResponseText.Append('}');
         exit(ResponseText.ToText());
     end;
