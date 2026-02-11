@@ -19,7 +19,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
-        SupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
+        SupervisorRoleIDTok: Label 'QltyMngmnt - Edit', Locked = true;
 
     [Test]
     procedure VerifyCanCreateManualInspection_ShouldError()
