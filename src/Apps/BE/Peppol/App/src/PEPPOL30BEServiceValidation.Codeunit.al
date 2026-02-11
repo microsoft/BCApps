@@ -10,7 +10,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Reflection;
 
-codeunit 37312 "PEPPOL30 BE Service Validation" implements "PEPPOL30 Validation"
+codeunit 37310 "PEPPOL30 BE Service Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Service Header";
     Access = Internal;

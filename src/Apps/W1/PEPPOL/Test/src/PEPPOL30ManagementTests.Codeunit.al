@@ -3255,7 +3255,6 @@ codeunit 139235 "PEPPOL30 Management Tests"
 #pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
 #pragma warning restore AL0432
-        PEPPOLMgt: Codeunit "PEPPOL30";
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3285,7 +3284,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
             TempVATAmtLine);
 
         // [THEN] Correct values are returned
-        Assert.AreEqual(PEPPOLMgt.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code", true, true), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
+        Assert.AreEqual(Cust.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code"), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
         Assert.AreEqual('', CustPartyTaxSchemeCompIDSchID, 'Company ID''s Scheme ID should be empty.');
         Assert.AreEqual('VAT', CustTaxSchemeID, 'Wrong Tax Scheme ID.');
     end;
