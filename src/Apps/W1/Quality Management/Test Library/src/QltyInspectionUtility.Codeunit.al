@@ -1764,16 +1764,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     #region Qlty. Permission Mgmt. Wrappers
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanReadInspectionResults
-    /// </summary>
-    internal procedure CanReadInspectionResults(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanReadInspectionResults());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanCreateManualInspection
     /// </summary>
     internal procedure VerifyCanCreateManualInspection()
@@ -1781,36 +1771,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
         QltyPermissionMgmt.VerifyCanCreateManualInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateManualInspection
-    /// </summary>
-    internal procedure CanCreateManualInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateManualInspection());
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanCreateAutoInspection
-    /// </summary>
-    internal procedure VerifyCanCreateAutoInspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanCreateAutoInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateAutoInspection
-    /// </summary>
-    internal procedure CanCreateAutoInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateAutoInspection());
     end;
 
     /// <summary>
@@ -1824,16 +1784,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateReinspection
-    /// </summary>
-    internal procedure CanCreateReinspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateReinspection());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanDeleteOpenInspection
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
@@ -1841,16 +1791,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
         QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanDeleteOpenInspection
-    /// </summary>
-    internal procedure CanDeleteOpenInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanDeleteOpenInspection());
     end;
 
     /// <summary>
@@ -1904,16 +1844,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanReopenInspection
-    /// </summary>
-    internal procedure CanReopenInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanReopenInspection());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanFinishInspection
     /// </summary>
     internal procedure VerifyCanFinishInspection()
@@ -1934,23 +1864,23 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanChangeTrackingNo
+    /// Wrapper for QltyPermissionMgmt.VerifyCanChangeItemTracking
     /// </summary>
-    internal procedure VerifyCanChangeTrackingNo()
+    internal procedure VerifyCanChangeItemTracking()
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyPermissionMgmt.VerifyCanChangeItemTracking();
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanChangeTrackingNo
+    /// Wrapper for QltyPermissionMgmt.CanChangeItemTracking
     /// </summary>
-    internal procedure CanChangeTrackingNo(): Boolean
+    internal procedure CanChangeItemTracking(): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeTrackingNo());
+        exit(QltyPermissionMgmt.CanChangeItemTracking());
     end;
 
     /// <summary>

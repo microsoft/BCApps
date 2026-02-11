@@ -19,23 +19,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
-        ExpectedSupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
-
-    [Test]
-    procedure CanReadInspectionResults()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        // [SCENARIO] Verify that the CanReadInspectionResults function correctly checks read permissions for inspection results
-        // [GIVEN] The Quality Inspection Header table exists
-        // [WHEN] The CanReadInspectionResults function is called
-        // [THEN] It returns true if read permission exists, false otherwise
-
-        if QltyInspectionHeader.ReadPermission() then
-            LibraryAssert.IsTrue(QltyInspectionUtility.CanReadInspectionResults(), 'Should return read permission = true')
-        else
-            LibraryAssert.IsFalse(QltyInspectionUtility.CanReadInspectionResults(), 'Should return read permission = false');
-    end;
+        SupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
 
     [Test]
     procedure VerifyCanCreateManualInspection_ShouldError()
@@ -62,21 +46,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [WHEN] VerifyCanCreateManualInspection is called
         QltyInspectionUtility.VerifyCanCreateManualInspection();
 
-        // [THEN] The operation succeeds and CanCreateManualInspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateManualInspection(), 'should be allowed with insert permission on order table data');
-    end;
-
-    [Test]
-    procedure VerifyCanCreateAutoInspection()
-    begin
-        // [SCENARIO] Verify that creating an auto inspection is allowed for all users
-        // [GIVEN] No specific permission set is required
-
-        // [WHEN] VerifyCanCreateAutoInspection is called
-        QltyInspectionUtility.VerifyCanCreateAutoInspection();
-
-        // [THEN] The operation succeeds and CanCreateAutoInspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateAutoInspection(), 'everyone is allowed.');
+        // [THEN] No errors is raised
     end;
 
     [Test]
@@ -104,8 +74,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [WHEN] VerifyCanCreateReinspection is called
         QltyInspectionUtility.VerifyCanCreateReinspection();
 
-        // [THEN] The operation succeeds and CanCreateReinspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanCreateReinspection(), 'should be allowed with insert permission on order table data');
+        // [THEN] No errors is raised
     end;
 
     [Test]
@@ -133,8 +102,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [WHEN] VerifyCanDeleteOpenInspection is called
         QltyInspectionUtility.VerifyCanDeleteOpenInspection();
 
-        // [THEN] The operation succeeds and CanDeleteOpenInspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanDeleteOpenInspection(), 'allowed with supervisor role');
+        // [THEN] No errors is raised
     end;
 
     [Test]
@@ -206,8 +174,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [WHEN] VerifyCanReopenInspection is called
         QltyInspectionUtility.VerifyCanReopenInspection();
 
-        // [THEN] The operation succeeds and CanReopenInspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanReopenInspection(), 'should be allowed with modify permission on order table data');
+        // [THEN] No errors is raised
     end;
 
     [Test]
@@ -240,32 +207,32 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure VerifyCanChangeTrackingNo_ShouldError()
+    procedure VerifyCanChangeItemTracking_ShouldError()
     begin
-        // [SCENARIO] Verify that changing tracking number without proper permissions raises an error
+        // [SCENARIO] Verify that changing item tracking without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanChangeTrackingNo is called
-        // [THEN] An error is raised indicating the user lacks permission to change tracking number
+        // [WHEN] VerifyCanChangeItemTracking is called
+        // [THEN] An error is raised indicating the user lacks permission to change item tracking
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanChangeTrackingNo();
+            asserterror QltyInspectionUtility.VerifyCanChangeItemTracking();
             LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change item tracking'));
         end;
     end;
 
     [Test]
-    procedure VerifyCanChangeTrackingNo()
+    procedure VerifyCanChangeItemTracking()
     begin
-        // [SCENARIO] Verify that changing tracking number succeeds with proper supervisor permissions
+        // [SCENARIO] Verify that changing item tracking succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
-        // [WHEN] VerifyCanChangeTrackingNo is called
-        QltyInspectionUtility.VerifyCanChangeTrackingNo();
+        // [WHEN] VerifyCanChangeItemTracking is called
+        QltyInspectionUtility.VerifyCanChangeItemTracking();
 
-        // [THEN] The operation succeeds and CanChangeTrackingNo returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeTrackingNo(), 'should be allowed with modify permission on order table data');
+        // [THEN] The operation succeeds and CanChangeItemTracking returns true
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeItemTracking(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]

@@ -115,7 +115,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// Checks if the current user can delete a finished inspection.
     /// </summary>
     /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
-    local procedure CanDeleteFinishedInspection(): Boolean
+    internal procedure CanDeleteFinishedInspection(): Boolean
     begin
         if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
             exit(false);
