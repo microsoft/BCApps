@@ -20,7 +20,7 @@ codeunit 20430 "Qlty. Session Helper"
         ItemTrackingFlagAllOrSingleTok: Label 'Qlty::ItemTracking::AllOrSingle', Locked = true;
         ItemTrackingFlagAllDocsTok: Label 'Qlty::ItemTracking::AllOrSingle::ALLDOCS', Locked = true;
         ItemTrackingFlagSourceDocOnlyTok: Label 'Qlty::ItemTracking::AllOrSingle::SOURCEDOCONLY', Locked = true;
-        ItemTrackingIsFromQITestModeTok: Label 'Qlty::ItemTracking::StartingFromQITest', Locked = true;
+        ItemTrackingIsFromQltyInspectionModeTok: Label 'Qlty::ItemTracking::StartingFromQltyInspection', Locked = true;
 
     #region Manufacturing - Production Order Status Change Handling
     internal procedure SetProductionOrderBeforeChangingStatus(var ProductionOrderToSet: Record "Production Order")
@@ -47,13 +47,13 @@ codeunit 20430 "Qlty. Session Helper"
 
     internal procedure SetStartingFromQualityManagementFlag()
     begin
-        SetSessionValue(ItemTrackingIsFromQITestModeTok, ItemTrackingIsFromQITestModeTok);
+        SetSessionValue(ItemTrackingIsFromQltyInspectionModeTok, ItemTrackingIsFromQltyInspectionModeTok);
     end;
 
     internal procedure GetStartingFromQualityManagementFlagAndResetFlag() Result: Boolean
     begin
-        Result := (GetSessionValue(ItemTrackingIsFromQITestModeTok) <> '');
-        SetSessionValue(ItemTrackingIsFromQITestModeTok, '');
+        Result := (GetSessionValue(ItemTrackingIsFromQltyInspectionModeTok) <> '');
+        SetSessionValue(ItemTrackingIsFromQltyInspectionModeTok, '');
         exit(Result);
     end;
 

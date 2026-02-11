@@ -19,206 +19,206 @@ codeunit 20406 "Qlty. Permission Mgmt."
     var
         CurrentUserId: Text;
         ExpressOnlyCaptionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
-        ExpressOnlyCaptionCreateTestManualLbl: Label 'Create Test Manual';
-        ExpressOnlyCaptionCreateTestAutoLbl: Label 'Create Test Auto';
-        ExpressOnlyCaptionCreateRetestLbl: Label 'Create Retest';
-        ExpressOnlyCaptionDeleteOpenTestLbl: Label 'Delete Open Test';
-        ExpressOnlyCaptionDeleteFinishedTestLbl: Label 'Delete Finished Test';
-        ExpressOnlyCaptionChangeOthersTestsLbl: Label 'Change Others Tests';
-        ExpressOnlyCaptionReopenTestLbl: Label 'Reopen Test';
-        ExpressOnlyCaptionFinishTestLbl: Label 'Finish Test';
+        ExpressOnlyCaptionCreateInspectionManualLbl: Label 'Create Inspection Manual';
+        ExpressOnlyCaptionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
+        ExpressOnlyCaptionCreateReinspectionLbl: Label 'Create Re-inspection';
+        ExpressOnlyCaptionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
+        ExpressOnlyCaptionDeleteFinishedInspectionLbl: Label 'Delete Finished Inspection';
+        ExpressOnlyCaptionChangeOthersInspectionsLbl: Label 'Change Others Inspections';
+        ExpressOnlyCaptionReopenInspectionLbl: Label 'Reopen Inspection';
+        ExpressOnlyCaptionFinishInspectionLbl: Label 'Finish Inspection';
         ExpressOnlyCaptionChangeTrackingNoLbl: Label 'Change Tracking No.';
         ExpressOnlyCaptionChangeSourceQuantityLbl: Label 'Change Source Quantity';
-        ExpectedSupervisorRoleIDTxt: Label 'QltyGeneral', Locked = true;
+        ExpectedSupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
-    /// CanReadTestResults returns true if the current user can has permission to read test results in general.
+    /// CanReadInspectionResults returns true if the current user can has permission to read inspection results in general.
     /// </summary>
-    /// <returns>Return value of type Boolean, true if the current user can has permission to read test results in general</returns>
-    procedure CanReadTestResults(): Boolean
+    /// <returns>Return value of type Boolean, true if the current user can has permission to read inspection results in general</returns>
+    internal procedure CanReadInspectionResults(): Boolean
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        exit(QltyInspectionTestHeader.ReadPermission());
+        exit(QltyInspectionHeader.ReadPermission());
     end;
 
     /// <summary>
-    /// TestCanCreateManualTest will determine if the current user can create a manual test.
+    /// Determines if the current user can create a manual inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanCreateManualTest()
+    internal procedure VerifyCanCreateManualInspection()
     begin
-        if not CanCreateManualTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateTestManual());
+        if not CanCreateManualInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionManual());
     end;
 
     /// <summary>
-    /// CanCreateManualTest. True if the user can create a manual test
+    /// CanCreateManualInspection. True if the user can create a manual inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateManualTest(): Boolean
+    internal procedure CanCreateManualInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateTestManual()));
+        exit(LoadPermissionDetails(GetCaptionCreateInspectionManual()));
     end;
 
     /// <summary>
-    /// TestCanCreateAutoTest will determine if the current user can create an automatic test.
+    /// Determines if the current user can create an automatic inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanCreateAutoTest()
+    internal procedure VerifyCanCreateAutoInspection()
     begin
-        if not CanCreateAutoTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateTestAuto());
+        if not CanCreateAutoInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionAuto());
     end;
 
     /// <summary>
-    /// CanCreateAutoTest. True if the user can create a manual test
+    /// CanCreateAutoInspection. True if the user can create an automatic inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateAutoTest(): Boolean
+    internal procedure CanCreateAutoInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateTestAuto()));
+        exit(LoadPermissionDetails(GetCaptionCreateInspectionAuto()));
     end;
 
     /// <summary>
-    /// TestCanCreateReTest will determine if the current user can create a retest.
+    /// Determines if the current user can create a re-inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanCreateReTest()
+    internal procedure VerifyCanCreateReinspection()
     begin
-        if not CanCreateReTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReTest());
+        if not CanCreateReinspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReinspection());
     end;
 
     /// <summary>
-    /// CanCreateReTest. True if the user can create a retest.
+    /// CanCreateReinspection. True if the user can create a re-inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateReTest(): Boolean
+    internal procedure CanCreateReinspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateReTest()));
+        exit(LoadPermissionDetails(GetCaptionCreateReinspection()));
     end;
 
     /// <summary>
-    /// TestCanDeleteOpenTest will determine if the current user can delete an open test.
+    /// Determines if the current user can delete an open inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanDeleteOpenTest()
+    internal procedure VerifyCanDeleteOpenInspection()
     begin
-        if not CanDeleteOpenTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteOpenTest());
+        if not CanDeleteOpenInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteOpenInspection());
     end;
 
     /// <summary>
-    /// CanDeleteOpenTest. True if the user  can delete an open test.
+    /// CanDeleteOpenInspection. True if the user  can delete an open inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanDeleteOpenTest(): Boolean
+    internal procedure CanDeleteOpenInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionDeleteOpenTest()));
+        exit(LoadPermissionDetails(GetCaptionDeleteOpenInspection()));
     end;
 
     /// <summary>
-    /// TestCanDeleteFinishedTest will determine if the current user can delete a finished test.
+    /// Determines if the current user can delete a finished inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanDeleteFinishedTest()
+    internal procedure VerifyCanDeleteFinishedInspection()
     begin
-        if not CanDeleteFinishedTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteFinishedTest());
+        if not CanDeleteFinishedInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteFinishedInspection());
     end;
 
     /// <summary>
-    /// CanDeleteFinishedTest. True if the user can delete a finished test.
+    /// CanDeleteFinishedInspection. True if the user can delete a finished inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanDeleteFinishedTest(): Boolean
+    internal procedure CanDeleteFinishedInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionDeleteFinishedTest()));
+        exit(LoadPermissionDetails(GetCaptionDeleteFinishedInspection()));
     end;
 
     /// <summary>
-    /// TestCanChangeOthersTests will determine if the current user can change someone else's tests.
+    /// Determines if the current user can change someone else's inspections.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanChangeOthersTests()
+    internal procedure VerifyCanChangeOtherInspections()
     begin
-        if not CanChangeOthersTests() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeOthersTests());
+        if not CanChangeOtherInspections() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeOtherInspections());
     end;
 
     /// <summary>
-    /// CanChangeOthersTests. True if the user can change someone else's tests.
+    /// CanChangeOtherInspections. True if the user can change someone else's inspections.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeOthersTests(): Boolean
+    internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionChangeOthersTests()));
+        exit(LoadPermissionDetails(GetCaptionChangeOtherInspections()));
     end;
 
     /// <summary>
-    /// TestCanReopenTest will determine if the current user can re-open a test.
+    /// Determines if the current user can re-open an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanReopenTest()
+    internal procedure VerifyCanReopenInspection()
     begin
-        if not CanReopenTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionReopenTest());
+        if not CanReopenInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionReopenInspection());
     end;
 
     /// <summary>
-    /// CanReopenTest. True if the user can re-open a test.
+    /// CanReopenInspection. True if the user can re-open an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanReopenTest(): Boolean
+    internal procedure CanReopenInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionReopenTest()));
+        exit(LoadPermissionDetails(GetCaptionReopenInspection()));
     end;
 
     /// <summary>
-    /// TestCanFinishTest will determine if the current user can finish a test.
+    /// Determines if the current user can finish an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanFinishTest()
+    internal procedure VerifyCanFinishInspection()
     begin
-        if not CanFinishTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishTest());
+        if not CanFinishInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishInspection());
     end;
 
     /// <summary>
-    /// CanFinishTest. True if the user can can finish a test.
+    /// CanFinishInspection. True if the user can can finish an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanFinishTest(): Boolean
+    internal procedure CanFinishInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionFinishTest()));
+        exit(LoadPermissionDetails(GetCaptionFinishInspection()));
     end;
 
     /// <summary>
-    /// TestCanChangeTrackingNo will determine if the current user can change the tracking on a test.
+    /// Determines if the current user can change the tracking on an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanChangeTrackingNo()
+    internal procedure VerifyCanChangeTrackingNo()
     begin
         if not CanChangeTrackingNo() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeTrackingNo());
     end;
 
     /// <summary>
-    /// CanChangeTrackingNo. True if the user can change the tracking on a test.
+    /// CanChangeTrackingNo. True if the user can change the tracking on an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeTrackingNo(): Boolean
+    internal procedure CanChangeTrackingNo(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionChangeTrackingNo()));
     end;
@@ -228,11 +228,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="ShouldPrompt">Only set with interaction ability is available ( GuiAllowed() is true ) and also prompt when possible is chosen.</param>
     /// <returns>Whether or not auto-assignment should occur.</returns>
-    procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
+    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        ShouldAssign := QltyInspectionTestHeader.WritePermission();
+        ShouldAssign := QltyInspectionHeader.WritePermission();
         ShouldPrompt := false;
     end;
 
@@ -248,29 +248,29 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
+    internal procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
-            GetCaptionCreateTestAuto():
+            GetCaptionCreateInspectionAuto():
                 Result := true;
-            GetCaptionCreateTestManual():
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Test Header");
-            GetCaptionCreateReTest():
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Test Header");
-            GetCaptionChangeOthersTests():
+            GetCaptionCreateInspectionManual():
+                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
+            GetCaptionCreateReinspection():
+                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
+            GetCaptionChangeOtherInspections():
                 Result := GetIsSuperVisorRoleAssigned();
-            GetCaptionDeleteFinishedTest():
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Test Header") and GetIsSuperVisorRoleAssigned();
-            GetCaptionDeleteOpenTest():
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Test Header");
+            GetCaptionDeleteFinishedInspection():
+                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
+            GetCaptionDeleteOpenInspection():
+                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeTrackingNo():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
-            GetCaptionFinishTest():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
-            GetCaptionReopenTest():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
+            GetCaptionFinishInspection():
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
+            GetCaptionReopenInspection():
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeSourceQuantity():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header") and GetIsSuperVisorRoleAssigned();
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
             GetCaptionEditLineComments():
                 Result := GetCanModifyTableData(Database::"Record Link");
         end;
@@ -335,11 +335,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanChangeQuantity will determine if the current user can change the source quantity.
+    /// Determines if the current user can change the source quantity.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanChangeSourceQuantity()
+    internal procedure VerifyCanChangeSourceQuantity()
     begin
         if not CanChangeSourceQuantity() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionChangeSourceQuantity());
@@ -349,27 +349,27 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanChangeSourceQuantity. True if the user can change source quantities
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanChangeSourceQuantity(): Boolean
+    internal procedure CanChangeSourceQuantity(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionChangeSourceQuantity()));
     end;
 
     /// <summary>
-    /// TestCanEditLineComments will determine if the current user can edit line comments.
+    /// Determines if the current user can edit line comments.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanEditLineComments()
+    internal procedure VerifyCanEditLineComments()
     begin
         if not CanEditLineComments() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionEditLineComments());
     end;
 
     /// <summary>
-    /// CanChangeTestLineComments. True if the user can add line notes/comments.
+    /// CanEditLineComments. True if the user can add line notes/comments.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanEditLineComments(): Boolean
+    internal procedure CanEditLineComments(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;
@@ -378,49 +378,49 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanReadLineComments. True if the user can read or write line comments.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanReadLineComments(): Boolean
+    internal procedure CanReadLineComments(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;
 
-    local procedure GetCaptionCreateTestManual(): Text
+    local procedure GetCaptionCreateInspectionManual(): Text
     begin
-        exit(ExpressOnlyCaptionCreateTestManualLbl);
+        exit(ExpressOnlyCaptionCreateInspectionManualLbl);
     end;
 
-    local procedure GetCaptionCreateTestAuto(): Text
+    local procedure GetCaptionCreateInspectionAuto(): Text
     begin
-        exit(ExpressOnlyCaptionCreateTestAutoLbl);
+        exit(ExpressOnlyCaptionCreateInspectionAutoLbl);
     end;
 
-    local procedure GetCaptionCreateReTest(): Text
+    local procedure GetCaptionCreateReinspection(): Text
     begin
-        exit(ExpressOnlyCaptionCreateRetestLbl);
+        exit(ExpressOnlyCaptionCreateReinspectionLbl);
     end;
 
-    local procedure GetCaptionDeleteOpenTest(): Text
+    local procedure GetCaptionDeleteOpenInspection(): Text
     begin
-        exit(ExpressOnlyCaptionDeleteOpenTestLbl);
+        exit(ExpressOnlyCaptionDeleteOpenInspectionLbl);
     end;
 
-    local procedure GetCaptionDeleteFinishedTest(): Text
+    local procedure GetCaptionDeleteFinishedInspection(): Text
     begin
-        exit(ExpressOnlyCaptionDeleteFinishedTestLbl);
+        exit(ExpressOnlyCaptionDeleteFinishedInspectionLbl);
     end;
 
-    local procedure GetCaptionChangeOthersTests(): Text
+    local procedure GetCaptionChangeOtherInspections(): Text
     begin
-        exit(ExpressOnlyCaptionChangeOthersTestsLbl);
+        exit(ExpressOnlyCaptionChangeOthersInspectionsLbl);
     end;
 
-    local procedure GetCaptionReopenTest(): Text
+    local procedure GetCaptionReopenInspection(): Text
     begin
-        exit(ExpressOnlyCaptionReopenTestLbl);
+        exit(ExpressOnlyCaptionReopenInspectionLbl);
     end;
 
-    local procedure GetCaptionFinishTest(): Text
+    local procedure GetCaptionFinishInspection(): Text
     begin
-        exit(ExpressOnlyCaptionFinishTestLbl);
+        exit(ExpressOnlyCaptionFinishInspectionLbl);
     end;
 
     local procedure GetCaptionChangeTrackingNo(): Text

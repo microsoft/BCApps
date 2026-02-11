@@ -17,7 +17,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 
-codeunit 139962 "Qlty. Tests - FilterHelpers"
+codeunit 139962 "Qlty. Tests - Filter Helpers"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -33,6 +33,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         Code20: Code[20];
         ZoneTok: Label 'PICK';
@@ -70,7 +71,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         Code20 := Item."No.";
 
         // [WHEN] BuildFilter is called with no existing filter
-        ClaimedFilterBuilt := QltyFilterHelpers.BuildFilter(Database::Item, false, Value);
+        ClaimedFilterBuilt := QltyInspectionUtility.BuildFilter(Database::Item, false, Value);
 
         // [THEN] A filter is successfully built
         LibraryAssert.IsTrue(ClaimedFilterBuilt, 'Should have made filter');
@@ -98,7 +99,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         Code20 := SecondItem."No.";
 
         // [WHEN] BuildFilter is called with an existing filter
-        ClaimedFilterBuilt := QltyFilterHelpers.BuildFilter(Database::Item, false, Value);
+        ClaimedFilterBuilt := QltyInspectionUtility.BuildFilter(Database::Item, false, Value);
 
         // [THEN] A filter is successfully built
         LibraryAssert.IsTrue(ClaimedFilterBuilt, 'Should have made filter');
@@ -277,7 +278,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := Format(TableAllObjWithCaption."Object ID");
 
         // [WHEN] IdentifyTableIDFromText is called with the table number
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -298,7 +299,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := TableAllObjWithCaption."Object Name";
 
         // [WHEN] IdentifyTableIDFromText is called with the table name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -319,7 +320,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := TableAllObjWithCaption."Object Caption";
 
         // [WHEN] IdentifyTableIDFromText is called with the table caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -340,7 +341,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
 
         // [WHEN] IdentifyTableIDFromText is called with the partial name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy matching
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -361,7 +362,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := CopyStr(TableReference, 1, 5);
 
         // [WHEN] IdentifyTableIDFromText is called with the too-short name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] No table is returned due to too many matches
         LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
@@ -382,7 +383,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
 
         // [WHEN] IdentifyTableIDFromText is called with the partial caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy caption matching
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -403,7 +404,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         TableReference := CopyStr(TableReference, 1, 5);
 
         // [WHEN] IdentifyTableIDFromText is called with the too-short caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] No table is returned due to too many matches
         LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
@@ -426,7 +427,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := '1';
 
         // [WHEN] IdentifyFieldIDFromText is called with the field number
-        FieldNumberNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumberNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         ToLoadField.SetRange(TableNo, TableAllObjWithCaption."Object ID");
@@ -453,7 +454,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := ToLoadField.FieldName;
 
         // [WHEN] IdentifyFieldIDFromText is called with the field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -478,7 +479,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := ToLoadField."Field Caption";
 
         // [WHEN] IdentifyFieldIDFromText is called with the field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -499,7 +500,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := CopyStr(FieldReference, 2, (MaxStrLen(FieldReference) - 1));
 
         // [WHEN] IdentifyFieldIDFromText is called with the partial field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] The correct field ID is identified through fuzzy matching
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -520,7 +521,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := CopyStr(FieldReference, 1, 3);
 
         // [WHEN] IdentifyFieldIDFromText is called with the too-short field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] No field is returned due to too many matches
         LibraryAssert.AreEqual(0, FieldNumber, 'There should be no field returned due to too many matches.');
@@ -541,7 +542,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := CopyStr(FieldReference, 2, (MaxStrLen(FieldReference) - 1));
 
         // [WHEN] IdentifyFieldIDFromText is called with the partial field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] The correct field ID is identified through fuzzy caption matching
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -562,7 +563,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         FieldReference := CopyStr(FieldReference, 1, 3);
 
         // [WHEN] IdentifyFieldIDFromText is called with the too-short field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] No field is returned due to too many matches
         LibraryAssert.AreEqual(0, FieldNumber, 'There should be no field returned due to too many matches.');
@@ -1933,11 +1934,10 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_NoFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1945,7 +1945,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [WHEN] AssistEditQltyInspectionTemplate is called with no filter
         FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
@@ -1956,11 +1956,10 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_TemplateFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1968,7 +1967,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         Template := QltyInspectionTemplateHdr.Code;
         // [WHEN] AssistEditQltyInspectionTemplate is called with template filter
@@ -2041,17 +2040,17 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    procedure CleanupWhereClause400()
+    procedure CleanupWhereClause2048()
     var
         Output: Text;
     begin
-        // [SCENARIO] Validate where clause cleanup reducing length to 400 characters or less
+        // [SCENARIO] Validate where clause cleanup reducing length to 2048 characters or less
 
-        // [WHEN] CleanUpWhereClause400 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause400(InputWhereClause400Tok);
+        // [WHEN] CleanUpWhereClause2048 is called with input where clause
+        Output := QltyFilterHelpers.CleanUpWhereClause2048(InputWhereClause400Tok);
 
-        // [THEN] The output length is 400 characters or less
-        LibraryAssert.IsTrue(StrLen(Output) <= 400, 'Should reduce length to 250 characters or less');
+        // [THEN] The output length is 2048 characters or less
+        LibraryAssert.IsTrue(StrLen(Output) <= 2048, 'Should reduce length to 2048 characters or less');
     end;
 
     [Test]
@@ -2154,7 +2153,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         Filter := StrSubstNo(Attribute2Tok, ItemAttribute.Name, ItemAttributeValue.Value);
 
         // [WHEN] BuildItemAttributeFilter is called to add a second attribute
-        QltyFilterHelpers.BuildItemAttributeFilter(Filter);
+        QltyInspectionUtility.BuildItemAttributeFilter(Filter);
 
         // [THEN] The filter contains both attributes
         LibraryAssert.AreEqual(StrSubstNo(Attribute3Tok, ItemAttribute.Name, ItemAttributeValue.Value, SecondItemAttribute.Name, SecondItemAttributeValue.Value), Filter, 'Should match provided attributes.');
@@ -2547,7 +2546,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     /// </summary>
     /// <param name="QltyInspectionTemplateList"></param>
     [ModalPageHandler]
-    procedure LookupQITemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
+    procedure LookupQltyInspectionTemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
     begin
         QltyInspectionTemplateList.OK().Invoke();
     end;

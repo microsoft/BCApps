@@ -7,10 +7,10 @@ namespace Microsoft.QualityManagement.RoleCenters;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Center"
 {
@@ -18,19 +18,19 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
     {
         addlast(processing)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Image = TaskQualityMeasure;
                 Caption = 'Quality Management';
                 ToolTip = 'Create Quality Inspections.';
 
-                action(Qlty_ShowTests)
+                action(Qlty_ShowQualityInspections)
                 {
-                    Caption = 'Quality Inspection Tests';
+                    Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
-                    ToolTip = 'See existing Quality Inspection Tests and create a new test.';
+                    ToolTip = 'See existing Quality Inspections and create a new inspection.';
                     ApplicationArea = QualityManagement;
-                    RunObject = Page "Qlty. Inspection Test List";
+                    RunObject = Page "Qlty. Inspection List";
                 }
                 action(Qlty_CertificateOfAnalysis)
                 {
@@ -44,48 +44,16 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                 {
                     Caption = 'Analysis';
 
-                    action(Qlty_QualityInspectionTestValues)
+                    action(Qlty_QualityInspectionLines)
                     {
-                        Caption = 'Quality Test Values';
+                        Caption = 'Quality Inspection Lines';
                         Image = AnalysisView;
-                        ToolTip = 'Historical Quality Inspection Test values. Use this with analysis mode.';
+                        ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
-                        RunObject = Page "Qlty. Inspection Test Lines";
+                        RunObject = Page "Qlty. Inspection Lines";
                     }
                 }
-                group(Qlty_SemiRegularSetup)
-                {
-                    Caption = 'Templates and Rules';
-
-                    action(Qlty_ConfigureTestTemplates)
-                    {
-                        ApplicationArea = QualityManagement;
-                        Caption = 'Test Templates';
-                        Image = Database;
-                        RunObject = Page "Qlty. Inspection Template List";
-                        RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
-                    }
-                    action(Qlty_ConfigureTestGenerationRules)
-                    {
-                        ApplicationArea = QualityManagement;
-                        Caption = 'Test Generation Rules';
-                        Image = MapDimensions;
-                        RunObject = Page "Qlty. In. Test Generat. Rules";
-                        RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
-                    }
-                    action(Qlty_ConfigureFields)
-                    {
-                        ApplicationArea = QualityManagement;
-                        Caption = 'Fields';
-                        Image = MapDimensions;
-                        RunObject = Page "Qlty. Fields";
-                        RunPageMode = Edit;
-                        ToolTip = 'Specifies a quality inspection field is a data points to capture, or questions, or measurements.';
-                    }
-                }
-                group(Qlty_ManagementConfigure)
+                group(Qlty_ConfigureQualityManagement)
                 {
                     Caption = 'Setup';
                     Tooltip = 'Configure the Quality Management';
@@ -94,36 +62,63 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                     action(Qlty_ManagementSetup)
                     {
                         Caption = 'Quality Management Setup';
-                        Tooltip = 'Change the behavior of the Quality Management.';
                         RunObject = Page "Qlty. Management Setup";
                         ApplicationArea = QualityManagement;
                         Image = Setup;
                         RunPageMode = Edit;
+                        Tooltip = 'Change the behavior of the Quality Management.';
+                    }
+                    action(Qlty_ConfigureInspectionTemplates)
+                    {
+                        ApplicationArea = QualityManagement;
+                        Caption = 'Inspection Templates';
+                        Image = Database;
+                        RunObject = Page "Qlty. Inspection Template List";
+                        RunPageMode = Edit;
+                        ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+                    }
+                    action(Qlty_ConfigureInspectionGenerationRules)
+                    {
+                        ApplicationArea = QualityManagement;
+                        Caption = 'Inspection Generation Rules';
+                        Image = MapDimensions;
+                        RunObject = Page "Qlty. Inspection Gen. Rules";
+                        RunPageMode = Edit;
+                        ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                    }
+                    action(Qlty_ConfigureTests)
+                    {
+                        ApplicationArea = QualityManagement;
+                        Caption = 'Tests';
+                        Image = MapDimensions;
+                        RunObject = Page "Qlty. Tests";
+                        RunPageMode = Edit;
+                        ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                     }
                 }
             }
         }
         addlast(sections)
         {
-            group(Qlty_Sections_Group)
+            group(Qlty_QualityManagement_Sections_Group)
             {
                 Caption = 'Quality Inspection';
 
-                action(Qlty_Sections_ShowTests)
+                action(Qlty_Sections_ShowQualityInspections)
                 {
-                    Caption = 'Quality Inspection Tests';
+                    Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
-                    ToolTip = 'See existing Quality Inspection Tests and create a new test.';
+                    ToolTip = 'See existing Quality Inspections and create a new inspection.';
                     ApplicationArea = QualityManagement;
-                    RunObject = Page "Qlty. Inspection Test List";
+                    RunObject = Page "Qlty. Inspection List";
                 }
-                action(Qlty_Sections_QualityInspectionTestValues)
+                action(Qlty_Sections_QualityInspectionLines)
                 {
-                    Caption = 'Quality Test Values';
+                    Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection Test values. Use this with analysis mode.';
+                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;
-                    RunObject = Page "Qlty. Inspection Test Lines";
+                    RunObject = Page "Qlty. Inspection Lines";
                 }
             }
         }

@@ -340,6 +340,120 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
     end;
 
+    local procedure InitSharePointClient(var AccountId: Guid; var SharePointClient: Codeunit "SharePoint Client")
+    var
+        SharePointAccount: Record "Ext. SharePoint Account";
+        SharePointAuth: Codeunit "SharePoint Auth.";
+        SharePointAuthorization: Interface "SharePoint Authorization";
+        Scopes: List of [Text];
+        AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
+    begin
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount.Disabled then
+            Error(AccountDisabledErr, SharePointAccount.Name);
+
+        Scopes.Add('00000003-0000-0ff1-ce00-000000000000/.default');
+
+        case SharePointAccount."Authentication Type" of
+            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                SharePointAuthorization := SharePointAuth.CreateAuthorizationCode(
+                    Format(SharePointAccount."Tenant Id", 0, 4),
+                    Format(SharePointAccount."Client Id", 0, 4),
+                    SharePointAccount.GetClientSecret(SharePointAccount."Client Secret Key"),
+                    Scopes);
+            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                SharePointAuthorization := SharePointAuth.CreateClientCredentials(
+                    Format(SharePointAccount."Tenant Id", 0, 4),
+                    Format(SharePointAccount."Client Id", 0, 4),
+                    SharePointAccount.GetCertificate(SharePointAccount."Certificate Key"),
+                    SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key"),
+                    Scopes);
+        end;
+
+        SharePointClient.Initialize(SharePointAccount."SharePoint Url", SharePointAuthorization);
+    end;
+
+    local procedure PathSeparator(): Text
+    begin
+        exit('/');
+    end;
+
+    local procedure ShowError(var SharePointClient: Codeunit "SharePoint Client")
+    var
+        ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from sharepoint';
+    begin
+        Error(ErrorOccuredErr, SharePointClient.GetDiagnostics().GetErrorMessage());
+    end;
+
+    local procedure GetParentPath(Path: Text) ParentPath: Text
+    begin
+        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
+            ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+    end;
+
+    local procedure GetFileName(Path: Text) FileName: Text
+    begin
+        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
+            FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+    end;
+
+    local procedure InitPath(AccountId: Guid; var Path: Text)
+    var
+        SharePointAccount: Record "Ext. SharePoint Account";
+        SitePath: Text;
+    begin
+        SharePointAccount.Get(AccountId);
+
+        // Extract site path from SharePoint URL
+        SitePath := GetSitePathFromUrl(SharePointAccount."SharePoint Url");
+
+        // Combine base folder path with the file path
+        Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
+
+        // Ensure path starts with forward slash
+        if not Path.StartsWith('/') then
+            Path := '/' + Path;
+
+        // Prepend site path if it exists and path doesn't already include it
+        if (SitePath <> '') and (not Path.StartsWith(SitePath)) then
+            Path := SitePath + Path;
+    end;
+
+    local procedure GetSitePathFromUrl(SharePointUrl: Text): Text
+    var
+        Uri: Codeunit Uri;
+        PathSegment: Text;
+    begin
+        Uri.Init(SharePointUrl);
+        PathSegment := Uri.GetAbsolutePath();
+
+        // Remove trailing slash if present
+        if PathSegment.EndsWith('/') then
+            PathSegment := PathSegment.TrimEnd('/');
+
+        exit(PathSegment);
+    end;
+
+    local procedure CombinePath(Parent: Text; Child: Text): Text
+    begin
+        if Parent = '' then
+            exit(Child);
+
+        if Child = '' then
+            exit(Parent);
+
+        if not Parent.EndsWith(PathSeparator()) then
+            Parent += PathSeparator();
+
+        exit(Parent + Child);
+    end;
+
+    local procedure SplitPath(Path: Text; var ParentPath: Text; var FileName: Text)
+    begin
+        ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+        FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]
     local procedure EnvironmentCleanup_OnClearCompanyConfig(CompanyName: Text; SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
     var

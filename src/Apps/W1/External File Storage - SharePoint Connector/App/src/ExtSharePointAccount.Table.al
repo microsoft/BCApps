@@ -180,8 +180,10 @@ table 4580 "Ext. SharePoint Account"
 
     local procedure TryDeleteIsolatedStorageValue(StorageKey: Guid)
     begin
-        if not IsNullGuid(StorageKey) then
-            if IsolatedStorage.Delete(StorageKey) then;
+        if IsNullGuid(StorageKey) then
+            exit;
+        if IsolatedStorage.Contains(StorageKey, DataScope::Company) then
+            IsolatedStorage.Delete(StorageKey, DataScope::Company);
     end;
 
     local procedure SetIsolatedStorageValue(StorageKey: Guid; Value: SecretText; ErrorMessage: Text)

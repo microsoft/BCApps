@@ -12,29 +12,29 @@ pageextension 20426 "Qlty. Posted Transfer Receipt" extends "Posted Transfer Rec
     {
         addlast(General)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 ShowCaption = false;
-                Visible = (Rec."Qlty. Inspection Test No." <> '');
+                Visible = (Rec."Qlty. Inspection No." <> '');
 
-                field("Qlty. Inspection Test No."; Rec."Qlty. Inspection Test No.")
+                field("Qlty. Inspection No."; Rec."Qlty. Inspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;
 
                     trigger OnDrillDown()
                     begin
-                        Rec.QltyShowRelatedInspectionTest();
+                        Rec.QltyShowRelatedInspection();
                     end;
                 }
-                field("Qlty. Inspection Retest No."; Rec."Qlty. Inspection Retest No.")
+                field("Qlty. Re-inspection No."; Rec."Qlty. Re-inspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;
 
                     trigger OnDrillDown()
                     begin
-                        Rec.QltyShowRelatedInspectionTest();
+                        Rec.QltyShowRelatedInspection();
                     end;
                 }
             }

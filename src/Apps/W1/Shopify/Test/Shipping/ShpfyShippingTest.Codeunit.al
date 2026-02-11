@@ -50,7 +50,7 @@ codeunit 139606 "Shpfy Shipping Test"
         ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
 
         // [WHEN] Invoke the function CreateFulfillmentRequest()
-        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, LocationId, DeliveryMethodType, AssignedFulfillmentOrderIds);
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, AssignedFulfillmentOrderIds);
 
         // [THEN] We must find the correct fulfilment data in the json token
         LibraryAssert.AreEqual(1, FulfillmentRequests.Count, 'FulfillmentRequest count check');
@@ -93,7 +93,7 @@ codeunit 139606 "Shpfy Shipping Test"
         ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
 
         // [WHEN] Invoke the function CreateFulfillmentRequest()
-        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, LocationId, DeliveryMethodType, AssignedFulfillmentOrderIds);
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, AssignedFulfillmentOrderIds);
 
         // [THEN] We must find the correct fulfilment data in the json token
         LibraryAssert.AreEqual(2, FulfillmentRequests.Count(), 'FulfillmentRequest count check');
@@ -135,7 +135,7 @@ codeunit 139606 "Shpfy Shipping Test"
         FulfillmentOrderHeader.Modify();
 
         // [WHEN] Invoke the function CreateFulfillmentRequest()
-        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, LocationId, DeliveryMethodType, AssignedFulfillmentOrderIds);
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, AssignedFulfillmentOrderIds);
 
         // [THEN] We must find the correct fulfilment data in the json token
         LibraryAssert.AreEqual(1, FulfillmentRequests.Count, 'FulfillmentRequest count check');
@@ -178,7 +178,7 @@ codeunit 139606 "Shpfy Shipping Test"
         ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
 
         // [WHEN] Invoke the function CreateFulfillmentOrderRequest()
-        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, LocationId, DeliveryMethodType, AssignedFulfillmentOrderIds);
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, AssignedFulfillmentOrderIds);
 
         // [THEN] We must find no fulfilment data in the json token as the location is for a third-party fulfillment service
         LibraryAssert.AreEqual(0, FulfillmentRequests.Count, 'FulfillmentRequest count check');

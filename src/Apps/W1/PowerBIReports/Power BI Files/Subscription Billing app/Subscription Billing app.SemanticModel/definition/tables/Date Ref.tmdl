@@ -1289,9 +1289,9 @@ table 'Date Ref'
 				
 				VAR IsoCountryHolidays = VALUES('Date Table Setup'[isoCountryHolidays]) -- Use only supported ISO countries or "" for no holidays
 				
-				VAR WeeklyType = VALUES('Date Table Setup'[weeklyType]) -- Use: "Nearest" or "Last" 
+				VAR WeeklyType = COALESCE(VALUES('Date Table Setup'[weeklyType]), "Nearest") -- Supports only "Nearest", or "Last"
 				
-				VAR QuarterWeekType = VALUES('Date Table Setup'[quarterWeekType]) -- Supports only "445", "454", and "544"
+				VAR QuarterWeekType = COALESCE(VALUES('Date Table Setup'[quarterWeekType]),"445") -- Supports only "445", "454", and "544"
 				
 				VAR CalendarRange = VALUES('Date Table Setup'[calendarRange]) -- Supports "Calendar", "FiscalGregorian", "FiscalWeekly"
 				-- Last:    for last weekday of the month at fiscal year end
@@ -1922,8 +1922,9 @@ table 'Date Ref'
 				    DATE ( FirstYear - 1, 1, 1 )
 				VAR LastDayCalendar =
 				    DATE ( LastYear + 1, 12, 31 )
-				VAR WeekDayCalculationType = 1  //FIXME Error in template, org    IF ( FirstDayOfWeek = 0, 7, FirstDayOfWeek ) + 10
-				
+				VAR WeekDayCalculationType =
+				    IF ( FirstDayOfWeek = 0, 7, FirstDayOfWeek )
+				        + 10
 				VAR OffsetFiscalYear = 
 				    IF ( FiscalCalendarFirstMonth > 1, 1, 0 )
 				VAR WeeklyFiscalPeriods =
@@ -1939,7 +1940,7 @@ table 'Date Ref'
 				        VAR FirstDayNextYear =
 				            DATE ( StartFiscalYearNumber + 1, FiscalCalendarFirstMonth, 1 )
 				        VAR DayOfWeekNumberCurrentYear =
-				            WEEKDAY ( FirstDayCurrentYear, WeekDayCalculationType ) 
+				            WEEKDAY ( FirstDayCurrentYear, WeekDayCalculationType )
 				        VAR OffsetStartCurrentFiscalYear =
 				            SWITCH (
 				                WeeklyType,
@@ -1949,7 +1950,7 @@ table 'Date Ref'
 				                    8 - DayOfWeekNumberCurrentYear,
 				                    1 - DayOfWeekNumberCurrentYear
 				                ),
-				                ERROR ( "Unkonwn WeeklyType definition" )
+				                ERROR ( "Unknown WeeklyType definition.")
 				            )
 				        VAR DayOfWeekNumberNextYear =
 				            WEEKDAY ( FirstDayNextYear, WeekDayCalculationType )
@@ -1962,7 +1963,7 @@ table 'Date Ref'
 				                    7 - DayOfWeekNumberNextYear,
 				                    - DayOfWeekNumberNextYear
 				                ),
-				                ERROR ( "Unkonwn WeeklyType definition : " )
+				                ERROR ( "Unknown WeeklyType definition.")
 				            )
 				        VAR FirstDayOfFiscalYear = FirstDayCurrentYear + OffsetStartCurrentFiscalYear
 				        VAR LastDayOfFiscalYear = FirstDayNextYear + OffsetStartNextFiscalYear

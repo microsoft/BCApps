@@ -13,6 +13,9 @@ page 1965 "Early Access Preview Features"
     SourceTable = "Guided Experience Item";
     SourceTableTemporary = true;
     Caption = 'Early Access Preview: New Features';
+    ApplicationArea = All;
+    UsageCategory = Administration;
+    AdditionalSearchTerms = 'Early Access, Preview, New Features, What''s New, Release';
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -31,21 +34,33 @@ page 1965 "Early Access Preview Features"
             }
             repeater(Features)
             {
-                field("Feature Name"; Rec."Short Title")
+                field("Feature Name"; Rec.Title)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the new feature.';
+                    Caption = 'Feature';
 
                     trigger OnDrillDown()
                     begin
-                        if Rec."Help URL" <> '' then
-                            Hyperlink(Rec."Help URL");
+                        if Rec."Help URL" = '' then
+                            exit;
+                        Hyperlink(Rec."Help URL");
                     end;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies a description of the new feature.';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Description);
+                    end;
+                }
+                field(Category; Rec.Keywords)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the category of the new feature.';
                 }
                 field("Help URL"; Rec."Help URL")
                 {
@@ -53,18 +68,18 @@ page 1965 "Early Access Preview Features"
                     ToolTip = 'Specifies the URL to the help documentation for this feature.';
                     Visible = false;
                 }
-                field("Video URL"; WatchVideoLbl)
+                field("Video URL"; VideoFieldText)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the URL to a video demonstrating this feature.';
                     Caption = 'Video';
+                    Enabled = HasVideoUrl;
 
                     trigger OnDrillDown()
                     begin
-                        if Rec."Video URL" <> '' then
-                            Hyperlink(Rec."Video URL")
-                        else
-                            Message(NoVideoAvailableMsg);
+                        if Rec."Video URL" = '' then
+                            exit;
+                        Hyperlink(Rec."Video URL")
                     end;
                 }
             }
@@ -100,7 +115,7 @@ page 1965 "Early Access Preview Features"
                 var
                     Feedback: Codeunit "Microsoft User Feedback";
                 begin
-                    Feedback.RequestFeedback(Rec."Short Title");
+                    Feedback.RequestFeedback(Rec.Title);
                 end;
             }
             action(ViewHelp)
@@ -109,13 +124,13 @@ page 1965 "Early Access Preview Features"
                 Caption = 'View Help';
                 ToolTip = 'Open the help documentation for this feature.';
                 Image = Help;
+                Enabled = HasHelpUrl;
 
                 trigger OnAction()
                 begin
-                    if Rec."Help URL" <> '' then
-                        Hyperlink(Rec."Help URL")
-                    else
-                        Message(NoHelpAvailableMsg);
+                    if Rec."Help URL" = '' then
+                        exit;
+                    Hyperlink(Rec."Help URL");
                 end;
             }
             action(WatchVideo)
@@ -124,13 +139,13 @@ page 1965 "Early Access Preview Features"
                 Caption = 'Watch Video';
                 ToolTip = 'Watch a video demonstrating this feature.';
                 Image = Picture;
+                Enabled = HasVideoUrl;
 
                 trigger OnAction()
                 begin
-                    if Rec."Video URL" <> '' then
-                        Hyperlink(Rec."Video URL")
-                    else
-                        Message(NoVideoAvailableMsg);
+                    if Rec."Video URL" = '' then
+                        exit;
+                    Hyperlink(Rec."Video URL")
                 end;
             }
         }
@@ -148,12 +163,8 @@ page 1965 "Early Access Preview Features"
                 {
                 }
             }
-            group(Category_General)
+            actionref(ProvideFeedback_Promoted; ProvideFeedback)
             {
-                Caption = 'General Product Feedback';
-                actionref(ProvideFeedback_Promoted; ProvideFeedback)
-                {
-                }
             }
         }
     }
@@ -165,9 +176,30 @@ page 1965 "Early Access Preview Features"
         EarlyAccessPreviewMgt.LoadNewFeatures(Rec);
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        HasVideoUrl := Rec."Video URL" <> '';
+        HasHelpUrl := Rec."Help URL" <> '';
+        UpdateFieldText();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateFieldText();
+    end;
+
+    local procedure UpdateFieldText()
+    begin
+        if Rec."Video URL" <> '' then
+            VideoFieldText := WatchVideoLbl
+        else
+            VideoFieldText := '';
+    end;
+
     var
+        HasVideoUrl: Boolean;
+        HasHelpUrl: Boolean;
+        VideoFieldText: Text;
         WatchVideoLbl: Label 'Watch Video';
-        NoVideoAvailableMsg: Label 'No video is available for this feature.';
-        NoHelpAvailableMsg: Label 'No help is available for this feature.';
 }
 

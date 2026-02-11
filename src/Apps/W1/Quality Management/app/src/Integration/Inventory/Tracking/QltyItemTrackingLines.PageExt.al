@@ -12,48 +12,48 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
 {
     actions
     {
-        addafter(ButtonLineReclass)
+        addlast(navigation)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_CreateQualityInspections)
                 {
                     ApplicationArea = QualityManagement;
                     Image = CreateForm;
-                    Caption = 'Create Quality Inspection Tests';
-                    ToolTip = 'Creates multiple quality inspection tests for the selected item tracking lines.';
-                    AboutTitle = 'Create Quality Inspection Tests for selected lines';
-                    AboutText = 'Select multiple records, and then use this action to create multiple quality inspection tests for the selected item tracking lines.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Caption = 'Create Quality Inspections';
+                    ToolTip = 'Creates multiple quality inspections for the selected item tracking lines.';
+                    AboutTitle = 'Create Quality Inspections for selected lines';
+                    AboutText = 'Select multiple records, and then use this action to create multiple quality inspections for the selected item tracking lines.';
+                    Enabled = QltyCreateQualityInspections;
+                    Visible = QltyCreateQualityInspections;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        QltyInspectionTestCreate.CreateMultipleTestsForMarkedTrackingSpecification(Rec);
+                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec, true);
                         Rec.Reset();
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item with tracking specification';
-                    ToolTip = 'Shows Quality Inspection Tests for Item with tracking specification';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item with tracking specification.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item with tracking specification';
+                    ToolTip = 'Shows Quality Inspections for Item with tracking specification';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item with tracking specification.';
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemTrackingFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemTrackingFilterWithRecord(Rec);
                     end;
                 }
             }
@@ -61,18 +61,18 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
     }
 
     var
-        QltyReadTestResults: Boolean;
-        QltyShowCreateTest: Boolean;
+        QltyReadQualityInspections, QltyCreateQualityInspections : Boolean;
 
     trigger OnOpenPage()
     var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
+
+        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyCreateQualityInspections := QltyPermissionMgmt.CanCreateManualInspection();
     end;
 }

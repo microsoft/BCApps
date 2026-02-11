@@ -13,6 +13,7 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     var
         Any: Codeunit Any;
@@ -128,6 +129,59 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
         LibraryAssert.AreEqual(VATRegistrationNo, Customer.GetFilter("VAT Registration No."), 'VAT Registration No. filter is not set correctly.');
     end;
 
+    [Test]
+    procedure UnitTestUpdateTaxRegistrationIdForRegistrationNo()
+    var
+        Customer: Record Customer;
+        TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
+        NewTaxRegistrationId: Text[150];
+    begin
+        // [SCENARIO] UpdateTaxRegistrationId for Registration No. implementation of mapping
+        Initialize();
+
+        // [GIVEN] New Tax Registration Id
+        NewTaxRegistrationId := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(NewTaxRegistrationId));
+        // [GIVEN] Customer with empty Registration Number
+        CreateCustomerWithRegistrationNo(Customer, '');
+        // [GIVEN] TaxRegistrationIdMapping interface is "Registration No."
+        TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"Registration No.";
+
+        // [WHEN] UpdateTaxRegistrationId is called
+        TaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, NewTaxRegistrationId);
+
+        // [THEN] The Registration Number field of the Customer record is updated
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(NewTaxRegistrationId, Customer."Registration Number", 'Registration Number should be updated.');
+    end;
+
+    [Test]
+    procedure UnitTestUpdateTaxRegistrationIdForVATRegistrationNo()
+    var
+        Customer: Record Customer;
+        ShpfyTaxIdMappingTest: Codeunit "Shpfy Tax Id Mapping Test";
+        TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
+        NewTaxRegistrationId: Text[150];
+    begin
+        // [SCENARIO] UpdateTaxRegistrationId for VAT Registration No. implementation of mapping
+        Initialize();
+
+        // [GIVEN] New Tax Registration Id
+        NewTaxRegistrationId := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(Customer."VAT Registration No."));
+        // [GIVEN] Customer with empty VAT Registration No.
+        CreateCustomerWithVATRegNo(Customer, '');
+        // [GIVEN] TaxRegistrationIdMapping interface is "VAT Registration No."
+        TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"VAT Registration No.";
+
+        // [WHEN] UpdateTaxRegistrationId is called
+        // Bypass localization-specific VAT Registration No. validation (e.g. BE requires Enterprise No. instead)
+        BindSubscription(ShpfyTaxIdMappingTest);
+        TaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, NewTaxRegistrationId);
+        UnbindSubscription(ShpfyTaxIdMappingTest);
+
+        // [THEN] The VAT Registration No. field of the Customer record is updated
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(NewTaxRegistrationId, Customer."VAT Registration No.", 'VAT Registration No. should be updated.');
+    end;
 
     local procedure Initialize()
     begin
@@ -163,5 +217,11 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
         CompanyLocation.Id := Any.IntegerInRange(10000, 99999);
         CompanyLocation."Tax Registration Id" := RegistrationNo;
         CompanyLocation.Insert(false);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnBeforeValidateVATRegistrationNo', '', false, false)]
+    local procedure HandleOnBeforeValidateVATRegistrationNo(var Customer: Record Customer; xCustomer: Record Customer; FieldNumber: Integer; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 }

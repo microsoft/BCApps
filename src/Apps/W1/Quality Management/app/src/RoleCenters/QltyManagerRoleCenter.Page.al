@@ -17,10 +17,10 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Warehouse.Activity.History;
@@ -45,7 +45,7 @@ page 20426 "Qlty. Manager Role Center"
 
                 part("Qlty. Inspection Activities"; "Qlty. Inspection Activities")
                 {
-                    Caption = 'Quality Inspection Tests';
+                    Caption = 'Quality Inspections';
                 }
             }
         }
@@ -61,7 +61,7 @@ page 20426 "Qlty. Manager Role Center"
                 Caption = 'Item Tracing';
                 Image = ItemTracing;
                 RunObject = Page "Item Tracing";
-                ToolTip = 'Trace where a lot or serial number assigned to the item was used, for example, to find which lot a defective component came from or to find all the customers that have received items containing the defective component.';
+                ToolTip = 'Trace where a lot/serial/package number assigned to the item was used, for example, to find which lot a defective component came from or to find all the customers that have received items containing the defective component.';
             }
             group(Qlty_Processing_Reports)
             {
@@ -93,41 +93,41 @@ page 20426 "Qlty. Manager Role Center"
             {
                 Caption = 'Analysis';
 
-                action(Qlty_Processing_QualityInspectionTestValues)
+                action(Qlty_Processing_InspectionLines)
                 {
-                    Caption = 'Quality Test Values';
+                    Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection Test values. Use this with analysis mode.';
-                    RunObject = Page "Qlty. Inspection Test Lines";
+                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
+                    RunObject = Page "Qlty. Inspection Lines";
                 }
             }
             group(Qlty_Processing_SemiRegularSetup)
             {
                 Caption = 'Templates and Rules';
 
-                action(Qlty_Processing_ConfigureTestTemplates)
+                action(Qlty_Processing_ConfigureInspectionTemplates)
                 {
-                    Caption = 'Test Templates';
+                    Caption = 'Inspection Templates';
                     Image = Database;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                    ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 }
-                action(Qlty_Processing_ConfigureTestGenerationRules)
+                action(Qlty_Processing_ConfigureInspectionGenerationRules)
                 {
-                    Caption = 'Test Generation Rules';
+                    Caption = 'Inspection Generation Rules';
                     Image = MapDimensions;
-                    RunObject = Page "Qlty. In. Test Generat. Rules";
+                    RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                    ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
                 }
-                action(Qlty_Processing_ConfigureFields)
+                action(Qlty_Processing_ConfigureTests)
                 {
-                    Caption = 'Fields';
+                    Caption = 'Tests';
                     Image = MapDimensions;
-                    RunObject = Page "Qlty. Fields";
+                    RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a quality inspection field is a data points to capture, or questions, or measurements.';
+                    ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                 }
             }
             group(Qlty_Processing_Configure)
@@ -148,12 +148,12 @@ page 20426 "Qlty. Manager Role Center"
         }
         area(Embedding)
         {
-            action(Qlty_Embedding_ShowTests)
+            action(Qlty_Embedding_ShowInspections)
             {
-                Caption = 'Quality Inspection Tests';
+                Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
-                ToolTip = 'See existing Quality Inspection Tests and create a new test.';
-                RunObject = Page "Qlty. Inspection Test List";
+                ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                RunObject = Page "Qlty. Inspection List";
             }
             action(Qlty_Embedding_Items)
             {
@@ -323,7 +323,7 @@ page 20426 "Qlty. Manager Role Center"
                     RunObject = Page "Item Journal Batches";
                     RunPageView = where("Template Type" = const(Transfer),
                                         Recurring = const(false));
-                    ToolTip = 'Change information recorded on item ledger entries. Typical inventory information to reclassify includes dimensions and sales campaign codes, but you can also perform basic inventory transfers by reclassifying location and bin codes. Serial or lot numbers and their expiration dates must be reclassified with the Item Tracking Reclassification journal.';
+                    ToolTip = 'Change information recorded on item ledger entries. Typical inventory information to reclassify includes dimensions and sales campaign codes, but you can also perform basic inventory transfers by reclassifying location and bin codes. Lot/serial/package numbers and their expiration dates must be reclassified with the Item Tracking Reclassification journal.';
                 }
             }
             group(Qlty_Sections_Worksheet_Group)

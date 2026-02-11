@@ -313,20 +313,5 @@
       }
     ],
     "filterSortOrder": "Custom"
-  },
-  "objects": {
-    "outspacePane": [
-      {
-        "properties": {
-          "width": {
-            "expr": {
-              "Literal": {
-                "Value": "259L"
-              }
-            }
-          }
-        }
-      }
-    ]
   }
 }

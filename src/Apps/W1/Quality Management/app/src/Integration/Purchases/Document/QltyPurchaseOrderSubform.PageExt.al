@@ -12,64 +12,67 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
 {
     actions
     {
-        addafter("O&rder")
+        addlast("F&unctions")
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
                     Image = CreateForm;
-                    Caption = 'Create Quality Inspection Test';
-                    ToolTip = 'Creates a quality inspection test for this purchase order line.';
-                    AboutTitle = 'Create Quality Inspection Test';
-                    AboutText = 'Create a quality inspection test for this purchase order line.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Caption = 'Create Quality Inspection';
+                    ToolTip = 'Creates a quality inspection for this purchase order line.';
+                    AboutTitle = 'Create Quality Inspection';
+                    AboutText = 'Create a quality inspection for this purchase order line.';
+                    Enabled = QltyCreateQualityInspection;
+                    Visible = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionTestCreate.CreateTestWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItemAndDocument)
+                action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item and Document';
-                    ToolTip = 'Shows quality inspection tests for this item and document.';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item and document.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item and Document';
+                    ToolTip = 'Shows quality inspections for this item and document.';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item and document.';
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_ShowTests)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item';
-                    ToolTip = 'Shows Quality Inspection Tests for Item';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item';
+                    ToolTip = 'Shows Quality Inspections for Item';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item.';
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
@@ -77,18 +80,26 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
     }
 
     var
-        QltyShowCreateTest: Boolean;
-        QltyReadTestResults: Boolean;
+        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
 
     trigger OnOpenPage()
     var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
+
+        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
+    end;
+
+    local procedure CanBeProcessed(): Boolean
+    begin
+        if IsNullGuid(Rec.SystemId) then
+            exit(false);
+
+        exit((Rec.Type = Rec.Type::Item) and (Rec."No." <> ''));
     end;
 }

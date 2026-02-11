@@ -11,7 +11,7 @@ using Microsoft.QualityManagement.Document;
 using System.Telemetry;
 
 /// <summary>
-/// A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.
+/// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
 /// </summary>
 page 20402 "Qlty. Inspection Template"
 {
@@ -21,9 +21,8 @@ page 20402 "Qlty. Inspection Template"
     PageType = Card;
     RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Template Hdr.";
-    AdditionalSearchTerms = 'Test Plan,Quality Inspection,design an inspection,quality inspection template,questions,types of tests,template,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
     AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
     PromotedActionCategories = 'New,Process,Report';
     ApplicationArea = QualityManagement;
 
@@ -133,56 +132,56 @@ page 20402 "Qlty. Inspection Template"
     {
         area(Processing)
         {
-            action(tNewField)
+            action(NewTest)
             {
                 Image = Default;
-                Caption = 'Add Field(s) To This Template';
-                ToolTip = 'Add a new Field or existing Field(s) to this template';
+                Caption = 'Add Test(s) To This Template';
+                ToolTip = 'Add a new Test or existing Test(s) to this template';
                 Scope = Repeater;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                AboutTitle = 'Add field(s)';
-                AboutText = 'Add a new field or add existing fields to this template.';
+                AboutTitle = 'Add test(s)';
+                AboutText = 'Add a new test or add existing tests to this template.';
 
                 trigger OnAction()
                 begin
-                    CurrPage.LinesPart.Page.AddFieldWizard();
+                    CurrPage.LinesPart.Page.AddTestWizard();
                 end;
             }
             action(ViewRules)
             {
-                Caption = 'Test Generation Rules';
-                ToolTip = 'View existing Quality Inspection Test Generation Rules related to this template. A Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Test Generation Rules';
-                AboutText = 'View existing Quality Inspection Test Generation Rules related to this template. A Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                AboutTitle = 'Inspection Generation Rules';
+                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 Image = TaskList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                RunObject = Page "Qlty. In. Test Generat. Rules";
+                RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = Edit;
                 PromotedOnly = true;
             }
-            action(CreateTest)
+            action(CreateInspection)
             {
-                Caption = 'Create Test';
-                ToolTip = 'Specifies to create a new Quality Inspection Test using this template.';
+                Caption = 'Create Inspection';
+                ToolTip = 'Specifies to create a new Quality Inspection using this template.';
 
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateTest;
+                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
-                    QltyCreateInspectionTest: Report "Qlty. Create Inspection Test";
+                    QltyCreateInspection: Report "Qlty. Create Inspection";
                 begin
-                    QltyCreateInspectionTest.initializeReportParameters(Rec.Code);
-                    QltyCreateInspectionTest.RunModal();
+                    QltyCreateInspection.initializeReportParameters(Rec.Code);
+                    QltyCreateInspection.RunModal();
                 end;
             }
             action(CopyTemplate)
@@ -203,17 +202,17 @@ page 20402 "Qlty. Inspection Template"
                     Report.Run(Report::"Qlty. Inspection Copy Template", true, true, ExistingQltyInspectionTemplateHdr);
                 end;
             }
-            action(ExistingTests)
+            action(ExistingInspection)
             {
-                Caption = 'Existing Tests';
-                ToolTip = 'Review existing tests created using this template.';
+                Caption = 'Existing Inspections';
+                ToolTip = 'Review existing inspections created using this template.';
 
                 Image = Report;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                RunObject = Page "Qlty. Inspection Test List";
+                RunObject = Page "Qlty. Inspection List";
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = View;
             }
@@ -222,7 +221,7 @@ page 20402 "Qlty. Inspection Template"
 
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-        CanCreateTest: Boolean;
+        CanCreateInspection: Boolean;
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
@@ -237,7 +236,7 @@ page 20402 "Qlty. Inspection Template"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
-        CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
+        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
         UpdateControls();
     end;
 

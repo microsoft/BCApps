@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
 /// Copy/Duplicate an Existing Quality Inspection Template.
@@ -14,10 +14,8 @@ report 20402 "Qlty. Inspection Copy Template"
 {
     Caption = 'Copy Quality Inspection Template';
     ToolTip = 'Copy an Existing Quality Inspection Template.';
-    AdditionalSearchTerms = 'Copy Template,Copy Quality Inspection Template,Duplicate Template';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
-    UsageCategory = Tasks;
     AllowScheduling = false;
 
     dataset
@@ -26,7 +24,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             MaxIteration = 1;
             RequestFilterFields = Code, Description;
-            RequestFilterHeading = 'An Existing Quality Inspection Template to copy from';
+            RequestFilterHeading = 'Quality Inspection Template to copy from';
 
             trigger OnPreDataItem()
             begin
@@ -44,7 +42,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             RequestFilterFields = "No.", Description, "Description 2", "Lot Nos.";
             DataItemTableView = sorting("No.") where("No." = filter(<> ''));
-            RequestFilterHeading = 'Item Nos. to use To Create Template codes for (Enable Create from Item Nos. first)';
+            RequestFilterHeading = 'Item numbers to use for creating template codes';
 
             trigger OnAfterGetRecord()
             begin
@@ -95,7 +93,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         ApplicationArea = All;
                         Enabled = not CreateFromItems;
                         Caption = 'Target Description';
-                        ToolTip = 'Specifies the description of the target template test';
+                        ToolTip = 'Specifies the description of the target template inspection';
                     }
                 }
             }
@@ -127,7 +125,7 @@ report 20402 "Qlty. Inspection Copy Template"
         TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         LastTemplateLineNo: Integer;
     begin
         if (SpecificTemplate <> '') and (DescriptionToCopy = '') and (CopyFromQltyInspectionTemplateHdr.Description <> '') then
@@ -157,7 +155,7 @@ report 20402 "Qlty. Inspection Copy Template"
                 TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;
                 TargetQltyInspectionTemplateLine."Template Code" := TargetQltyInspectionTemplateHdr.Code;
                 TargetQltyInspectionTemplateLine.SetRecFilter();
-                TargetQltyInspectionTemplateLine.SetFilter("Field Code", '<>%1&<>''''', FromQltyInspectionTemplateLine."Field Code");
+                TargetQltyInspectionTemplateLine.SetFilter("Test Code", '<>%1&<>''''', FromQltyInspectionTemplateLine."Test Code");
                 if TargetQltyInspectionTemplateLine.FindFirst() then begin
                     LastTemplateLineNo += 10000;
                     TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;
@@ -167,7 +165,7 @@ report 20402 "Qlty. Inspection Copy Template"
                     TargetQltyInspectionTemplateLine.Insert();
                 end else begin
                     TargetQltyInspectionTemplateLine.SetRange("Template Code", TargetQltyInspectionTemplateHdr.Code);
-                    TargetQltyInspectionTemplateLine.SetRange("Field Code", FromQltyInspectionTemplateLine."Field Code");
+                    TargetQltyInspectionTemplateLine.SetRange("Test Code", FromQltyInspectionTemplateLine."Test Code");
                     TargetQltyInspectionTemplateLine.SetRange("Line No.", FromQltyInspectionTemplateLine."Line No.");
                     if not TargetQltyInspectionTemplateLine.FindFirst() then begin
                         TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;
@@ -181,7 +179,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         TargetQltyInspectionTemplateLine.Modify();
                     end;
                 end;
-                QltyGradeConditionMgmt.CopyGradeConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine, TargetQltyInspectionTemplateLine);
+                QltyResultConditionMgmt.CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine, TargetQltyInspectionTemplateLine);
             until FromQltyInspectionTemplateLine.Next() = 0;
     end;
 }

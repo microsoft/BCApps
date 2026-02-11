@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
@@ -12,7 +13,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Automation;
@@ -103,7 +103,7 @@ codeunit 6102 "E-Doc. Export"
     /// If services do not support the document type they are filtered out
     ///
     /// </summary>
-    internal procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocumentLog: Codeunit "E-Document Log";
         SupportedServices: List of [Code[20]];
@@ -465,7 +465,7 @@ codeunit 6102 "E-Doc. Export"
         Telemetry.LogMessage('0000LBI', EDocTelemetryCreateBatchScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
     end;
 
-    local procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
         EDocSourceType: Enum "E-Document Type";

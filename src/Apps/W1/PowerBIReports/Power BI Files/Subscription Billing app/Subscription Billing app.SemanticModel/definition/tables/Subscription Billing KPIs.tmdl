@@ -193,10 +193,9 @@ table 'Subscription Billing KPIs'
 		annotation PBI_FormatHint = {"isCustom":true}
 
 	measure 'Mon. Recurring Revenue Churn' = [Mon. Recurring Revenue Churn (-)] * -1
+		formatString: #,0.00
 		displayFolder: Churn & New
 		lineageTag: 72940ea8-c027-427e-8310-46864947d133
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	measure 'Mon. Recurring Revenue PY' =
 			CALCULATE (
@@ -262,10 +261,9 @@ table 'Subscription Billing KPIs'
 			)
 			
 			```
+		formatString: #,0.00
 		displayFolder: Churn & New
 		lineageTag: 374c5d52-f0dd-479d-a912-98f2c6db0b05
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	measure 'Total Contract Value PY' =
 			CALCULATE (
@@ -581,37 +579,31 @@ table 'Subscription Billing KPIs'
 
 	measure 'Churn (-)' = [Mon. Recurring Revenue Churn (-)]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: 97d97364-1e94-42dd-a0a1-50f8c741dab9
 
 	measure 'Downgrade (-)' = [Mon. Recurring Revenue Downgrade (-)]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: 682b0afe-72bd-417b-81b6-b62616a1f9c0
 
 	measure 'Usage Based Billing Change' = [Mon. Recurring Revenue Change UBB]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: 1b353d3a-e1a9-4b93-ab99-0317060f1aab
 
 	measure Upgrade = [Mon. Recurring Revenue Upgrade]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: 04040d7e-b3a4-4069-92cb-e4fb9478ec9f
 
 	measure New = [Mon. Recurring Revenue New]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: ca15d892-5102-4d5e-8467-41ef46bb0a4b
 
 	measure 'Total Change' = [Change in Mon. Recurring Revenue]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Revenue Development
 		lineageTag: 0fbe1130-cb6d-4208-93d3-8d15206728ab
 
@@ -623,19 +615,16 @@ table 'Subscription Billing KPIs'
 
 	measure Churn = [Mon. Recurring Revenue Churn]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Churn
 		lineageTag: 995319bd-3056-41a9-aca0-17142d85fb8d
 
 	measure Downgrade = [Mon. Recurring Revenue Downgrade]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Churn
 		lineageTag: fe462ca3-cb8f-4aa2-8444-acfdd1e4755a
 
 	measure 'MRR End of Period' = [Mon. Recurring Revenue]
 		formatString: #,0.00
-		isHidden
 		displayFolder: Page Specific Naming\Churn
 		lineageTag: ac440820-dbc1-4014-9753-dcafa6618075
 
@@ -679,6 +668,244 @@ table 'Subscription Billing KPIs'
 		formatString: #,0.00
 		displayFolder: Churn & New
 		lineageTag: 71625eeb-a549-4225-80d0-592eb747e5f3
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 0db7c63f-41da-4f6b-9bd4-64cdf8db75e8
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate =
+			    ADDCOLUMNS(
+			        IndexedDates,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = PrevIndex),
+			                [Date])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDate,
+			        "@Break Point",
+			        IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+			    )
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDate =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDate",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = [@NextIndex]),
+			                [Date])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDate,
+			    "@Range",
+			    IF( ISBLANK([@NextDate]),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+			    )
+			)
+			 
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 1c3ee447-cd2c-4624-9406-dacab0992e6b
+
+	measure 'Ranged Dimensions' = ```
+			
+			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
+			VAR IndexedDimSetID =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Dimension Sets'[dimensionSetID], _FilterTable
+			            ),
+			            'Dimension Sets'[dimensionSetID],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			 
+			VAR PreviousIndexedDimSetID =
+			    ADDCOLUMNS(
+			        IndexedDimSetID,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
+			                [dimensionSetID])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDimSetID,
+			        "@Break Point",
+			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
+			        )
+			    )
+			 
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDimension =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDimension",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
+			                'Dimension Sets'[dimensionSetID])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDimension,
+			    "@Range",
+			    IF( ISBLANK([@NextDimension]),
+			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
+			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
+			    )
+			)
+			
+			Return
+			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			```
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 6c0d4a0f-cb28-4c3f-a0a0-ebb15fbffb8b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Customer Deferrals Back Link' = ```
+			
+			VAR CustomerContractDeferralDocumentNos = 
+			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Document No.]), 'Customer Contract Deferrals'[Document No.], "|")
+			VAR CustomerContractDeferralSubscriptionNos = 
+			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Contract No.]), 'Customer Contract Deferrals'[Contract No.], "|")
+			VAR CustomerContractDeferralReleasedStatus = 
+			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			RETURN
+			    [Base Link] 
+			            & "&page=8079&filter='Cust. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & CustomerContractDeferralSubscriptionNos & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Document No.' IS '" & CustomerContractDeferralDocumentNos & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			            & " AND 'Cust. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Released' IS '" & CustomerContractDeferralReleasedStatus & "'"
+			```
+		displayFolder: Back Links
+		lineageTag: b0e9cd9b-c824-482b-93b8-946fe797d20c
+
+	measure 'Vendor Deferrals Back Link' = ```
+			
+			VAR VendorContractDeferralDocumentNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Document No.]), 'Vendor Contract Deferrals'[Document No.], "|")
+			VAR VendorContractDeferralSubscriptionNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Contract No.]), 'Vendor Contract Deferrals'[Contract No.], "|")
+			VAR VendorContractDeferralReleasedStatus = 
+			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			
+			RETURN
+			    [Base Link] 
+			            & "&page=8081&filter='Vend. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & VendorContractDeferralSubscriptionNos & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Document No.' IS '" & VendorContractDeferralDocumentNos & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			            & " AND 'Vend. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Released' IS '" & VendorContractDeferralReleasedStatus & "'"
+			```
+		displayFolder: Back Links
+		lineageTag: fb40ded3-6eb4-4595-a359-ef320241ce65
+
+	measure 'Customer Contract Line Back Link' = ```
+			
+			VAR ContractLineCustContNos = 
+			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract No.]), 'Customer Contract Line'[Customer Contract No.], "|")
+			VAR ContractLineCustContLineNos = 
+			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract Line No.]), 'Customer Contract Line'[Customer Contract Line No.], "|")
+			
+			RETURN
+			    [Base Link] 
+			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Customer" & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineCustContNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineCustContLineNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
+			
+			```
+		displayFolder: Back Links
+		lineageTag: fe25274f-9ebf-477c-97a4-790b677123a4
+
+	measure 'Vendor Contract Line Back Link' = ```
+			
+			VAR ContractLineVendContNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract No.]), 'Vendor Contract Line'[Vendor Contract No.], "|")
+			VAR ContractLineVendContLineNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract Line No.]), 'Vendor Contract Line'[Vendor Contract Line No.], "|")
+			    
+			RETURN
+			    [Base Link] 
+			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Vendor" & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineVendContNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineVendContLineNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
+			
+			```
+		displayFolder: Back Links
+		lineageTag: 39f6703a-1ae0-4b23-b3e6-88e885731623
 
 	column Value
 		isHidden
