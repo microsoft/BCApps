@@ -26,6 +26,13 @@
       "to": 4445
     }
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "4807959b-777e-410d-9c90-e3c38e01730e",
+      "name": "Dynamics BC Excel Reports Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "target": "Cloud",
   "features": [
     "TranslationFile"
