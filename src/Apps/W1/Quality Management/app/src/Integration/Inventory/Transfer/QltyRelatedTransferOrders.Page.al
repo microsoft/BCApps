@@ -184,7 +184,7 @@ page 20480 "Qlty. Related Transfer Orders"
                 {
                     Visible = IsTransferOrder;
                     Caption = 'Shipments';
-                    Image = Shipment;
+                    Image = PostedShipment;
                     RunObject = Page "Posted Transfer Shipments";
                     RunPageLink = "Transfer Order No." = field("Transfer Document No.");
                     ToolTip = 'View related posted transfer shipments.';
@@ -325,7 +325,7 @@ page 20480 "Qlty. Related Transfer Orders"
             {
                 ApplicationArea = Location;
                 Caption = 'Inventory - Inbound Transfer';
-                Image = "Report";
+                Image = Report;
                 RunObject = Report "Inventory - Inbound Transfer";
                 ToolTip = 'View which items are currently on inbound transfer orders.';
             }

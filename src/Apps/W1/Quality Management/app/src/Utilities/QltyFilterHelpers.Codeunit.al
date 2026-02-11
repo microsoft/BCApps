@@ -857,22 +857,22 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// Gets the standard task code from either the selected record, or the filter.
     /// </summary>
     /// <returns></returns>
-    procedure GetStandardTaskCodeFromRecordOrFilter(var StandardTaskQualityMeasure: Record "Standard Task Quality Measure") StandardTaskCode: Code[10]
+    procedure GetStandardTaskCodeFromRecordOrFilter(var StandardChecklist: Record "Standard Task Quality Measure") StandardTaskCode: Code[10]
     var
         FilterGroupIterator: Integer;
     begin
-        if StandardTaskQualityMeasure."Standard Task Code" <> '' then
-            exit(StandardTaskQualityMeasure."Standard Task Code");
+        if StandardChecklist."Standard Task Code" <> '' then
+            exit(StandardChecklist."Standard Task Code");
 
         FilterGroupIterator := 4;
         repeat
-            StandardTaskQualityMeasure.FilterGroup(FilterGroupIterator);
-            if StandardTaskQualityMeasure.GetFilter("Standard Task Code") <> '' then
-                StandardTaskCode := StandardTaskQualityMeasure.GetRangeMin("Standard Task Code");
+            StandardChecklist.FilterGroup(FilterGroupIterator);
+            if StandardChecklist.GetFilter("Standard Task Code") <> '' then
+                StandardTaskCode := StandardChecklist.GetRangeMin("Standard Task Code");
 
             FilterGroupIterator -= 1;
         until (FilterGroupIterator < 0) or (StandardTaskCode <> '');
-        StandardTaskQualityMeasure.FilterGroup(0);
+        StandardChecklist.FilterGroup(0);
     end;
 
     /// <summary>

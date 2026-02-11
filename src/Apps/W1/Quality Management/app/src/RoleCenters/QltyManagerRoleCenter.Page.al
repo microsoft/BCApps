@@ -108,7 +108,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Qlty_Processing_ConfigureInspectionTemplates)
                 {
                     Caption = 'Inspection Templates';
-                    Image = Database;
+                    Image = BreakpointsList;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
@@ -116,7 +116,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Qlty_Processing_ConfigureInspectionGenerationRules)
                 {
                     Caption = 'Inspection Generation Rules';
-                    Image = MapDimensions;
+                    Image = FilterLines;
                     RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
@@ -124,7 +124,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Qlty_Processing_ConfigureTests)
                 {
                     Caption = 'Tests';
-                    Image = MapDimensions;
+                    Image = Task;
                     RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
@@ -181,7 +181,7 @@ page 20426 "Qlty. Manager Role Center"
                 ApplicationArea = ItemTracking;
                 Caption = 'Lot No. Information';
                 RunObject = Page "Lot No. Information List";
-                Image = ListPage;
+                Image = LotInfo;
                 ToolTip = 'View the list of Lot No. Information records.';
             }
         }
@@ -195,7 +195,7 @@ page 20426 "Qlty. Manager Role Center"
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Sales Orders';
-                    Image = "Order";
+                    Image = OrderList;
                     RunObject = Page "Sales Order List";
                     ToolTip = 'Record your agreements with customers to sell certain products on certain delivery and payment terms. Sales orders, unlike sales invoices, allow you to ship partially, deliver directly from your vendor to your customer, initiate warehouse handling, and print various customer-facing documents. Sales invoicing is integrated in the sales order process.';
                 }
@@ -265,7 +265,7 @@ page 20426 "Qlty. Manager Role Center"
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Items';
-                    Image = Item;
+                    Image = ItemLines;
                     RunObject = Page "Item List";
                     ToolTip = 'View or edit detailed information for the products that you trade in. The item card can be of type Inventory or Service to specify if the item is a physical unit or a labor time unit. Here you also define if items in inventory or on incoming orders are automatically reserved for outbound documents and whether order tracking links are created between demand and supply to reflect planning actions.';
                 }
@@ -274,7 +274,7 @@ page 20426 "Qlty. Manager Role Center"
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot No. Information';
                     RunObject = Page "Lot No. Information List";
-                    Image = ListPage;
+                    Image = LotInfo;
                     ToolTip = 'View the list of Lot No. Information records.';
                 }
                 action(Qlty_Sections_Locations)
@@ -358,7 +358,7 @@ page 20426 "Qlty. Manager Role Center"
             group(Qlty_Sections_PostedDocuments)
             {
                 Caption = 'Posted Documents';
-                Image = FiledPosted;
+                Image = RegisteredDocs;
 
                 action(Qlty_Sections_PostedWarehouseShipments)
                 {
@@ -472,7 +472,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Qlty_Sections_RegisteredWarehouseMovements)
                 {
                     ApplicationArea = Warehouse;
-                    Caption = 'Registered WarehouseMovements';
+                    Caption = 'Registered Warehouse Movements';
                     Image = RegisteredDocs;
                     RunObject = Page "Registered Whse. Movements";
                     ToolTip = 'View the list of completed warehouse movements.';

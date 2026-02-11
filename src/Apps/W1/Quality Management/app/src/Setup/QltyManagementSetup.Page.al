@@ -259,7 +259,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Templates';
                 ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
-                Image = TaskQualityMeasure;
+                Image = BreakpointsList;
                 AboutTitle = 'Quality Inspection Template';
                 AboutText = 'A Quality Inspection Template is a set of questions and data points that you want to collect.';
                 RunObject = Page "Qlty. Inspection Template List";
@@ -270,7 +270,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                Image = EditFilter;
+                Image = FilterLines;
                 AboutTitle = 'Quality Inspection Generation Rule';
                 AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
                 RunObject = Page "Qlty. Inspection Gen. Rules";
@@ -281,7 +281,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Results';
                 ToolTip = 'View the Quality Inspection Results. Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
-                Image = Permission;
+                Image = ViewRegisteredOrder;
                 AboutTitle = 'Results';
                 AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 RunObject = Page "Qlty. Inspection Result List";
@@ -292,7 +292,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Tests';
                 ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
-                Image = TaskQualityMeasure;
+                Image = Task;
                 AboutTitle = 'Tests';
                 AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
                 RunObject = Page "Qlty. Tests";

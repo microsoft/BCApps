@@ -278,7 +278,7 @@ page 20401 "Qlty. Tests"
         {
             action(NewTest)
             {
-                Image = Default;
+                Image = CopyFromTask;
                 Caption = 'Add a Test';
                 ToolTip = 'Add a new Test.';
                 Scope = Repeater;

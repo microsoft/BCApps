@@ -559,7 +559,7 @@ page 20406 "Qlty. Inspection"
             action(Transfer)
             {
                 Caption = 'Create Transfer Order';
-                Image = NewShipment;
+                Image = NewTransferOrder;
                 ToolTip = 'Transfer related inventory to a different location.';
 
                 trigger OnAction()
@@ -574,7 +574,7 @@ page 20406 "Qlty. Inspection"
             action(CreateNegativeAdjustment)
             {
                 Caption = 'Create Negative Adjustment';
-                Image = CalculateWarehouseAdjustment;
+                Image = MoveNegativeLines;
                 ToolTip = 'Reduce inventory quantity, for disposal after performing destructive testing or doing a stock write-off for damage or spoilage.';
 
                 trigger OnAction()
@@ -589,7 +589,7 @@ page 20406 "Qlty. Inspection"
             action(ChangeItemTracking)
             {
                 Caption = 'Change Item Tracking';
-                Image = CalculateWarehouseAdjustment;
+                Image = ItemTrackingLedger;
                 ToolTip = 'Change Item Tracking Information.';
 
                 trigger OnAction()
@@ -604,7 +604,7 @@ page 20406 "Qlty. Inspection"
             action(CreatePurchaseReturnOrder)
             {
                 Caption = 'Create Purchase Return Order';
-                Image = PurchaseCreditMemo;
+                Image = ReturnOrder;
                 ToolTip = 'Create a Purchase Return Order.';
 
                 trigger OnAction()
@@ -644,7 +644,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = Certificate;
+                Image = PrintReport;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -664,7 +664,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
                 ToolTip = 'General purpose inspection report.';
-                Image = Certificate;
+                Image = PrintReport;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -802,7 +802,7 @@ page 20406 "Qlty. Inspection"
             action(tShowTransfers)
             {
                 Caption = 'Show Related Transfer Documents';
-                Image = View;
+                Image = TransferOrder;
                 ApplicationArea = All;
                 ToolTip = 'Show all related transfer documents for this inspection.';
 

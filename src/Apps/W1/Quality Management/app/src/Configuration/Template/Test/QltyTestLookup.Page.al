@@ -387,7 +387,7 @@ page 20445 "Qlty. Test Lookup"
         {
             action(NewTest)
             {
-                Image = Default;
+                Image = CopyFromTask;
                 Caption = 'Add a Test';
                 ToolTip = 'Add a new Test.';
                 Scope = Repeater;
@@ -407,7 +407,7 @@ page 20445 "Qlty. Test Lookup"
         {
             action(EditTest)
             {
-                Image = Edit;
+                Image = EditLines;
                 Caption = 'Edit Test';
                 ToolTip = 'This will edit your existing selected test.';
                 Scope = Repeater;
