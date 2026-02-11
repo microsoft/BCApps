@@ -24,6 +24,7 @@ page 8750 "DA External Storage Setup"
     Extensible = false;
     Permissions = tabledata "DA External Storage Setup" = rimd,
                   tabledata "Job Queue Entry" = r;
+    InherentPermissions = X;
 
     layout
     {
