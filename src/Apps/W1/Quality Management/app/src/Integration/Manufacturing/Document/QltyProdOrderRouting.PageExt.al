@@ -29,7 +29,8 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_ShowQualityInspectionsForItem)
@@ -44,10 +45,16 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
             }
         }
     }
+
+    local procedure CanBeProcessed(): Boolean
+    begin
+        exit(not IsNullGuid(Rec.SystemId));
+    end;
 }

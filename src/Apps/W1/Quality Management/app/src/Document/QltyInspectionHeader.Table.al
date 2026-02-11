@@ -1620,13 +1620,13 @@ table 20405 "Qlty. Inspection Header"
     internal procedure ImportMostRecentPicture()
     var
         FileManagement: Codeunit "File Management";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyFileImport: Codeunit "Qlty. File Import";
         PictureInStream: InStream;
         PictureName, FileExtension, FullFileNameWithExtension : Text;
     begin
         TestStatusOpen();
 
-        if not QltyMiscHelpers.PromptAndImportIntoInStream(PictureFileFilterTok, PictureInStream, FullFileNameWithExtension) then
+        if not QltyFileImport.PromptAndImportIntoInStream(PictureFileFilterTok, PictureInStream, FullFileNameWithExtension) then
             exit;
 
         if not FullFileNameWithExtension.Contains('.') then begin

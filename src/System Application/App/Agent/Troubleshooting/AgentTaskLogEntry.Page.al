@@ -173,10 +173,10 @@ page 4312 "Agent Task Log Entry"
             }
             part(LogsPart; "Agent Task Log Entry ListPart")
             {
-                Caption = 'WhatOther actions were decided at the same time';
+                Caption = 'What other actions were decided at the same time';
                 Visible = IsLogPageVisible;
                 SubPageLink = "Task ID" = field("Task ID");
-                AboutTitle = 'WhatOther actions were decided at the same time';
+                AboutTitle = 'What other actions were decided at the same time';
                 AboutText = 'The agent can take multiple actions from the same decision. This lists the log entries related to the actions taken by the agent for this particular entry.';
             }
             group(PageContentGroup)

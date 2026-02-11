@@ -57,7 +57,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that creating a manual inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanCreateManualInspection is called
         QltyInspectionUtility.VerifyCanCreateManualInspection();
@@ -99,7 +99,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that creating a re-inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanCreateReinspection is called
         QltyInspectionUtility.VerifyCanCreateReinspection();
@@ -128,7 +128,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that deleting an open inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteOpenInspection is called
         QltyInspectionUtility.VerifyCanDeleteOpenInspection();
@@ -157,7 +157,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that deleting a finished inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteFinishedInspection is called        
         QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
@@ -172,7 +172,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that changing other users' inspections succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeOtherInspections is called
         QltyInspectionUtility.VerifyCanChangeOtherInspections();
@@ -201,7 +201,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that reopening an inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanReopenInspection is called
         QltyInspectionUtility.VerifyCanReopenInspection();
@@ -230,7 +230,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that finishing an inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanFinishInspection is called
         QltyInspectionUtility.VerifyCanFinishInspection();
@@ -259,7 +259,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that changing tracking number succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeTrackingNo is called
         QltyInspectionUtility.VerifyCanChangeTrackingNo();
@@ -288,7 +288,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] Verify that changing source quantity succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(SupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeSourceQuantity is called
         QltyInspectionUtility.VerifyCanChangeSourceQuantity();

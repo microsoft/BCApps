@@ -58,6 +58,9 @@ page 20407 "Qlty. Inspection Subform"
 
                     trigger OnAssistEdit()
                     begin
+                        Rec.CalcFields("Test Value Type");
+                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                            exit;
                         UpdateRowData();
 
                         CurrPage.Update(true);

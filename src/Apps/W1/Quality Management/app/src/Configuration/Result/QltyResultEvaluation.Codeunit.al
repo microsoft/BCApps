@@ -326,6 +326,7 @@ codeunit 20410 "Qlty. Result Evaluation"
 
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
+        QltyLocalization: Codeunit "Qlty. Localization";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         ValueAsDecimal: Decimal;
@@ -377,15 +378,15 @@ codeunit 20410 "Qlty. Result Evaluation"
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                         if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
-                            TextToValidate := QltyMiscHelpers.GetTranslatedYes250()
+                            TextToValidate := QltyLocalization.GetTranslatedYes()
                         else
-                            TextToValidate := QltyMiscHelpers.GetTranslatedNo250();
+                            TextToValidate := QltyLocalization.GetTranslatedNo();
 
                     if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
                         if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                     end else
-                        if not (TextToValidate in [QltyMiscHelpers.GetTranslatedYes250(), QltyMiscHelpers.GetTranslatedNo250(), '']) then
+                        if not (TextToValidate in [QltyLocalization.GetTranslatedYes(), QltyLocalization.GetTranslatedNo(), '']) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
             QltyTestValueType::"Value Type Text":
