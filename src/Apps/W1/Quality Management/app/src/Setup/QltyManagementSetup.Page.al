@@ -39,7 +39,7 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
+                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
                 group(SettingsForInspections)
@@ -237,13 +237,13 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = All;
                     AboutTitle = 'Item Tracking';
-                    AboutText = 'Will your lot numbers always be posted when performing quality inspections?';
+                    AboutText = 'Will your item tracking numbers always be posted when performing quality inspections?';
                 }
                 field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
                     ShowCaption = true;
-                    AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
+                    AboutTitle = 'Which inspections to inspect when analyzing document specific item tracking blocking.';
                     AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
                 }
             }

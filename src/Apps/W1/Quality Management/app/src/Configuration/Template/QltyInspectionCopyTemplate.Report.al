@@ -24,7 +24,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             MaxIteration = 1;
             RequestFilterFields = Code, Description;
-            RequestFilterHeading = 'An Existing Quality Inspection Template to copy from';
+            RequestFilterHeading = 'Quality Inspection Template to copy from';
 
             trigger OnPreDataItem()
             begin
@@ -42,7 +42,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             RequestFilterFields = "No.", Description, "Description 2", "Lot Nos.";
             DataItemTableView = sorting("No.") where("No." = filter(<> ''));
-            RequestFilterHeading = 'Item Nos. to use To Create Template codes for (Enable Create from Item Nos. first)';
+            RequestFilterHeading = 'Item numbers to use for creating template codes';
 
             trigger OnAfterGetRecord()
             begin

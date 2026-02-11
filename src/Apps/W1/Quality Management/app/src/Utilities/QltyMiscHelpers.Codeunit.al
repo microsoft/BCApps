@@ -12,7 +12,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -26,17 +25,18 @@ codeunit 20599 "Qlty. Misc Helpers"
         TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import from File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
         YesNoKeyword3Txt: Label 'Is the';
         YesNoKeyword4Txt: Label 'Did you';
         YesNoKeyword5Txt: Label 'Have you';
-        TrackingKeyword1Txt: Label 'serial #';
-        TrackingKeyword2Txt: Label 'lot #';
-        TrackingKeyword3Txt: Label 'serial number';
+        TrackingKeyword1Txt: Label 'lot #';
+        TrackingKeyword2Txt: Label 'serial #';
+        TrackingKeyword3Txt: Label 'package #';
         TrackingKeyword4Txt: Label 'lot number';
+        TrackingKeyword5Txt: Label 'serial number';
+        TrackingKeyword6Txt: Label 'package number';
         UnableToSetTableValueTableNotFoundErr: Label 'Unable to set a value because the table [%1] was not found.', Comment = '%1=the table name';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
@@ -57,105 +57,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         YesLbl: Label 'YES';
         OnLbl: Label 'ON';
 
-    /// <summary>
-    /// Returns the translatable "Yes" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    internal procedure GetTranslatedYes250(): Text[250]
-    begin
-        exit(TranslatableYesLbl);
-    end;
-
-    /// <summary>
-    /// Returns the translatable "No" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "No" text (up to 250 characters)</returns>
-    internal procedure GetTranslatedNo250(): Text[250]
-    begin
-        exit(TranslatableNoLbl);
-    end;
-
-    /// <summary>
-    /// The maximum recursion to use when creating inspections.
-    /// Used for traversal on source table configuration when finding applicable generation rules, and also when populating source fields.
-    /// 
-    /// This limit prevents infinite loops in complex configuration hierarchies and ensures reasonable performance
-    /// when traversing multi-level table relationships.
-    /// </summary>
-    /// <returns>The maximum recursion depth allowed (currently 20 levels)</returns>
-    internal procedure GetArbitraryMaximumRecursion(): Integer
-    begin
-        exit(20);
-    end;
-
-    internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        Handled: Boolean;
-    begin
-        ResultRowsCount := 100;
-        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, Handled);
-        if Handled then
-            exit;
-
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit;
-
-        if QltyManagementSetup."Max Rows Field Lookups" > 0 then
-            ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
-    end;
-
-    /// <summary>
-    /// Prompts the user to select a file and imports its contents into an InStream for processing.
-    /// Displays a file upload dialog with optional file type filtering.
-    /// 
-    /// Common usage: Importing configuration files, test data, or external quality inspection results.
-    /// </summary>
-    /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
-    /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
-    /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text) Worked: Boolean
-    begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream);
-    end;
-
-    /// <summary>
-    /// Attempts to parse simple range notation (min..max) into separate minimum and maximum decimal values.
-    /// Handles the common 90% use case of range specifications in quality inspections.
-    /// 
-    /// Examples:
-    /// - "10..20" → OutMin=10, OutMax=20, returns true
-    /// - "5.5..10.5" → OutMin=5.5, OutMax=10.5, returns true
-    /// - "Invalid" → returns false
-    /// - "10" → returns false (not a range)
-    /// </summary>
-    /// <param name="InputText">The text containing a range in format "minValue..maxValue"</param>
-    /// <param name="MinValueInRange">Output: The minimum value from the range</param>
-    /// <param name="MaxValueInRange">Output: The maximum value from the range</param>
-    /// <returns>True if successfully parsed as a simple range; False if input doesn't match simple range pattern</returns>
-    procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
-    var
-        OfParts: List of [Text];
-        Temp: Text;
-    begin
-        Clear(MaxValueInRange);
-        Clear(MinValueInRange);
-
-        if InputText.Contains('..') then
-            if InputText.IndexOf('..') > 0 then begin
-                OfParts := InputText.Split('..');
-                if OfParts.Count() = 2 then begin
-                    OfParts.Get(1, Temp);
-                    if Evaluate(MinValueInRange, Temp) then begin
-                        OfParts.Get(2, Temp);
-                        if Evaluate(MaxValueInRange, Temp) then
-                            exit(true);
-                    end;
-                end;
-            end;
-    end;
 
     /// <summary>
     /// Retrieves available record values for a table lookup field configured on an inspection line, returned as CSV.
@@ -233,6 +134,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
     procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         ReasonableMaximum: Integer;
         DummyText: Text;
@@ -241,7 +143,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TempBufferQltyLookupCode.IsTemporary() then
             TempBufferQltyLookupCode.DeleteAll();
 
-        ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
+        ReasonableMaximum := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
 
         TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyTest."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
@@ -285,8 +187,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text) ResultText: Text
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
     end;
 
     /// <summary>
@@ -303,6 +206,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="CSVSimpleText"></param>
     local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         RecordRefToFetch: RecordRef;
         FieldRefToChoiceField: FieldRef;
         FieldRefToDescriptionField: FieldRef;
@@ -316,11 +220,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit;
 
         if MaxCountRecords <= 0 then begin
-            MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
+            MaxCountRecords := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
-            if MaxCountRecords > 1000 then
-                MaxCountRecords := 1000;
+            if MaxCountRecords > MaxRecordsFetchLimit() then
+                MaxCountRecords := MaxRecordsFetchLimit();
         end;
 
         RemainingCountRecordsToAdd := MaxCountRecords;
@@ -330,7 +234,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if TableFilter <> '' then
             RecordRefToFetch.SetView(TableFilter);
 
-        LoopSafety := 1000;
+        LoopSafety := MaxRecordsFetchLimit();
         if RecordRefToFetch.FindSet() then
             repeat
                 LoopSafety -= 1;
@@ -359,6 +263,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             until (RecordRefToFetch.Next() = 0) or (RemainingCountRecordsToAdd <= 0) or (LoopSafety <= 0);
 
         RecordRefToFetch.Close();
+    end;
+
+    local procedure MaxRecordsFetchLimit(): Integer
+    begin
+        exit(1000);
     end;
 
     /// <summary>
@@ -701,7 +610,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     ///    - DateTime format → Field Type DateTime
     /// 2. Description-based detection (keywords):
     ///    - Contains "date" → Field Type Date
-    ///    - Contains tracking keywords ("lot", "serial") → Field Type Text
+    ///    - Contains tracking keywords ("lot", "serial", "package") → Field Type Text
     ///    - Starts with yes/no keywords → Field Type Boolean
     /// 3. Default fallback → Field Type Text
     /// 
@@ -741,7 +650,9 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Description.Contains(UpperCase(TrackingKeyword1Txt)),
                 Description.Contains(UpperCase(TrackingKeyword2Txt)),
                 Description.Contains(UpperCase(TrackingKeyword3Txt)),
-                Description.Contains(UpperCase(TrackingKeyword4Txt)):
+                Description.Contains(UpperCase(TrackingKeyword4Txt)),
+                Description.Contains(UpperCase(TrackingKeyword5Txt)),
+                Description.Contains(UpperCase(TrackingKeyword6Txt)):
                     QltyTestValueType := QltyTestValueType::"Value Type Text";
 
                 Description.StartsWith(UpperCase(YesNoKeyword1Txt)),
@@ -758,7 +669,6 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Automatically determines the correct page to display based on the source record type.
     /// 
     /// Behavior:
-    /// - Fires OnBeforeNavigateToSourceDocument event for extensibility
     /// - Exits if no source document is linked (Source RecordId is empty)
     /// - Uses Page Management to find the appropriate page for the record type
     /// - Opens the page in modal mode displaying the source document
@@ -773,12 +683,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToNavigateTo: RecordRef;
         VariantContainer: Variant;
         CurrentPage: Integer;
-        Handled: Boolean;
     begin
-        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, Handled);
-        if Handled then
-            exit;
-
         if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
             exit;
 
@@ -933,27 +838,5 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit(false);
 
         exit(RecordRef.Number() <> 0);
-    end;
-
-    /// <summary>
-    /// Provides an ability to override the handling of navigating to a source document.
-    /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Provides an opportunity for customizations to alter the default maximum rows shown
-    /// for a table lookup in a quality inspector field.
-    /// Changing the default to a larger number can introduce performance issues.
-    /// </summary>
-    /// <param name="Rows"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var Handled: Boolean)
-    begin
     end;
 }

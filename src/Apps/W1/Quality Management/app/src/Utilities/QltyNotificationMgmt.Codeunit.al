@@ -31,8 +31,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         DocumentCreatedAMsg: Label 'A %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
         DocumentCreatedAnMsg: Label 'An %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
-        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
-        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
+        DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for inspection %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the inspection, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
         ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
         ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=inspection no., %2=re-inspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
         ChangeTrackingFailMsg: Label 'Unable to update tracking information to%1%2. Check batch setup on the Quality Management Setup page.', Comment = '%1=new item tracking information,%2=optional location';
@@ -51,7 +51,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=inspection no., %2=re-inspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
         BlockedStateChangedLbl: Label 'Inspection %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the inspection number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
         BlockedLbl: Label 'blocked';
-        UnBlockedLbl: Label 'un-blocked';
+        UnblockedLbl: Label 'un-blocked';
         OpenTheInfoCardLbl: Label 'Open the %1 No. Information.', Comment = '%1 =the info type.';
         VariantTok: Label ':%1', Comment = '%1=variant';
         LotTok: Label ' Lot: %1', Comment = '%1=lot no.';
@@ -537,7 +537,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         if BlockedState then
             BlockOrUnblock := BlockedLbl
         else
-            BlockOrUnblock := UnBlockedLbl;
+            BlockOrUnblock := UnblockedLbl;
         CurrentMessage := StrSubstNo(
             BlockedStateChangedLbl,
             QltyInspectionHeader."No.",
@@ -565,12 +565,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     var
         ActionMessage: Text;
         ActionProcedureCallback: Text;
-        Handled: Boolean;
     begin
-        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, Handled);
-        if Handled then
-            exit;
-
         NotificationToShow.Message(CurrentMessage);
         foreach ActionMessage in AvailableOptions.Keys do
             if AvailableOptions.Get(ActionMessage, ActionProcedureCallback) then
@@ -653,17 +648,5 @@ codeunit 20437 "Qlty. Notification Mgmt."
     local procedure GetInspectionCreatedNotificationId(): Guid
     begin
         exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
-    end;
-
-    /// <summary>
-    /// Use this to supplment, extend, or replace base action handling.
-    /// </summary>
-    /// <param name="NotificationToShow"></param>
-    /// <param name="CurrentMessage"></param>
-    /// <param name="Options"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
-    begin
     end;
 }

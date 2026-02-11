@@ -54,6 +54,11 @@ table 20401 "Qlty. Test"
         {
             Caption = 'Allowable Values';
             ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+            trigger OnValidate()
+            begin
+                if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Option", Rec."Test Value Type"::"Value Type Table Lookup"] then
+                    Rec."Allowable Values" := CopyStr(Rec."Allowable Values".Replace(', ', ','), 1, MaxStrLen(Rec."Allowable Values"));
+            end;
         }
         field(6; "Lookup Table No."; Integer)
         {
@@ -260,10 +265,10 @@ table 20401 "Qlty. Test"
     /// </summary>
     procedure AssistEditDefaultValue()
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistEditDefaultValue(Rec, Handled);
-        if Handled then
+        OnBeforeAssistEditDefaultValue(Rec, IsHandled);
+        if IsHandled then
             exit;
 
         case Rec."Test Value Type" of
@@ -587,10 +592,10 @@ table 20401 "Qlty. Test"
         QltyLookupCode: Record "Qlty. Lookup Code";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, Handled);
-        if Handled then
+        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, IsHandled);
+        if IsHandled then
             exit;
 
         if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then begin
@@ -614,10 +619,10 @@ table 20401 "Qlty. Test"
     /// <returns></returns>
     procedure IsNumericFieldType() IsNumeric: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnGetIsNumericFieldType(Rec, IsNumeric, Handled);
-        if Handled then
+        OnBeforeIsNumericFieldType(Rec, IsNumeric, IsHandled);
+        if IsHandled then
             exit;
 
         IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
@@ -631,9 +636,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="IsNumeric"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
+    local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -642,9 +647,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="QltyInspectionTemplateEdit"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var Handled: Boolean)
+    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var IsHandled: Boolean)
     begin
     end;
 
@@ -652,9 +657,9 @@ table 20401 "Qlty. Test"
     /// Provides an ability to extend or replace assist editing the default value.
     /// </summary>
     /// <param name="QltyTest"></param>
-    /// <param name="Handled">Set to true to prevent base behavior from occurring.</param>
+    /// <param name="IsHandled">Set to true to prevent base behavior from occurring.</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var Handled: Boolean)
+    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var IsHandled: Boolean)
     begin
     end;
 }

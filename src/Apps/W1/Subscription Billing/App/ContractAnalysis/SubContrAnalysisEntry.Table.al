@@ -341,6 +341,7 @@ table 8019 "Sub. Contr. Analysis Entry"
         Rec."Currency Factor Date" := ServiceCommitment."Currency Factor Date";
         Rec."Extension Term" := ServiceCommitment."Extension Term";
         Rec."Initial Term" := ServiceCommitment."Initial Term";
+        Rec."Renewal Term" := ServiceCommitment."Renewal Term";
         Rec."Invoicing Item No." := ServiceCommitment."Invoicing Item No.";
         Rec."Next Billing Date" := ServiceCommitment."Next Billing Date";
         Rec."Notice Period" := ServiceCommitment."Notice Period";
