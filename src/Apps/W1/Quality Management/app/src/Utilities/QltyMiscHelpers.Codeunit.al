@@ -4,27 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Utilities;
 
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Team;
-using Microsoft.Foundation.Navigate;
-using Microsoft.HumanResources.Employee;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Security.User;
 
 codeunit 20599 "Qlty. Misc Helpers"
 {
     var
-        TranslatableYesLbl: Label 'Yes';
-        TranslatableNoLbl: Label 'No';
-        LockedYesLbl: Label 'Yes', Locked = true;
-        LockedNoLbl: Label 'No', Locked = true;
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
@@ -41,21 +29,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
-        QltyGoodLbl: Label 'GOOD';
-        QltyPassLbl: Label 'PASS';
-        QltyAcceptableLbl: Label 'ACCEPTABLE';
-        QltyPassedLbl: Label 'PASSED';
-        QltyBadLbl: Label 'BAD';
-        QltyFailLbl: Label 'FAIL';
-        QltyUnacceptableLbl: Label 'UNACCEPTABLE';
-        QltyFailedLbl: Label 'FAILED';
-        QltyNotOkLbl: Label 'NOTOK';
-        PositiveLbl: Label 'POSITIVE';
-        EnabledLbl: Label 'ENABLED';
-        CheckLbl: Label 'CHECK';
-        CheckedLbl: Label 'CHECKED';
-        YesLbl: Label 'YES';
-        OnLbl: Label 'ON';
 
 
     /// <summary>
@@ -270,325 +243,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         exit(1000);
     end;
 
-    /// <summary>
-    /// Converts text input to a boolean value using flexible interpretation rules.
-    /// Treats any positive boolean representation as true, everything else as false.
-    /// 
-    /// Recognized as TRUE (case-insensitive):
-    /// - Standard: "Yes", "Y", "True", "T", "1", "On"
-    /// - Quality-specific: "Positive", "Check", "Checked", "Good", "Pass", "Passed", "Acceptable", "OK"
-    /// - Special: "V" (checkmark), ":SELECTED:"
-    /// 
-    /// All other values (including empty string) return FALSE.
-    /// 
-    /// Note: This does NOT validate if input looks like a boolean - it converts any input to boolean.
-    /// </summary>
-    /// <param name="Input">The text value to convert to boolean</param>
-    /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
-    internal procedure GetBooleanFor(Input: Text) IsTrue: Boolean
-    begin
-        if Input <> '' then begin
-            if not Evaluate(IsTrue, Input) then
-                exit(IsTextValuePositiveBoolean(Input));
-
-            case UpperCase(Input) of
-                UpperCase(TranslatableYesLbl), UpperCase(LockedYesLbl),
-                'Y', YesLbl, 'T', 'TRUE', '1', PositiveLbl, EnabledLbl, CheckLbl, CheckedLbl,
-                QltyGoodLbl, QltyPassLbl, QltyAcceptableLbl, QltyPassedLbl, 'OK', OnLbl,
-                'V', ':SELECTED:':
-                    IsTrue := true;
-            end;
-        end;
-    end;
-
-    /// <summary>
-    /// Checks if a text value represents a "positive" or "true-ish" boolean value.
-    /// 
-    /// IMPORTANT: This does NOT validate whether the text is boolean-like.
-    /// It ONLY returns true if the text matches a positive boolean representation.
-    /// Non-boolean text and negative boolean values both return false.
-    /// 
-    /// Use case: Quality inspection where "Pass", "Good", "Acceptable" should be treated as true.
-    /// 
-    /// See GetBooleanFor() for the complete list of recognized positive values.
-    /// </summary>
-    /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
-    /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
-    internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
-    var
-        ConvertedBoolean: Boolean;
-    begin
-        ValueToCheckIfPositiveBoolean := ValueToCheckIfPositiveBoolean.Trim();
-
-        if Evaluate(ConvertedBoolean, ValueToCheckIfPositiveBoolean) then
-            if ConvertedBoolean then
-                exit(true);
-
-        case UpperCase(ValueToCheckIfPositiveBoolean) of
-            UpperCase(TranslatableYesLbl),
-            UpperCase(LockedYesLbl),
-            'Y',
-            YesLbl,
-            'T',
-            'TRUE',
-            '1',
-            PositiveLbl,
-            EnabledLbl,
-            CheckLbl,
-            CheckedLbl,
-            QltyGoodLbl,
-            QltyPassLbl,
-            QltyAcceptableLbl,
-            QltyPassedLbl,
-            'OK',
-            OnLbl,
-            'V',
-            ':SELECTED:':
-                exit(true);
-        end;
-    end;
-
-    /// <summary>
-    /// Checks if text represents a negative/false boolean value.
-    /// Only returns true for negative boolean representations; does NOT validate if text is boolean-like.
-    /// 
-    /// Recognized negative values (case-insensitive):
-    /// - Standard: "No", "N", "False", "F", "0"
-    /// - Quality-specific: "Bad", "Fail", "Failed", "Unacceptable", "NotOK"
-    /// - UI states: "Disabled", "Off", "Uncheck", "Unchecked", ":UNSELECTED:"
-    /// - Other: "Negative"
-    /// 
-    /// Important: Returns false for positive values AND for non-boolean text.
-    /// Use CanTextBeInterpretedAsBooleanIsh() first to validate if text is boolean-like.
-    /// 
-    /// Common usage: Evaluating Inspection results for failure conditions.
-    /// </summary>
-    /// <param name="ValueToCheckIfNegativeBoolean">The text value to check for negative boolean representation</param>
-    /// <returns>True if text represents a negative boolean value; False otherwise (including positive values)</returns>
-    procedure IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean: Text): Boolean
-    var
-        ConvertedBoolean: Boolean;
-    begin
-        ValueToCheckIfNegativeBoolean := ValueToCheckIfNegativeBoolean.Trim();
-
-        if Evaluate(ConvertedBoolean, ValueToCheckIfNegativeBoolean) then
-            if not ConvertedBoolean then
-                exit(true);
-
-        case UpperCase(ValueToCheckIfNegativeBoolean) of
-            UpperCase(TranslatableNoLbl),
-            UpperCase(LockedNoLbl),
-            'N',
-            'NO',
-            'F',
-            'FALSE',
-            '0',
-            'NEGATIVE',
-            'DISABLED',
-            'UNCHECK',
-            'UNCHECKED',
-            QltyBadLbl,
-            QltyFailLbl,
-            QltyUnacceptableLbl,
-            QltyFailedLbl,
-            QltyNotOkLbl,
-            'OFF',
-            ':UNSELECTED:':
-                exit(true);
-        end;
-    end;
-
-    /// <summary>
-    /// Checks if text can be interpreted as a boolean-like value (positive or negative).
-    /// Detects whether input looks like a boolean representation, regardless of its value.
-    /// 
-    /// Returns true if input matches any boolean representation:
-    /// - Positive: "Yes", "True", "Pass", "Good", etc.
-    /// - Negative: "No", "False", "Fail", "Bad", etc.
-    /// 
-    /// Use case: Validating user input before conversion or determining field data type hints.
-    /// 
-    /// Note: This checks if text LOOKS like a boolean, not what boolean value it represents.
-    /// For conversion, use GetBooleanFor() instead.
-    /// </summary>
-    /// <param name="InputText">The text to check for boolean-like characteristics</param>
-    /// <returns>True if text appears to be a boolean representation; False otherwise</returns>
-    internal procedure CanTextBeInterpretedAsBooleanIsh(InputText: Text): Boolean
-    begin
-        exit(IsTextValuePositiveBoolean(InputText) or IsTextValueNegativeBoolean(InputText));
-    end;
-
-    /// <summary>
-    /// Extracts person contact details from an inspection line if it references a person-related record.
-    /// Validates that the inspection line is a table lookup type referencing a supported person table before retrieval.
-    /// 
-    /// Supported person tables (validated via Field configuration):
-    /// - Contact, Employee, Resource, User, User Setup, Salesperson/Purchaser
-    /// 
-    /// Returns false early if:
-    /// - Test Value is empty
-    /// - Field Type is not "Value Type Table Lookup"
-    /// - Test Code is invalid
-    /// - Lookup Table is not a person-related table
-    /// 
-    /// Common usage: Displaying inspector/approver details in test forms and reports.
-    /// </summary>
-    /// <param name="QltyInspectionLine">The inspection line containing the person reference</param>
-    /// <param name="FullName">Output: The person's full name</param>
-    /// <param name="JobTitle">Output: The person's job title</param>
-    /// <param name="EmailAddress">Output: The person's email address</param>
-    /// <param name="PhoneNo">Output: The person's phone number</param>
-    /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
-    /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
-    internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
-    var
-        QltyTest: Record "Qlty. Test";
-    begin
-        Clear(FullName);
-        Clear(JobTitle);
-        Clear(EmailAddress);
-        Clear(PhoneNo);
-        Clear(SourceRecordId);
-
-        if QltyInspectionLine."Test Value" = '' then
-            exit(false);
-
-        if not (QltyInspectionLine."Test Value Type" in [QltyInspectionLine."Test Value Type"::"Value Type Table Lookup"]) then
-            exit(false);
-
-        if not QltyTest.Get(QltyInspectionLine."Test Code") then
-            exit(false);
-
-        if not (QltyTest."Lookup Table No." in [
-            Database::Contact,
-            Database::Employee,
-            Database::Resource,
-            Database::User,
-            Database::"User Setup",
-            Database::"Salesperson/Purchaser"])
-        then
-            exit(false);
-
-        exit(GetBasicPersonDetails(
-            QltyInspectionLine."Test Value",
-            FullName,
-            JobTitle,
-            EmailAddress,
-            PhoneNo,
-            SourceRecordId));
-    end;
-
-    /// <summary>
-    /// Retrieves basic contact information for a person from any supported person-related record type.
-    /// Searches across multiple tables to find contact details by primary key.
-    /// 
-    /// Supported record types:
-    /// - Contact
-    /// - Employee
-    /// - Resource
-    /// - User
-    /// - User Setup
-    /// - Salesperson/Purchaser
-    /// 
-    /// Common usage: Displaying inspector/approver details in quality inspection reports and forms.
-    /// </summary>
-    /// <param name="Input">The primary key value to search for (e.g., User ID, Contact No., Employee No.)</param>
-    /// <param name="FullName">Output: The person's full name</param>
-    /// <param name="JobTitle">Output: The person's job title or position</param>
-    /// <param name="EmailAddress">Output: The person's email address</param>
-    /// <param name="PhoneNo">Output: The person's phone number</param>
-    /// <param name="SourceRecordId">Output: RecordId of the source record where details were found</param>
-    /// <returns>True if person details were found in any supported table; False otherwise</returns>
-    internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
-    var
-        Contact: Record Contact;
-        Employee: Record Employee;
-        User: Record User;
-        UserSetup: Record "User Setup";
-        Resource: Record Resource;
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-    begin
-        Clear(FullName);
-        Clear(JobTitle);
-        Clear(EmailAddress);
-        Clear(PhoneNo);
-        Clear(SourceRecordId);
-        if Input = '' then
-            exit(false);
-
-        if Contact.ReadPermission() then
-            if Contact.Get(CopyStr(Input, 1, MaxStrLen(Contact."No."))) then begin
-                FullName := Contact.Name;
-                JobTitle := Contact."Job Title";
-                EmailAddress := Contact."E-Mail";
-                PhoneNo := Contact."Phone No.";
-                SourceRecordId := Contact.RecordId();
-                exit(true);
-            end;
-
-        if Employee.ReadPermission() then
-            if Employee.Get(CopyStr(Input, 1, MaxStrLen(Employee."No."))) then begin
-                FullName := Employee.FullName();
-                JobTitle := Employee."Job Title";
-                EmailAddress := Employee."E-Mail";
-                PhoneNo := Employee."Phone No.";
-                SourceRecordId := Employee.RecordId();
-                exit(true);
-            end;
-
-        if Resource.ReadPermission() then
-            if Resource.Get(CopyStr(Input, 1, MaxStrLen(Resource."No."))) then
-                if Resource.Type = Resource.Type::Person then begin
-                    FullName := Resource.Name;
-                    JobTitle := Resource."Job Title";
-                    EmailAddress := '';
-                    PhoneNo := '';
-                    SourceRecordId := Resource.RecordId();
-                    exit(true);
-                end;
-
-        if User.ReadPermission() then begin
-            User.SetRange("User Name", CopyStr(Input, 1, MaxStrLen(User."User Name")));
-            if User.FindFirst() then begin
-                HasDetails := true;
-                FullName := User."Full Name";
-                JobTitle := '';
-                EmailAddress := User."Contact Email";
-                PhoneNo := '';
-                SourceRecordId := User.RecordId();
-                if UserSetup.ReadPermission() then begin
-                    if UserSetup.Get(User."User Name") then begin
-                        SourceRecordId := UserSetup.RecordId();
-                        if UserSetup."E-Mail" <> '' then
-                            EmailAddress := UserSetup."E-Mail";
-                        if UserSetup."Phone No." <> '' then
-                            PhoneNo := UserSetup."Phone No.";
-
-                        if UserSetup."Salespers./Purch. Code" <> '' then
-                            Input := UserSetup."Salespers./Purch. Code";
-                    end else
-                        exit(true);
-                end else
-                    exit(true);
-            end;
-
-            if SalespersonPurchaser.ReadPermission() then
-                if SalespersonPurchaser.Get(CopyStr(Input, 1, MaxStrLen(SalespersonPurchaser.Code))) then begin
-                    if SalespersonPurchaser.Name <> '' then
-                        FullName := SalespersonPurchaser.Name;
-                    if SalespersonPurchaser."Job Title" <> '' then
-                        JobTitle := SalespersonPurchaser."Job Title";
-                    if SalespersonPurchaser."E-Mail" <> '' then
-                        EmailAddress := SalespersonPurchaser."E-Mail";
-
-                    if SalespersonPurchaser."Phone No." <> '' then
-                        PhoneNo := SalespersonPurchaser."Phone No.";
-                    SourceRecordId := SalespersonPurchaser.RecordId();
-                    exit(true);
-                end;
-        end;
-    end;
-
     internal procedure IsNumericText(Input: Text): Boolean
     var
         TestNumber: Decimal;
@@ -621,6 +275,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>The guessed field type enum value</returns>
     procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyTestValueType: Enum "Qlty. Test Value Type"
     var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         TestDateTime: Date;
         TestDate: Date;
     begin
@@ -629,7 +284,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if OptionalValue <> '' then
 #pragma warning disable AA0206
             case true of
-                CanTextBeInterpretedAsBooleanIsh(Text.DelChr(OptionalValue, '=', ' ').ToUpper()):
+                QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(Text.DelChr(OptionalValue, '=', ' ').ToUpper()):
                     QltyTestValueType := QltyTestValueType::"Value Type Boolean";
                 IsNumericText(OptionalValue):
                     QltyTestValueType := QltyTestValueType::"Value Type Decimal";
@@ -662,66 +317,6 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Description.StartsWith(UpperCase(YesNoKeyword5Txt)):
                     QltyTestValueType := QltyTestValueType::"Value Type Boolean";
             end;
-    end;
-
-    /// <summary>
-    /// Opens the source document associated with a quality inspection in its appropriate page.
-    /// Automatically determines the correct page to display based on the source record type.
-    /// 
-    /// Behavior:
-    /// - Exits if no source document is linked (Source RecordId is empty)
-    /// - Uses Page Management to find the appropriate page for the record type
-    /// - Opens the page in modal mode displaying the source document
-    /// 
-    /// Common usage: "View Source" button on Inspection pages to jump to originating document
-    /// (e.g., Purchase Order, Sales Order, Production Order).
-    /// </summary>
-    /// <param name="QltyInspectionHeader">The Inspection whose source document should be displayed</param>
-    procedure NavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header")
-    var
-        PageManagement: Codeunit "Page Management";
-        RecordRefToNavigateTo: RecordRef;
-        VariantContainer: Variant;
-        CurrentPage: Integer;
-    begin
-        if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
-            exit;
-
-        RecordRefToNavigateTo := QltyInspectionHeader."Source RecordId".GetRecord();
-        CurrentPage := PageManagement.GetPageID(RecordRefToNavigateTo);
-        VariantContainer := RecordRefToNavigateTo;
-        Page.RunModal(CurrentPage, VariantContainer);
-    end;
-
-    /// <summary>
-    /// Opens the Navigate page to find all related entries for an Inspection's source document.
-    /// Pre-fills search criteria with test source information including item, document number, and tracking.
-    /// 
-    /// Populated Navigate criteria:
-    /// - Source Item No.
-    /// - Source Document No.
-    /// - Source Lot No. (if tracked)
-    /// - Source Serial No. (if tracked)
-    /// - Source Package No. (if tracked)
-    /// - Source Table: Quality Inspection Header
-    /// 
-    /// Common usage: Finding all ledger entries, posted documents, and transactions related to
-    /// the item and document that triggered the Inspection.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found</param>
-    internal procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
-    var
-        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
-        Navigate: Page Navigate;
-    begin
-        TempItemTrackingSetup."Lot No." := QltyInspectionHeader."Source Lot No.";
-        TempItemTrackingSetup."Serial No." := QltyInspectionHeader."Source Serial No.";
-        TempItemTrackingSetup."Package No." := QltyInspectionHeader."Source Package No.";
-
-        Navigate.SetSource(0D, CopyStr(QltyInspectionHeader.TableCaption(), 1, 100), QltyInspectionHeader."No.", Database::"Qlty. Inspection Header", QltyInspectionHeader."Source Item No.");
-        Navigate.SetTracking(TempItemTrackingSetup);
-        Navigate.SetDoc(0D, QltyInspectionHeader."Source Document No.");
-        Navigate.Run();
     end;
 
     /// <summary>
