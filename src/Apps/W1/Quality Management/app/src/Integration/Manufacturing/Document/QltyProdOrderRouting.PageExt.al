@@ -20,7 +20,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                 action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = TaskQualityMeasure;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Specifies to create a new quality inspection.';
@@ -36,7 +36,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections';
                     ToolTip = 'Shows existing Quality Inspections.';

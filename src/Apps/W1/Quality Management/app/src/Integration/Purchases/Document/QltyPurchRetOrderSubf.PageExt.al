@@ -20,7 +20,7 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
                 action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this purchase return order line.';
@@ -38,7 +38,7 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
                 action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
@@ -56,7 +56,7 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item';
                     ToolTip = 'Shows Quality Inspections for Item';

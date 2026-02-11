@@ -16,7 +16,7 @@ pageextension 20430 "Qlty. Item Card" extends "Item Card"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
-                AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item.';

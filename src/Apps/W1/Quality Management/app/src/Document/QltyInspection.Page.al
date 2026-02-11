@@ -465,7 +465,7 @@ page 20406 "Qlty. Inspection"
         {
             action("Create Re-inspection")
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
@@ -482,7 +482,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusFinish)
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = M;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -500,7 +500,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusReopen)
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = M;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;

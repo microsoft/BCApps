@@ -165,7 +165,7 @@ page 20402 "Qlty. Inspection Template"
             }
             action(CreateInspection)
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;

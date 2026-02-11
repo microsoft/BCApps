@@ -181,7 +181,7 @@ page 20408 "Qlty. Inspection List"
             action(CreateInspection)
             {
                 Scope = Repeater;
-                AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection.';
                 Image = CreateForm;
@@ -201,7 +201,7 @@ page 20408 "Qlty. Inspection List"
             }
             action("Create Re-inspection")
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
@@ -231,7 +231,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusFinish)
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = M;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -255,7 +255,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusReopen)
             {
-                AccessByPermission = TableData "Qlty. Inspection Header" = M;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;

@@ -84,7 +84,7 @@ page 20404 "Qlty. Inspection Template List"
             action(CreateInspection)
             {
                 Scope = Repeater;
-                AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;

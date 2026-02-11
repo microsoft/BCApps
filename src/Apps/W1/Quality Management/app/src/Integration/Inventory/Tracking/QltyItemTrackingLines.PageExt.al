@@ -20,7 +20,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                 action(Qlty_CreateQualityInspections)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = I;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = CreateForm;
                     Caption = 'Create Quality Inspections';
                     ToolTip = 'Creates multiple quality inspections for the selected item tracking lines.';
@@ -39,7 +39,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item with tracking specification';
                     ToolTip = 'Shows Quality Inspections for Item with tracking specification';

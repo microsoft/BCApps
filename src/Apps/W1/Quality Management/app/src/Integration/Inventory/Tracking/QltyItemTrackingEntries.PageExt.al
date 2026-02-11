@@ -16,7 +16,7 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
-                AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';

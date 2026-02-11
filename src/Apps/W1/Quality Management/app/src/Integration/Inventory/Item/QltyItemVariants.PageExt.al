@@ -16,7 +16,7 @@ pageextension 20432 "Qlty. Item Variants" extends "Item Variants"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
-                AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item and variant.';

@@ -16,7 +16,7 @@ pageextension 20433 "Qlty. Item Variant Card" extends "Item Variant Card"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
-                AccessByPermission = TableData "Qlty. Inspection Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item and variant.';
