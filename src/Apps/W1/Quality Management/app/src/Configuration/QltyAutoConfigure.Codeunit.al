@@ -27,9 +27,8 @@ using Microsoft.Warehouse.Ledger;
 codeunit 20402 "Qlty. Auto Configure"
 {
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        DefaultQltyInspectionNoSeriesTok: Label 'QltyDEFAULT', Locked = true;
-        DefaultQltyInspectionNoSeriesLabelTok: Label 'Quality Inspection Default';
+        DefaultQltyInspectionNoSeriesTxt: Label 'QltyDEFAULT', Locked = true;
+        DefaultQltyInspectionNoSeriesLabelTxt: Label 'Quality Inspection Default';
         DefaultSeriesStartingNoTok: Label 'QI00000001', Locked = true;
         DefaultResult0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
         DefaultResult0InProgressDescriptionTxt: Label 'In Progress';
@@ -104,12 +103,77 @@ codeunit 20402 "Qlty. Auto Configure"
         EnsureSetupRecordExists();
         EnsureResultExists();
         EnsureAtLeastOneSourceConfigurationExist(true);
+
         if ShowMessage then
             Message(BasicDefaultRecordsConfiguredMsg);
     end;
 
-    local procedure EnsureResultExists()
+    local procedure EnsureSetupRecordExists()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
     begin
+        if not QltyManagementSetup.WritePermission() then
+            exit;
+
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert();
+
+        Commit();
+
+        if QltyManagementSetup."Quality Inspection Nos." = '' then
+            if CreateDefaultQltyInspectionNoSeries(QltyManagementSetup) then
+                QltyManagementSetup.Modify();
+    end;
+
+    /// <summary>
+    /// If it's possible to create a default Quality Inspection No. Series, then do so.
+    /// Only do this if the Quality Inspection No. Series is blank however.
+    /// </summary>
+    local procedure CreateDefaultQltyInspectionNoSeries(var QltyManagementSetup: Record "Qlty. Management Setup") DidSomething: Boolean;
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        AlreadyCreated: Boolean;
+    begin
+        if QltyManagementSetup."Quality Inspection Nos." <> '' then
+            exit;
+
+        if not NoSeries.WritePermission() then
+            exit;
+        if not NoSeriesLine.WritePermission() then
+            exit;
+
+        if not NoSeries.Get(DefaultQltyInspectionNoSeriesTxt) then begin
+            NoSeries.Init();
+            NoSeries.Code := DefaultQltyInspectionNoSeriesTxt;
+            NoSeries.Description := CopyStr(DefaultQltyInspectionNoSeriesLabelTxt, 1, MaxStrLen(NoSeries.Description));
+            if NoSeries.Insert() then begin
+                NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+                if not NoSeriesLine.FindFirst() then begin
+                    NoSeriesLine.Init();
+                    NoSeriesLine."Series Code" := NoSeries.Code;
+                    NoSeriesLine."Line No." := 10000;
+                    NoSeriesLine.Validate("Starting No.", DefaultSeriesStartingNoTok);
+                    DidSomething := NoSeriesLine.Insert();
+                end else
+                    DidSomething := true;
+            end;
+        end else
+            AlreadyCreated := true;
+
+        if (DidSomething or AlreadyCreated) and (QltyManagementSetup."Quality Inspection Nos." = '') then begin
+            QltyManagementSetup."Quality Inspection Nos." := NoSeries.Code;
+            DidSomething := true;
+        end;
+    end;
+
+    local procedure EnsureResultExists()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        if not QltyInspectionResult.IsEmpty() then
+            exit;
+
         EnsureSingleResultExists(
             DefaultResult0InProgressCodeTok,
             DefaultResult0InProgressDescriptionTxt,
@@ -162,21 +226,6 @@ codeunit 20402 "Qlty. Auto Configure"
         end;
     end;
 
-    local procedure EnsureSetupRecordExists()
-    begin
-        if not QltyManagementSetup.WritePermission() then
-            exit;
-
-        if not QltyManagementSetup.Get() then
-            QltyManagementSetup.Insert();
-
-        Commit();
-
-        if QltyManagementSetup."Quality Inspection Nos." = '' then
-            if CreateDefaultQltyInspectionNoSeries(QltyManagementSetup) then
-                QltyManagementSetup.Modify();
-    end;
-
     /// <summary>
     /// If there is already at least enabled configuration then this will not do anything.
     /// Otherwise it will assume an empty system and create default purchase receipt configuration.
@@ -192,54 +241,72 @@ codeunit 20402 "Qlty. Auto Configure"
                 exit;
 
         CreateDefaultTrackingSpecificationToInspectConfiguration();
-        CreateDefaultProductionConfiguration();
+        CreateDefaultProductionAndAssemblyConfiguration();
         CreateDefaultReceivingConfiguration();
         CreateDefaultWarehousingConfiguration();
     end;
 
-    /// <summary>
-    /// If it's possible to create a default Quality Inspection No. Series, then do so.
-    /// Only do this if the Quality Inspection No. Series is blank however.
-    /// </summary>
-    local procedure CreateDefaultQltyInspectionNoSeries(var ToAlterQltyManagementSetup: Record "Qlty. Management Setup") DidSomething: Boolean;
+    local procedure CreateDefaultTrackingSpecificationToInspectConfiguration()
     var
-        NoSeries: Record "No. Series";
-        NoSeriesLine: Record "No. Series Line";
-        AlreadyCreated: Boolean;
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
-        if ToAlterQltyManagementSetup."Quality Inspection Nos." <> '' then
-            exit;
-
-        if not NoSeries.WritePermission() then
-            exit;
-        if not NoSeriesLine.WritePermission() then
-            exit;
-
-        if not NoSeries.Get(DefaultQltyInspectionNoSeriesTok) then begin
-            NoSeries.Init();
-            NoSeries.Code := DefaultQltyInspectionNoSeriesTok;
-            NoSeries.Description := CopyStr(DefaultQltyInspectionNoSeriesLabelTok, 1, MaxStrLen(NoSeries.Description));
-            if NoSeries.Insert() then begin
-                NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-                if not NoSeriesLine.FindFirst() then begin
-                    NoSeriesLine.Init();
-                    NoSeriesLine."Series Code" := NoSeries.Code;
-                    NoSeriesLine."Line No." := 10000;
-                    NoSeriesLine.Validate("Starting No.", DefaultSeriesStartingNoTok);
-                    DidSomething := NoSeriesLine.Insert();
-                end else
-                    DidSomething := true;
-            end;
-        end else
-            AlreadyCreated := true;
-
-        if (DidSomething or AlreadyCreated) and (ToAlterQltyManagementSetup."Quality Inspection Nos." = '') then begin
-            ToAlterQltyManagementSetup."Quality Inspection Nos." := NoSeries.Code;
-            DidSomething := true;
-        end;
+        EnsureSourceConfigWithFilterExists(
+            TrackingSpecToInspectTok,
+            TrackingSpecToInspectDescriptionTxt,
+            Database::"Tracking Specification",
+            Database::"Qlty. Inspection Header",
+            QltyInspectSourceConfig,
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Item No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Item No."),
+            '');
+        EnsurePrioritizedSourceConfigLineWithTrackFlagExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Quantity (Base)"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
+            '',
+            false,
+            QltyConfigTestPriority::Priority);
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Variant Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Variant Code"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Lot No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Lot No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Serial No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Serial No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Package No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Package No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempTrackingSpecification.FieldNo("Location Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Location Code"),
+            '');
     end;
 
-    internal procedure CreateDefaultProductionConfiguration()
+    local procedure CreateDefaultProductionAndAssemblyConfiguration()
     begin
         CreateDefaultProdOrderRoutingLineToInspectConfiguration();
         CreateDefaultProdOrderLineToProdOrderRoutingConfiguration();
@@ -252,6 +319,21 @@ codeunit 20402 "Qlty. Auto Configure"
         CreateDefaultProdOrderRoutingLineToItemJournalLineConfiguration();
         CreateDefaultTrackingSpecificationToProdConfiguration();
         CreateDefaultAssemblyOutputToInspectConfiguration();
+    end;
+
+    local procedure CreateDefaultReceivingConfiguration()
+    begin
+        CreateDefaultPurchaseLineToInspectConfiguration();
+        CreateDefaultSalesLineToInspectConfiguration();
+        CreateDefaultSalesReturnLineToInspectConfiguration();
+        CreateDefaultTrackingSpecificationToInspectConfiguration();
+        CreateDefaultTrackingSpecificationToPurchaseConfiguration();
+        CreateDefaultTrackingSpecificationToSalesConfiguration();
+        CreateDefaultWarehouseReceiptLineToPurchConfiguration();
+        CreateDefaultWarehouseReceiptLineToSalesConfiguration();
+        CreateDefaultWarehouseJournalLineToPurchConfiguration();
+        CreateDefaultWarehouseJournalLineToSalesConfiguration();
+        CreateDefaultTransferLineReceiptToInspectConfiguration();
     end;
 
     internal procedure CreateDefaultWarehousingConfiguration()
@@ -408,21 +490,6 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Description"),
             '');
-    end;
-
-    internal procedure CreateDefaultReceivingConfiguration()
-    begin
-        CreateDefaultPurchaseLineToInspectConfiguration();
-        CreateDefaultSalesLineToInspectConfiguration();
-        CreateDefaultSalesReturnLineToInspectConfiguration();
-        CreateDefaultTrackingSpecificationToInspectConfiguration();
-        CreateDefaultTrackingSpecificationToPurchaseConfiguration();
-        CreateDefaultTrackingSpecificationToSalesConfiguration();
-        CreateDefaultWarehouseReceiptLineToPurchConfiguration();
-        CreateDefaultWarehouseReceiptLineToSalesConfiguration();
-        CreateDefaultWarehouseJournalLineToPurchConfiguration();
-        CreateDefaultWarehouseJournalLineToSalesConfiguration();
-        CreateDefaultTransferLineReceiptToInspectConfiguration();
     end;
 
     local procedure CreateDefaultTrackingSpecificationToSalesConfiguration()
@@ -898,66 +965,6 @@ codeunit 20402 "Qlty. Auto Configure"
             TempWarehouseReceiptLine.FieldNo("Source Line No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Line No."),
-            '');
-    end;
-
-    local procedure CreateDefaultTrackingSpecificationToInspectConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
-        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
-        QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
-    begin
-        EnsureSourceConfigWithFilterExists(
-            TrackingSpecToInspectTok,
-            TrackingSpecToInspectDescriptionTxt,
-            Database::"Tracking Specification",
-            Database::"Qlty. Inspection Header",
-            QltyInspectSourceConfig,
-            '');
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Item No."),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Item No."),
-            '');
-        EnsurePrioritizedSourceConfigLineWithTrackFlagExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Quantity (Base)"),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
-            '',
-            false,
-            QltyConfigTestPriority::Priority);
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Variant Code"),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Variant Code"),
-            '');
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Lot No."),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Lot No."),
-            '');
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Serial No."),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Serial No."),
-            '');
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Package No."),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Source Package No."),
-            '');
-        EnsureSourceConfigLineExists(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Header",
-            TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
     end;
 
