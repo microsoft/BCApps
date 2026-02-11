@@ -136,6 +136,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         TempBlob: Codeunit "Temp Blob";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
@@ -155,7 +156,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(false);
 
         // Telemetry logging for feature usage
-        LogFeatureUsedTelemetry();
+        DAFeatureTelemetry.LogFeatureUsed();
 
         // Get file content from document attachment
         TempBlob.CreateOutStream(OutStream);
@@ -178,7 +179,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
-            LogFileUploadedTelemetry(DocumentAttachment);
+            DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
             exit(true);
         end;
 
@@ -195,6 +196,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
         ExternalFilePath, FileName : Text;
@@ -224,7 +226,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.GetFile(ExternalFilePath, InStream);
 
         if DownloadFromStream(InStream, '', '', '', FileName) then begin
-            LogFileDownloadedTelemetry(DocumentAttachment);
+            DAFeatureTelemetry.LogFileDownloaded(DocumentAttachment);
             exit(true);
         end;
 
@@ -366,6 +368,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         FileScenario: Enum "File Scenario";
         ExternalFilePath: Text;
     begin
@@ -404,7 +407,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.Initialize(FileScenario);
         if ExternalFileStorage.DeleteFile(ExternalFilePath) then begin
             DocumentAttachment.MarkAsNotUploadedToExternal();
-            LogFileDeletedTelemetry(DocumentAttachment);
+            DAFeatureTelemetry.LogFileDeleted(DocumentAttachment);
             exit(true);
         end;
 
@@ -727,6 +730,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure RunCompanyMigration(): Integer
     var
         DocumentAttachment: Record "Document Attachment";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         MigratedCount: Integer;
         StartMigrationQst: Label 'This will migrate all document attachments from the previous company folder to the current company folder.\\Do you want to continue?';
         MigrationCompletedMsg: Label '%1 file(s) have been successfully migrated to the current company folder.', Comment = '%1 = Number of files';
@@ -745,7 +749,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             until DocumentAttachment.Next() = 0;
 
         if MigratedCount > 0 then begin
-            LogCompanyMigrationTelemetry();
+            DAFeatureTelemetry.LogCompanyMigration();
             Message(MigrationCompletedMsg, MigratedCount);
         end;
 
@@ -932,42 +936,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
     #endregion
 
-    #region Telemetry Logging
-    local procedure LogFeatureUsedTelemetry()
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        DAFeatureTelemetry.LogFeatureUsed();
-    end;
-
-    local procedure LogFileUploadedTelemetry(DocumentAttachment: Record "Document Attachment")
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
-    end;
-
-    local procedure LogFileDownloadedTelemetry(DocumentAttachment: Record "Document Attachment")
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        DAFeatureTelemetry.LogFileDownloaded(DocumentAttachment);
-    end;
-
-    local procedure LogFileDeletedTelemetry(DocumentAttachment: Record "Document Attachment")
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        DAFeatureTelemetry.LogFileDeleted(DocumentAttachment);
-    end;
-
-    local procedure LogCompanyMigrationTelemetry()
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        DAFeatureTelemetry.LogCompanyMigration();
-    end;
-
     local procedure IsFeatureEnabled(): Boolean
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
@@ -977,5 +945,4 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         exit(ExternalStorageSetup.Enabled);
     end;
-    #endregion
 }
