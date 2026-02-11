@@ -13,6 +13,11 @@ using System.Utilities;
 /// <summary>
 /// Provides functionality for interacting with SharePoint through Microsoft Graph API.
 /// </summary>
+/// <remarks>
+/// Each procedure documents the required Microsoft Graph application permission (Sites.Read.All, Sites.ReadWrite.All, or Sites.Manage.All).
+/// Alternatively, the Sites.Selected permission can be used to restrict access to specific sites. With Sites.Selected, the actual access level
+/// is determined by the role (read, write, fullcontrol) granted per-site via the /sites/{siteId}/permissions endpoint.
+/// </remarks>
 codeunit 9119 "SharePoint Graph Client"
 {
     Access = Public;
@@ -27,6 +32,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="NewSharePointUrl">SharePoint site URL.</param>
     /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure Initialize(NewSharePointUrl: Text; GraphAuthorization: Interface "Graph Authorization")
     begin
         SharePointGraphClientImpl.Initialize(NewSharePointUrl, GraphAuthorization);
@@ -38,6 +44,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="NewSharePointUrl">SharePoint site URL.</param>
     /// <param name="ApiVersion">The Graph API version to use.</param>
     /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure Initialize(NewSharePointUrl: Text; ApiVersion: Enum "Graph API Version"; GraphAuthorization: Interface "Graph Authorization")
     begin
         SharePointGraphClientImpl.Initialize(NewSharePointUrl, ApiVersion, GraphAuthorization);
@@ -49,6 +56,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="NewSharePointUrl">SharePoint site URL.</param>
     /// <param name="BaseUrl">The custom base URL for Graph API.</param>
     /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure Initialize(NewSharePointUrl: Text; BaseUrl: Text; GraphAuthorization: Interface "Graph Authorization")
     begin
         SharePointGraphClientImpl.Initialize(NewSharePointUrl, BaseUrl, GraphAuthorization);
@@ -61,6 +69,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ApiVersion">The Graph API version to use.</param>
     /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
     /// <param name="HttpClientHandler">HTTP client handler for intercepting requests.</param>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure Initialize(NewSharePointUrl: Text; ApiVersion: Enum "Graph API Version"; GraphAuthorization: Interface "Graph Authorization"; HttpClientHandler: Interface "Http Client Handler")
     begin
         SharePointGraphClientImpl.Initialize(NewSharePointUrl, ApiVersion, GraphAuthorization, HttpClientHandler);
@@ -75,6 +84,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="GraphLists">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetLists(GraphLists));
@@ -86,6 +96,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphLists">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetLists(GraphLists, GraphOptionalParameters));
@@ -97,6 +108,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ListId">ID of the list to retrieve.</param>
     /// <param name="GraphList">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetList(ListId, GraphList));
@@ -109,6 +121,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphList">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetList(ListId, GraphList, GraphOptionalParameters));
@@ -121,6 +134,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="Description">Description for the list.</param>
     /// <param name="GraphList">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Manage.All</remarks>
     procedure CreateList(DisplayName: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateList(DisplayName, Description, GraphList));
@@ -134,6 +148,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="Description">Description for the list.</param>
     /// <param name="GraphList">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Manage.All</remarks>
     procedure CreateList(DisplayName: Text; ListTemplate: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateList(DisplayName, ListTemplate, Description, GraphList));
@@ -149,6 +164,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ListId">ID of the list.</param>
     /// <param name="GraphListItems">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetListItems(ListId, GraphListItems));
@@ -161,6 +177,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphListItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetListItems(ListId, GraphListItems, GraphOptionalParameters));
@@ -173,6 +190,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FieldsJsonObject">JSON object containing the fields for the new item.</param>
     /// <param name="GraphListItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateListItem(ListId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateListItem(ListId, FieldsJsonObject, GraphListItem));
@@ -185,6 +203,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="Title">Title for the new item.</param>
     /// <param name="GraphListItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateListItem(ListId: Text; Title: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateListItem(ListId, Title, GraphListItem));
@@ -199,6 +218,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="DriveId">ID of the default drive.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDefaultDrive(var DriveId: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDefaultDrive(DriveId));
@@ -209,6 +229,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="GraphDrives">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDrives(GraphDrives));
@@ -220,6 +241,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDrives">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDrives(GraphDrives, GraphOptionalParameters));
@@ -231,6 +253,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="DriveId">ID of the drive to retrieve.</param>
     /// <param name="GraphDrive">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDrive(DriveId, GraphDrive));
@@ -243,6 +266,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDrive">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDrive(DriveId, GraphDrive, GraphOptionalParameters));
@@ -253,6 +277,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="GraphDrive">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDefaultDrive(var GraphDrive: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDefaultDrive(GraphDrive));
@@ -263,6 +288,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetRootItems(GraphDriveItems));
@@ -274,6 +300,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetRootItems(GraphDriveItems, GraphOptionalParameters));
@@ -285,6 +312,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FolderId">ID of the folder.</param>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetFolderItems(FolderId, GraphDriveItems));
@@ -297,6 +325,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetFolderItems(FolderId, GraphDriveItems, GraphOptionalParameters));
@@ -308,6 +337,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FolderPath">Path to the folder (e.g., 'Documents/Folder1').</param>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetItemsByPath(FolderPath, GraphDriveItems));
@@ -320,6 +350,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetItemsByPath(FolderPath, GraphDriveItems, GraphOptionalParameters));
@@ -331,6 +362,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemId">ID of the item to retrieve.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDriveItem(ItemId, GraphDriveItem));
@@ -343,6 +375,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDriveItem(ItemId, GraphDriveItem, GraphOptionalParameters));
@@ -354,6 +387,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDriveItemByPath(ItemPath, GraphDriveItem));
@@ -366,6 +400,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.GetDriveItemByPath(ItemPath, GraphDriveItem, GraphOptionalParameters));
@@ -378,6 +413,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FolderName">Name of the new folder.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateFolder(FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateFolder('', FolderPath, FolderName, GraphDriveItem));
@@ -391,6 +427,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a folder with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateFolder(FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateFolder('', FolderPath, FolderName, GraphDriveItem, ConflictBehavior));
@@ -404,6 +441,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FolderName">Name of the new folder.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateFolder(DriveId, FolderPath, FolderName, GraphDriveItem));
@@ -418,6 +456,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a folder with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CreateFolder(DriveId, FolderPath, FolderName, GraphDriveItem, ConflictBehavior));
@@ -431,6 +470,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile('', FolderPath, FileName, FileInStream, GraphDriveItem));
@@ -445,6 +485,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile('', FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
@@ -459,6 +500,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem));
@@ -474,6 +516,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
@@ -485,6 +528,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemId">ID of the file to download.</param>
     /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure DownloadFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DownloadFile(ItemId, TempBlob));
@@ -496,6 +540,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
     /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure DownloadFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DownloadFileByPath(FilePath, TempBlob));
@@ -507,7 +552,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemId">ID of the file to download.</param>
     /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All. Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
     procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DownloadLargeFile(ItemId, TempBlob));
@@ -519,7 +564,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
     /// <param name="TempBlob">Blob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All. Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
     procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DownloadLargeFileByPath(FilePath, TempBlob));
@@ -533,6 +578,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadLargeFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem));
@@ -547,6 +593,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadLargeFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
@@ -561,6 +608,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem));
@@ -576,6 +624,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
     procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
@@ -586,7 +635,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="ItemId">ID of the item to delete.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>Returns success even if the item doesn't exist (404 is treated as success).</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. Returns success even if the item doesn't exist (404 is treated as success).</remarks>
     procedure DeleteItem(ItemId: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DeleteItem(ItemId));
@@ -597,7 +646,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// </summary>
     /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx' or 'Documents/folder').</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>Returns success even if the item doesn't exist (404 is treated as success).</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. Returns success even if the item doesn't exist (404 is treated as success).</remarks>
     procedure DeleteItemByPath(ItemPath: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.DeleteItemByPath(ItemPath));
@@ -609,6 +658,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemId">ID of the item to check.</param>
     /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure ItemExists(ItemId: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.ItemExists(ItemId, Exists));
@@ -620,6 +670,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx' or 'Documents/folder').</param>
     /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
     procedure ItemExistsByPath(ItemPath: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.ItemExistsByPath(ItemPath, Exists));
@@ -632,7 +683,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="TargetFolderId">ID of the target folder.</param>
     /// <param name="NewName">New name for the copied item (optional - leave empty to keep original name).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>This is an asynchronous operation. The copy happens in the background.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. This is an asynchronous operation. The copy happens in the background.</remarks>
     procedure CopyItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CopyItem(ItemId, TargetFolderId, NewName));
@@ -645,7 +696,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="TargetFolderPath">Path to the target folder (e.g., 'Documents/Archive').</param>
     /// <param name="NewName">New name for the copied item (optional - leave empty to keep original name).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>This is an asynchronous operation. The copy happens in the background.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. This is an asynchronous operation. The copy happens in the background.</remarks>
     procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.CopyItemByPath(ItemPath, TargetFolderPath, NewName));
@@ -658,7 +709,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="TargetFolderId">ID of the target folder (leave empty to only rename).</param>
     /// <param name="NewName">New name for the moved item (leave empty to keep original name).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>At least one of TargetFolderId or NewName must be provided.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. At least one of TargetFolderId or NewName must be provided.</remarks>
     procedure MoveItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.MoveItem(ItemId, TargetFolderId, NewName));
@@ -671,7 +722,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="TargetFolderPath">Path to the target folder (leave empty to only rename).</param>
     /// <param name="NewName">New name for the moved item (leave empty to keep original name).</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>At least one of TargetFolderPath or NewName must be provided.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. At least one of TargetFolderPath or NewName must be provided.</remarks>
     procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.MoveItemByPath(ItemPath, TargetFolderPath, NewName));
