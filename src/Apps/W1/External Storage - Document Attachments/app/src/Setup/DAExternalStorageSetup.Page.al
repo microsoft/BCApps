@@ -18,12 +18,14 @@ page 8750 "DA External Storage Setup"
     SourceTable = "DA External Storage Setup";
     Caption = 'External Storage Setup';
     UsageCategory = None;
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = All;
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
-    Permissions = tabledata "DA External Storage Setup" = rmid,
+    Permissions = tabledata "DA External Storage Setup" = rimd,
                   tabledata "Job Queue Entry" = r;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

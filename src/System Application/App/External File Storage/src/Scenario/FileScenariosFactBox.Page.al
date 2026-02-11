@@ -54,6 +54,7 @@ page 9453 "File Scenarios FactBox"
                 ToolTip = 'Additional scenario setup for the selected scenario.';
                 Image = Setup;
                 Scope = Repeater;
+
                 trigger OnAction()
                 begin
                     OpenAdditionalScenarioSetup();

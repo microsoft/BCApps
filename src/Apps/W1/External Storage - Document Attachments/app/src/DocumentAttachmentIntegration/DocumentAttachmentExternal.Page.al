@@ -17,7 +17,7 @@ page 8751 "Document Attachment - External"
     SourceTable = "Document Attachment";
     Caption = 'Document Attachments - External Storage';
     UsageCategory = None;
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = All;
     Editable = false;
     Extensible = false;
 
@@ -30,7 +30,7 @@ page 8751 "Document Attachment - External"
                 ShowCaption = false;
                 field(ExternalStorageStatistics; ExternalStorageStatsText)
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Style = Strong;

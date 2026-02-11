@@ -17,7 +17,7 @@ report 8752 "DA External Storage Sync"
     ProcessingOnly = true;
     UseRequestPage = true;
     Extensible = false;
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = All;
     UsageCategory = None;
     Permissions = tabledata "DA External Storage Setup" = r,
                   tabledata "Document Attachment" = r;
@@ -115,21 +115,21 @@ report 8752 "DA External Storage Sync"
                     Caption = 'General';
                     field(SyncDirectionField; SyncDirection)
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Caption = 'Sync Direction';
                         OptionCaption = 'To External Storage,To Internal Storage';
                         ToolTip = 'Specifies whether to sync to external storage or to internal storage.';
                     }
                     field(OperationField; Operation)
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Caption = 'Operation';
                         OptionCaption = 'Copy,Move';
                         ToolTip = 'Specifies whether to copy files (leaving them in the source) or move them (deleting from the source after successful copy).';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Enabled = SyncDirection = SyncDirection::"To External Storage";
                         Caption = 'Maximum Records to Process';
                         ToolTip = 'Specifies the maximum number of records to process in one run. Leave 0 for unlimited.';

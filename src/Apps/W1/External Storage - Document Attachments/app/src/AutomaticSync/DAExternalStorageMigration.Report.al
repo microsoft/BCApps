@@ -17,7 +17,7 @@ report 8753 "DA External Storage Migration"
     ProcessingOnly = true;
     UseRequestPage = true;
     Extensible = false;
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = All;
     UsageCategory = None;
     Permissions = tabledata "DA External Storage Setup" = r,
                   tabledata "Document Attachment" = rimd;
@@ -96,7 +96,7 @@ report 8753 "DA External Storage Migration"
                     Caption = 'General';
                     label(InfoLabel)
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Caption = 'This report will migrate all document attachments from a previous environment or company folder to the current environment/company folder in external storage.';
                     }
                 }
