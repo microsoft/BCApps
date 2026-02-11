@@ -64,7 +64,7 @@ page 20402 "Qlty. Inspection Template"
                         UpdateControls();
                     end;
                 }
-                group(SettingsForSampleFixedAmountVisibilityWrapper)
+                group(SampleFixedAmountVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -77,7 +77,7 @@ page 20402 "Qlty. Inspection Template"
                         AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
-                group(SettingsForSamplePercentVisibilityWrapper)
+                group(SamplePercentVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -136,7 +136,6 @@ page 20402 "Qlty. Inspection Template"
             {
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
-
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -192,8 +191,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-
-                Image = Report;
+                Image = TaskQualityMeasure;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;

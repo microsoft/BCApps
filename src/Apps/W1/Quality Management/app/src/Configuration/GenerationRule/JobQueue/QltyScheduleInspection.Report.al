@@ -44,7 +44,7 @@ report 20412 "Qlty. Schedule Inspection"
         {
             area(Content)
             {
-                group(SettingsForWarning)
+                group(Warning)
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateInspection;

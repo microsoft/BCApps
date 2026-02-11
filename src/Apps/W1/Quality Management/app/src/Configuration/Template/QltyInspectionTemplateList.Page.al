@@ -128,7 +128,7 @@ page 20404 "Qlty. Inspection Template List"
                 Scope = Repeater;
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-                Image = Report;
+                Image = TaskQualityMeasure;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
