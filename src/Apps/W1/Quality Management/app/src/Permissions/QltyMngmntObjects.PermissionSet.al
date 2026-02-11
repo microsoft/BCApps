@@ -47,7 +47,7 @@ permissionset 20406 "QltyMngmnt - Objects"
 
     Permissions =
         // Codeunits
-        codeunit "Qlty. - Warehouse Integration" = X,
+        codeunit "Qlty. Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
         codeunit "Qlty. Inspection - Create" = X,
