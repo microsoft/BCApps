@@ -13,28 +13,33 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Workflow;
 
+/// <summary>
+/// Used for full read-only access to Quality Management.
+/// </summary>
 permissionset 20401 "QltyMngmnt - Read"
 {
-    Caption = 'Quality Management - Read';
+    Caption = 'Quality Management - Read access';
     Access = Public;
     Assignable = true;
 
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
+        tabledata "Qlty. Management Setup" = R,
+        tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
+        tabledata "Qlty. Express Config. Value" = R,
         tabledata "Qlty. Inspection Gen. Rule" = R,
         tabledata "Qlty. I. Result Condit. Conf." = R,
-        tabledata "Qlty. Inspection Result" = R,
-        tabledata "Qlty. Lookup Code" = R,
-        tabledata "Qlty. Management Setup" = R,
-        tabledata "Qlty. Related Transfers Buffer" = RIMD,
-        tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
-        tabledata "Qlty. Inspect. Src. Fld. Conf." = R,
         tabledata "Qlty. Inspect. Source Config." = R,
-        tabledata "Qlty. Inspection Template Line" = R,
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = R,
+        tabledata "Qlty. Lookup Code" = R,
+        tabledata "Qlty. Related Transfers Buffer" = RIMD,
         tabledata "Qlty. Inspection Template Hdr." = R,
-        tabledata "Qlty. Inspection Line" = R,
+        tabledata "Qlty. Inspection Template Line" = R,
+        tabledata "Qlty. Test" = R,
+        tabledata "Qlty. Inspection Result" = R,
         tabledata "Qlty. Inspection Header" = R,
-        tabledata "Qlty. Test" = R;
+        tabledata "Qlty. Inspection Line" = R;
 }
