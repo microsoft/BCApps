@@ -73,18 +73,6 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnBeforeInsertCrMemoLine, '', false, false)]
-    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnPostPurchLineOnBeforeInsertCrMemoLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; xPurchaseLine: Record "Purchase Line");
-    begin
-        if (PurchaseLine.Quantity >= 0) or (PurchaseLine."Direct Unit Cost" >= 0) then
-            exit;
-
-        if GetAppliesToDocNo(PurchaseHeader) <> '' then
-            exit;
-
-        InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePurchInvLineInsert, '', false, false)]
     local procedure InsertVendorDeferralsFromPurchaseInvoiceOnBeforePurchInvLineInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseLine: Record "Purchase Line")
     begin
@@ -102,6 +90,8 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         if DocumentNo = '' then
             exit;
         if PurchaseLine.Quantity = 0 then
+            exit;
+        if PurchaseLine.Amount = 0 then
             exit;
         if PurchaseLine."Recurring Billing from" > PurchaseLine."Recurring Billing to" then
             exit;
@@ -136,138 +126,120 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         VendorContractDeferral."Deferral Base Amount" := PurchaseLine.Amount;
         PurchaseLine."Line Discount Amount" := Sign * PurchaseLine."Line Discount Amount";
 
-        if PurchaseLine."Recurring Billing from" = CalcDate('<-CM>', PurchaseLine."Recurring Billing from") then
-            InsertContractDeferralsWhenStartingOnFirstDayInMonth(VendorContractDeferral, PurchaseLine)
-        else
-            InsertContractDeferralsWhenNotStartingOnFirstDayInMonth(VendorContractDeferral, PurchaseLine);
+        InsertContractDeferralPeriods(VendorContractDeferral, PurchaseLine);
     end;
 
-    local procedure GetDeferralParametersFromPurchaseLine(PurchaseLine: Record "Purchase Line"; var FirstDayOfBillingPeriod: Date; var LastDayOfBillingPeriod: Date; var TotalLineAmount: Decimal; var TotalLineDiscountAmount: Decimal; var NumberOfPeriods: Integer)
+    local procedure GetNumberOfDeferralPeriods(FirstDayOfBillingPeriod: Date; LastDayOfBillingPeriod: Date) NumberOfPeriods: Integer
     var
         LoopDate: Date;
     begin
-        LoopDate := PurchaseLine."Recurring Billing from";
+        LoopDate := FirstDayOfBillingPeriod;
         repeat
             NumberOfPeriods += 1;
             LoopDate := CalcDate('<1M>', LoopDate);
-        until LoopDate > CalcDate('<CM>', PurchaseLine."Recurring Billing to");
-
-        FirstDayOfBillingPeriod := PurchaseLine."Recurring Billing from";
-        LastDayOfBillingPeriod := PurchaseLine."Recurring Billing to";
-        TotalLineAmount := PurchaseLine.Amount;
-        TotalLineDiscountAmount := PurchaseLine."Line Discount Amount";
+        until LoopDate > CalcDate('<CM>', LastDayOfBillingPeriod);
     end;
 
-    local procedure InsertContractDeferralsWhenStartingOnFirstDayInMonth(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line")
+    local procedure InsertContractDeferralPeriods(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line")
     var
         NumberOfPeriods: Integer;
         i: Integer;
-        NextPostingDate: Date;
-        LastDayOfBillingPeriod: Date;
-        TotalLineAmount: Decimal;
-        TotalLineDiscountAmount: Decimal;
-        LineAmountPerPeriod: Decimal;
-        LineDiscountAmountPerPeriod: Decimal;
-        RunningLineAmount: Decimal;
-        RunningLineDiscountAmount: Decimal;
-    begin
-        RunningLineAmount := 0;
-        RunningLineDiscountAmount := 0;
-        GetDeferralParametersFromPurchaseLine(PurchaseLine, NextPostingDate, LastDayOfBillingPeriod, TotalLineAmount, TotalLineDiscountAmount, NumberOfPeriods);
-        LineAmountPerPeriod := Round(TotalLineAmount / NumberOfPeriods, GLSetup."Amount Rounding Precision");
-        LineDiscountAmountPerPeriod := Round(TotalLineDiscountAmount / NumberOfPeriods, GLSetup."Amount Rounding Precision");
-
-        for i := 1 to NumberOfPeriods do begin
-            VendorContractDeferral."Posting Date" := NextPostingDate;
-            NextPostingDate := CalcDate('<1M>', NextPostingDate);
-            if i = NumberOfPeriods then begin
-                LineAmountPerPeriod := TotalLineAmount - RunningLineAmount;
-                LineDiscountAmountPerPeriod := TotalLineDiscountAmount - RunningLineDiscountAmount;
-            end;
-            RunningLineAmount += LineAmountPerPeriod;
-            RunningLineDiscountAmount += LineDiscountAmountPerPeriod;
-
-            VendorContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1);
-            VendorContractDeferral.Amount := LineAmountPerPeriod;
-            VendorContractDeferral."Discount Amount" := LineDiscountAmountPerPeriod;
-            VendorContractDeferral."Entry No." := 0;
-            VendorContractDeferral.Insert(false);
-            TempVendorContractDeferral := VendorContractDeferral;
-            TempVendorContractDeferral.Insert(false); //Used for Preview Posting
-        end;
-    end;
-
-    local procedure InsertContractDeferralsWhenNotStartingOnFirstDayInMonth(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line")
-    var
-        NumberOfPeriods: Integer;
         NextPostingDate: Date;
         FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        TotalLineAmount: Decimal;
-        TotalLineDiscountAmount: Decimal;
-        LineAmountPerPeriod: Decimal;
-        LineDiscountAmountPerPeriod: Decimal;
         LineAmountPerDay: Decimal;
         LineDiscountAmountPerDay: Decimal;
-        LineAmountPerMonth: Decimal;
-        LineDiscountAmountPerMonth: Decimal;
-        FirstMonthDays: Integer;
-        FirstMonthLineAmount: Decimal;
-        FirstMonthLineDiscountAmount: Decimal;
-        LastMonthDays: Integer;
-        LastMonthLineAmount: Decimal;
-        LastMonthLineDiscountAmount: Decimal;
+        FullMonthLineAmount: Decimal;
+        FullMonthLineDiscountAmount: Decimal;
+        PartialFirstMonthAmount: Decimal;
+        PartialFirstMonthDiscountAmount: Decimal;
+        PartialLastMonthAmount: Decimal;
+        PartialLastMonthDiscountAmount: Decimal;
+        PeriodLineAmount: Decimal;
+        PeriodLineDiscountAmount: Decimal;
         RunningLineAmount: Decimal;
-        RunningLineDiscountTotal: Decimal;
+        RunningLineDiscountAmount: Decimal;
         NumberOfDaysInSchedule: Integer;
-        i: Integer;
+        FirstMonthDays: Integer;
+        LastMonthDays: Integer;
+        FullMonthCount: Integer;
+        FirstMonthIsPartial: Boolean;
+        LastMonthIsPartial: Boolean;
     begin
-        RunningLineAmount := 0;
-        RunningLineDiscountTotal := 0;
-        GetDeferralParametersFromPurchaseLine(PurchaseLine, FirstDayOfBillingPeriod, LastDayOfBillingPeriod, TotalLineAmount, TotalLineDiscountAmount, NumberOfPeriods);
-        NextPostingDate := FirstDayOfBillingPeriod;
-        NumberOfDaysInSchedule := (LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1);
-        LineAmountPerDay := TotalLineAmount / NumberOfDaysInSchedule;
-        LineDiscountAmountPerDay := TotalLineDiscountAmount / NumberOfDaysInSchedule;
-        FirstMonthDays := CalcDate('<CM>', NextPostingDate) - NextPostingDate + 1;
-        FirstMonthLineAmount := Round(FirstMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-        FirstMonthLineDiscountAmount := Round(FirstMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
-        LastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
-        LastMonthLineAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-        LastMonthLineDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
-        if NumberOfPeriods > 2 then begin
-            LineAmountPerMonth := Round((TotalLineAmount - FirstMonthLineAmount - LastMonthLineAmount) / (NumberOfPeriods - 2), GLSetup."Amount Rounding Precision");
-            LineDiscountAmountPerMonth := Round((TotalLineDiscountAmount - FirstMonthLineDiscountAmount - LastMonthLineDiscountAmount) / (NumberOfPeriods - 2), GLSetup."Amount Rounding Precision");
+        FirstDayOfBillingPeriod := PurchaseLine."Recurring Billing from";
+        NumberOfPeriods := GetNumberOfDeferralPeriods(FirstDayOfBillingPeriod, PurchaseLine."Recurring Billing to");
+
+        // Determine which months are partial (not covering the entire calendar month)
+        FirstMonthIsPartial := FirstDayOfBillingPeriod <> CalcDate('<-CM>', FirstDayOfBillingPeriod);
+        LastMonthIsPartial := PurchaseLine."Recurring Billing to" <> CalcDate('<CM>', PurchaseLine."Recurring Billing to");
+
+        // Calculate daily rate for day-proportioning partial months
+        NumberOfDaysInSchedule := PurchaseLine."Recurring Billing to" - FirstDayOfBillingPeriod + 1;
+        LineAmountPerDay := PurchaseLine.Amount / NumberOfDaysInSchedule;
+        LineDiscountAmountPerDay := PurchaseLine."Line Discount Amount" / NumberOfDaysInSchedule;
+        FirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        LastMonthDays := Date2DMY(PurchaseLine."Recurring Billing to", 1);
+
+        // Calculate partial month amounts and determine how many full months remain
+        FullMonthCount := NumberOfPeriods;
+        if FirstMonthIsPartial then begin
+            // When first month is partial, day-proportion both first and last months
+            PartialFirstMonthAmount := Round(FirstMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
+            PartialFirstMonthDiscountAmount := Round(FirstMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
+            PartialLastMonthAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
+            PartialLastMonthDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
+            FullMonthCount -= 2;
+        end else
+            if LastMonthIsPartial and (NumberOfPeriods > 1) then begin
+                // When only last month is partial, day-proportion just that month
+                PartialLastMonthAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
+                PartialLastMonthDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
+                FullMonthCount -= 1;
+            end;
+
+        // Equal share for full months from the remaining amount after partial months
+        if FullMonthCount > 0 then begin
+            FullMonthLineAmount := Round((PurchaseLine.Amount - PartialFirstMonthAmount - PartialLastMonthAmount) / FullMonthCount, GLSetup."Amount Rounding Precision");
+            FullMonthLineDiscountAmount := Round((PurchaseLine."Line Discount Amount" - PartialFirstMonthDiscountAmount - PartialLastMonthDiscountAmount) / FullMonthCount, GLSetup."Amount Rounding Precision");
         end;
+
+        // Insert deferral records for each period
+        NextPostingDate := FirstDayOfBillingPeriod;
+        RunningLineAmount := 0;
+        RunningLineDiscountAmount := 0;
 
         for i := 1 to NumberOfPeriods do begin
             VendorContractDeferral."Posting Date" := NextPostingDate;
             NextPostingDate := CalcDate('<1M-CM>', NextPostingDate);
-            case i of
-                1:
-                    begin
-                        LineAmountPerPeriod := FirstMonthLineAmount;
-                        LineDiscountAmountPerPeriod := FirstMonthLineDiscountAmount;
-                        VendorContractDeferral."Number of Days" := FirstMonthDays;
-                    end;
-                NumberOfPeriods:
-                    begin
-                        LineAmountPerPeriod := TotalLineAmount - RunningLineAmount;
-                        LineDiscountAmountPerPeriod := TotalLineDiscountAmount - RunningLineDiscountTotal;
-                        VendorContractDeferral."Number of Days" := LastMonthDays;
-                    end;
-                else begin
-                    LineAmountPerPeriod := LineAmountPerMonth;
-                    LineDiscountAmountPerPeriod := LineDiscountAmountPerMonth;
-                    VendorContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1);
-                end;
-            end;
-            RunningLineAmount += LineAmountPerPeriod;
-            RunningLineDiscountTotal += LineDiscountAmountPerPeriod;
 
-            VendorContractDeferral.Amount := LineAmountPerPeriod;
-            VendorContractDeferral."Discount Amount" := LineDiscountAmountPerPeriod;
+            // Determine period amount: last period absorbs rounding, first partial is day-proportioned, rest are equal
+            if i = NumberOfPeriods then begin
+                PeriodLineAmount := PurchaseLine.Amount - RunningLineAmount;
+                PeriodLineDiscountAmount := PurchaseLine."Line Discount Amount" - RunningLineDiscountAmount;
+            end else
+                if (i = 1) and FirstMonthIsPartial then begin
+                    PeriodLineAmount := PartialFirstMonthAmount;
+                    PeriodLineDiscountAmount := PartialFirstMonthDiscountAmount;
+                end else begin
+                    PeriodLineAmount := FullMonthLineAmount;
+                    PeriodLineDiscountAmount := FullMonthLineDiscountAmount;
+                end;
+
+            // Determine number of days: partial months use actual day count, full months use calendar month days
+            if (i = NumberOfPeriods) and (NumberOfPeriods > 1) and (FirstMonthIsPartial or LastMonthIsPartial) then
+                VendorContractDeferral."Number of Days" := LastMonthDays
+            else
+                if (i = 1) and FirstMonthIsPartial then
+                    VendorContractDeferral."Number of Days" := FirstMonthDays
+                else
+                    VendorContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1);
+
+            RunningLineAmount += PeriodLineAmount;
+            RunningLineDiscountAmount += PeriodLineDiscountAmount;
+
+            VendorContractDeferral.Amount := PeriodLineAmount;
+            VendorContractDeferral."Discount Amount" := PeriodLineDiscountAmount;
             VendorContractDeferral."Entry No." := 0;
+            OnBeforeInsertVendorContractDeferral(VendorContractDeferral, PurchaseLine, i, NumberOfPeriods);
             VendorContractDeferral.Insert(false);
             TempVendorContractDeferral := VendorContractDeferral;
             TempVendorContractDeferral.Insert(false); //Used for Preview Posting
@@ -275,12 +247,12 @@ codeunit 8068 "Vendor Deferrals Mngmt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPurchCrMemoLineInsert, '', false, false)]
-    local procedure InsertVendorDeferralsFromPurchaseCrMemo(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchaseHeader: Record "Purchase Header")
+    local procedure InsertVendorDeferralsFromPurchaseCrMemo(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchaseHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line")
     begin
-        ReleaseAndCreditVendorContractDeferrals(PurchaseHeader, PurchCrMemoLine);
+        ProcessCreditMemoContractDeferrals(PurchaseHeader, PurchCrMemoLine, PurchLine);
     end;
 
-    local procedure ReleaseAndCreditVendorContractDeferrals(PurchaseHeader: Record "Purchase Header"; var PurchCrMemoLine: Record "Purch. Cr. Memo Line")
+    local procedure ProcessCreditMemoContractDeferrals(PurchaseHeader: Record "Purchase Header"; var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchaseLine: Record "Purchase Line")
     var
         InvoiceVendorContractDeferral: Record "Vend. Sub. Contract Deferral";
         CreditMemoVendorContractDeferral: Record "Vend. Sub. Contract Deferral";
@@ -290,7 +262,11 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         AppliesToDocNo: Code[20];
     begin
         AppliesToDocNo := GetAppliesToDocNo(PurchaseHeader);
-        if PurchaseDocuments.IsInvoiceCredited(AppliesToDocNo) then
+        if AppliesToDocNo = '' then begin
+            InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchCrMemoLine."Document No.");
+            exit;
+        end;
+        if PurchaseDocuments.HasInvoiceBeenCredited(AppliesToDocNo) then
             exit;
         InvoiceVendorContractDeferral.FilterOnDocumentTypeAndDocumentNo(Enum::"Rec. Billing Document Type"::Invoice, AppliesToDocNo);
         InvoiceVendorContractDeferral.SetRange("Subscription Contract No.", PurchCrMemoLine."Subscription Contract No.");
@@ -419,5 +395,10 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         if PurchHeader."Applies-to Doc. No." <> '' then
             exit(PurchHeader."Applies-to Doc. No.");
         exit(BillingLine.GetCorrectionDocumentNo("Service Partner"::Vendor, PurchHeader."No."));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertVendorContractDeferral(var VendSubContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
+    begin
     end;
 }

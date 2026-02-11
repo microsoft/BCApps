@@ -1,6 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
@@ -232,6 +233,53 @@ codeunit 139912 "Customer Deferrals Test"
             CustomerContractDeferral.TestField("Deferral Base Amount", -120);
             CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
         until CustomerContractDeferral.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure CheckContractDeferralsWhenStartDateIsOnFirstDayInMonthAndEndDateIsMidMonthLCY()
+    var
+        DeferralCount: Integer;
+        FullMonthAmount: Decimal;
+        TotalDeferralBaseAmount: Decimal;
+        i: Integer;
+        LastDayOfBillingPeriod: Date;
+    begin
+        // [SCENARIO] When billing starts on 1st of month and ends mid-month (partial last month),
+        // full months get equal deferral amounts and the partial last month gets a day-proportioned amount.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on Jan 1
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing from Jan 1 to Jul 23 (partial last month) and document is posted
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+22D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        DeferralCount := CustomerContractDeferral.Count;
+        TotalDeferralBaseAmount := CustomerContractDeferral."Deferral Base Amount";
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+22D>', WorkDate());
+        FullMonthAmount := CustomerContractDeferral.Amount;
+
+        // [THEN] 7 deferral periods are created (Jan through Jul)
+        Assert.AreEqual(7, DeferralCount, 'Expected 7 deferral periods for Jan to Jul billing.');
+
+        // [THEN] The first 6 full-month periods have equal amounts and full month Number of Days
+        for i := 1 to DeferralCount - 1 do begin
+            Assert.AreEqual(FullMonthAmount, CustomerContractDeferral.Amount, 'Full month deferrals should have equal amounts.');
+            CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+            CustomerContractDeferral.Next();
+        end;
+
+        // [THEN] Last partial month has a different (day-proportioned) amount and correct Number of Days
+        Assert.AreNotEqual(FullMonthAmount, CustomerContractDeferral.Amount, 'Partial last month should have a different amount than full months.');
+        CustomerContractDeferral.TestField("Number of Days", Date2DMY(LastDayOfBillingPeriod, 1));
+
+        // [THEN] Sum of all deferral amounts equals the total deferral base amount
+        CustomerContractDeferral.Reset();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        CustomerContractDeferral.CalcSums(Amount);
+        Assert.AreEqual(TotalDeferralBaseAmount, CustomerContractDeferral.Amount, 'Sum of deferral amounts must equal the deferral base amount.');
     end;
 
     [Test]
@@ -545,16 +593,20 @@ codeunit 139912 "Customer Deferrals Test"
     procedure TestIfDeferralsExistOnAfterPostSalesCreditMemoWithoutAppliesToDocNo()
     begin
         Initialize();
+        // [GIVEN] Contract has been created and the billing proposal with a posted contract invoice
         CreateCustomerContractWithDeferrals('<2M-CM>', true);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
         PostSalesDocumentAndGetSalesInvoice();
 
+        // [WHEN] A credit memo is created from the posted invoice but without any link to the original invoice
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
-        // Force Applies to Doc No. and Doc Type to be empty
-        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::" ";
         SalesCrMemoHeader."Applies-to Doc. No." := '';
         SalesCrMemoHeader.Modify(false);
+        ClearCorrectionDocumentNoFromBillingLines(SalesCrMemoHeader."No.");
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
+
+        // [THEN] Deferral entries are created for the standalone credit memo
         FetchCustomerContractDeferrals(CorrectedDocumentNo);
     end;
 
@@ -747,6 +799,93 @@ codeunit 139912 "Customer Deferrals Test"
         SubscriptionHeader.Modify(true);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure TestPostingGroupsAreFilledOnCustomerContractDeferrals()
+    begin
+        // [SCENARIO] When posting a sales invoice with contract deferrals, the Gen. Bus. Posting Group and Gen. Prod. Posting Group fields are populated on the deferral entries.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [WHEN] The sales document is posted
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Gen. Bus. Posting Group and Gen. Prod. Posting Group are filled on each deferral entry
+        SalesInvoiceLine.SetRange("Document No.", PostedDocumentNo);
+        SalesInvoiceLine.SetFilter("No.", '<>%1', '');
+        SalesInvoiceLine.FindFirst();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        CustomerContractDeferral.FindSet();
+        repeat
+            CustomerContractDeferral.TestField("Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Bus. Posting Group");
+            CustomerContractDeferral.TestField("Gen. Prod. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
+        until CustomerContractDeferral.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure TestZeroAmountDeferralsReleasedWithoutGLEntries()
+    var
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+    begin
+        // [SCENARIO] Zero-amount customer contract deferrals should be marked as released without creating GL entries.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A customer contract with deferrals that have been posted
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
+        CustomerContractDeferral.Reset();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        CustomerContractDeferral.ModifyAll(Amount, 0, false);
+        CustomerContractDeferral.ModifyAll("Discount Amount", 0, false);
+        CustomerContractDeferral.FindFirst();
+
+        // [WHEN] Release deferrals is run
+        PostingDate := CustomerContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] The first deferral is released without creating a GL entry
+        CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
+        CustomerContractDeferral.TestField(Released, true);
+        CustomerContractDeferral.TestField("G/L Entry No.", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure DeferralCodeNotAllowedWithContractDeferralsOnSalesLine()
+    var
+        DeferralTemplate: Record "Deferral Template";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] A standard Deferral Code must not be assigned to a sales invoice line
+        //            that already has subscription contract deferrals enabled.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals enabled and a billing document
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] A standard BC deferral template
+        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
+            Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
+
+        // [WHEN] Assigning the Deferral Code to the sales line that has contract deferrals
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetFilter("No.", '<>%1', '');
+        SalesLine.FindFirst();
+
+        // [THEN] An error is raised preventing double deferrals
+        asserterror SalesLine.Validate("Deferral Code", DeferralTemplate."Deferral Code");
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -863,6 +1002,16 @@ codeunit 139912 "Customer Deferrals Test"
         CustomerContractDeferral.Reset();
         CustomerContractDeferral.SetRange("Document No.", DocumentNo);
         CustomerContractDeferral.FindFirst();
+    end;
+
+    local procedure ClearCorrectionDocumentNoFromBillingLines(CreditMemoDocumentNo: Code[20])
+    var
+        CrMemoBillingLine: Record "Billing Line";
+    begin
+        CrMemoBillingLine.SetRange(Partner, CrMemoBillingLine.Partner::Customer);
+        CrMemoBillingLine.SetRange("Document Type", CrMemoBillingLine."Document Type"::"Credit Memo");
+        CrMemoBillingLine.SetRange("Document No.", CreditMemoDocumentNo);
+        CrMemoBillingLine.ModifyAll("Correction Document No.", '', false);
     end;
 
     local procedure GetCalculatedMonthAmountsForDeferrals(SourceDeferralBaseAmount: Decimal; NumberOfPeriods: Integer; FirstDayOfBillingPeriod: Date; LastDayOfBillingPeriod: Date; CalculateInLCY: Boolean)

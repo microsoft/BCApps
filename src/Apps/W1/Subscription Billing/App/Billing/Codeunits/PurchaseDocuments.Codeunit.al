@@ -208,13 +208,13 @@ codeunit 8066 "Purchase Documents"
         exit(false);
     end;
 
-    internal procedure IsInvoiceCredited(DocumentNo: Code[20]): Boolean
+    internal procedure HasInvoiceBeenCredited(DocumentNo: Code[20]): Boolean
     var
         BillingLineArchive: Record "Billing Line Archive";
     begin
         if DocumentNo = '' then
             exit(false);
-        exit(BillingLineArchive.IsInvoiceCredited("Service Partner"::Vendor, DocumentNo));
+        exit(BillingLineArchive.HasInvoiceBeenCredited("Service Partner"::Vendor, DocumentNo));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Line", OnAfterInitFromPurchLine, '', false, false)]

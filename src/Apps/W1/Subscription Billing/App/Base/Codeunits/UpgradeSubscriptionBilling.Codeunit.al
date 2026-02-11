@@ -3,7 +3,9 @@ namespace Microsoft.SubscriptionBilling;
 #if not CLEANSCHEMA29
 using Microsoft.Finance.GeneralLedger.Setup;
 #endif
+using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using System.Upgrade;
 
 codeunit 8032 "Upgrade Subscription Billing"
@@ -28,6 +30,7 @@ codeunit 8032 "Upgrade Subscription Billing"
         UpdateCreateContractDeferralsFlag();
         DeleteSalesSubscriptionLinesConnectedToDeletedQuote();
         RemoveDocumentNoFromBillingLines();
+        FillPostingGroupsInContractDeferrals();
     end;
 
 #if not CLEANSCHEMA29
@@ -321,6 +324,67 @@ codeunit 8032 "Upgrade Subscription Billing"
         exit('MS-XXXXXX-RemoveDocumentNoFromBillingLines-20250819');
     end;
 
+    local procedure FillPostingGroupsInContractDeferrals()
+    var
+        CustContractDeferral: Record "Cust. Sub. Contract Deferral";
+        VendContractDeferral: Record "Vend. Sub. Contract Deferral";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(FillPostingGroupsInContractDeferralsTag()) then
+            exit;
+
+        CustContractDeferral.SetRange("Gen. Bus. Posting Group", '');
+        CustContractDeferral.SetRange("Gen. Prod. Posting Group", '');
+        if CustContractDeferral.FindSet() then
+            repeat
+                case CustContractDeferral."Document Type" of
+                    "Rec. Billing Document Type"::Invoice:
+                        if SalesInvoiceLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
+                            CustContractDeferral."Gen. Bus. Posting Group" := SalesInvoiceLine."Gen. Bus. Posting Group";
+                            CustContractDeferral."Gen. Prod. Posting Group" := SalesInvoiceLine."Gen. Prod. Posting Group";
+                            CustContractDeferral.Modify(false);
+                        end;
+                    "Rec. Billing Document Type"::"Credit Memo":
+                        if SalesCrMemoLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
+                            CustContractDeferral."Gen. Bus. Posting Group" := SalesCrMemoLine."Gen. Bus. Posting Group";
+                            CustContractDeferral."Gen. Prod. Posting Group" := SalesCrMemoLine."Gen. Prod. Posting Group";
+                            CustContractDeferral.Modify(false);
+                        end;
+                end;
+            until CustContractDeferral.Next() = 0;
+
+        VendContractDeferral.SetRange("Gen. Bus. Posting Group", '');
+        VendContractDeferral.SetRange("Gen. Prod. Posting Group", '');
+        if VendContractDeferral.FindSet() then
+            repeat
+                case VendContractDeferral."Document Type" of
+                    "Rec. Billing Document Type"::Invoice:
+                        if PurchInvLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
+                            VendContractDeferral."Gen. Bus. Posting Group" := PurchInvLine."Gen. Bus. Posting Group";
+                            VendContractDeferral."Gen. Prod. Posting Group" := PurchInvLine."Gen. Prod. Posting Group";
+                            VendContractDeferral.Modify(false);
+                        end;
+                    "Rec. Billing Document Type"::"Credit Memo":
+                        if PurchCrMemoLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
+                            VendContractDeferral."Gen. Bus. Posting Group" := PurchCrMemoLine."Gen. Bus. Posting Group";
+                            VendContractDeferral."Gen. Prod. Posting Group" := PurchCrMemoLine."Gen. Prod. Posting Group";
+                            VendContractDeferral.Modify(false);
+                        end;
+                end;
+            until VendContractDeferral.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(FillPostingGroupsInContractDeferralsTag());
+    end;
+
+    local procedure FillPostingGroupsInContractDeferralsTag(): Text[250]
+    begin
+        exit('MS-XXXXXX-FillPostingGroupsInContractDeferrals-20250209');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
@@ -335,5 +399,6 @@ codeunit 8032 "Upgrade Subscription Billing"
         PerCompanyUpgradeTags.Add(GetUpdateCreateContractDeferralsFlag());
         PerCompanyUpgradeTags.Add(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag());
         PerCompanyUpgradeTags.Add(RemoveDocumentNoFromBillingLinesTag());
+        PerCompanyUpgradeTags.Add(FillPostingGroupsInContractDeferralsTag());
     end;
 }

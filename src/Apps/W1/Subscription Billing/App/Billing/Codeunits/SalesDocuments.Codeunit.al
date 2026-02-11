@@ -705,13 +705,13 @@ codeunit 8063 "Sales Documents"
         CalledFromContractRenewal := NewCalledFromContractRenewal;
     end;
 
-    internal procedure IsInvoiceCredited(DocumentNo: Code[20]): Boolean
+    internal procedure HasInvoiceBeenCredited(DocumentNo: Code[20]): Boolean
     var
         BillingLineArchive: Record "Billing Line Archive";
     begin
         if DocumentNo = '' then
             exit(false);
-        exit(BillingLineArchive.IsInvoiceCredited("Service Partner"::Customer, DocumentNo));
+        exit(BillingLineArchive.HasInvoiceBeenCredited("Service Partner"::Customer, DocumentNo));
     end;
 
     internal procedure GetAppliesToDocNo(SalesHeader: Record "Sales Header"): Code[20]
