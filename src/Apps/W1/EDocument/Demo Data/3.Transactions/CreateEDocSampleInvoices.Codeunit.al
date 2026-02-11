@@ -9,12 +9,14 @@ using Microsoft.DemoData.Finance;
 using Microsoft.DemoData.Jobs;
 using Microsoft.DemoData.Purchases;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Purchases.Document;
 
 codeunit 5430 "Create E-Doc. Sample Invoices"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     var
@@ -31,8 +33,10 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
             DeliveryExpenseGLAccNo := CreateGLAccount.DeliveryExpenses()
         else
             DeliveryExpenseGLAccNo := EDocumentModuleSetup."Delivery Expense G/L Acc. No";
+        BindSubscription(this);
         GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo, EDocumentModuleSetup."Sample Invoice Date");
         GenerateSampleInvoices();
+        UnbindSubscription(this);
     end;
 
     local procedure GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo: Code[20]; DeliveryExpenseGLAccNo: Code[20]; SampleInvoiceDate: Date)
@@ -148,5 +152,35 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         EDocSamplePurchaseInvoice.AddLine(
             Enum::"Purchase Line Type"::" ", '', CreateAllocationAccount.LicensesDescription(), 6, 500, '', CreateCommonUnitOfMeasure.Piece());
         EDocSamplePurchaseInvoice.Generate();
+    end;
+
+    local procedure FindNoTaxableTaxGroup(): Code[20]
+    var
+        TaxGroup: Record "Tax Group";
+        TaxDetal: Record "Tax Detail";
+        CannotFindNoTaxableTaxGroupLbl: Label 'Cannot find a tax group code with all tax details having ''Tax Below Maximum'' field not equal to 0. Please create such tax group code for sample data generation.', MaxLength = 200;
+    begin
+        TaxGroup.FindSet();
+        repeat
+            TaxDetal.SetRange("Tax Group Code", TaxGroup.Code);
+            if TaxDetal.IsEmpty() then
+                continue;
+            TaxDetal.SetFilter("Tax Below Maximum", '<>%1', 0);
+            if TaxDetal.IsEmpty() then
+                exit(TaxGroup.Code);
+            TaxDetal.SetRange("Tax Below Maximum");
+        until TaxGroup.Next() = 0;
+        error(CannotFindNoTaxableTaxGroupLbl);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeInsertEvent, '', false, false)]
+    local procedure UpdateTaxGroupCodeIfTaxLiableOnBeforeInsertEvent(var Rec: Record "Purchase Line")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        /// Always have NoTaxable tax group code for non-taxable purchase lines in order to avoid sales tax calculation in sample data because it is different in W1 and NA
+        if not Rec."Tax Liable" then
+            exit;
+        Rec.Validate("Tax Group Code", FindNoTaxableTaxGroup());
     end;
 }
