@@ -22,7 +22,7 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
             DataClassification = CustomerContent;
         }
 
-#if not CLEANSCHEMA29
+#if not CLEANSCHEMA31
         field(6167; "QR Code Image"; MediaSet)
         {
             Caption = 'QR Code Image';
