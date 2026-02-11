@@ -149,7 +149,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         // Validate that the URL points to a SharePoint domain to prevent sending credentials to external URLs
         if not Uri.IsValidURIPattern(NewSharePointUrl, SharePointUrlPatternLbl) then begin
-            Session.LogMessage('', StrSubstNo(InvalidSharePointUrlErr, NewSharePointUrl), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000RNN', StrSubstNo(InvalidSharePointUrlErr, NewSharePointUrl), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             Error(InvalidSharePointUrlErr, NewSharePointUrl);
         end;
 
