@@ -12,40 +12,42 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
 {
     actions
     {
-        addbefore("&Line")
+        addlast("F&unctions")
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Specifies to create a new quality inspection.';
-                    Enabled = QltyShowCreateInspection;
+                    Enabled = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowInspectionsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections';
                     ToolTip = 'Shows existing Quality Inspections.';
-                    Enabled = QltyReadTestResults;
+                    Enabled = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
             }
@@ -53,18 +55,23 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
     }
 
     var
-        QltyShowCreateInspection: Boolean;
-        QltyReadTestResults: Boolean;
+        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
 
     trigger OnOpenPage()
     var
         CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
+
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
+        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
+    end;
+
+    local procedure CanBeProcessed(): Boolean
+    begin
+        exit(not IsNullGuid(Rec.SystemId));
     end;
 }

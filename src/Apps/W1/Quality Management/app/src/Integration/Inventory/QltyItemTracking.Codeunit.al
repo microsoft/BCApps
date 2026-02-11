@@ -30,7 +30,7 @@ codeunit 20428 "Qlty. Item Tracking"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    internal procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         LotNoInformation: Record "Lot No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -63,7 +63,7 @@ codeunit 20428 "Qlty. Item Tracking"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    internal procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         SerialNoInformation: Record "Serial No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -96,7 +96,7 @@ codeunit 20428 "Qlty. Item Tracking"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    internal procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         PackageNoInformation: Record "Package No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";

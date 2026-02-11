@@ -30,9 +30,7 @@ report 20408 "Qlty. Create Negative Adjmt."
             var
                 QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
                 CurrentVariant: Text;
-                LotNo: Text;
-                SerialNo: Text;
-                PackageNo: Text;
+                LotNo, SerialNo, PackageNo : Text;
             begin
                 if QltyDispNegAdjustInv.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, PostBehavior, ReasonCode) then
                     exit;

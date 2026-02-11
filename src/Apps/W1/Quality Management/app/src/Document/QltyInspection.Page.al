@@ -41,6 +41,7 @@ page 20406 "Qlty. Inspection"
             group(General)
             {
                 Caption = 'General';
+                Editable = IsOpen;
 
                 field("No."; Rec."No.")
                 {
@@ -57,7 +58,6 @@ page 20406 "Qlty. Inspection"
                 }
                 field("Template Code"; Rec."Template Code")
                 {
-                    Editable = false;
                 }
                 field(Description; Rec.Description)
                 {
@@ -137,22 +137,22 @@ page 20406 "Qlty. Inspection"
                     {
                         Editable = false;
                     }
-                    field("Serial No."; Rec."Source Serial No.")
-                    {
-                        Editable = CanChangeSerialTracking;
-
-                        trigger OnAssistEdit()
-                        begin
-                            Rec.AssistEditSerialNo();
-                        end;
-                    }
-                    field("Lot No."; Rec."Source Lot No.")
+                    field("Source Lot No."; Rec."Source Lot No.")
                     {
                         Editable = CanChangeLotTracking;
 
                         trigger OnAssistEdit()
                         begin
                             Rec.AssistEditLotNo();
+                        end;
+                    }
+                    field("Source Serial No."; Rec."Source Serial No.")
+                    {
+                        Editable = CanChangeSerialTracking;
+
+                        trigger OnAssistEdit()
+                        begin
+                            Rec.AssistEditSerialNo();
                         end;
                     }
                     field("Source Package No."; Rec."Source Package No.")
@@ -218,6 +218,7 @@ page 20406 "Qlty. Inspection"
             }
             part(Lines; "Qlty. Inspection Subform")
             {
+                Editable = IsOpen;
                 Caption = 'Lines';
                 SubPageLink = "Inspection No." = field("No."),
                               "Re-inspection No." = field("Re-inspection No.");
@@ -225,7 +226,6 @@ page 20406 "Qlty. Inspection"
             group(ControlInfo)
             {
                 Caption = 'Control Information';
-
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
@@ -819,12 +819,11 @@ page 20406 "Qlty. Inspection"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
         CameraAvailable: Boolean;
+        IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanCreateReinspection: Boolean;
-        CanChangeLotTracking: Boolean;
-        CanChangeSerialTracking: Boolean;
-        CanChangePackageTracking: Boolean;
+        CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
         VisibleCustom10: Boolean;
         VisibleCustom9: Boolean;
         VisibleCustom8: Boolean;
@@ -861,6 +860,7 @@ page 20406 "Qlty. Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
+        IsOpen := Rec.Status = Rec.Status::Open;
         CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
         CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
         CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();

@@ -97,18 +97,21 @@ page 4303 "Agent Task Log Entry List"
                     ShowCaption = false;
                     label(Empty)
                     {
-                        ApplicationArea = All;
                         Caption = '', Locked = true;
                     }
                 }
                 group(Right)
                 {
                     ShowCaption = false;
-                    label(Disclaimer)
+                    field(Disclaimer; AIGeneratedContentDisclaimerLbl)
                     {
-                        ApplicationArea = All;
-                        Caption = 'AI-generated content may be incorrect.';
+                        ShowCaption = false;
                         Style = Subordinate;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2349003');
+                        end;
                     }
                 }
             }
@@ -124,9 +127,16 @@ page 4303 "Agent Task Log Entry List"
                 AboutText = 'Shows context information such as the agent name, task ID, and company name.';
                 SubPageLink = ID = field("Task ID");
             }
+            part(TaskLogEntryDetails; "Agent Task Log Entry Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Log entry details';
+                AboutTitle = 'Details of the selected log entry';
+                AboutText = 'Shows details of the selected log entry, including the reason and description provided by the agent.';
+                SubPageLink = "Task ID" = field("Task ID"), ID = field(ID);
+            }
         }
     }
-
     actions
     {
         area(Promoted)
@@ -223,6 +233,7 @@ page 4303 "Agent Task Log Entry List"
     end;
 
     var
+        AIGeneratedContentDisclaimerLbl: Label 'AI-generated content may be incorrect.';
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;

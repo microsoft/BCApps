@@ -42,6 +42,21 @@ page 20479 "Qlty. Test Card"
                     AboutText = 'The friendly description for the test. You can enter a maximum of 100 characters, both numbers and letters.';
                     ShowMandatory = true;
                 }
+                field("Expression Formula"; Rec."Expression Formula")
+                {
+                    AboutTitle = 'Expression Formula';
+                    AboutText = 'Used with expression test value types, this contains the formula for the expression content.';
+                    MultiLine = true;
+                    Editable = IsExpressionFormulaEditable;
+
+                    trigger OnAssistEdit()
+                    begin
+                        if IsExpressionFormulaEditable then
+                            Rec.AssistEditExpressionFormula()
+                        else
+                            Message(StrSubstNo(NotEditableLbl, Rec.FieldCaption(Rec."Expression Formula"), Rec.FieldCaption(Rec."Test Value Type")));
+                    end;
+                }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
                     AboutTitle = 'Test Value Type';
@@ -444,55 +459,31 @@ page 20479 "Qlty. Test Card"
             }
             group(SettingsForLookup)
             {
-                Caption = 'Lookup';
+                Caption = 'Table Lookup Configuration';
 
                 field("Lookup Table No."; Rec."Lookup Table No.")
                 {
                     Editable = IsLookupField;
                     AboutTitle = 'Lookup Table No.';
                     AboutText = 'When using a table lookup as a data type then this defines which table you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
-
-                    trigger OnAssistEdit()
-                    begin
-                        if IsLookupField then
-                            Rec.AssistEditLookupTable();
-                    end;
                 }
                 field("Lookup Table Name"; Rec."Lookup Table Caption")
                 {
                     Editable = IsLookupField;
                     AboutTitle = 'Lookup Table No.';
                     AboutText = 'The name of the lookup table. When using a table lookup as a data type then this is the name of the table that you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
-
-                    trigger OnAssistEdit()
-                    begin
-                        if IsLookupField then
-                            Rec.AssistEditLookupTable();
-                    end;
                 }
                 field("Lookup Field No."; Rec."Lookup Field No.")
                 {
                     Editable = IsLookupField;
                     AboutTitle = 'Lookup Field No.';
                     AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
-
-                    trigger OnAssistEdit()
-                    begin
-                        if IsLookupField then
-                            Rec.AssistEditLookupField();
-                    end;
                 }
                 field("Lookup Field Name"; Rec."Lookup Field Caption")
                 {
                     Editable = IsLookupField;
                     AboutTitle = 'Lookup Field Name';
                     AboutText = 'This is the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
-
-                    trigger OnAssistEdit()
-                    begin
-                        if IsLookupField then
-                            Rec.AssistEditLookupField();
-                    end;
                 }
                 field("Lookup Table Filter"; Rec."Lookup Table Filter")
                 {
@@ -572,6 +563,8 @@ page 20479 "Qlty. Test Card"
         IsLookupField: Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
+        IsExpressionFormulaEditable: Boolean;
+        NotEditableLbl: Label 'The %1 field is not editable for the selected %2.', Comment = '%1 = Expression Formula, %2 = Test Value Type';
 
     trigger OnOpenPage()
     begin
@@ -625,6 +618,8 @@ page 20479 "Qlty. Test Card"
         Visible10 := MatrixVisibleState[10];
 
         EditableResult := (Rec.Code <> '') and (CurrPage.Editable) and (Visible1) and (MatrixArrayCaptionSet[1] <> '');
+
+        IsExpressionFormulaEditable := (Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Text Expression");
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)

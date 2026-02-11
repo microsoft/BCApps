@@ -39,7 +39,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
+            ToolTip = 'Specifies the default number series for quality inspection documents.';
         }
         field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
@@ -328,8 +328,6 @@ table 20400 "Qlty. Management Setup"
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                SanityCheckReceiveSettings();
-
                 if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
                     QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
@@ -428,15 +426,6 @@ table 20400 "Qlty. Management Setup"
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-
-    internal procedure SanityCheckReceiveSettings()
-    var
-        Handled: Boolean;
-    begin
-        OnBeforeValidateQualityManagementSettings(xRec, Rec, Handled);
-        if Handled then
-            exit;
-    end;
 
     internal procedure SanityCheckPictureAndCameraSettings()
     var
@@ -564,16 +553,5 @@ table 20400 "Qlty. Management Setup"
             exit;
         Get();
         RecordHasBeenRead := true;
-    end;
-
-    /// <summary>
-    /// Occurs when changing settings on the quality inspector setup page.
-    /// </summary>
-    /// <param name="XOldQltyManagementSetup"></param>
-    /// <param name="NewQltyManagementSetup"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateQualityManagementSettings(var XOldQltyManagementSetup: Record "Qlty. Management Setup"; var NewQltyManagementSetup: Record "Qlty. Management Setup"; var Handled: Boolean)
-    begin
     end;
 }
