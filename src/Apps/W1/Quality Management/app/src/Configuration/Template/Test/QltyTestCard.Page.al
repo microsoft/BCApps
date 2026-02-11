@@ -457,9 +457,10 @@ page 20479 "Qlty. Test Card"
                     end;
                 }
             }
-            group(Lookup)
+            group(TableLookupConfiguration)
             {
                 Caption = 'Table Lookup Configuration';
+                Visible = IsLookupField;
 
                 field("Lookup Table No."; Rec."Lookup Table No.")
                 {
