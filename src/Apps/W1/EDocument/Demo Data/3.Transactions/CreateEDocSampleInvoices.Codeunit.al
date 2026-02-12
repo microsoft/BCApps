@@ -23,7 +23,9 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
     var
         EDocumentModuleSetup: Record "E-Document Module Setup";
         CreateGLAccount: Codeunit "Create G/L Account";
+        EDocSamplePurchaseInvoice: Codeunit "E-Doc Sample Purchase Invoice";
         RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo : Code[20];
+        SavedWorkDate, SampleInvoiceDate : Date;
     begin
         if EDocumentModuleSetup.Get() then;
         if EDocumentModuleSetup."Recurring Expense G/L Acc. No" = '' then
@@ -35,8 +37,12 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         else
             DeliveryExpenseGLAccNo := EDocumentModuleSetup."Delivery Expense G/L Acc. No";
         BindSubscription(this);
-        GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo, EDocumentModuleSetup."Sample Invoice Date");
+        SavedWorkDate := WorkDate();
+        SampleInvoiceDate := EDocSamplePurchaseInvoice.GetSampleInvoicePostingDate();
+        WorkDate(SampleInvoiceDate);
+        GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo, SampleInvoiceDate);
         GenerateSampleInvoices();
+        WorkDate(SavedWorkDate);
         UnbindSubscription(this);
     end;
 
@@ -49,18 +55,12 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         CreateJobItem: Codeunit "Create Job Item";
         CreateAllocationAccount: Codeunit "Create Allocation Account";
         CreateDeferralTemplate: Codeunit "Create Deferral Template";
-        EDocSamplePurchaseInvoice: Codeunit "E-Doc Sample Purchase Invoice";
         AccountingServicesJanuaryLbl: Label 'Accounting support period: January', MaxLength = 100;
         AccountingServicesFebruaryLbl: Label 'Accounting support period: February', MaxLength = 100;
         AccountingServicesMarchLbl: Label 'Accounting support period: March', MaxLength = 100;
         AccountingServicesDecemberLbl: Label 'Accounting support period: December', MaxLength = 100;
         AccountingServicesMayLbl: Label 'Accounting support period: May', MaxLength = 100;
-        SavedWorkDate: Date;
     begin
-        SavedWorkDate := WorkDate();
-        if SampleInvoiceDate = 0D then
-            SampleInvoiceDate := EDocSamplePurchaseInvoice.GetSampleInvoicePostingDate();
-        WorkDate(SampleInvoiceDate);
         ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.EUGraphicDesign(), SampleInvoiceDate, '245');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"Allocation Account", CreateAllocationAccount.Licenses(),
@@ -117,7 +117,6 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.PrecisionGrindHome(),
             '', 50, 199, '', CreateCommonUnitOfMeasure.Piece());
         ContosoInboundEDocument.Generate();
-        WorkDate(SavedWorkDate);
     end;
 
     local procedure GenerateSampleInvoices()

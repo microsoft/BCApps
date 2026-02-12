@@ -6,11 +6,11 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Period;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
@@ -37,12 +37,12 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// </summary>
     procedure GetSampleInvoicePostingDate(): Date
     var
-        AccountingPeriod: Record "Accounting Period";
+        GLEntry: Record "G/L Entry";
     begin
-        AccountingPeriod.SetRange(Closed, false);
-        AccountingPeriod.SetRange("New Fiscal Year", true);
-        if AccountingPeriod.FindFirst() then
-            exit(AccountingPeriod."Starting Date");
+        GLEntry.SetLoadFields("Posting Date");
+        GLEntry.SetCurrentKey("Posting Date");
+        if GLEntry.FindLast() then
+            exit(GLEntry."Posting Date");
         exit(WorkDate());
     end;
 
