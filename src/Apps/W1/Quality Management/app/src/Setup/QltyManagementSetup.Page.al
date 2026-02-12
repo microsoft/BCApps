@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
+using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -19,7 +20,7 @@ page 20400 "Qlty. Management Setup"
     InsertAllowed = false;
     SourceTable = "Qlty. Management Setup";
     UsageCategory = Administration;
-    ApplicationArea = All;
+    ApplicationArea = QualityManagement;
     AboutTitle = 'Setup';
     AboutText = 'This setup page will let you define the behavior of how and when inspections are created.';
 
@@ -297,6 +298,22 @@ page 20400 "Qlty. Management Setup"
                 AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
                 RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
+            }
+            group(Advanced)
+            {
+                Caption = 'Advanced';
+
+                action(SourceConfigurations)
+                {
+                    ApplicationArea = QualityManagement;
+                    Caption = 'Source Configurations';
+                    ToolTip = 'View the Quality Inspection Source Configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
+                    Image = Relationship;
+                    AboutTitle = 'Source Configurations';
+                    AboutText = 'Quality inspection source configurations define how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
+                    RunObject = Page "Qlty. Ins. Source Config. List";
+                    RunPageMode = View;
+                }
             }
         }
     }
