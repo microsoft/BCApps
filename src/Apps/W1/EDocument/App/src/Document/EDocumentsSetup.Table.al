@@ -1,5 +1,5 @@
 
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -19,7 +19,7 @@ table 6107 "E-Documents Setup"
 #else
     ObsoleteReason = 'This table is obsolete and should not be used.';
     ObsoleteState = Removed;
-    ObsoleteTag = '30.0';
+    ObsoleteTag = '31.0';
 #endif
 
     fields
