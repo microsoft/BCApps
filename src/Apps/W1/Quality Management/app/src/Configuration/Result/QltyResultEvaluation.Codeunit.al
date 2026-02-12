@@ -64,8 +64,8 @@ codeunit 20410 "Qlty. Result Evaluation"
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary;
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LoopConditionMet: Boolean;
         AnyConditionMet: Boolean;
         IsHandled: Boolean;
@@ -97,10 +97,10 @@ codeunit 20410 "Qlty. Result Evaluation"
                         QltyTestValueType::"Value Type Integer":
                             LoopConditionMet := CheckIfValueIsInteger(TestValue, Condition);
                         QltyTestValueType::"Value Type Boolean":
-                            if QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(TestValue) and
-                               QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(Condition)
+                            if QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(TestValue) and
+                               QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(Condition)
                             then
-                                LoopConditionMet := QltyMiscHelpers.GetBooleanFor(TestValue) = QltyMiscHelpers.GetBooleanFor(Condition)
+                                LoopConditionMet := QltyBooleanParsing.GetBooleanFor(TestValue) = QltyBooleanParsing.GetBooleanFor(Condition)
                             else
                                 LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
                         QltyTestValueType::"Value Type Text", QltyTestValueType::"Value Type Option", QltyTestValueType::"Value Type Table Lookup", QltyTestValueType::"Value Type Text Expression":
@@ -326,8 +326,8 @@ codeunit 20410 "Qlty. Result Evaluation"
 
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         QltyLocalization: Codeunit "Qlty. Localization";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         ValueAsDecimal: Decimal;
         ValueAsInteger: Integer;
@@ -377,13 +377,13 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyTestValueType::"Value Type Boolean":
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
-                        if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
+                        if QltyBooleanParsing.GetBooleanFor(TextToValidate) then
                             TextToValidate := QltyLocalization.GetTranslatedYes()
                         else
                             TextToValidate := QltyLocalization.GetTranslatedNo();
 
-                    if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
-                        if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
+                    if (AllowableValues <> '') and (QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
+                        if not QltyBooleanParsing.GetBooleanFor(TextToValidate) = QltyBooleanParsing.GetBooleanFor(AllowableValues) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                     end else
                         if not (TextToValidate in [QltyLocalization.GetTranslatedYes(), QltyLocalization.GetTranslatedNo(), '']) then
