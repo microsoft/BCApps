@@ -65,22 +65,22 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Common usage: Populating dropdown lists or validating user input against configured lookup values.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the table field configuration</param>
-    /// <returns>Comma-separated string of available lookup codes</returns>
+    /// <returns>Comma-separated string of available lookup values</returns>
     procedure GetRecordsForTableFieldAsCSV(var QltyInspectionLine: Record "Qlty. Inspection Line") CSVText: Text
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         NeedComma: Boolean;
     begin
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
-        if TempBufferQltyLookupCode.FindSet() then
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
+        if TempBufferQltyTestLookupValue.FindSet() then
             repeat
                 if NeedComma then
                     CSVText += ',';
 
                 NeedComma := true;
-                CSVText += Format(TempBufferQltyLookupCode.Code);
-            until TempBufferQltyLookupCode.Next() = 0
+                CSVText += Format(TempBufferQltyTestLookupValue."Value");
+            until TempBufferQltyTestLookupValue.Next() = 0
     end;
 
     /// <summary>
@@ -91,15 +91,15 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// then calls the main GetRecordsForTableField procedure.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the field code to look up</param>
-    /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer filled with available lookup codes and descriptions</param>
-    procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer filled with available lookup values and descriptions</param>
+    procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyTest: Record "Qlty. Test";
     begin
         QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyTest.Get(QltyInspectionLine."Test Code");
-        GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
+        GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyTestLookupValue);
     end;
 
     /// <summary>
@@ -108,12 +108,12 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
-    /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue"></param>
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine, TempBufferQltyLookupCode);
+        GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine, TempBufferQltyTestLookupValue);
     end;
 
     /// <summary>
@@ -122,7 +122,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// 
     /// Behavior:
     /// - Evaluates QltyTest."Lookup Table Filter" using inspection header/line context for dynamic filtering
-    /// - For Qlty. Lookup Code table: includes both Code and Description fields
+    /// - For Qlty. Test Lookup Value table: includes both Code and Description fields
     /// - For other tables: uses only the specified lookup field
     /// - Applies maximum row limit from setup to prevent excessive data retrieval
     /// 
@@ -131,8 +131,8 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="QltyTest">The quality field configuration defining lookup table and filters</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation</param>
     /// <param name="OptionalContextQltyInspectionLine">Inspection line providing context for filter expression evaluation</param>
-    /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
-    procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer populated with lookup values</param>
+    procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
@@ -140,17 +140,17 @@ codeunit 20599 "Qlty. Misc Helpers"
         DummyText: Text;
         TableFilter: Text;
     begin
-        if TempBufferQltyLookupCode.IsTemporary() then
-            TempBufferQltyLookupCode.DeleteAll();
+        if TempBufferQltyTestLookupValue.IsTemporary() then
+            TempBufferQltyTestLookupValue.DeleteAll();
 
         ReasonableMaximum := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
 
         TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyTest."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
-        if QltyTest."Lookup Table No." = Database::"Qlty. Lookup Code" then
-            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", TempBufferQltyLookupCode.FieldNo(Description), TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText)
+        if QltyTest."Lookup Table No." = Database::"Qlty. Test Lookup Value" then
+            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", TempBufferQltyTestLookupValue.FieldNo(Description), TableFilter, ReasonableMaximum, TempBufferQltyTestLookupValue, DummyText)
         else
-            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", 0, TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText);
+            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", 0, TableFilter, ReasonableMaximum, TempBufferQltyTestLookupValue, DummyText);
     end;
 
     /// <summary>
@@ -168,9 +168,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>Comma-separated string of field values</returns>
     procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxCountRecords: Integer) ResultText: Text
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, MaxCountRecords, TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, MaxCountRecords, TempBufferQltyTestLookupValue, ResultText);
     end;
 
     /// <summary>
@@ -186,10 +186,10 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>Comma-separated string of field values (up to system maximum records)</returns>
     internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text) ResultText: Text
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), TempBufferQltyTestLookupValue, ResultText);
     end;
 
     /// <summary>
@@ -202,9 +202,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="DescriptionField"></param>
     /// <param name="TableFilter"></param>
     /// <param name="MaxCountRecords"></param>
-    /// <param name="TempBufferQltyLookupCode"></param>
+    /// <param name="TempBufferQltyTestLookupValue"></param>
     /// <param name="CSVSimpleText"></param>
-    local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
+    local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; var CSVSimpleText: Text)
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         RecordRefToFetch: RecordRef;
@@ -240,23 +240,23 @@ codeunit 20599 "Qlty. Misc Helpers"
                 LoopSafety -= 1;
                 FieldRefToChoiceField := RecordRefToFetch.Field(ChoiceField);
                 FieldRefToDescriptionField := RecordRefToFetch.Field(DescriptionField);
-                TempBufferQltyLookupCode."Group Code" := CopyStr(PadStr(Format(RemainingCountRecordsToAdd), MaxStrLen(TempBufferQltyLookupCode."Group Code"), '0'), 1, MaxStrLen(TempBufferQltyLookupCode."Group Code"));
-                ValueToAddToList := CopyStr(Format(FieldRefToChoiceField.Value()), 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1")).Trim();
+                TempBufferQltyTestLookupValue."Lookup Group Code" := CopyStr(PadStr(Format(RemainingCountRecordsToAdd), MaxStrLen(TempBufferQltyTestLookupValue."Lookup Group Code"), '0'), 1, MaxStrLen(TempBufferQltyTestLookupValue."Lookup Group Code"));
+                ValueToAddToList := CopyStr(Format(FieldRefToChoiceField.Value()), 1, MaxStrLen(TempBufferQltyTestLookupValue."Custom 1")).Trim();
                 if not DuplicateChecker.Contains(ValueToAddToList) then begin
                     RemainingCountRecordsToAdd -= 1;
                     DuplicateChecker.Add(ValueToAddToList);
-                    TempBufferQltyLookupCode."Custom 1" := CopyStr(ValueToAddToList, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
-                    TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
-                    TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
-                    TempBufferQltyLookupCode.Code := CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(TempBufferQltyLookupCode.Code));
-                    TempBufferQltyLookupCode.Description := CopyStr(Format(FieldRefToDescriptionField.Value()), 1, MaxStrLen(TempBufferQltyLookupCode.Description));
-                    if (TempBufferQltyLookupCode.Description = '') and (TempBufferQltyLookupCode."Custom 1" <> '') then
-                        TempBufferQltyLookupCode.Description := TempBufferQltyLookupCode."Custom 1";
+                    TempBufferQltyTestLookupValue."Custom 1" := CopyStr(ValueToAddToList, 1, MaxStrLen(TempBufferQltyTestLookupValue."Custom 1"));
+                    TempBufferQltyTestLookupValue."Custom 2" := TempBufferQltyTestLookupValue."Custom 1".ToLower();
+                    TempBufferQltyTestLookupValue."Custom 3" := TempBufferQltyTestLookupValue."Custom 1".ToUpper();
+                    TempBufferQltyTestLookupValue."Value" := CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(TempBufferQltyTestLookupValue."Value"));
+                    TempBufferQltyTestLookupValue.Description := CopyStr(Format(FieldRefToDescriptionField.Value()), 1, MaxStrLen(TempBufferQltyTestLookupValue.Description));
+                    if (TempBufferQltyTestLookupValue.Description = '') and (TempBufferQltyTestLookupValue."Custom 1" <> '') then
+                        TempBufferQltyTestLookupValue.Description := TempBufferQltyTestLookupValue."Custom 1";
 
-                    TempBufferQltyLookupCode.Insert();
+                    TempBufferQltyTestLookupValue.Insert();
                     if HasAtLeastOne then
                         CSVSimpleText += ',';
-                    CSVSimpleText += TempBufferQltyLookupCode."Custom 1";
+                    CSVSimpleText += TempBufferQltyTestLookupValue."Custom 1";
                 end;
                 HasAtLeastOne := true;
 

@@ -34,7 +34,7 @@ permissionset 20401 "QltyMngmnt - Read"
         tabledata "Qlty. I. Result Condit. Conf." = R,
         tabledata "Qlty. Inspect. Source Config." = R,
         tabledata "Qlty. Inspect. Src. Fld. Conf." = R,
-        tabledata "Qlty. Lookup Code" = R,
+        tabledata "Qlty. Test Lookup Value" = R,
         tabledata "Qlty. Related Transfers Buffer" = RIMD,
         tabledata "Qlty. Inspection Template Hdr." = R,
         tabledata "Qlty. Inspection Template Line" = R,

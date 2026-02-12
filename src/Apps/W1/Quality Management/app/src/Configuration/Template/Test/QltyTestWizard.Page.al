@@ -210,7 +210,7 @@ page 20432 "Qlty. Test Wizard"
                     UpdatePropagation = Both;
                     Caption = 'Number Field Details';
                 }
-                part(FieldChoices; "Qlty. Lookup Code Part")
+                part(FieldChoices; "Qlty. Test Lookup Value Part")
                 {
                     Visible = ShowChoiceDataType;
                     UpdatePropagation = Both;
@@ -523,7 +523,7 @@ page 20432 "Qlty. Test Wizard"
     var
         QltyTest: Record "Qlty. Test";
         TempPreviousVersionOfQltyTest: Record "Qlty. Test" temporary;
-        QltyLookupCode: Record "Qlty. Lookup Code";
+        QltyTestLookupValue: Record "Qlty. Test Lookup Value";
     begin
         if TestShortName = '' then
             exit;
@@ -554,8 +554,8 @@ page 20432 "Qlty. Test Wizard"
                 begin
                     QltyTest."Test Value Type" := QltyTest."Test Value Type"::"Value Type Table Lookup";
                     if QltyTest."Lookup Table No." = 0 then begin
-                        QltyTest.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
-                        QltyTest.Validate("Lookup Field No.", QltyLookupCode.FieldNo(Code));
+                        QltyTest.Validate("Lookup Table No.", Database::"Qlty. Test Lookup Value");
+                        QltyTest.Validate("Lookup Field No.", QltyTestLookupValue.FieldNo("Value"));
                     end;
                 end;
         end;

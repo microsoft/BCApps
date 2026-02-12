@@ -33,7 +33,7 @@ permissionset 20404 QltyMngmntInspector
         tabledata "Qlty. Inspection Result" = RIMd,
         tabledata "Qlty. Inspection Template Hdr." = RIMd,
         tabledata "Qlty. Inspection Template Line" = RIMd,
-        tabledata "Qlty. Lookup Code" = RIMd,
+        tabledata "Qlty. Test Lookup Value" = RIMd,
         tabledata "Qlty. Management Setup" = RIMd,
         tabledata "Qlty. Related Transfers Buffer" = RIMD,
         tabledata "Qlty. Mgmt. Role Center Cue" = RIMd,

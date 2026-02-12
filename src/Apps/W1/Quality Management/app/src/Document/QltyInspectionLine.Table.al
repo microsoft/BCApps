@@ -336,12 +336,12 @@ table 20406 "Qlty. Inspection Line"
 
     local procedure AssistEditChooseFromTableLookup()
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        CollectAllowableValues(TempBufferQltyLookupCode);
+        CollectAllowableValues(TempBufferQltyTestLookupValue);
 
-        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyLookupCode) = Action::LookupOK then
-            Rec.Validate("Test Value", CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(Rec."Test Value")));
+        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyTestLookupValue) = Action::LookupOK then
+            Rec.Validate("Test Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Test Value")));
     end;
 
     /// <summary>
@@ -351,8 +351,8 @@ table 20406 "Qlty. Inspection Line"
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue"></param>
+    internal procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -361,7 +361,7 @@ table 20406 "Qlty. Inspection Line"
             exit;
 
         if not GetInspection() then;
-        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
+        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyTestLookupValue, Rec."Test Value");
     end;
 
     /// <summary>

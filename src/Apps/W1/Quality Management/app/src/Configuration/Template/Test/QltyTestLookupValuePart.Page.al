@@ -11,13 +11,13 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// A part that can be used to help configure manual lookups/choices.
 /// </summary>
-page 20435 "Qlty. Lookup Code Part"
+page 20435 "Qlty. Test Lookup Value Part"
 {
-    Caption = 'Quality Lookup Code Part';
+    Caption = 'Quality Test Lookup Value Part';
     DelayedInsert = true;
     PageType = ListPart;
-    SourceTable = "Qlty. Lookup Code";
-    SourceTableView = sorting("Group Code", Code);
+    SourceTable = "Qlty. Test Lookup Value";
+    SourceTableView = sorting("Lookup Group Code", "Value");
     ApplicationArea = QualityManagement;
 
     layout
@@ -106,7 +106,7 @@ page 20435 "Qlty. Lookup Code Part"
                     }
                 }
             }
-            repeater(GroupLookupCodes)
+            repeater(GroupLookupValues)
             {
                 ShowCaption = false;
                 Visible = NewLookup;
@@ -119,11 +119,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 1);
+                        SetAddOptionToResultCondition(Rec."Value", 1);
                         CurrPage.Update();
                     end;
                 }
@@ -135,11 +135,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 2);
+                        SetAddOptionToResultCondition(Rec."Value", 2);
                         CurrPage.Update();
                     end;
                 }
@@ -151,11 +151,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 3);
+                        SetAddOptionToResultCondition(Rec."Value", 3);
                         CurrPage.Update();
                     end;
                 }
@@ -167,11 +167,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 4);
+                        SetAddOptionToResultCondition(Rec."Value", 4);
                         CurrPage.Update();
                     end;
                 }
@@ -183,11 +183,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 5);
+                        SetAddOptionToResultCondition(Rec."Value", 5);
                         CurrPage.Update();
                     end;
                 }
@@ -199,11 +199,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 6);
+                        SetAddOptionToResultCondition(Rec."Value", 6);
                         CurrPage.Update();
                     end;
                 }
@@ -215,11 +215,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 7);
+                        SetAddOptionToResultCondition(Rec."Value", 7);
                         CurrPage.Update();
                     end;
                 }
@@ -231,11 +231,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 8);
+                        SetAddOptionToResultCondition(Rec."Value", 8);
                         CurrPage.Update();
                     end;
                 }
@@ -247,11 +247,11 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 9);
+                        SetAddOptionToResultCondition(Rec."Value", 9);
                         CurrPage.Update();
                     end;
                 }
@@ -263,19 +263,19 @@ page 20435 "Qlty. Lookup Code Part"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
+                        if Rec."Value" = '' then
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToResultCondition(Rec.Code, 10);
+                        SetAddOptionToResultCondition(Rec."Value", 10);
                         CurrPage.Update();
                     end;
                 }
-                field("Group Code"; Rec."Group Code")
+                field("Lookup Group Code"; Rec."Lookup Group Code")
                 {
                     Visible = false;
                 }
-                field("Code"; Rec.Code)
+                field("Code"; Rec."Value")
                 {
                 }
                 field(Description; Rec.Description)
@@ -347,7 +347,7 @@ page 20435 "Qlty. Lookup Code Part"
         Iterator: Integer;
     begin
         for Iterator := 1 to ArrayLen(IsAcceptableValuesForThisRow) do
-            if not DictionaryOptionsThatAreDefaults.Get(GetKey(Rec.Code, Iterator), IsAcceptableValuesForThisRow[Iterator]) then
+            if not DictionaryOptionsThatAreDefaults.Get(GetKey(Rec."Value", Iterator), IsAcceptableValuesForThisRow[Iterator]) then
                 IsAcceptableValuesForThisRow[Iterator] := false;
     end;
 
@@ -365,10 +365,10 @@ page 20435 "Qlty. Lookup Code Part"
             QltyTest.Validate("Lookup Field No.", MostCommonTableReasonCode.FieldNo(Code));
         end else
             if not ExistingTable then begin
-                QltyTest.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
-                QltyTest.Validate("Lookup Field No.", Rec.FieldNo(Code));
+                QltyTest.Validate("Lookup Table No.", Database::"Qlty. Test Lookup Value");
+                QltyTest.Validate("Lookup Field No.", Rec.FieldNo("Value"));
                 if QltyTest."Lookup Table Filter" = '' then begin
-                    Rec.SetRange("Group Code", QltyTest.Code);
+                    Rec.SetRange("Lookup Group Code", QltyTest.Code);
                     TableFilter := Rec.GetView(true);
                     TableFilter := QltyFilterHelpers.CleanUpWhereClause(TableFilter);
 
@@ -390,9 +390,9 @@ page 20435 "Qlty. Lookup Code Part"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec."Group Code" := GetGroupCodeFromRecordOrFilter(false);
-        if Rec."Group Code" = '' then
-            Rec."Group Code" := QltyTest.Code;
+        Rec."Lookup Group Code" := GetGroupCodeFromRecordOrFilter(false);
+        if Rec."Lookup Group Code" = '' then
+            Rec."Lookup Group Code" := QltyTest.Code;
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -405,13 +405,13 @@ page 20435 "Qlty. Lookup Code Part"
     var
         FilterGroupIterator: Integer;
     begin
-        if (not OnlyFilters) and (Rec."Group Code" <> '') then
-            exit(Rec."Group Code");
+        if (not OnlyFilters) and (Rec."Lookup Group Code" <> '') then
+            exit(Rec."Lookup Group Code");
         FilterGroupIterator := 4;
         repeat
             Rec.FilterGroup(FilterGroupIterator);
-            if Rec.GetFilter("Group Code") <> '' then
-                GroupCode := Rec.GetRangeMin("Group Code");
+            if Rec.GetFilter("Lookup Group Code") <> '' then
+                GroupCode := Rec.GetRangeMin("Lookup Group Code");
 
             FilterGroupIterator -= 1;
         until (FilterGroupIterator < 0) or (GroupCode <> '');
@@ -427,7 +427,7 @@ page 20435 "Qlty. Lookup Code Part"
     begin
         for Iterator := 1 to 10 do
             if IsAcceptableValuesForThisRow[Iterator] then
-                SetAddOptionToResultCondition(Rec.Code, Iterator);
+                SetAddOptionToResultCondition(Rec."Value", Iterator);
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -490,7 +490,7 @@ page 20435 "Qlty. Lookup Code Part"
         if CurrentTest = '' then
             exit;
 
-        Rec.SetRange("Group Code", CurrentTest);
+        Rec.SetRange("Lookup Group Code", CurrentTest);
         if Rec.Find('-') then;
 
         if not QltyTest.Get(CurrentTest) then begin
@@ -500,11 +500,11 @@ page 20435 "Qlty. Lookup Code Part"
         end;
         QltyTest.SetRecFilter();
         DefaultValue := QltyTest."Default Value";
-        if QltyTest."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
+        if QltyTest."Lookup Table No." = Database::"Qlty. Test Lookup Value" then begin
             if QltyTest."Lookup Table Filter" <> '' then
                 Rec.SetView(QltyTest."Lookup Table Filter")
             else
-                Rec.SetRange("Group Code", QltyTest.Code);
+                Rec.SetRange("Lookup Group Code", QltyTest.Code);
 
             if OldField <> CurrentTest then begin
                 NewLookup := true;
@@ -611,25 +611,25 @@ page 20435 "Qlty. Lookup Code Part"
 
     local procedure CollectAllResultConditionsWithAddedOption(ResultPosition: Integer; EnsureOption: Code[100]) AllConditions: Text;
     var
-        QltyLookupCode: Record "Qlty. Lookup Code";
+        QltyTestLookupValue: Record "Qlty. Test Lookup Value";
         AtLeastOne: Boolean;
         IsSet: Boolean;
     begin
-        QltyLookupCode.CopyFilters(Rec);
-        if QltyLookupCode.FindSet() then
+        QltyTestLookupValue.CopyFilters(Rec);
+        if QltyTestLookupValue.FindSet() then
             repeat
-                if DictionaryOptionsThatAreDefaults.Get(GetKey(QltyLookupCode.Code, ResultPosition), IsSet) then
+                if DictionaryOptionsThatAreDefaults.Get(GetKey(QltyTestLookupValue."Value", ResultPosition), IsSet) then
                     if IsSet then begin
                         if AtLeastOne then
                             AllConditions += '|';
-                        AllConditions += QltyLookupCode.Code;
+                        AllConditions += QltyTestLookupValue."Value";
                         AtLeastOne := true;
                     end;
-            until QltyLookupCode.Next() = 0;
+            until QltyTestLookupValue.Next() = 0;
 
         if EnsureOption <> '' then begin
-            QltyLookupCode.SetRange(Code, EnsureOption);
-            if QltyLookupCode.IsEmpty() then begin
+            QltyTestLookupValue.SetRange("Value", EnsureOption);
+            if QltyTestLookupValue.IsEmpty() then begin
                 if AtLeastOne then
                     AllConditions += '|';
                 AllConditions += EnsureOption;

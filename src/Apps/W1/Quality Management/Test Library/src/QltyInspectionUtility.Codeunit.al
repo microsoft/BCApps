@@ -1547,12 +1547,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyTest">The quality field configuration defining lookup table and filters.</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation.</param>
-    /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values.</param>
-    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer populated with lookup values.</param>
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
-        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyTestLookupValue);
     end;
 
     /// <summary>
