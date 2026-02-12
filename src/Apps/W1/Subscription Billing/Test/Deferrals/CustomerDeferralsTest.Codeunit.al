@@ -48,6 +48,7 @@ codeunit 139912 "Customer Deferrals Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryERM: Codeunit "Library - ERM";
         CorrectedDocumentNo: Code[20];
         PostedDocumentNo: Code[20];
         PostingDate: Date;
@@ -259,10 +260,12 @@ codeunit 139912 "Customer Deferrals Test"
         DeferralCount := CustomerContractDeferral.Count;
         TotalDeferralBaseAmount := CustomerContractDeferral."Deferral Base Amount";
         LastDayOfBillingPeriod := CalcDate('<-CY+6M+22D>', WorkDate());
-        FullMonthAmount := CustomerContractDeferral.Amount;
 
         // [THEN] 7 deferral periods are created (Jan through Jul)
         Assert.AreEqual(7, DeferralCount, 'Expected 7 deferral periods for Jan to Jul billing.');
+
+        // Use the first full-month deferral amount as reference; verify all other full months match it
+        FullMonthAmount := CustomerContractDeferral.Amount;
 
         // [THEN] The first 6 full-month periods have equal amounts and full month Number of Days
         for i := 1 to DeferralCount - 1 do begin
@@ -863,7 +866,6 @@ codeunit 139912 "Customer Deferrals Test"
     procedure DeferralCodeNotAllowedWithContractDeferralsOnSalesLine()
     var
         DeferralTemplate: Record "Deferral Template";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         // [SCENARIO] A standard Deferral Code must not be assigned to a sales invoice line
         //            that already has subscription contract deferrals enabled.

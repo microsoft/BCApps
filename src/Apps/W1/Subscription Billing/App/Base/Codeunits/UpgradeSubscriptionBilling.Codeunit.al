@@ -328,10 +328,6 @@ codeunit 8032 "Upgrade Subscription Billing"
     var
         CustContractDeferral: Record "Cust. Sub. Contract Deferral";
         VendContractDeferral: Record "Vend. Sub. Contract Deferral";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        PurchInvLine: Record "Purch. Inv. Line";
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasUpgradeTag(FillPostingGroupsInContractDeferralsTag()) then
@@ -339,45 +335,65 @@ codeunit 8032 "Upgrade Subscription Billing"
 
         CustContractDeferral.SetRange("Gen. Bus. Posting Group", '');
         CustContractDeferral.SetRange("Gen. Prod. Posting Group", '');
-        if CustContractDeferral.FindSet() then
+        if CustContractDeferral.FindSet(true) then
             repeat
-                case CustContractDeferral."Document Type" of
-                    "Rec. Billing Document Type"::Invoice:
-                        if SalesInvoiceLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
-                            CustContractDeferral."Gen. Bus. Posting Group" := SalesInvoiceLine."Gen. Bus. Posting Group";
-                            CustContractDeferral."Gen. Prod. Posting Group" := SalesInvoiceLine."Gen. Prod. Posting Group";
-                            CustContractDeferral.Modify(false);
-                        end;
-                    "Rec. Billing Document Type"::"Credit Memo":
-                        if SalesCrMemoLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
-                            CustContractDeferral."Gen. Bus. Posting Group" := SalesCrMemoLine."Gen. Bus. Posting Group";
-                            CustContractDeferral."Gen. Prod. Posting Group" := SalesCrMemoLine."Gen. Prod. Posting Group";
-                            CustContractDeferral.Modify(false);
-                        end;
-                end;
+                UpdateCustDeferralPostingGroups(CustContractDeferral);
             until CustContractDeferral.Next() = 0;
 
         VendContractDeferral.SetRange("Gen. Bus. Posting Group", '');
         VendContractDeferral.SetRange("Gen. Prod. Posting Group", '');
-        if VendContractDeferral.FindSet() then
+        if VendContractDeferral.FindSet(true) then
             repeat
-                case VendContractDeferral."Document Type" of
-                    "Rec. Billing Document Type"::Invoice:
-                        if PurchInvLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
-                            VendContractDeferral."Gen. Bus. Posting Group" := PurchInvLine."Gen. Bus. Posting Group";
-                            VendContractDeferral."Gen. Prod. Posting Group" := PurchInvLine."Gen. Prod. Posting Group";
-                            VendContractDeferral.Modify(false);
-                        end;
-                    "Rec. Billing Document Type"::"Credit Memo":
-                        if PurchCrMemoLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
-                            VendContractDeferral."Gen. Bus. Posting Group" := PurchCrMemoLine."Gen. Bus. Posting Group";
-                            VendContractDeferral."Gen. Prod. Posting Group" := PurchCrMemoLine."Gen. Prod. Posting Group";
-                            VendContractDeferral.Modify(false);
-                        end;
-                end;
+                UpdateVendDeferralPostingGroups(VendContractDeferral);
             until VendContractDeferral.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(FillPostingGroupsInContractDeferralsTag());
+    end;
+
+    local procedure UpdateCustDeferralPostingGroups(var CustContractDeferral: Record "Cust. Sub. Contract Deferral")
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        CustContractDeferralToUpdate: Record "Cust. Sub. Contract Deferral";
+    begin
+        CustContractDeferralToUpdate := CustContractDeferral;
+        case CustContractDeferral."Document Type" of
+            "Rec. Billing Document Type"::Invoice:
+                if SalesInvoiceLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
+                    CustContractDeferralToUpdate."Gen. Bus. Posting Group" := SalesInvoiceLine."Gen. Bus. Posting Group";
+                    CustContractDeferralToUpdate."Gen. Prod. Posting Group" := SalesInvoiceLine."Gen. Prod. Posting Group";
+                    CustContractDeferralToUpdate.Modify(false);
+                end;
+            "Rec. Billing Document Type"::"Credit Memo":
+                if SalesCrMemoLine.Get(CustContractDeferral."Document No.", CustContractDeferral."Document Line No.") then begin
+                    CustContractDeferralToUpdate."Gen. Bus. Posting Group" := SalesCrMemoLine."Gen. Bus. Posting Group";
+                    CustContractDeferralToUpdate."Gen. Prod. Posting Group" := SalesCrMemoLine."Gen. Prod. Posting Group";
+                    CustContractDeferralToUpdate.Modify(false);
+                end;
+        end;
+    end;
+
+    local procedure UpdateVendDeferralPostingGroups(var VendContractDeferral: Record "Vend. Sub. Contract Deferral")
+    var
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        VendContractDeferralToUpdate: Record "Vend. Sub. Contract Deferral";
+    begin
+        VendContractDeferralToUpdate := VendContractDeferral;
+        case VendContractDeferral."Document Type" of
+            "Rec. Billing Document Type"::Invoice:
+                if PurchInvLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
+                    VendContractDeferralToUpdate."Gen. Bus. Posting Group" := PurchInvLine."Gen. Bus. Posting Group";
+                    VendContractDeferralToUpdate."Gen. Prod. Posting Group" := PurchInvLine."Gen. Prod. Posting Group";
+                    VendContractDeferralToUpdate.Modify(false);
+                end;
+            "Rec. Billing Document Type"::"Credit Memo":
+                if PurchCrMemoLine.Get(VendContractDeferral."Document No.", VendContractDeferral."Document Line No.") then begin
+                    VendContractDeferralToUpdate."Gen. Bus. Posting Group" := PurchCrMemoLine."Gen. Bus. Posting Group";
+                    VendContractDeferralToUpdate."Gen. Prod. Posting Group" := PurchCrMemoLine."Gen. Prod. Posting Group";
+                    VendContractDeferralToUpdate.Modify(false);
+                end;
+        end;
     end;
 
     local procedure FillPostingGroupsInContractDeferralsTag(): Text[250]

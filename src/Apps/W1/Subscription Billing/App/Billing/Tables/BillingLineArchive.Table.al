@@ -289,7 +289,7 @@ table 8064 "Billing Line Archive"
         Rec.SetRange("Subscription Line Entry No.", ServiceCommitmentEntryNo);
     end;
 
-    internal procedure HasInvoiceBeenCredited(ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]): Boolean
+    internal procedure IsInvoiceCredited(ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]): Boolean
     begin
         Rec.SetRange(Partner, ServicePartner);
         Rec.SetRange("Document Type", Rec."Document Type"::"Credit Memo");

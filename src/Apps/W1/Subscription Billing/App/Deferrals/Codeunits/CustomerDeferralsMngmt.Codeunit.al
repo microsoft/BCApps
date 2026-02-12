@@ -183,16 +183,13 @@ codeunit 8067 "Customer Deferrals Mngmt."
         FullMonthCount := NumberOfPeriods;
         if FirstMonthIsPartial then begin
             // When first month is partial, day-proportion both first and last months
-            PartialFirstMonthAmount := Round(FirstMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-            PartialFirstMonthDiscountAmount := Round(FirstMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
-            PartialLastMonthAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-            PartialLastMonthDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
+            CalcPartialMonthAmounts(FirstMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialFirstMonthAmount, PartialFirstMonthDiscountAmount);
+            CalcPartialMonthAmounts(LastMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialLastMonthAmount, PartialLastMonthDiscountAmount);
             FullMonthCount -= 2;
         end else
             if LastMonthIsPartial and (NumberOfPeriods > 1) then begin
                 // When only last month is partial, day-proportion just that month
-                PartialLastMonthAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-                PartialLastMonthDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
+                CalcPartialMonthAmounts(LastMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialLastMonthAmount, PartialLastMonthDiscountAmount);
                 FullMonthCount -= 1;
             end;
 
@@ -272,7 +269,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
             InsertContractDeferrals(SalesHeader, SalesLine, SalesCrMemoLine."Document No.");
             exit;
         end;
-        if SalesDocuments.HasInvoiceBeenCredited(AppliesToDocNo) then
+        if SalesDocuments.IsInvoiceCredited(AppliesToDocNo) then
             exit;
         InvoiceCustContractDeferral.FilterOnDocumentTypeAndDocumentNo(Enum::"Rec. Billing Document Type"::Invoice, AppliesToDocNo);
         InvoiceCustContractDeferral.SetRange("Subscription Contract No.", SalesCrMemoLine."Subscription Contract No.");
@@ -400,6 +397,17 @@ codeunit 8067 "Customer Deferrals Mngmt."
     internal procedure SetDeferralNo(NewDeferralNo: Integer)
     begin
         DeferralEntryNo := NewDeferralNo;
+    end;
+
+    local procedure CalcPartialMonthAmounts(MonthDays: Integer; LineAmountPerDay: Decimal; LineDiscountAmountPerDay: Decimal; var PartialMonthAmount: Decimal; var PartialMonthDiscountAmount: Decimal)
+    begin
+        PartialMonthAmount := CalcDaysAmount(MonthDays, LineAmountPerDay);
+        PartialMonthDiscountAmount := CalcDaysAmount(MonthDays, LineDiscountAmountPerDay);
+    end;
+
+    local procedure CalcDaysAmount(MonthDays: Integer; AmountPerDay: Decimal): Decimal
+    begin
+        exit(Round(MonthDays * AmountPerDay, GLSetup."Amount Rounding Precision"));
     end;
 
     [IntegrationEvent(false, false)]

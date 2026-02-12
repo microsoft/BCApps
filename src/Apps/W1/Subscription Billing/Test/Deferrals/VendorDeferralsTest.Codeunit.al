@@ -50,6 +50,7 @@ codeunit 139913 "Vendor Deferrals Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryERM: Codeunit "Library - ERM";
         CorrectedDocumentNo: Code[20];
         PostedDocumentNo: Code[20];
         PostingDate: Date;
@@ -266,10 +267,12 @@ codeunit 139913 "Vendor Deferrals Test"
         DeferralCount := VendorContractDeferral.Count;
         TotalDeferralBaseAmount := VendorContractDeferral."Deferral Base Amount";
         LastDayOfBillingPeriod := CalcDate('<-CY+6M+22D>', WorkDate());
-        FullMonthAmount := VendorContractDeferral.Amount;
 
         // [THEN] 7 deferral periods are created (Jan through Jul)
         Assert.AreEqual(7, DeferralCount, 'Expected 7 deferral periods for Jan to Jul billing.');
+
+        // Use the first full-month deferral amount as reference; verify all other full months match it
+        FullMonthAmount := VendorContractDeferral.Amount;
 
         // [THEN] The first 6 full-month periods have equal amounts and full month Number of Days
         for i := 1 to DeferralCount - 1 do begin
@@ -876,7 +879,6 @@ codeunit 139913 "Vendor Deferrals Test"
     procedure DeferralCodeNotAllowedWithContractDeferralsOnPurchaseLine()
     var
         DeferralTemplate: Record "Deferral Template";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         // [SCENARIO] A standard Deferral Code must not be assigned to a purchase invoice line
         //            that already has subscription contract deferrals enabled.
@@ -891,7 +893,6 @@ codeunit 139913 "Vendor Deferrals Test"
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
 
         // [WHEN] Assigning the Deferral Code to the purchase line that has contract deferrals
-        BillingLine.FindLast();
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetFilter("No.", '<>%1', '');
         PurchaseLine.FindFirst();
@@ -925,7 +926,6 @@ codeunit 139913 "Vendor Deferrals Test"
         GLAccount: Record "G/L Account";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         CreateGeneralJournalBatch(GenJournalBatch);
         LibraryERM.CreateGLAccount(GLAccount);
@@ -996,7 +996,6 @@ codeunit 139913 "Vendor Deferrals Test"
     local procedure CreateGeneralJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     var
         GenJournalTemplate: Record "Gen. Journal Template";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         GenJournalTemplate.SetRange(Recurring, false);
         GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::General);
