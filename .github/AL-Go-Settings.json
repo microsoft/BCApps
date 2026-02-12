@@ -6,10 +6,10 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/27.4//latest",
+  "artifact": "bcinsider/Sandbox/27.5//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "27.4",
+  "repoVersion": "27.5",
   "conditionalSettings": [
     {
       "buildModes": [
