@@ -1216,7 +1216,6 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         OnboardingGuide: TestPage "Continia Onboarding Guide";
         ExtConnectionSetup: TestPage "Continia Ext. Connection Setup";
         Participations: TestPage "Continia Participations";
-        ParticipationAlreadyRegisteredPeppolErr: Label 'There is already a registration in Peppol network with the identifier type';
     begin
         Initialize();
 
@@ -1427,8 +1426,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Nemhandel Identifier Type
@@ -1475,8 +1474,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Peppol Identifier Type
@@ -1523,8 +1522,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Peppol Identifier Type
@@ -1571,8 +1570,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Peppol Identifier Type
@@ -1615,8 +1614,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Peppol Identifier Type
@@ -1673,8 +1672,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Peppol Identifier Type
@@ -1720,8 +1719,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     var
         TempParticipation: Record "Continia Participation" temporary;
         TempActivatedProfiles: Record "Continia Activated Net. Prof." temporary;
-        OnboardingGuide: Page "Continia Onboarding Guide";
         NetworkIdentifier: Record "Continia Network Identifier";
+        OnboardingGuide: Page "Continia Onboarding Guide";
     begin
         Initialize();
         // [Given] A Nemhandel Identifier Type
