@@ -1027,7 +1027,7 @@ table 8057 "Subscription Header"
         {
             Caption = 'Sales Order No.';
             Editable = false;
-            ToolTip = 'Indicates the sales order used to create the subscription.';
+            ToolTip = 'Specifies the sales order used to create the subscription.';
         }
         field(8022; "Item Ledger Entry No."; Integer)
         {
@@ -1040,7 +1040,7 @@ table 8057 "Subscription Header"
         {
             Caption = 'Last Sales Invoice No.';
             Editable = false;
-            ToolTip = 'Indicates the last sales invoice for the sales order that was used to create the subscription.';
+            ToolTip = 'Specifies the last sales invoice for the sales order that was used to create the subscription.';
         }
     }
     keys
