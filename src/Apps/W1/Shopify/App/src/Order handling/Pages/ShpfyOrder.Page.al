@@ -87,6 +87,12 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the purchase order number that is associated with the Shopify order.';
                 }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                    Editable = not Rec.Processed;
+                    ToolTip = 'Specifies whether the Shopify order number is used as the document number for this specific order.';
+                }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = All;
