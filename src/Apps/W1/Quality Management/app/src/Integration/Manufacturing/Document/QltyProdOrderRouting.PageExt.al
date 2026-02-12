@@ -20,8 +20,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                 action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
-                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
-                    Image = TaskQualityMeasure;
+                    Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Specifies to create a new quality inspection.';
 

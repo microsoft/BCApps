@@ -23,19 +23,19 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     {
         area(Content)
         {
-            group(SettingsFor_StepWhichTemplate)
+            group(StepWhichTemplate)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 Visible = (StepWhichTemplateCounter = CurrentStepCounter);
 
-                group(SettingsFor_StepWhichTemplate_Instruction1)
+                group(StepWhichTemplate_Instruction1)
                 {
                     InstructionalText = 'Define a rule for item tracking related inspections when products are produced.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
-                group(SettingsFor_StepWhichTemplate_Instruction2)
+                group(StepWhichTemplate_Instruction2)
                 {
                     InstructionalText = 'Which Quality Inspection template do you want to use?';
                     Caption = ' ';
@@ -54,14 +54,14 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichProdOrderRoutingLine)
+            group(StepWhichProdOrderRoutingLine)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 InstructionalText = 'An inspection should be created for production order routing lines when these filters match. You can choose other fields on the last step.';
                 Visible = (StepWhichLineCounter = CurrentStepCounter);
 
-                group(SettingsFor_LocationWrapper)
+                group(LocationWrapper)
                 {
                     ShowCaption = false;
 
@@ -120,7 +120,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         end;
                     }
                 }
-                group(SettingsFor_ProdOrderRoutingLineFieldsWrapper)
+                group(ProdOrderRoutingLineFieldsWrapper)
                 {
                     ShowCaption = false;
 
@@ -221,7 +221,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichItem)
+            group(StepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -295,26 +295,26 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_StepDone)
+            group(StepDone)
             {
                 Caption = ' ';
                 InstructionalText = '';
                 ShowCaption = false;
                 Visible = (StepDoneCounter = CurrentStepCounter);
 
-                group(SettingsFor_StepDone_Instruction1)
+                group(StepDone_Instruction1)
                 {
                     Caption = ' ';
                     InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
-                group(SettingsFor_StepDone_Instruction2)
+                group(StepDone_Instruction2)
                 {
                     Caption = ' ';
                     InstructionalText = 'Please review and set any additional filters you may need, for example if you want to limit this to specific items.';
                     ShowCaption = false;
                 }
-                group(SettingsForWrapProdOrderRoutingLineRule)
+                group(WrapProdOrderRoutingLineRule)
                 {
                     ShowCaption = false;
 
@@ -344,12 +344,12 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForAutomaticallyCreateInspection)
+                group(AutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
                     InstructionalText = 'Do you want to automatically create inspections when these are produced?  This will set the activation trigger for this rule and set the default trigger value for inspection generation rules of this record type.';
 
-                    group(SettingsForAutoProductionTriggerWrapper)
+                    group(AutoProductionTriggerWrapper)
                     {
                         ShowCaption = false;
 

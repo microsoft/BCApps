@@ -63,7 +63,7 @@ page 20402 "Qlty. Inspection Template"
                         UpdateControls();
                     end;
                 }
-                group(SettingsForSampleFixedAmountVisibilityWrapper)
+                group(SampleFixedAmountVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -76,7 +76,7 @@ page 20402 "Qlty. Inspection Template"
                         AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
-                group(SettingsForSamplePercentVisibilityWrapper)
+                group(SamplePercentVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -133,7 +133,7 @@ page 20402 "Qlty. Inspection Template"
         {
             action(NewTest)
             {
-                Image = Default;
+                Image = CopyFromTask;
                 Caption = 'Add Test(s) To This Template';
                 ToolTip = 'Add a new Test or existing Test(s) to this template';
                 Scope = Repeater;
@@ -154,7 +154,7 @@ page 20402 "Qlty. Inspection Template"
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 AboutTitle = 'Inspection Generation Rules';
                 AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = TaskList;
+                Image = FilterLines;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -204,8 +204,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-
-                Image = Report;
+                Image = TaskQualityMeasure;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
