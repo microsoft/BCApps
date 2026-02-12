@@ -534,7 +534,6 @@ page 30101 "Shpfy Shop Card"
                 field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether the Shopify order number is used as the document number on the created Sales Order or Sales Invoice. The number series must have Allow Manual Nos. enabled.';
                 }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {

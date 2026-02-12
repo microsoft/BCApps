@@ -91,7 +91,6 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = not Rec.Processed;
-                    ToolTip = 'Specifies whether the Shopify order number is used as the document number for this specific order.';
                 }
                 field(Closed; Rec.Closed)
                 {

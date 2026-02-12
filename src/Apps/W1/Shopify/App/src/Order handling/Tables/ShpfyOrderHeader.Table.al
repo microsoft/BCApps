@@ -693,7 +693,6 @@ table 30118 "Shpfy Order Header"
         {
             Caption = 'Use Shopify Order No.';
             DataClassification = SystemMetadata;
-            InitValue = false;
             ToolTip = 'Specifies whether the Shopify order number is used as the document number for this specific order.';
         }
         field(500; "Shop Code"; Code[20])
