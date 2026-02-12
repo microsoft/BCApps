@@ -350,7 +350,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -400,8 +399,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -465,7 +463,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -511,8 +508,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -552,7 +548,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -597,8 +592,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -638,7 +632,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -679,8 +672,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -723,7 +715,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -756,8 +747,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -793,7 +783,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -845,8 +834,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -899,7 +887,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -952,8 +939,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - e');
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved with no blank results
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1013,7 +999,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         UsesReferenceQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1069,8 +1054,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1156,7 +1140,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         UsesReferenceQltyInspectionLine: Record "Qlty. Inspection Line";
         ExpectedQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ActualQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -1207,8 +1190,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[TestCode]}'
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1708,7 +1690,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -1743,8 +1724,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for test context validation
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1781,7 +1761,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -1834,8 +1813,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved and result conditions are set up
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1891,7 +1869,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         NumericMeasureQltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -1938,8 +1915,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLine, false, QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for validation
         NumericMeasureQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -2010,7 +1986,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         OptionListQltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -2061,8 +2036,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, false, QltyInspectionTemplateHdr.Code);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] Inspection line for option field is retrieved
         OptionListQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");

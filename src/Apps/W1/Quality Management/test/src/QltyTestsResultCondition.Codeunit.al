@@ -887,7 +887,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         PurOrdPurchaseLine: Record "Purchase Line";
         DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixConditionCellData: array[10] of Text;
@@ -935,8 +934,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
@@ -968,7 +966,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         PurOrdPurchaseLine: Record "Purchase Line";
         DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixConditionCellData: array[10] of Text;
@@ -1010,8 +1007,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
@@ -1039,7 +1035,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         PurOrdPurchaseLine: Record "Purchase Line";
         DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecID: RecordId;
         RecordRef: RecordRef;
         MatrixSourceRecordId: array[10] of RecordId;
@@ -1076,8 +1071,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
