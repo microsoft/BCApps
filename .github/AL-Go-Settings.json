@@ -6,7 +6,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/28.0.45995.0//latest",
+  "artifact": "bcinsider/Sandbox/28.0.46029.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "28.0",

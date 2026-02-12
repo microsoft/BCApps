@@ -128,7 +128,7 @@ page 20438 "Qlty. Management Setup Guide"
 
         FeatureTelemetry.LogUptake('0000QIB', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
 
-        QltyNotificationMgmt.EnsureDefaultNotifications();
+        QltyNotificationMgmt.InitializeAllNotifications();
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
         CurrPage.Close();
     end;
