@@ -51,6 +51,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryUtility: Codeunit "Library - Utility";
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
+        SupervisorRoleIDTok: Label 'QltyMngmnt - Edit', Locked = true;
 
     internal procedure EnsureSetupExists()
     var
@@ -58,7 +59,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
-        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
+        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), SupervisorRoleIDTok);
     end;
 
     internal procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
@@ -1498,7 +1499,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax.
+    /// Wrapper for QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax.
     /// Attempts to parse a text range (e.g., "1..10") into min and max decimal values.
     /// </summary>
     /// <param name="InputText">The text containing a range in format "minValue..maxValue".</param>
@@ -1507,21 +1508,21 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if successfully parsed as a simple range.</returns>
     internal procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
     begin
-        exit(QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(InputText, MinValueInRange, MaxValueInRange));
+        exit(QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(InputText, MinValueInRange, MaxValueInRange));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetArbitraryMaximumRecursion.
+    /// Wrapper for QltyConfigurationHelpers.GetArbitraryMaximumRecursion.
     /// Returns the maximum recursion depth limit for traversing multi-level table relationships.
     /// </summary>
     /// <returns>The maximum recursion depth allowed (currently 20 levels).</returns>
     internal procedure GetArbitraryMaximumRecursion(): Integer
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        exit(QltyMiscHelpers.GetArbitraryMaximumRecursion());
+        exit(QltyConfigurationHelpers.GetArbitraryMaximumRecursion());
     end;
 
     /// <summary>
@@ -1555,28 +1556,41 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup.
+    /// Wrapper for QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup.
     /// Returns the configured maximum rows for field lookups from Quality Management Setup.
     /// </summary>
     /// <returns>Maximum rows to fetch for field lookups (default 100 if not configured).</returns>
     internal procedure GetDefaultMaximumRowsFieldLookup(): Integer
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        exit(QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup());
+        exit(QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup());
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.NavigateToFindEntries.
+    /// Wrapper for QltyDocumentNavigation.NavigateToSourceDocument.
+    /// Opens the source document associated with a quality inspection in its appropriate page.
+    /// Automatically determines the correct page to display based on the source record type.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The Inspection whose source document should be displayed.</param>
+    internal procedure NavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
+    begin
+        QltyDocumentNavigation.NavigateToSourceDocument(QltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyDocumentNavigation.NavigateToFindEntries.
     /// Opens the Navigate page to find all related entries for an Inspection's source document.
     /// Pre-fills search criteria with test source information including item, document number, and tracking.
     /// </summary>
     /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found.</param>
     internal procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
     begin
-        QltyMiscHelpers.NavigateToFindEntries(QltyInspectionHeader);
+        QltyDocumentNavigation.NavigateToFindEntries(QltyInspectionHeader);
     end;
 
     #endregion Qlty. Misc Helpers Wrappers
@@ -1612,60 +1626,77 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Filter Helpers Wrappers
 
-    #region Qlty. Misc Helpers Additional Wrappers
+    #region Qlty. Localization Wrappers
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetTranslatedYes250.
+    /// Wrapper for QltyLocalization.GetTranslatedYes.
     /// Returns the translatable "Yes" label with maximum length of 250 characters.
     /// </summary>
     /// <returns>The localized "Yes" text (up to 250 characters)</returns>
     internal procedure GetTranslatedYes250(): Text[250]
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
-        exit(QltyMiscHelpers.GetTranslatedYes250());
+        exit(QltyLocalization.GetTranslatedYes());
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetTranslatedNo250.
+    /// Wrapper for QltyLocalization.GetTranslatedNo.
     /// Returns the translatable "No" label with maximum length of 250 characters.
     /// </summary>
     /// <returns>The localized "No" text (up to 250 characters)</returns>
     internal procedure GetTranslatedNo250(): Text[250]
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
-        exit(QltyMiscHelpers.GetTranslatedNo250());
+        exit(QltyLocalization.GetTranslatedNo());
     end;
 
+    #endregion Qlty. Localization Wrappers
+
+    #region Qlty. Misc Helpers Additional Wrappers
+
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBooleanFor.
+    /// Wrapper for QltyBooleanParsing.GetBooleanFor.
     /// Converts text input to a boolean value using flexible interpretation rules.
     /// </summary>
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
     internal procedure GetBooleanFor(Input: Text): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
     begin
-        exit(QltyMiscHelpers.GetBooleanFor(Input));
+        exit(QltyBooleanParsing.GetBooleanFor(Input));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.IsTextValuePositiveBoolean.
+    /// Wrapper for QltyBooleanParsing.IsTextValuePositiveBoolean.
     /// Checks if a text value represents a "positive" or "true-ish" boolean value.
     /// </summary>
     /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
     internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
     begin
-        exit(QltyMiscHelpers.IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean));
+        exit(QltyBooleanParsing.IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBasicPersonDetails.
+    /// Wrapper for QltyBooleanParsing.IsTextValueNegativeBoolean.
+    /// Checks if text represents a negative/false boolean value.
+    /// </summary>
+    /// <param name="ValueToCheckIfNegativeBoolean">The text value to check</param>
+    /// <returns>True if text represents a negative boolean value; False otherwise</returns>
+    internal procedure IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean: Text): Boolean
+    var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
+    begin
+        exit(QltyBooleanParsing.IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyPersonLookup.GetBasicPersonDetails.
     /// Retrieves basic person details from various person-related tables.
     /// </summary>
     /// <param name="Input">The primary key value to search for</param>
@@ -1677,13 +1708,13 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if person details were found; False otherwise</returns>
     internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
     begin
-        exit(QltyMiscHelpers.GetBasicPersonDetails(Input, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
+        exit(QltyPersonLookup.GetBasicPersonDetails(Input, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine.
+    /// Wrapper for QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine.
     /// Retrieves person details based on the value in an inspection line's table lookup field.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the person reference</param>
@@ -1695,9 +1726,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if details were retrieved; False otherwise</returns>
     internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
     begin
-        exit(QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
+        exit(QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
     end;
 
     #endregion Qlty. Misc Helpers Additional Wrappers

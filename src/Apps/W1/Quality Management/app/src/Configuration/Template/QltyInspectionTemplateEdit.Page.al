@@ -25,7 +25,7 @@ page 20440 "Qlty. Inspection Template Edit"
     {
         area(Content)
         {
-            group(SettingsForRawHtml)
+            group(RawHtml)
             {
                 ShowCaption = false;
                 Caption = ' ';
@@ -40,7 +40,7 @@ page 20440 "Qlty. Inspection Template Edit"
                     MultiLine = true;
                 }
             }
-            group(SettingsForTestExpressionWithAInspection)
+            group(TestExpressionWithAInspection)
             {
                 Caption = 'Test expression with an existing Quality Inspection';
                 Visible = ShowAddTestFromInspection;
@@ -160,8 +160,8 @@ page 20440 "Qlty. Inspection Template Edit"
             action(AddInspectionTest)
             {
                 ApplicationArea = All;
-                Caption = 'Add Inspection Test';
-                Image = TaskQualityMeasure;
+                Caption = 'Add Test';
+                Image = CopyFromTask;
                 ToolTip = 'Click here to use a Quality Inspection test in this expression.';
                 AboutTitle = 'Add inspection test';
                 AboutText = 'Click here to use a Quality Inspection test in this expression.';

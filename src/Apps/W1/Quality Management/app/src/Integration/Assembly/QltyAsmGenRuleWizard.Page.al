@@ -24,19 +24,19 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
     {
         area(Content)
         {
-            group(SettingsFor_iStepWhichTemplate)
+            group(StepWhichTemplate)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 Visible = (StepWhichTemplateCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepWhichTemplate_Instruction1)
+                group(StepWhichTemplate_Instruction1)
                 {
                     InstructionalText = 'Define a rule for item tracking related tests when products are assembled.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepWhichTemplate_Instruction2)
+                group(StepWhichTemplate_Instruction2)
                 {
                     InstructionalText = 'Which Quality Inspection template do you want to use?';
                     Caption = ' ';
@@ -56,7 +56,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
                 }
             }
 
-            group(SettingsFor_iStepWhichAssemblyOrder)
+            group(StepWhichAssemblyOrder)
             {
                 ShowCaption = false;
                 InstructionalText = 'A test should be created for an assembly order when these filters match. You can choose other fields on the last step.';
@@ -122,7 +122,7 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichItem)
+            group(StepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -196,26 +196,26 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepDone)
+            group(StepDone)
             {
                 Caption = ' ';
                 InstructionalText = '';
                 ShowCaption = false;
                 Visible = (StepDoneCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepDone_Instruction1)
+                group(StepDone_Instruction1)
                 {
                     Caption = ' ';
                     InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepDone_Instruction2)
+                group(StepDone_Instruction2)
                 {
                     Caption = ' ';
                     InstructionalText = 'Please review and set any additional filters you may need, for example if you want to limit this to specific items.';
                     ShowCaption = false;
                 }
-                group(SettingsForWrapAssemblyOrderRule)
+                group(WrapAssemblyOrderRule)
                 {
                     ShowCaption = false;
                     field(ChoosePostedAssemblyOrderRuleFilter; PostedAssemblyOrderRuleFilter)
@@ -243,12 +243,12 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(bAutomaticallyCreateTest)
                 {
                     ShowCaption = false;
                     InstructionalText = 'Do you want to automatically create tests when these are produced?  This will set the activation trigger for this rule and set the default trigger value for test generation rules of this record type.';
 
-                    group(SettingsForAutoAssemblyTriggerWrapper)
+                    group(AutoAssemblyTriggerWrapper)
                     {
                         ShowCaption = false;
 

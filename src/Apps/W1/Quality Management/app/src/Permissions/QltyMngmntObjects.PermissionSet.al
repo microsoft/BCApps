@@ -42,8 +42,8 @@ using Microsoft.QualityManagement.Workflow;
 permissionset 20406 "QltyMngmnt - Objects"
 {
     Caption = 'Quality Management - Objects';
-    Assignable = true;
     Access = Internal;
+    Assignable = true;
 
     Permissions =
         // Codeunits
@@ -72,7 +72,14 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Utilities Integration" = X,
         codeunit "Qlty. Navigate Integration" = X,
         codeunit "Qlty. Tracking Integration" = X,
+        codeunit "Qlty. Boolean Parsing" = X,
+        codeunit "Qlty. Configuration Helpers" = X,
+        codeunit "Qlty. Document Navigation" = X,
+        codeunit "Qlty. File Import" = X,
+        codeunit "Qlty. Localization" = X,
         codeunit "Qlty. Misc Helpers" = X,
+        codeunit "Qlty. Person Lookup" = X,
+        codeunit "Qlty. Value Parsing" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
@@ -120,6 +127,9 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Inspection List" = X,
         page "Qlty. Whse. Gen. Rule Wizard" = X,
         page "Qlty. Inspection" = X,
+        page "Qlty. Inspect. Source Config." = X,
+        page "Qlty. Source Config Line Part" = X,
+        page "Qlty. Ins. Source Config. List" = X,
 
         // Queries  
         query "Qlty. Inspection Values" = X,

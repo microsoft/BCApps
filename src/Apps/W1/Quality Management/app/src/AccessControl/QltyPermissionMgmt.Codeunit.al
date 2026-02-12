@@ -29,7 +29,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ExpressOnlyCaptionFinishInspectionLbl: Label 'Finish Inspection';
         ExpressOnlyCaptionChangeTrackingNoLbl: Label 'Change Tracking No.';
         ExpressOnlyCaptionChangeSourceQuantityLbl: Label 'Change Source Quantity';
-        ExpectedSupervisorRoleIDTxt: Label 'QltyGeneral', Locked = true;
+        ExpectedSupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
