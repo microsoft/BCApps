@@ -146,7 +146,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         report "Qlty. Create Transfer Order" = X,
 
         // Tables
-        table "Qlty. Express Config. Value" = X,
+        table "Qlty. Workflow Config. Value" = X,
         table "Qlty. Inspection Gen. Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,

@@ -29,7 +29,7 @@ permissionset 20405 "QltyMngmnt - Edit"
     Permissions =
         tabledata "Qlty. Management Setup" = RIMD,
         tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
-        tabledata "Qlty. Express Config. Value" = RIMD,
+        tabledata "Qlty. Workflow Config. Value" = RIMD,
         tabledata "Qlty. Inspection Gen. Rule" = RIMD,
         tabledata "Qlty. I. Result Condit. Conf." = RIMD,
         tabledata "Qlty. Inspect. Source Config." = RIMD,

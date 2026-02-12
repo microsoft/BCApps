@@ -29,7 +29,7 @@ permissionset 20401 "QltyMngmnt - Read"
     Permissions =
         tabledata "Qlty. Management Setup" = R,
         tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
-        tabledata "Qlty. Express Config. Value" = R,
+        tabledata "Qlty. Workflow Config. Value" = R,
         tabledata "Qlty. Inspection Gen. Rule" = R,
         tabledata "Qlty. I. Result Condit. Conf." = R,
         tabledata "Qlty. Inspect. Source Config." = R,
