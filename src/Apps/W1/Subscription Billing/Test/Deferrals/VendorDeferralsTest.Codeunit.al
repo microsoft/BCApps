@@ -816,6 +816,8 @@ codeunit 139913 "Vendor Deferrals Test"
     [Test]
     [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
     procedure TestPostingGroupsAreFilledOnVendorContractDeferrals()
+    var
+        TotalDeferralCount: Integer;
     begin
         // [SCENARIO] When posting a purchase invoice with contract deferrals, the Gen. Bus. Posting Group and Gen. Prod. Posting Group fields are populated on the deferral entries.
         Initialize();
@@ -833,11 +835,11 @@ codeunit 139913 "Vendor Deferrals Test"
         PurchInvLine.SetFilter("No.", '<>%1', '');
         PurchInvLine.FindFirst();
         VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        VendorContractDeferral.FindSet();
-        repeat
-            VendorContractDeferral.TestField("Gen. Bus. Posting Group", PurchInvLine."Gen. Bus. Posting Group");
-            VendorContractDeferral.TestField("Gen. Prod. Posting Group", PurchInvLine."Gen. Prod. Posting Group");
-        until VendorContractDeferral.Next() = 0;
+        TotalDeferralCount := VendorContractDeferral.Count;
+        VendorContractDeferral.SetRange("Gen. Bus. Posting Group", PurchInvLine."Gen. Bus. Posting Group");
+        VendorContractDeferral.SetRange("Gen. Prod. Posting Group", PurchInvLine."Gen. Prod. Posting Group");
+        Assert.RecordIsNotEmpty(VendorContractDeferral);
+        Assert.RecordCount(VendorContractDeferral, TotalDeferralCount);
     end;
 
     [Test]

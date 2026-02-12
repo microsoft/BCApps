@@ -805,6 +805,8 @@ codeunit 139912 "Customer Deferrals Test"
     [Test]
     [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
     procedure TestPostingGroupsAreFilledOnCustomerContractDeferrals()
+    var
+        TotalDeferralCount: Integer;
     begin
         // [SCENARIO] When posting a sales invoice with contract deferrals, the Gen. Bus. Posting Group and Gen. Prod. Posting Group fields are populated on the deferral entries.
         Initialize();
@@ -821,11 +823,11 @@ codeunit 139912 "Customer Deferrals Test"
         SalesInvoiceLine.SetFilter("No.", '<>%1', '');
         SalesInvoiceLine.FindFirst();
         CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        CustomerContractDeferral.FindSet();
-        repeat
-            CustomerContractDeferral.TestField("Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Bus. Posting Group");
-            CustomerContractDeferral.TestField("Gen. Prod. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
-        until CustomerContractDeferral.Next() = 0;
+        TotalDeferralCount := CustomerContractDeferral.Count;
+        CustomerContractDeferral.SetRange("Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Bus. Posting Group");
+        CustomerContractDeferral.SetRange("Gen. Prod. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
+        Assert.RecordIsNotEmpty(CustomerContractDeferral);
+        Assert.RecordCount(CustomerContractDeferral, TotalDeferralCount);
     end;
 
     [Test]
