@@ -5,7 +5,9 @@
 
 namespace System.DataAdministration;
 
+using System.Diagnostics;
 using System.Environment;
+using System.Reflection;
 using System.Security.User;
 
 /// <summary>
@@ -25,7 +27,9 @@ page 8700 "Table Information"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
-    Permissions = tabledata "Table Information" = r;
+    Permissions = tabledata "Table Information" = r,
+                  tabledata "Database Index" = r,
+                  tabledata "Table Metadata" = r;
     AboutTitle = 'About Table Information';
     AboutText = 'Get information about the number of records in all system and business tables, and how much data each table contains. This information is useful for troubleshooting performance problems, because it lets you see the distribution of data size across tables.';
 
@@ -51,6 +55,14 @@ page 8700 "Table Information"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table.';
+
+                    trigger OnDrillDown()
+                    var
+                        tm: Record "Table Metadata";
+                    begin
+                        tm.SetRange(ID, rec."Table No.");
+                        Page.Run(Page::"Table Information Card", tm);
+                    end;
                 }
 
                 field("No. of Records"; Rec."No. of Records")
