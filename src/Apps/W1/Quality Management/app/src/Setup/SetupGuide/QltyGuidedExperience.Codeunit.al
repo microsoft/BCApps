@@ -11,7 +11,9 @@ using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
+using System.Environment;
 using System.Environment.Configuration;
+using System.Reflection;
 
 
 codeunit 20419 "Qlty. Guided Experience"
@@ -54,10 +56,11 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience: Codeunit "Guided Experience";
     begin
         GuidedExperience.InsertTour(QualityManagerRoleCenterTourTitleTxt, QualityManagerRoleCenterTourShortTitleTxt,
-            QualityManagerRoleCenterTourDescriptionTxt, 2, Page::"Qlty. Manager RC");
+            QualityManagerRoleCenterTourDescriptionTxt, 2, Page::"Qlty. Manager Role Center");
+
 
         GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 10, ObjectType::Page,
-            51949); // Contoso Demo Tool Page
+            Page::"Qlty. Inspection Activities"); // TO DO - Contoso Demo Tool Page
         GuidedExperience.InsertApplicationFeature(QualityTestsTitleTxt, QualityTestsShortTitleTxt, QualityTestsDescriptionTxt, 5, ObjectType::Page,
             Page::"Qlty. Tests");
         GuidedExperience.InsertApplicationFeature(QualityTemplatesTitleTxt, QualityTemplatesShortTitleTxt, QualityTemplatesDescriptionTxt, 3, ObjectType::Page,
@@ -72,6 +75,72 @@ codeunit 20419 "Qlty. Guided Experience"
             Page::"Qlty. Management Setup");
 
         GuidedExperience.InsertLearnLink(MicrosoftLearnTitleTxt, MicrosoftLearnShortTitleTxt, MicrosoftLearnDescriptionTxt, 8, MicrosoftLearnLinkTxt);
+
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", 'OnAfterLogin', '', false, false)]
+    local procedure InitializeChecklistOnAfterLogIn()
+    var
+        Company: Record Company;
+        Checklist: Codeunit Checklist;
+        SystemInitialization: Codeunit "System Initialization";
+    begin
+        if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
+            exit;
+
+        if not Checklist.ShouldInitializeChecklist(false) then
+            exit;
+
+        if not Company.Get(CompanyName()) then
+            exit;
+
+        Checklist.InitializeGuidedExperienceItems();
+
+        if not SystemInitialization.ShouldCheckSignupContext() then
+            exit;
+
+        if not Company."Evaluation Company" then
+            InitializeChecklistForNonEvaluationCompanies();
+
+        Checklist.MarkChecklistSetupAsDone();
+    end;
+
+    local procedure InitializeChecklistForNonEvaluationCompanies()
+    var
+        TempAllProfileQualityManager: Record "All Profile" temporary;
+        Checklist: Codeunit Checklist;
+    begin
+        GetQualityManagerRole(TempAllProfileQualityManager);
+
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Activities", 1000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 2000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Template List", 3000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Gen. Rules", 4000, TempAllProfileQualityManager, false);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection List", 5000, TempAllProfileQualityManager, false);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 6000, TempAllProfileQualityManager, false);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 7000, TempAllProfileQualityManager, false);
+        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnTitleTxt, 8000, TempAllProfileQualityManager, true);
+    end;
+
+    local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
+    begin
+        AddRoleToList(TempAllProfile, Page::"Qlty. Manager Role Center");
+    end;
+
+    local procedure AddRoleToList(var TempAllProfile: Record "All Profile" temporary; RoleCenterID: Integer)
+    var
+        AllProfile: Record "All Profile";
+    begin
+        AllProfile.SetRange("Role Center ID", RoleCenterID);
+        AddRoleToList(AllProfile, TempAllProfile);
+    end;
+
+    local procedure AddRoleToList(var AllProfile: Record "All Profile"; var TempAllProfile: Record "All Profile" temporary)
+    begin
+        if AllProfile.FindFirst() then begin
+            TempAllProfile.TransferFields(AllProfile);
+            TempAllProfile.Insert();
+        end;
     end;
 
 }
