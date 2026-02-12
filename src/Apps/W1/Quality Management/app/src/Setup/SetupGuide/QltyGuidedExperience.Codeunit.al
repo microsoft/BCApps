@@ -16,6 +16,8 @@ using System.Environment.Configuration;
 
 codeunit 20419 "Qlty. Guided Experience"
 {
+    Access = Internal;
+
     var
         QualityManagerRoleCenterTourShortTitleTxt: Label 'A first look around';
         QualityManagerRoleCenterTourTitleTxt: Label 'Take a first look around';
