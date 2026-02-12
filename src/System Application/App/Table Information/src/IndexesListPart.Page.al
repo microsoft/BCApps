@@ -15,7 +15,6 @@ page 8704 "Indexes List Part"
     PageType = ListPart;
     AdditionalSearchTerms = 'Database,Size,Storage';
     ApplicationArea = All;
-    UsageCategory = Lists;
     SourceTable = "Database Index";
     SourceTableTemporary = true;
     Editable = false;
