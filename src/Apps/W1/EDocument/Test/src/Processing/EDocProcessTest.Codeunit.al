@@ -654,7 +654,9 @@ codeunit 139883 "E-Doc Process Test"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
+#if not CLEAN28
         EDocumentsSetup: Record "E-Documents Setup";
+#endif
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -695,7 +697,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
+#if not CLEAN28
         EDocumentsSetup.InsertNewExperienceSetup();
+#endif
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();
