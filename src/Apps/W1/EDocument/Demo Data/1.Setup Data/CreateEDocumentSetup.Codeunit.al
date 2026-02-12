@@ -7,9 +7,7 @@ namespace Microsoft.eServices.EDocument.DemoData;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Reporting;
 using System.Automation;
-#if not CLEAN28
 using System.Environment;
-#endif
 
 #pragma warning disable AA0247
 codeunit 5374 "Create E-Document Setup"
@@ -19,9 +17,7 @@ codeunit 5374 "Create E-Document Setup"
 
     trigger OnRun()
     begin
-#if not CLEAN28
         CreateEDocumentsSetupWithNewExperience();
-#endif
         CreateEDocService();
         CreateWorkflow();
         CreateDocSendingProfile();
@@ -61,7 +57,6 @@ codeunit 5374 "Create E-Document Setup"
         if Workflow.Insert() then;
     end;
 
-#if not CLEAN28
     local procedure CreateEDocumentsSetupWithNewExperience()
     var
         EDocumentsSetup: Record "E-Documents Setup";
@@ -70,7 +65,6 @@ codeunit 5374 "Create E-Document Setup"
         if EnvironmentInformation.IsOnPrem() then
             EDocumentsSetup.InsertNewExperienceSetup();
     end;
-#endif
 
     local procedure CreateEDocService()
     var

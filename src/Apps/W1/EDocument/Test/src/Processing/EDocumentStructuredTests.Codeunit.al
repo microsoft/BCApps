@@ -104,9 +104,7 @@ codeunit 139891 "E-Document Structured Tests"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
-#if not CLEAN28
         EDocumentsSetup: Record "E-Documents Setup";
-#endif
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -135,9 +133,7 @@ codeunit 139891 "E-Document Structured Tests"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"PDF Mock";
         EDocumentService.Modify();
-#if not CLEAN28
         EDocumentsSetup.InsertNewExperienceSetup();
-#endif
 
         // Set a currency that can be used across all localizations
         Currency.Init();

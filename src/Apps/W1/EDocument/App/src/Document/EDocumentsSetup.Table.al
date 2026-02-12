@@ -1,5 +1,3 @@
-
-#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,15 +10,6 @@ table 6107 "E-Documents Setup"
     InherentEntitlements = RIX;
     InherentPermissions = RX;
     ReplicateData = false;
-#if not CLEAN28
-    ObsoleteReason = 'Obsolete table, only used for storing the new experience flag.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
-#else
-    ObsoleteReason = 'This table is obsolete and should not be used.';
-    ObsoleteState = Removed;
-    ObsoleteTag = '31.0';
-#endif
 
     fields
     {
@@ -53,4 +42,3 @@ table 6107 "E-Documents Setup"
     end;
 
 }
-#endif

@@ -43,11 +43,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line Mapping" = X,
         table "E-Document Purchase Header" = X,
         table "E-Document Purchase Line" = X,
-#if not CLEAN28
-#pragma warning disable AL0432
         table "E-Documents Setup" = X,
-#pragma warning restore AL0432
-#endif
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
