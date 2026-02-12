@@ -64,7 +64,7 @@ page 20402 "Qlty. Inspection Template"
                         UpdateControls();
                     end;
                 }
-                group(SettingsForSampleFixedAmountVisibilityWrapper)
+                group(SampleFixedAmountVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -77,7 +77,7 @@ page 20402 "Qlty. Inspection Template"
                         AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
-                group(SettingsForSamplePercentVisibilityWrapper)
+                group(SamplePercentVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -132,43 +132,10 @@ page 20402 "Qlty. Inspection Template"
     {
         area(Processing)
         {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add Test(s) To This Template';
-                ToolTip = 'Add a new Test or existing Test(s) to this template';
-                Scope = Repeater;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    CurrPage.LinesPart.Page.AddTestWizard();
-                end;
-            }
-            action(ViewRules)
-            {
-                Caption = 'Inspection Generation Rules';
-                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = TaskList;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                RunObject = Page "Qlty. Inspection Gen. Rules";
-                RunPageLink = "Template Code" = field(Code);
-                RunPageMode = Edit;
-                PromotedOnly = true;
-            }
             action(CreateInspection)
             {
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
-
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -202,12 +169,29 @@ page 20402 "Qlty. Inspection Template"
                     Report.Run(Report::"Qlty. Inspection Copy Template", true, true, ExistingQltyInspectionTemplateHdr);
                 end;
             }
+        }
+        area(Navigation)
+        {
+            action(ViewRules)
+            {
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                AboutTitle = 'Inspection Generation Rules';
+                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                Image = FilterLines;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                RunObject = Page "Qlty. Inspection Gen. Rules";
+                RunPageLink = "Template Code" = field(Code);
+                RunPageMode = Edit;
+                PromotedOnly = true;
+            }
             action(ExistingInspection)
             {
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-
-                Image = Report;
+                Image = TaskQualityMeasure;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;

@@ -1338,8 +1338,6 @@ codeunit 139964 "Qlty. Tests - Misc."
 
     [Test]
     procedure IsTextValueNegativeBoolean()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Identify negative boolean text values
 
@@ -1348,36 +1346,36 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Various text values representing positive and negative boolean states
         // [WHEN] IsTextValueNegativeBoolean is called with each value
         // [THEN] The function returns false for positive values, true for negative values
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('true'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('TRUE'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('1'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('Yes'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('Y'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('T'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('OK'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('GOOD'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('PASS'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('V'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('true'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('TRUE'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('1'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('Yes'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('Y'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('T'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('OK'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('GOOD'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('PASS'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('POSITIVE'), 'simple bool true.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('V'), 'document intelligence/form recognizer selected check.');
 
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('false'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('FALSE'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('N'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('No'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('F'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('Fail'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('Failed'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('BAD'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('disabled'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('false'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('FALSE'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('N'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('No'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('F'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('Fail'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('Failed'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('BAD'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('disabled'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean('unacceptable'), 'simple bool false.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.IsTextValueNegativeBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
 
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('not a hot dog'), 'not a hot dog');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('not a hot dog'), 'not a hot dog');
         LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('1234'), 'a number');
+        LibraryAssert.IsFalse(QltyInspectionUtility.IsTextValueNegativeBoolean('1234'), 'a number');
     end;
 
     [Test]
@@ -1550,7 +1548,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         LibrarySales: Codeunit "Library - Sales";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        LocalQltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         SalespersonPurchaserCard: TestPage "Salesperson/Purchaser Card";
     begin
         // [SCENARIO] Navigate to source document from inspection header
@@ -1564,7 +1562,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] NavigateToSourceDocument is called
         SalespersonPurchaserCard.Trap();
-        QltyMiscHelpers.NavigateToSourceDocument(TempQltyInspectionHeader);
+        LocalQltyInspectionUtility.NavigateToSourceDocument(TempQltyInspectionHeader);
 
         // [THEN] The Salesperson/Purchaser card page opens and the handler validates the correct record
         LibraryAssert.AreEqual(FlagTestNavigateToSourceDocument, SalespersonPurchaser.Code, 'testing if a simple lookup page worked');
