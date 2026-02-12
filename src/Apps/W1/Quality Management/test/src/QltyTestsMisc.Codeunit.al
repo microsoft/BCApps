@@ -878,7 +878,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
         TempBufferQltyTestLookupValue.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Code, 'first key should have been set');
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
     end;
 
     [Test]
@@ -1096,13 +1096,13 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
         TempBufferQltyTestLookupValue.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Code, 'first key should have been set');
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
 
         QltyInspectionUtility.GetRecordsForTableField(QltyTest, QltyInspectionHeader, TempBufferQltyTestLookupValue);
         LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
         TempBufferQltyTestLookupValue.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Code, 'first key should have been set');
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
     end;
 
     [Test]
