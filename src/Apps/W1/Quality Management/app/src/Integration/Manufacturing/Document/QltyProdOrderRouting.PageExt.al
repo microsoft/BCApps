@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Document;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
@@ -24,7 +23,6 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Specifies to create a new quality inspection.';
-                    Enabled = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
@@ -37,10 +35,10 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                 action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections';
                     ToolTip = 'Shows existing Quality Inspections.';
-                    Enabled = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -53,22 +51,6 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
             }
         }
     }
-
-    var
-        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
-
-        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
-            exit;
-
-        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
-    end;
 
     local procedure CanBeProcessed(): Boolean
     begin

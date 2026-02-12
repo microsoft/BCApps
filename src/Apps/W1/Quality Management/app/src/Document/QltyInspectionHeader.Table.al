@@ -349,7 +349,7 @@ table 20405 "Qlty. Inspection Header"
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(66; "Source Lot No."; Code[50])
@@ -364,7 +364,7 @@ table 20405 "Qlty. Inspection Header"
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(67; "Source Package No."; Code[50])
@@ -379,7 +379,7 @@ table 20405 "Qlty. Inspection Header"
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(71; "Trigger Record Table No."; Integer)
@@ -1072,7 +1072,7 @@ table 20405 "Qlty. Inspection Header"
         if not TempItemTrackingSetup."Lot No. Required" then
             Error(NotLotTrackedErr, Rec."Source Item No.");
 
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyPermissionMgmt.VerifyCanChangeItemTracking();
 
         OnlyForTheDocument := true;
 
@@ -1142,7 +1142,7 @@ table 20405 "Qlty. Inspection Header"
         if not TempItemTrackingSetup."Package No. Required" then
             Error(NotPackageTrackedErr, Rec."Source Item No.");
 
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyPermissionMgmt.VerifyCanChangeItemTracking();
 
         OnlyForTheDocument := true;
 
@@ -1210,7 +1210,7 @@ table 20405 "Qlty. Inspection Header"
         if not TempItemTrackingSetup."Serial No. Required" then
             Error(NotSerialTrackedErr, Rec."Source Item No.");
 
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyPermissionMgmt.VerifyCanChangeItemTracking();
 
         OnlyForTheDocument := true;
 

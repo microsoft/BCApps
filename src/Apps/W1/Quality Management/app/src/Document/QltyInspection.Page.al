@@ -465,6 +465,7 @@ page 20406 "Qlty. Inspection"
         {
             action("Create Re-inspection")
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
@@ -472,7 +473,6 @@ page 20406 "Qlty. Inspection"
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 ToolTip = 'Create Re-inspection';
-                Enabled = CanCreateReinspection;
 
                 trigger OnAction()
                 begin
@@ -482,6 +482,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -499,6 +500,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
@@ -822,7 +824,6 @@ page 20406 "Qlty. Inspection"
         IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
-        CanCreateReinspection: Boolean;
         CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
         VisibleCustom10: Boolean;
         VisibleCustom9: Boolean;
@@ -861,11 +862,10 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
-        CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
+        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanFinish := Rec.Status <> Rec.Status::Finished;
         if Rec.Status = Rec.Status::Open then
-            if QltyPermissionMgmt.CanChangeTrackingNo() then begin
+            if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
                 TempItemTrackingSetup."Package No. Required" := true;

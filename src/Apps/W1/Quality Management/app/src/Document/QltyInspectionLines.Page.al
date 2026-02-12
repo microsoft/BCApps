@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Document;
 
 using Microsoft.QualityManagement.AccessControl;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Introduced to make it easier to analyze inspection line values changes over time.
@@ -90,8 +91,8 @@ page 20413 "Qlty. Inspection Lines"
                 }
                 field(ChooseMeasurementNote; MeasurementNote)
                 {
+                    AccessByPermission = tabledata "Record Link" = R;
                     Caption = 'Note';
-                    Visible = CanSeeLineNotes;
                     Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
@@ -132,7 +133,7 @@ page 20413 "Qlty. Inspection Lines"
             systempart(RecordNotes; Notes)
             {
                 ApplicationArea = Notes;
-                Visible = CanSeeLineNotes;
+                AccessByPermission = tabledata "Record Link" = R;
                 Enabled = CanEditLineNotes;
             }
         }
@@ -141,13 +142,11 @@ page 20413 "Qlty. Inspection Lines"
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         CanEditLineNotes: Boolean;
-        CanSeeLineNotes: Boolean;
         MeasurementNote: Text;
 
     trigger OnOpenPage()
     begin
         CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments();
-        CanSeeLineNotes := QltyPermissionMgmt.CanReadLineComments();
     end;
 
     trigger OnAfterGetRecord()
