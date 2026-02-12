@@ -64,6 +64,7 @@ codeunit 6168 "E-Document Upgrade"
             exit;
 
         MigrateSalesCrMemoQRCodeFields();
+        MigrateSalesInvoiceQRCodeFields();
 
         UpgradeTag.SetUpgradeTag(GetQRCodeFieldsUpgradeTag());
     end;
@@ -81,6 +82,22 @@ codeunit 6168 "E-Document Upgrade"
                     SalesCrMemoHeader.Modify();
                 end;
             until SalesCrMemoHeader.Next() = 0;
+    end;
+#pragma warning restore AL0432
+
+#pragma warning disable AL0432
+    local procedure MigrateSalesInvoiceQRCodeFields()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        if SalesInvoiceHeader.FindSet(true) then
+            repeat
+                if (SalesInvoiceHeader."QR Code Image".Count > 0) or SalesInvoiceHeader."QR Code Base64".HasValue() then begin
+                    SalesInvoiceHeader."SalesInv QR Code Image" := SalesInvoiceHeader."QR Code Image";
+                    SalesInvoiceHeader."SalesInv QR Code Base64" := SalesInvoiceHeader."QR Code Base64";
+                    SalesInvoiceHeader.Modify();
+                end;
+            until SalesInvoiceHeader.Next() = 0;
     end;
 #pragma warning restore AL0432
 

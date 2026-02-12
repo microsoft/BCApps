@@ -13,10 +13,10 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
     {
         add(Header)
         {
-            column(QR_Code_Image; "QR Code Image")
+            column(QR_Code_Image; "SalesInv QR Code Image")
             {
             }
-            column(QR_Code_Image_Lbl; FieldCaption("QR Code Image"))
+            column(QR_Code_Image_Lbl; FieldCaption("SalesInv QR Code Image"))
             {
             }
         }

@@ -27,9 +27,9 @@ codeunit 6197 "EDocument QR Code Management"
                 begin
                     DocumentType := SalesInvoiceLbl;
                     SourceTable.SetTable(SalesInvoiceHeader);
-                    SalesInvoiceHeader.CalcFields("QR Code Base64");
+                    SalesInvoiceHeader.CalcFields("SalesInv QR Code Base64");
 
-                    if not SalesInvoiceHeader."QR Code Base64".HasValue then begin
+                    if not SalesInvoiceHeader."SalesInv QR Code Base64".HasValue then begin
                         Message(NoQRDCodeAvailableLbl, DocumentType, SalesInvoiceHeader."No.");
                         exit;
                     end;
@@ -38,7 +38,7 @@ codeunit 6197 "EDocument QR Code Management"
                     TempQRBuf."Document Type" := DocumentType;
                     TempQRBuf."Document No." := SalesInvoiceHeader."No.";
 
-                    SalesInvoiceHeader."QR Code Base64".CreateInStream(SrcInStr);
+                    SalesInvoiceHeader."SalesInv QR Code Base64".CreateInStream(SrcInStr);
                 end;
 
             DATABASE::"Sales Cr.Memo Header":

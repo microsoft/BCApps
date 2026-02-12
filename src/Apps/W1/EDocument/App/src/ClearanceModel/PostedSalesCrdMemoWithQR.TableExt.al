@@ -11,12 +11,12 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
 {
     fields
     {
-        field(6165; "CrdMemo QR Code Image"; MediaSet)
+        field(6169; "CrdMemo QR Code Image"; MediaSet)
         {
             Caption = 'QR Code Image';
             DataClassification = CustomerContent;
         }
-        field(6166; "CrdMemo QR Code Base64"; Blob)
+        field(6170; "CrdMemo QR Code Base64"; Blob)
         {
             Caption = 'QR Code Base64';
             DataClassification = CustomerContent;
@@ -27,7 +27,7 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
         {
             Caption = 'QR Code Image';
             DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by field 6165 "CrdMemo QR Code Image".';
+            ObsoleteReason = 'Replaced by field 6169 "CrdMemo QR Code Image".';
 #if CLEAN28
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
@@ -40,7 +40,7 @@ tableextension 6167 PostedSalesCrdMemoWithQR extends "Sales Cr.Memo Header"
         {
             Caption = 'QR Code Base64';
             DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by field 6166 "CrdMemo QR Code Base64".';
+            ObsoleteReason = 'Replaced by field 6170 "CrdMemo QR Code Base64".';
 #if CLEAN28
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
