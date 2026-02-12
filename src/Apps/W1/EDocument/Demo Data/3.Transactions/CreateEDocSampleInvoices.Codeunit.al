@@ -14,6 +14,7 @@ using Microsoft.Purchases.Document;
 
 codeunit 5430 "Create E-Doc. Sample Invoices"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     EventSubscriberInstance = Manual;
