@@ -11,6 +11,7 @@ using Microsoft.DemoData.Purchases;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Posting;
 
 codeunit 5430 "Create E-Doc. Sample Invoices"
 {
@@ -182,5 +183,16 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         if not Rec."Tax Liable" then
             exit;
         Rec.Validate("Tax Group Code", FindNoTaxableTaxGroup());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeCheckAndUpdate, '', false, false)]
+    local procedure UpdateRequiredDataInPurchHeaderOnBeforeCheckAndUpdate(var PurchaseHeader: Record "Purchase Header")
+    begin
+        OnUpdateRequiredDataInPurchaseHeaderForPosting(PurchaseHeader);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateRequiredDataInPurchaseHeaderForPosting(var PurchaseHeader: Record "Purchase Header")
+    begin
     end;
 }
