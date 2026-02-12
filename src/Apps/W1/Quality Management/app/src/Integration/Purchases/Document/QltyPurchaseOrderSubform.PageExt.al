@@ -12,13 +12,13 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
 {
     actions
     {
-        addafter("O&rder")
+        addlast("F&unctions")
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
                     Image = CreateForm;
@@ -26,17 +26,18 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                     ToolTip = 'Creates a quality inspection for this purchase order line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this purchase order line.';
-                    Enabled = QltyShowCreateInspection;
-                    Visible = QltyShowCreateInspection;
+                    Enabled = QltyCreateQualityInspection;
+                    Visible = QltyCreateQualityInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowInspectionsForItemAndDocument)
+                action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -44,17 +45,18 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item and document.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_ShowInspections)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -62,14 +64,15 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                     ToolTip = 'Shows Quality Inspections for Item';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
@@ -77,18 +80,26 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
     }
 
     var
-        QltyShowCreateInspection: Boolean;
-        QltyReadTestResults: Boolean;
+        QltyReadQualityInspections, QltyCreateQualityInspection : Boolean;
 
     trigger OnOpenPage()
     var
         CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
+
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
+        QltyCreateQualityInspection := QltyPermissionMgmt.CanCreateManualInspection();
+    end;
+
+    local procedure CanBeProcessed(): Boolean
+    begin
+        if IsNullGuid(Rec.SystemId) then
+            exit(false);
+
+        exit((Rec.Type = Rec.Type::Item) and (Rec."No." <> ''));
     end;
 }

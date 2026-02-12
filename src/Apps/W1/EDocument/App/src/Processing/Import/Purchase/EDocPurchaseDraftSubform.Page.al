@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
@@ -69,6 +70,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 {
                     ApplicationArea = All;
                     Lookup = true;
+                    Visible = false;
                 }
                 field("Unit Of Measure"; Rec."[BC] Unit of Measure")
                 {
@@ -294,6 +296,25 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             Rec.LookupDimensions();
                         end;
                     }
+                    action(LookupItemReferences)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Item References';
+                        ToolTip = 'View item references for the vendor associated with this e-document.';
+                        Image = Change;
+
+                        trigger OnAction()
+                        var
+                            ItemReference: Record "Item Reference";
+                            ItemReferencePage: Page "Item Reference Entries";
+                        begin
+                            EDocumentPurchaseHeader.TestField("[BC] Vendor No.");
+                            ItemReference.SetRange("Reference Type", ItemReference."Reference Type"::Vendor);
+                            ItemReference.SetRange("Reference Type No.", EDocumentPurchaseHeader."[BC] Vendor No.");
+                            ItemReferencePage.SetTableView(ItemReference);
+                            ItemReferencePage.Run();
+                        end;
+                    }
                 }
             }
         }
@@ -430,6 +451,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure OpenMatchedPurchaseOrder(SelectedEDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
         TempPurchaseOrders: Record "Purchase Header" temporary;
+        PurchaseOrder: Record "Purchase Header";
         CountPOs: Integer;
     begin
         EDocPOMatching.LoadPOsMatchedToEDocumentLine(SelectedEDocumentPurchaseLine, TempPurchaseOrders);
@@ -438,7 +460,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
             exit;
         if CountPOs = 1 then begin
             TempPurchaseOrders.FindFirst();
-            Page.Run(Page::"Purchase Order", TempPurchaseOrders);
+            PurchaseOrder.Get(TempPurchaseOrders."Document Type", TempPurchaseOrders."No.");
+            Page.Run(Page::"Purchase Order", PurchaseOrder);
             exit;
         end;
         Page.Run(Page::"Purchase Orders", TempPurchaseOrders);

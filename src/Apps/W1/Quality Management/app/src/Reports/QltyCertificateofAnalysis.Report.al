@@ -21,13 +21,12 @@ report 20401 "Qlty. Certificate of Analysis"
     Caption = 'Quality Management - Certificate of Analysis';
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'COA,Cert of Analysis,Test Report,Inspection Report,Quality Test Report,Printable Tests,Printable Certificate';
 
     dataset
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
@@ -49,6 +48,7 @@ report 20401 "Qlty. Certificate of Analysis"
             column(QltyInspection_Source_Variant_Code; "Source Variant Code") { }
             column(QltyInspection_Source_Lot_No_; "Source Lot No.") { }
             column(QltyInspection_Source_Serial_No_; "Source Serial No.") { }
+            column(QltyInspection_Source_Package_No_; "Source Package No.") { }
             column(QltyInspection_Source_Document_No_; "Source Document No.") { }
             column(QltyInspection_Source_Task_No_; "Source Task No.") { }
             column(QltyInspection_Source_Custom_1; "Source Custom 1") { }

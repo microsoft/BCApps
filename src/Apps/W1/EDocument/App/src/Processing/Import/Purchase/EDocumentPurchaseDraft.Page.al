@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
@@ -36,7 +37,7 @@ page 6181 "E-Document Purchase Draft"
 
                 field(Record; RecordLinkTxt)
                 {
-                    Caption = 'Finalized Document';
+                    Caption = 'Purchase Document';
                     Editable = false;
                     Importance = Promoted;
                     ToolTip = 'Specifies the record, document, journal line, or ledger entry, that is linked to the electronic document.';
@@ -112,6 +113,19 @@ page 6181 "E-Document Purchase Draft"
                         Importance = Promoted;
                         Caption = 'Document No.';
                         ToolTip = 'Specifies the extracted ID for this specific document.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
+                    field("Posting Description"; EDocumentPurchaseHeader."Posting Description")
+                    {
+                        Importance = Promoted;
+                        Caption = 'Posting Description';
+                        ToolTip = 'Specifies the extracted posting description for the document.';
                         Editable = true;
 
                         trigger OnValidate()
@@ -282,8 +296,11 @@ page 6181 "E-Document Purchase Draft"
                     Visible = ShowFinalizeDraftAction;
 
                     trigger OnAction()
+                    var
+                        EDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        FinalizeEDocument();
+                        Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
+                        FinalizeEDocument(EDocImportParameters);
                     end;
                 }
                 action(ResetDraftDocument)
@@ -309,6 +326,19 @@ page 6181 "E-Document Purchase Draft"
                     trigger OnAction()
                     begin
                         AnalyzeEDocument();
+                    end;
+                }
+                action(LinkToExistingDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Link to existing document';
+                    ToolTip = 'Link this electronic document to an existing purchase document in Business Central. Use this when you have already created the document manually and want to attach the e-document to it.';
+                    Image = Links;
+                    Visible = false;
+
+                    trigger OnAction()
+                    begin
+                        DoLinkToExistingDocument();
                     end;
                 }
             }
@@ -355,7 +385,7 @@ page 6181 "E-Document Purchase Draft"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Provide feedback';
                     ToolTip = 'Provide feedback on the Payables Agent experience.';
-                    Image = Help;
+                    Image = Comment;
 
                     trigger OnAction()
                     begin
@@ -418,6 +448,7 @@ page 6181 "E-Document Purchase Draft"
                 Caption = 'Process';
                 actionref(Promoted_CreateDocument; CreateDocument)
                 {
+                    Visible = false;
                 }
                 actionref(Promoted_AnalyseDocument; AnalyzeDocument)
                 {
@@ -570,18 +601,15 @@ page 6181 "E-Document Purchase Draft"
         CurrPage.ErrorMessagesFactBox.Page.Update(false);
     end;
 
-    local procedure FinalizeEDocument()
+    local procedure FinalizeEDocument(EDocImportParameters: Record "E-Doc. Import Parameters")
     var
         TempErrorMessage: Record "Error Message" temporary;
         ErrorMessage: Record "Error Message";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
-
         if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
 
@@ -693,6 +721,29 @@ page 6181 "E-Document Purchase Draft"
             end;
             MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
         end;
+    end;
+
+    local procedure DoLinkToExistingDocument()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2?', Comment = '%1 = Document Type, %2 = Document No.';
+        RelinkToExistingDocumentQst: Label 'This e-document is already linked to a document. Linking to %1 %2 will unlink the currently linked document. You will need to manually clean up that document. Do you want to continue?', Comment = '%1 = Document Type, %2 = Document No.';
+        ConfirmQst: Text;
+    begin
+        EDocumentProcessing.ErrorIfNotAllowedToLinkToExistingDoc(Rec, EDocumentPurchaseHeader);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No.");
+        PurchaseHeader.SetRange("Doc. Amount Incl. VAT", EDocumentPurchaseHeader.Total);
+        if not EDocumentProcessing.OpenPurchaseDocumentList(Rec."Document Type", PurchaseHeader) then
+            exit;
+
+        ConfirmQst := StrSubstNo(Rec.Status = Rec.Status::Processed ? RelinkToExistingDocumentQst : LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No.");
+        if not ConfirmDialogMgt.GetResponseOrDefault(ConfirmQst, Rec.Status <> Rec.Status::Processed) then
+            exit;
+
+        EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
+        FinalizeEDocument(EDocImportParameters);
     end;
 
     var

@@ -28,10 +28,10 @@ table 99001500 "Subcontractor Price"
 
             trigger OnValidate()
             var
-                Vend: Record Vendor;
+                Vendor: Record Vendor;
             begin
-                if Vend.Get("Vendor No.") then
-                    "Currency Code" := Vend."Currency Code";
+                if Vendor.Get("Vendor No.") then
+                    "Currency Code" := Vendor."Currency Code";
             end;
         }
         field(2; "Item No."; Code[20])

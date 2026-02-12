@@ -12,13 +12,13 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
 {
     actions
     {
-        addafter(ButtonLineReclass)
+        addlast(navigation)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionCreate)
+                action(Qlty_CreateQualityInspections)
                 {
                     ApplicationArea = QualityManagement;
                     Image = CreateForm;
@@ -26,19 +26,19 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                     ToolTip = 'Creates multiple quality inspections for the selected item tracking lines.';
                     AboutTitle = 'Create Quality Inspections for selected lines';
                     AboutText = 'Select multiple records, and then use this action to create multiple quality inspections for the selected item tracking lines.';
-                    Enabled = QltyShowCreateInspection;
-                    Visible = QltyShowCreateInspection;
+                    Enabled = QltyCreateQualityInspections;
+                    Visible = QltyCreateQualityInspections;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec);
+                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec, true);
                         Rec.Reset();
                     end;
                 }
-                action(Qlty_InspectionShowInspectionsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -46,8 +46,8 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                     ToolTip = 'Shows Quality Inspections for Item with tracking specification';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item with tracking specification.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Enabled = QltyReadQualityInspections;
+                    Visible = QltyReadQualityInspections;
 
                     trigger OnAction()
                     var
@@ -61,18 +61,18 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
     }
 
     var
-        QltyReadTestResults: Boolean;
-        QltyShowCreateInspection: Boolean;
+        QltyReadQualityInspections, QltyCreateQualityInspections : Boolean;
 
     trigger OnOpenPage()
     var
         CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
+
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
+        QltyCreateQualityInspections := QltyPermissionMgmt.CanCreateManualInspection();
     end;
 }

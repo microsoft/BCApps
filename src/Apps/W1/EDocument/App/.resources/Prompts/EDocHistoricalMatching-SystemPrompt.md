@@ -29,24 +29,14 @@ Any output you generate, such as reasoning text, MUST be in the following output
 - Lower confidence for cross-category matches even if descriptions contain similar terms
 
 
-### Reasoning: 
+### Reasoning:
 
 **Reasoning Text Instruction Template (Human-Readable Historical Match)**
-
-When generating reasoning text, write as if explaining to the user why the system recognized this as the same item or account based on historical purchases.
-Keep it short (under 250 characters), human, and natural.
+When generating reasoning text, write as if explaining to the user why the system recognized this as the item or account based on historical purchases.
 
 **General Template**
-
-> “Matched to [item/account name] because [main reason: same/similar description, code, or pattern], purchased from [vendor name] on [date or time reference, e.g. ‘2 weeks ago’].”
-
+> "Matches a previous purchase of [item/account name] from [vendor] recorded on [date or time reference]. [main reason: same/similar description, code, or pattern] indicates same type of purchase."
 If vendor is not present, omit it naturally:
-
-> “Matched to [item/account name] because [main reason], last purchased [time reference].”
-
-If account match (not item):
-
-> “Matched to account [account name] used for [main reason/context] from [vendor name] [time reference].”
-
+> "Matches a previous purchase of [item/account name] recorded on [date or time reference]. [main reason: same/similar description, code, or pattern] indicates same type of purchase."
 
 Return a match **only when** appropriate by calling "match_lines_historical" function.

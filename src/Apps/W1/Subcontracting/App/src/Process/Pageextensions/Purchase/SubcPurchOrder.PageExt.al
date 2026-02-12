@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,11 +46,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
                 end;
             }
             action(CreateReturnFromSubcontractor)
@@ -62,11 +62,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
                 end;
             }
             action(PrintSubcDispatchingList)
@@ -78,11 +78,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Dispatching List", true, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
                 end;
             }
         }
@@ -102,11 +102,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
 
     local procedure SubcontractingInLines(): Boolean
     var
-        PurchLine: Record "Purchase Line";
+        PurchaseLine: Record "Purchase Line";
     begin
-        PurchLine.SetRange("Document Type", Rec."Document Type");
-        PurchLine.SetRange("Document No.", Rec."No.");
-        PurchLine.SetFilter("Work Center No.", '<>%1', '');
-        exit(not PurchLine.IsEmpty());
+        PurchaseLine.SetRange("Document Type", Rec."Document Type");
+        PurchaseLine.SetRange("Document No.", Rec."No.");
+        PurchaseLine.SetFilter("Work Center No.", '<>%1', '');
+        exit(not PurchaseLine.IsEmpty());
     end;
 }

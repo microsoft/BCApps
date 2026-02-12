@@ -54,7 +54,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         }
         field(4; "Schedule Group"; Code[20])
         {
-            Description = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
             Caption = 'Schedule Group';
             ToolTip = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
 
@@ -102,10 +101,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     SetIntentAndDefaultTriggerValuesFromSetup();
             end;
         }
-        field(13; "Condition Filter"; Text[400])
+        field(13; "Condition Filter"; Text[2048])
         {
             Caption = 'Condition Filter';
-            Description = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
             ToolTip = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
         }
         field(14; Description; Text[100])
@@ -127,15 +125,15 @@ table 20404 "Qlty. Inspection Gen. Rule"
             FieldClass = FlowFilter;
             Caption = 'Table ID Filter';
         }
-        field(19; "Item Filter"; Text[400])
+        field(19; "Item Filter"; Text[2048])
         {
             Caption = 'Item Filter';
-            ToolTip = 'Specifies the item specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item specific criteria for defining when to use this template.';
         }
-        field(20; "Item Attribute Filter"; Text[400])
+        field(20; "Item Attribute Filter"; Text[2048])
         {
             Caption = 'Attribute Filter';
-            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template.';
         }
         field(21; "Activation Trigger"; Enum "Qlty. Gen. Rule Act. Trigger")
         {
@@ -143,23 +141,23 @@ table 20404 "Qlty. Inspection Gen. Rule"
             InitValue = "Manual or Automatic";
             ToolTip = 'Specifies whether the generation rule is active for manually created inspections only, automatically created inspections only, both, or disabled entirely.';
         }
-        field(22; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
+        field(22; "Warehouse Receipt Trigger"; Enum "Qlty. Whse. Receipt Trigger")
         {
-            Caption = 'Warehouse Receive Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a warehouse receive trigger.';
+            Caption = 'Warehouse Receipt Trigger';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a Warehouse Receipt Trigger.';
 
             trigger OnValidate()
             var
                 QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
             begin
                 ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Warehouse Receive Trigger" <> Rec."Warehouse Receive Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Warehouse Receive Trigger"));
+                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Warehouse Receipt Trigger" <> Rec."Warehouse Receipt Trigger"::NoTrigger) and GuiAllowed() then
+                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Warehouse Receipt Trigger"));
             end;
         }
-        field(23; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
+        field(23; "Purchase Order Trigger"; Enum "Qlty. Purchase Order Trigger")
         {
-            Caption = 'Purchase Trigger';
+            Caption = 'Purchase Order Trigger';
             ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a purchase receive trigger.';
 
             trigger OnValidate()
@@ -167,8 +165,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
                 QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
             begin
                 ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Purchase Trigger" <> Rec."Purchase Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Purchase Trigger"));
+                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Purchase Order Trigger" <> Rec."Purchase Order Trigger"::NoTrigger) and GuiAllowed() then
+                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Purchase Order Trigger"));
             end;
         }
         field(24; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
@@ -185,9 +183,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Sales Return Trigger"));
             end;
         }
-        field(25; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
+        field(25; "Transfer Order Trigger"; Enum "Qlty. Transfer Order Trigger")
         {
-            Caption = 'Transfer Trigger';
+            Caption = 'Transfer Order Trigger';
             ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a transfer receive trigger.';
 
             trigger OnValidate()
@@ -195,22 +193,22 @@ table 20404 "Qlty. Inspection Gen. Rule"
                 QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
             begin
                 ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Transfer Trigger" <> Rec."Transfer Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Transfer Trigger"));
+                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Transfer Order Trigger" <> Rec."Transfer Order Trigger"::NoTrigger) and GuiAllowed() then
+                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Transfer Order Trigger"));
             end;
         }
-        field(26; "Production Trigger"; Enum "Qlty. Production Trigger")
+        field(26; "Production Order Trigger"; Enum "Qlty. Production Order Trigger")
         {
-            Caption = 'Production Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a production trigger.';
+            Caption = 'Production Order Trigger';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a Production Order Trigger.';
 
             trigger OnValidate()
             var
                 QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
             begin
                 ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Production Trigger" <> Rec."Production Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Production Trigger"));
+                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Production Order Trigger" <> Rec."Production Order Trigger"::NoTrigger) and GuiAllowed() then
+                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Production Order Trigger"));
             end;
         }
         field(27; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
@@ -376,7 +374,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
-        QltyFilterHelpers.BuildItemAttributeFilter400(Rec."Item Attribute Filter");
+        QltyFilterHelpers.BuildItemAttributeFilter2048(Rec."Item Attribute Filter");
     end;
 
     /// <summary>
@@ -404,7 +402,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
-    procedure SetIntentAndDefaultTriggerValuesFromSetup()
+    internal procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         InferredIntent: Enum "Qlty. Gen. Rule Intent";
@@ -421,32 +419,40 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if Certainty = Certainty::Yes then begin
             Rec.Intent := InferredIntent;
             SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then
+            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
+                Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
+                Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
+                Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
+                Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
+                Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
+                Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
+                Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
                     InferredIntent::Production:
-                        Rec."Production Trigger" := QltyManagementSetup."Production Trigger";
+                        Rec."Production Order Trigger" := QltyManagementSetup."Production Order Trigger";
                     InferredIntent::Purchase:
-                        Rec."Purchase Trigger" := QltyManagementSetup."Purchase Trigger";
+                        Rec."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger";
                     InferredIntent::"Sales Return":
                         Rec."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger";
                     InferredIntent::Transfer:
-                        Rec."Transfer Trigger" := QltyManagementSetup."Transfer Trigger";
+                        Rec."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger";
                     InferredIntent::"Warehouse Movement":
                         Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
                     InferredIntent::"Warehouse Receipt":
-                        Rec."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger";
+                        Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
                 end;
+            end;
         end;
     end;
 
     local procedure ConfirmUpdateManualTriggerStatus()
     begin
         if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then
-            if not ((Rec."Assembly Trigger" = Rec."Assembly Trigger"::NoTrigger) and (Rec."Transfer Trigger" = Rec."Transfer Trigger"::NoTrigger) and
-               (Rec."Production Trigger" = Rec."Production Trigger"::NoTrigger) and (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
-               (Rec."Sales Return Trigger" = Rec."Sales Return Trigger"::NoTrigger) and (Rec."Warehouse Receive Trigger" = Rec."Warehouse Receive Trigger"::NoTrigger) and
+            if not ((Rec."Assembly Trigger" = Rec."Assembly Trigger"::NoTrigger) and (Rec."Transfer Order Trigger" = Rec."Transfer Order Trigger"::NoTrigger) and
+               (Rec."Production Order Trigger" = Rec."Production Order Trigger"::NoTrigger) and (Rec."Purchase Order Trigger" = Rec."Purchase Order Trigger"::NoTrigger) and
+               (Rec."Sales Return Trigger" = Rec."Sales Return Trigger"::NoTrigger) and (Rec."Warehouse Receipt Trigger" = Rec."Warehouse Receipt Trigger"::NoTrigger) and
                (Rec."Warehouse Movement Trigger" = Rec."Warehouse Movement Trigger"::NoTrigger))
             then
                 if Confirm(StrSubstNo(TriggerNotActiveConfirmQst, Rec."Activation Trigger", Rec."Activation Trigger"::"Manual or Automatic")) then
@@ -455,17 +461,17 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     local procedure SetDefaultTriggerValuesToNoTrigger()
     begin
-        Rec."Warehouse Receive Trigger" := Rec."Warehouse Receive Trigger"::NoTrigger;
-        Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
+        Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
+        Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
         Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
-        Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
-        Rec."Production Trigger" := Rec."Production Trigger"::NoTrigger;
+        Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
+        Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
         Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
     end;
 
     [TryFunction]
-    procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    internal procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
     begin
         InferGenerationRuleIntent(QltyGenRuleIntent, QltyCertainty);
     end;
@@ -702,7 +708,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if not QltyManagementSetup.Get() then
             exit(false);
 
-        if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then begin
+        if QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Purchase then
                 IntentSet := true;
@@ -712,7 +718,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             if IntentToCheck = IntentToCheck::"Sales Return" then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger then begin
+        if QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::"Warehouse Receipt" then
                 IntentSet := true;
@@ -722,12 +728,12 @@ table 20404 "Qlty. Inspection Gen. Rule"
             if IntentToCheck = IntentToCheck::"Warehouse Movement" then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger then begin
+        if QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then begin
+        if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Production then
                 IntentSet := true;

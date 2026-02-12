@@ -43,7 +43,7 @@ page 20434 "Qlty. Test Number Card Part"
                     AssistEditDefaultValue();
                 end;
             }
-            group(SettingsForAllowedValues)
+            group(AllowedValues)
             {
                 Caption = 'What are the allowed values?';
                 AboutTitle = 'Allowed Values';
@@ -62,7 +62,7 @@ page 20434 "Qlty. Test Number Card Part"
                     end;
                 }
             }
-            group(SettingsForSimpleRange)
+            group(SimpleRange)
             {
                 Caption = 'Set the range of allowed values';
                 InstructionalText = 'Enter the minimum and maximum allowed values. Allowed values are possible values. For example, if you were collecting a thickness measurement then you might have allowed values between 1 and 100. "Pass" conditions values would potentially be a different number range, such as between 10 and 20.';
@@ -131,7 +131,7 @@ page 20434 "Qlty. Test Number Card Part"
                 ApplicationArea = All;
                 Caption = ' ';
             }
-            group(SettingsForPassConditions)
+            group(PassConditions)
             {
                 Caption = 'Field Conditions';
 
@@ -140,7 +140,7 @@ page 20434 "Qlty. Test Number Card Part"
                     ApplicationArea = All;
                     Caption = 'In this section you will define conditions for results, such as pass results.';
                 }
-                group(SettingsForNothingVisible)
+                group(NothingVisible)
                 {
                     ShowCaption = true;
                     Visible = not Visible1;
@@ -151,7 +151,7 @@ page 20434 "Qlty. Test Number Card Part"
                         Caption = 'There are no results available to display.';
                     }
                 }
-                group(SettingsForVisible1)
+                group(Visible1)
                 {
                     ShowCaption = false;
                     Visible = Visible1;
@@ -162,7 +162,7 @@ page 20434 "Qlty. Test Number Card Part"
                         ApplicationArea = All;
                         Caption = ' ';
                     }
-                    group(SettingsForVisible1Advanced)
+                    group(Visible1Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -172,7 +172,7 @@ page 20434 "Qlty. Test Number Card Part"
                         {
                             ColumnSpan = 2;
                             ApplicationArea = All;
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible1;
 
@@ -187,7 +187,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible1Easy)
+                    group(Visible1Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -197,8 +197,8 @@ page 20434 "Qlty. Test Number Card Part"
                         {
                             ColumnSpan = 2;
                             ApplicationArea = All;
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[1]);
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = true;
@@ -214,7 +214,7 @@ page 20434 "Qlty. Test Number Card Part"
                             ColumnSpan = 2;
                             ApplicationArea = All;
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[1]);
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowCaption = true;
@@ -230,7 +230,7 @@ page 20434 "Qlty. Test Number Card Part"
                     {
                         ColumnSpan = 2;
                         ApplicationArea = All;
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                         Editable = Visible1;
 
@@ -245,13 +245,13 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible2)
+                group(Visible2)
                 {
                     ShowCaption = false;
                     Visible = Visible2;
                     Caption = ' ';
 
-                    group(SettingsForVisible2Advanced)
+                    group(Visible2Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -259,7 +259,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(Field2; MatrixArrayConditionCellData[2])
                         {
                             ApplicationArea = All;
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                             Editable = Visible2;
 
@@ -274,15 +274,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible2Easy)
+                    group(Visible2Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin2; MatrixMinValue[2])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[2]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -296,7 +296,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax2; MatrixMaxValue[2])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[2]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -310,7 +310,7 @@ page 20434 "Qlty. Test Number Card Part"
                     }
                     field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                         Editable = Visible2;
 
@@ -325,19 +325,19 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible3)
+                group(Visible3)
                 {
                     ShowCaption = false;
                     Visible = Visible3;
                     Caption = ' ';
 
-                    group(SettingsForVisible3Advanced)
+                    group(Visible3Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
                         field(Field3; MatrixArrayConditionCellData[3])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible3;
 
@@ -352,15 +352,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible3Easy)
+                    group(Visible3Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin3; MatrixMinValue[3])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[3]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -374,7 +374,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax3; MatrixMaxValue[3])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[3]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -388,7 +388,7 @@ page 20434 "Qlty. Test Number Card Part"
                     }
                     field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible3;
 
@@ -403,14 +403,14 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible4)
+                group(Visible4)
                 {
                     ShowCaption = false;
                     Visible = Visible4;
 
                     field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible4;
 
@@ -424,14 +424,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(4);
                         end;
                     }
-                    group(SettingsForVisible4Advanced)
+                    group(Visible4Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field4; MatrixArrayConditionCellData[4])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible4;
 
@@ -446,15 +446,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible4Easy)
+                    group(Visible4Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin4; MatrixMinValue[4])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[4]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -468,7 +468,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax4; MatrixMaxValue[4])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[4]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -481,14 +481,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible5)
+                group(Visible5)
                 {
                     ShowCaption = false;
                     Visible = Visible5;
 
                     field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible5;
 
@@ -502,14 +502,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(5);
                         end;
                     }
-                    group(SettingsForVisible5Advanced)
+                    group(Visible5Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field5; MatrixArrayConditionCellData[5])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible5;
 
@@ -524,15 +524,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible5Easy)
+                    group(Visible5Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin5; MatrixMinValue[5])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[5]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -546,7 +546,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax5; MatrixMaxValue[5])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[5]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -559,14 +559,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible6)
+                group(Visible6)
                 {
                     ShowCaption = false;
                     Visible = Visible6;
 
                     field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible6;
 
@@ -580,14 +580,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(6);
                         end;
                     }
-                    group(SettingsForVisible6Advanced)
+                    group(Visible6Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field6; MatrixArrayConditionCellData[6])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible6;
 
@@ -602,15 +602,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible6Easy)
+                    group(Visible6Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin6; MatrixMinValue[6])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[6]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -624,7 +624,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax6; MatrixMaxValue[6])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[6]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -637,14 +637,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible7)
+                group(Visible7)
                 {
                     ShowCaption = false;
                     Visible = Visible7;
 
                     field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible7;
 
@@ -658,14 +658,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(7);
                         end;
                     }
-                    group(SettingsForVisible7Advanced)
+                    group(Visible7Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field7; MatrixArrayConditionCellData[7])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible7;
 
@@ -680,15 +680,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible7Easy)
+                    group(Visible7Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin7; MatrixMinValue[7])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[7]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -702,7 +702,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax7; MatrixMaxValue[7])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[7]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -715,14 +715,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible8)
+                group(Visible8)
                 {
                     ShowCaption = false;
                     Visible = Visible8;
 
                     field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible8;
 
@@ -736,14 +736,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(8);
                         end;
                     }
-                    group(SettingsForVisible8Advanced)
+                    group(Visible8Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field8; MatrixArrayConditionCellData[8])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible8;
 
@@ -758,15 +758,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible8Easy)
+                    group(Visible8Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin8; MatrixMinValue[8])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[8]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -780,7 +780,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax8; MatrixMaxValue[8])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[8]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -793,14 +793,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible9)
+                group(Visible9)
                 {
                     ShowCaption = false;
                     Visible = Visible9;
 
                     field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible9;
 
@@ -814,14 +814,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(9);
                         end;
                     }
-                    group(SettingsForVisible9Advanced)
+                    group(Visible9Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field9; MatrixArrayConditionCellData[9])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible9;
 
@@ -836,15 +836,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible9Easy)
+                    group(Visible9Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin9; MatrixMinValue[9])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[9]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -858,7 +858,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax9; MatrixMaxValue[9])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[9]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -871,14 +871,14 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible10)
+                group(Visible10)
                 {
                     ShowCaption = false;
                     Visible = Visible10;
 
                     field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
+                        CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible10;
 
@@ -892,14 +892,14 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(10);
                         end;
                     }
-                    group(SettingsForVisible10Advanced)
+                    group(Visible10Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
 
                         field(Field10; MatrixArrayConditionCellData[10])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Cond.';
+                            CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible10;
 
@@ -914,15 +914,15 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible10Easy)
+                    group(Visible10Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
 
                         field(ChooseMin10; MatrixMinValue[10])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Min';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
+                            CaptionClass = '3,' + StrSubstNo(MinLbl, MatrixArrayCaptionSet[10]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -936,7 +936,7 @@ page 20434 "Qlty. Test Number Card Part"
                         field(ChooseMax10; MatrixMaxValue[10])
                         {
                             ToolTip = 'Specifies the maximum allowed value for this result.';
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Max';
+                            CaptionClass = '3,' + StrSubstNo(MaxLbl, MatrixArrayCaptionSet[10]);
                             ShowCaption = true;
                             ShowMandatory = true;
                             AutoFormatType = 0;
@@ -950,7 +950,7 @@ page 20434 "Qlty. Test Number Card Part"
                     }
                 }
             }
-            group(SettingsForUOM)
+            group(UOM)
             {
                 Caption = 'Unit of Measure';
                 AboutTitle = 'Unit of Measure';
@@ -985,7 +985,7 @@ page 20434 "Qlty. Test Number Card Part"
     var
         QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -1011,11 +1011,15 @@ page 20434 "Qlty. Test Number Card Part"
         MatrixArrayCaptionSet: array[10] of Text;
         MatrixVisibleState: array[10] of Boolean;
         QltyTestIds: List of [Code[20]];
-        SimpleRangeTok: Label '%1..%2', Locked = true, Comment = '%1=Min, %2=max';
+        SimpleRangeTok: Label '%1..%2', Locked = true, Comment = '%1=Min, %2=Max';
         RangeNonZeroTok: Label '<>0', Locked = true;
         RangeNonZeroHumanDescriptionTok: Label 'Any entered value.', Locked = true;
-        RangeHumanDescriptionTok: Label '%1 to %2', Locked = true, Comment = '%1=Min, %2=max';
+        RangeHumanDescriptionTok: Label '%1 to %2', Locked = true, Comment = '%1=Min, %2=Max';
         DefaultRangeTok: Label '1..100', Locked = true;
+        DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
+        ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
+        MinLbl: Label '%1 Min', Comment = '%1 = Matrix field caption';
+        MaxLbl: Label '%1 Max', Comment = '%1 = Matrix field caption';
 
     procedure LoadExistingTest(CurrentTest: Code[20])
     begin
@@ -1096,7 +1100,7 @@ page 20434 "Qlty. Test Number Card Part"
             if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::"In Progress" then
                 AdvancedRange := DefaultRangeTok;
 
-        if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
+        if QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
             if not QltyTestIds.Contains(QltyTest.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
@@ -1225,7 +1229,7 @@ page 20434 "Qlty. Test Number Card Part"
 
         QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -1245,7 +1249,7 @@ page 20434 "Qlty. Test Number Card Part"
     begin
         QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
         QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
         QltyIResultConditConf.Modify(true);
         LoadExistingTest(QltyTest.Code);
         CurrPage.Update(false);

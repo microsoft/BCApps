@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -122,19 +122,19 @@ report 99001504 "Subc. Dispatching List"
             column(CompanyAddress6; CompanyAddr[6])
             {
             }
-            column(CompanyBankAccountNo; CompanyInfo."Bank Account No.")
+            column(CompanyBankAccountNo; CompanyInformation."Bank Account No.")
             {
             }
             column(CompanyBankAccountNo_Lbl; CompanyInfoBankAccNoCaptionLbl)
             {
             }
-            column(CompanyBankBranchNo; CompanyInfo."Bank Branch No.")
+            column(CompanyBankBranchNo; CompanyInformation."Bank Branch No.")
             {
             }
-            column(CompanyBankBranchNo_Lbl; CompanyInfo.FieldCaption("Bank Branch No."))
+            column(CompanyBankBranchNo_Lbl; CompanyInformation.FieldCaption("Bank Branch No."))
             {
             }
-            column(CompanyBankName; CompanyInfo."Bank Name")
+            column(CompanyBankName; CompanyInformation."Bank Name")
             {
             }
             column(CompanyBankName_Lbl; CompanyInfoBankNameCaptionLbl)
@@ -146,28 +146,28 @@ report 99001504 "Subc. Dispatching List"
             column(CompanyCustomGiro_Lbl; CustomGiroLbl)
             {
             }
-            column(CompanyEMail; CompanyInfo."E-Mail")
+            column(CompanyEMail; CompanyInformation."E-Mail")
             {
             }
             column(CompanyEmail_Lbl; EmailIDCaptionLbl)
             {
             }
-            column(CompanyGiroNo; CompanyInfo."Giro No.")
+            column(CompanyGiroNo; CompanyInformation."Giro No.")
             {
             }
             column(CompanyGiroNo_Lbl; CompanyInfoGiroNoCaptionLbl)
             {
             }
-            column(CompanyHomePage; CompanyInfo."Home Page")
+            column(CompanyHomePage; CompanyInformation."Home Page")
             {
             }
             column(CompanyHomePage_Lbl; HomePageCaptionLbl)
             {
             }
-            column(CompanyIBAN; CompanyInfo.IBAN)
+            column(CompanyIBAN; CompanyInformation.IBAN)
             {
             }
-            column(CompanyIBAN_Lbl; CompanyInfo.FieldCaption(IBAN))
+            column(CompanyIBAN_Lbl; CompanyInformation.FieldCaption(IBAN))
             {
             }
             column(CompanyLegalOffice; LegalOfficeTxt)
@@ -179,37 +179,37 @@ report 99001504 "Subc. Dispatching List"
             column(CompanyLogoPosition; CompanyLogoPosition)
             {
             }
-            column(CompanyPhoneNo; CompanyInfo."Phone No.")
+            column(CompanyPhoneNo; CompanyInformation."Phone No.")
             {
             }
             column(CompanyPhoneNo_Lbl; CompanyInfoPhoneNoCaptionLbl)
             {
             }
-            column(CompanyPicture; CompanyInfo.Picture)
+            column(CompanyPicture; CompanyInformation.Picture)
             {
             }
-            column(CompanyRegistrationNumber; CompanyInfo.GetRegistrationNumber())
+            column(CompanyRegistrationNumber; CompanyInformation.GetRegistrationNumber())
             {
             }
-            column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
+            column(CompanyRegistrationNumber_Lbl; CompanyInformation.GetRegistrationNumberLbl())
             {
             }
-            column(CompanySWIFT; CompanyInfo."SWIFT Code")
+            column(CompanySWIFT; CompanyInformation."SWIFT Code")
             {
             }
-            column(CompanySWIFT_Lbl; CompanyInfo.FieldCaption("SWIFT Code"))
+            column(CompanySWIFT_Lbl; CompanyInformation.FieldCaption("SWIFT Code"))
             {
             }
-            column(CompanyVATRegistrationNo; CompanyInfo.GetVATRegistrationNumber())
+            column(CompanyVATRegistrationNo; CompanyInformation.GetVATRegistrationNumber())
             {
             }
-            column(CompanyVATRegistrationNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
+            column(CompanyVATRegistrationNo_Lbl; CompanyInformation.GetVATRegistrationNumberLbl())
             {
             }
-            column(CompanyVATRegNo; CompanyInfo.GetVATRegistrationNumber())
+            column(CompanyVATRegNo; CompanyInformation.GetVATRegistrationNumber())
             {
             }
-            column(CompanyVATRegNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
+            column(CompanyVATRegNo_Lbl; CompanyInformation.GetVATRegistrationNumberLbl())
             {
             }
             column(ConfirmToCaption_Lbl; ConfirmToCaptionLbl)
@@ -247,7 +247,7 @@ report 99001504 "Subc. Dispatching List"
             column(SubcAmountCaptionLbl; SubAmountCaptionLbl)
             {
             }
-            column(SubcBarcodeBase; TempDummyCompanyInfoForBarcode.Picture)
+            column(SubcBarcodeBase; TempCompanyInformation.Picture)
             {
             }
             column(SubcCompanyAddress1; CompanyAddress1Footer)
@@ -280,10 +280,10 @@ report 99001504 "Subc. Dispatching List"
             column(SubcCompanyIBAN_Lbl; CompanyInfoIBANLblFooter)
             {
             }
-            column(SubcCompanyInfo1Picture; CompanyInfo1.Picture)
+            column(SubcCompanyInfo1Picture; CompanyInformation1.Picture)
             {
             }
-            column(SubcCompanyInfo2Picture; CompanyInfo2.Picture)
+            column(SubcCompanyInfo2Picture; CompanyInformation2.Picture)
             {
             }
             column(SubcCompanyInfoCourtLocation; CompanyInfoCourtLocationFooter)
@@ -310,7 +310,7 @@ report 99001504 "Subc. Dispatching List"
             column(SubcCompanyInfoPhoneNoLbl; CompanyInfoPhoneNoLblFooter)
             {
             }
-            column(SubcCompanyInfoPicture; SubCompanyInfo.Picture)
+            column(SubcCompanyInfoPicture; SubCompanyInformation.Picture)
             {
             }
             column(SubcCompanyInfoRegisterCourtNo; CompanyInfoRegisterCourtNoFooter)
@@ -1163,17 +1163,17 @@ report 99001504 "Subc. Dispatching List"
                 }
                 trigger OnAfterGetRecord()
                 var
-                    TempPrepmtPurchLine: Record "Purchase Line" temporary;
+                    TempPrepmtPurchaseLine: Record "Purchase Line" temporary;
                 begin
-                    Clear(TempPurchLine);
+                    Clear(TempPurchaseLine);
                     Clear(PurchPost);
-                    if not TempPurchLine.IsEmpty() then
-                        TempPurchLine.DeleteAll();
+                    if not TempPurchaseLine.IsEmpty() then
+                        TempPurchaseLine.DeleteAll();
                     if not TempVATAmountLine.IsEmpty() then
                         TempVATAmountLine.DeleteAll();
-                    PurchPost.GetPurchLines("Purchase Header", TempPurchLine, 0);
-                    TempPurchLine.CalcVATAmountLines(0, "Purchase Header", TempPurchLine, TempVATAmountLine);
-                    TempPurchLine.UpdateVATOnLines(0, "Purchase Header", TempPurchLine, TempVATAmountLine);
+                    PurchPost.GetPurchLines("Purchase Header", TempPurchaseLine, 0);
+                    TempPurchaseLine.CalcVATAmountLines(0, "Purchase Header", TempPurchaseLine, TempVATAmountLine);
+                    TempPurchaseLine.UpdateVATOnLines(0, "Purchase Header", TempPurchaseLine, TempVATAmountLine);
                     VATAmount := TempVATAmountLine.GetTotalVATAmount();
                     VATBaseAmount := TempVATAmountLine.GetTotalVATBase();
                     VATDiscountAmount :=
@@ -1182,16 +1182,16 @@ report 99001504 "Subc. Dispatching List"
 
                     if not TempPrepaymentInvLineBuffer.IsEmpty() then
                         TempPrepaymentInvLineBuffer.DeleteAll();
-                    PurchasePostPrepayments.GetPurchLines("Purchase Header", 0, TempPrepmtPurchLine);
-                    if not TempPrepmtPurchLine.IsEmpty() then begin
-                        PurchasePostPrepayments.GetPurchLinesToDeduct("Purchase Header", TempPurchLine);
-                        if not TempPurchLine.IsEmpty() then
-                            PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchLine, TempPrePmtVATAmountLineDeduct, 1);
+                    PurchasePostPrepayments.GetPurchLines("Purchase Header", 0, TempPurchaseLine);
+                    if not TempPrepmtPurchaseLine.IsEmpty() then begin
+                        PurchasePostPrepayments.GetPurchLinesToDeduct("Purchase Header", TempPurchaseLine);
+                        if not TempPurchaseLine.IsEmpty() then
+                            PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchaseLine, TempPrePmtVATAmountLineDeduct, 1);
                     end;
-                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPrepmtPurchLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPrepmtPurchaseLine, TempPrepmtVATAmountLine, 0);
                     TempPrepmtVATAmountLine.DeductVATAmountLine(TempPrePmtVATAmountLineDeduct);
-                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPrepmtPurchLine, TempPrepmtVATAmountLine, 0);
-                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPrepmtPurchLine, 0, TempPrepaymentInvLineBuffer);
+                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPrepmtPurchaseLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPrepmtPurchaseLine, 0, TempPrepaymentInvLineBuffer);
                     PrepmtVATAmount := TempPrepmtVATAmountLine.GetTotalVATAmount();
                     PrepmtVATBaseAmount := TempPrepmtVATAmountLine.GetTotalVATBase();
                     PrepmtTotalAmountInclVAT := TempPrepmtVATAmountLine.GetTotalAmountInclVAT();
@@ -1295,8 +1295,8 @@ report 99001504 "Subc. Dispatching List"
                     else
                         VALSpecLCYHeader := VATAmountSpecificationLbl + Format(GLSetup."LCY Code");
 
-                    CurrExchRate.FindCurrency("Purchase Header"."Posting Date", "Purchase Header"."Currency Code", 1);
-                    VALExchRate := StrSubstNo(ExchangeRateLbl, CurrExchRate."Relational Exch. Rate Amount", CurrExchRate."Exchange Rate Amount");
+                    CurrencyExchangeRate.FindCurrency("Purchase Header"."Posting Date", "Purchase Header"."Currency Code", 1);
+                    VALExchRate := StrSubstNo(ExchangeRateLbl, CurrencyExchangeRate."Relational Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
                 end;
             }
             dataitem(PrepmtLoop; "Integer")
@@ -1500,7 +1500,7 @@ report 99001504 "Subc. Dispatching List"
             begin
                 TotalAmount := 0;
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
-                FormatAddr.SetLanguageCode("Language Code");
+                FormatAddress.SetLanguageCode("Language Code");
 
                 FormatAddressFields("Purchase Header");
                 FormatDocumentFields("Purchase Header");
@@ -1513,7 +1513,7 @@ report 99001504 "Subc. Dispatching List"
                         ArchiveManagement.StorePurchDocument("Purchase Header", ShouldLogInteraction);
                 end;
 
-                SubFormatAddr.PurchHeaderShipTo(ShipToAddr, "Purchase Header");
+                SubFormatAddress.PurchHeaderShipTo(ShipToAddr, "Purchase Header");
 
                 if not SubcVATAmountLine.IsEmpty() then
                     SubcVATAmountLine.DeleteAll();
@@ -1540,20 +1540,20 @@ report 99001504 "Subc. Dispatching List"
         dataitem(SubcShipToAddr; Integer)
         {
             DataItemTableView = sorting(Number);
-            column(TempSUBShipToAddr__Address; TempShipToAddr.Address)
+            column(TempSUBShipToAddr__Address; TempShiptoAddress.Address)
             {
             }
             trigger OnPreDataItem()
             begin
-                SetRange(Number, 1, TempShipToAddr.Count);
+                SetRange(Number, 1, TempShiptoAddress.Count);
             end;
 
             trigger OnAfterGetRecord()
             begin
                 if Number = 1 then
-                    TempShipToAddr.Find('-')
+                    TempShiptoAddress.Find('-')
                 else
-                    TempShipToAddr.Next();
+                    TempShiptoAddress.Next();
             end;
         }
     }
@@ -1606,7 +1606,7 @@ report 99001504 "Subc. Dispatching List"
         trigger OnInit()
         begin
             LogInteractionEnable := true;
-            ShouldArchiveDocument := PurchSetup."Archive Orders";
+            ShouldArchiveDocument := PurchasesPayablesSetup."Archive Orders";
         end;
 
         trigger OnOpenPage()
@@ -1617,12 +1617,12 @@ report 99001504 "Subc. Dispatching List"
     trigger OnInitReport()
     begin
         GLSetup.Get();
-        CompanyInfo.Get();
-        PurchSetup.Get();
-        CompanyInfo.CalcFields(Picture);
+        CompanyInformation.Get();
+        PurchasesPayablesSetup.Get();
+        CompanyInformation.CalcFields(Picture);
 
-        SalesSetup.Get();
-        SubFormatDocument.SetLogoPosition(SalesSetup."Logo Position on Documents", CompanyInfo1, CompanyInfo2, SubCompanyInfo);
+        SalesReceivablesSetup.Get();
+        SubFormatDocument.SetLogoPosition(SalesReceivablesSetup."Logo Position on Documents", CompanyInformation1, CompanyInformation2, SubCompanyInformation);
     end;
 
     trigger OnPostReport()
@@ -1643,24 +1643,24 @@ report 99001504 "Subc. Dispatching List"
     end;
 
     var
-        CompanyInfo: Record "Company Information";
-        SubCompanyInfo: Record "Company Information";
-        CompanyInfo1: Record "Company Information";
-        CompanyInfo2: Record "Company Information";
-        TempDummyCompanyInfoForBarcode: Record "Company Information" temporary;
+        CompanyInformation: Record "Company Information";
+        SubCompanyInformation: Record "Company Information";
+        CompanyInformation1: Record "Company Information";
+        CompanyInformation2: Record "Company Information";
+        TempCompanyInformation: Record "Company Information" temporary;
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
-        CurrExchRate: Record "Currency Exchange Rate";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
         GLSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
         PrepmtPaymentTerms: Record "Payment Terms";
         TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary;
-        TempPurchLine: Record "Purchase Line" temporary;
-        PurchSetup: Record "Purchases & Payables Setup";
-        RespCenter: Record "Responsibility Center";
-        SalesSetup: Record "Sales & Receivables Setup";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        ResponsibilityCenter: Record "Responsibility Center";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
-        TempShipToAddr: Record "Ship-to Address" temporary;
+        TempShiptoAddress: Record "Ship-to Address" temporary;
         ShipmentMethod: Record "Shipment Method";
         TempPrepmtVATAmountLine: Record "VAT Amount Line" temporary;
         TempPrePmtVATAmountLineDeduct: Record "VAT Amount Line" temporary;
@@ -1668,8 +1668,8 @@ report 99001504 "Subc. Dispatching List"
         VATClause2: Record "VAT Clause";
         Vendor: Record Vendor;
         ArchiveManagement: Codeunit ArchiveManagement;
-        SubFormatAddr: Codeunit "Format Address";
-        FormatAddr: Codeunit "Format Address";
+        SubFormatAddress: Codeunit "Format Address";
+        FormatAddress: Codeunit "Format Address";
         SubFormatDocument: Codeunit "Format Document";
         FormatDocument: Codeunit "Format Document";
         LanguageMgt: Codeunit Language;
@@ -1890,11 +1890,11 @@ report 99001504 "Subc. Dispatching List"
 
     local procedure FormatAddressFields(var PurchaseHeader: Record "Purchase Header")
     begin
-        FormatAddr.GetCompanyAddr(PurchaseHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
-        FormatAddr.PurchHeaderBuyFrom(BuyFromAddr, PurchaseHeader);
+        FormatAddress.GetCompanyAddr(PurchaseHeader."Responsibility Center", ResponsibilityCenter, CompanyInformation, CompanyAddr);
+        FormatAddress.PurchHeaderBuyFrom(BuyFromAddr, PurchaseHeader);
         if PurchaseHeader."Buy-from Vendor No." <> PurchaseHeader."Pay-to Vendor No." then
-            FormatAddr.PurchHeaderPayTo(VendAddr, PurchaseHeader);
-        FormatAddr.PurchHeaderShipTo(ShipToAddr, PurchaseHeader);
+            FormatAddress.PurchHeaderPayTo(VendAddr, PurchaseHeader);
+        FormatAddress.PurchHeaderShipTo(ShipToAddr, PurchaseHeader);
     end;
 
     local procedure FormatDocumentFields(PurchaseHeader: Record "Purchase Header")
@@ -1914,22 +1914,22 @@ report 99001504 "Subc. Dispatching List"
         ShouldLogInteraction := SegManagement.FindInteractionTemplateCode("Interaction Log Entry Document Type"::"Purch. Ord.") <> '';
     end;
 
-    local procedure BlankZero(Line: Record "Purchase Line")
+    local procedure BlankZero(PurchaseLine: Record "Purchase Line")
     var
         LineDiscountPctPlaceholderLbl: Label '%1%',
             Locked = true;
     begin
-        if Line."Line Discount %" = 0 then
+        if PurchaseLine."Line Discount %" = 0 then
             LineDiscountPctText := ''
         else
-            LineDiscountPctText := StrSubstNo(LineDiscountPctPlaceholderLbl, Round(Line."Line Discount %", 0.1));
+            LineDiscountPctText := StrSubstNo(LineDiscountPctPlaceholderLbl, Round(PurchaseLine."Line Discount %", 0.1));
 
-        if Line."Line Amount" = 0 then
+        if PurchaseLine."Line Amount" = 0 then
             LineAmount := ''
         else
-            LineAmount := Format(Line."Line Amount", 0, DecimalAmountFormatExpression);
+            LineAmount := Format(PurchaseLine."Line Amount", 0, DecimalAmountFormatExpression);
 
-        if Line."Unit Cost" = 0 then
+        if PurchaseLine."Unit Cost" = 0 then
             UnitCost := ''
         else
             UnitCost := FormattedDirectUnitCost;
@@ -1947,23 +1947,23 @@ report 99001504 "Subc. Dispatching List"
             CompanyInfoFaxNoLblFooter := CompanyInfoFaxLbl;
             CompanyInfoEMailAddressLblFooter := EMailLbl;
             CompanyInfoHomepageLblFooter := HomePageLbl;
-            CompanyVATRegNoLblFooter := CompanyInfo.GetVATRegistrationNumberLbl();
+            CompanyVATRegNoLblFooter := CompanyInformation.GetVATRegistrationNumberLbl();
 
-            CompanyInfoPhoneNoFooter := CompanyInfo."Phone No.";
-            CompanyInfoFaxNoFooter := CompanyInfo."Fax No.";
-            CompanyInfoEmailFooter := CompanyInfo."E-Mail";
-            CompanyVATRegNoFooter := CompanyInfo.GetVATRegistrationNumber();
+            CompanyInfoPhoneNoFooter := CompanyInformation."Phone No.";
+            CompanyInfoFaxNoFooter := CompanyInformation."Fax No.";
+            CompanyInfoEmailFooter := CompanyInformation."E-Mail";
+            CompanyVATRegNoFooter := CompanyInformation.GetVATRegistrationNumber();
 
             CourtLocationLblFooter := CourtLocationLbl;
             RegisterCourtLblFooter := RegisterCourtNoLbl;
 
             CompanyInfoBankNameLblFooter := CompanyInfoBankNameLbl;
-            CompanyInfoIBANLblFooter := CompanyInfo.FieldCaption(IBAN);
-            CompanyInfoSWIFTLblFooter := CompanyInfo.FieldCaption("SWIFT Code");
+            CompanyInfoIBANLblFooter := CompanyInformation.FieldCaption(IBAN);
+            CompanyInfoSWIFTLblFooter := CompanyInformation.FieldCaption("SWIFT Code");
 
-            CompanyInfoBankNameFooter := CompanyInfo."Bank Name";
-            CompanyInfoIBANFooter := CompanyInfo.IBAN;
-            CompanyInfoSWIFTFooter := CompanyInfo."SWIFT Code";
+            CompanyInfoBankNameFooter := CompanyInformation."Bank Name";
+            CompanyInfoIBANFooter := CompanyInformation.IBAN;
+            CompanyInfoSWIFTFooter := CompanyInformation."SWIFT Code";
         end;
     end;
 

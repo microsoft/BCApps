@@ -19,6 +19,7 @@ permissions:
   id-token: write
   pages: read
   security-events: write
+  packages: read
 
 env:
   workflowDepth: 2
@@ -50,24 +51,24 @@ jobs:
       trackALAlertsInGitHub: ${{ steps.SetALCodeAnalysisVar.outputs.trackALAlertsInGitHub }}
     steps:
       - name: Dump Workflow Information
-        uses: microsoft/AL-Go/Actions/DumpWorkflowInfo@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DumpWorkflowInfo@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
       - name: Read settings
         id: ReadSettings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSettings@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           get: type,powerPlatformSolutionFolder,useGitSubmodules,trackALAlertsInGitHub
@@ -81,7 +82,7 @@ jobs:
       - name: Read submodules token
         id: ReadSubmodulesToken
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: microsoft/AL-Go/Actions/ReadSecrets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSecrets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -89,7 +90,7 @@ jobs:
 
       - name: Checkout Submodules
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
           submodules: ${{ env.useGitSubmodules }}
@@ -102,7 +103,7 @@ jobs:
 
       - name: Determine Projects To Build
         id: determineProjectsToBuild
-        uses: microsoft/AL-Go/Actions/DetermineProjectsToBuild@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DetermineProjectsToBuild@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           maxBuildDepth: ${{ env.workflowDepth }}
@@ -115,7 +116,7 @@ jobs:
 
       - name: Determine Delivery Target Secrets
         id: DetermineDeliveryTargetSecrets
-        uses: microsoft/AL-Go/Actions/DetermineDeliveryTargets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DetermineDeliveryTargets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           projectsJson: '${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}'
@@ -123,7 +124,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSecrets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -131,7 +132,7 @@ jobs:
 
       - name: Determine Delivery Targets
         id: DetermineDeliveryTargets
-        uses: microsoft/AL-Go/Actions/DetermineDeliveryTargets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DetermineDeliveryTargets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -141,7 +142,7 @@ jobs:
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -154,24 +155,24 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSettings@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           get: templateUrl
 
       - name: Read secrets
         id: ReadSecrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSecrets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'ghTokenWorkflow'
 
       - name: Check for updates to AL-Go system files
-        uses: microsoft/AL-Go/Actions/CheckForUpdates@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/CheckForUpdates@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -237,7 +238,7 @@ jobs:
     name: Code Analysis Processing
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts - ErrorLogs
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -250,7 +251,7 @@ jobs:
       - name: Process AL Code Analysis Logs
         id: ProcessALCodeAnalysisLogs
         if: (success() || failure())
-        uses: microsoft/AL-Go/Actions/ProcessALCodeAnalysisLogs@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ProcessALCodeAnalysisLogs@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
@@ -276,7 +277,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -284,13 +285,13 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSettings@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
@@ -299,7 +300,7 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           artifacts: '.artifacts'
@@ -332,7 +333,7 @@ jobs:
       ALGoEnvName: ${{ matrix.environment }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -340,7 +341,7 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSettings@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: ${{ matrix.shell }}
           get: type,powerPlatformSolutionFolder
@@ -354,7 +355,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSecrets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: ${{ matrix.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -362,7 +363,7 @@ jobs:
 
       - name: Deploy to Business Central
         id: Deploy
-        uses: microsoft/AL-Go/Actions/Deploy@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/Deploy@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -374,7 +375,7 @@ jobs:
 
       - name: Deploy to Power Platform
         if: env.type == 'PTE' && env.powerPlatformSolutionFolder != ''
-        uses: microsoft/AL-Go/Actions/DeployPowerPlatform@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/DeployPowerPlatform@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -394,7 +395,7 @@ jobs:
     name: Deliver to ${{ matrix.deliveryTarget }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -402,20 +403,20 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSettings@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
 
       - name: Read secrets
         id: ReadSecrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/ReadSecrets@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: '${{ matrix.deliveryTarget }}Context'
 
       - name: Deliver
-        uses: microsoft/AL-Go/Actions/Deliver@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/Deliver@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -431,11 +432,11 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Finalize the workflow
         id: PostProcess
-        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@6f564fa18b52c98eebc26fb118f1402c0d781dd1
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

@@ -20,8 +20,8 @@ report 20409 "Qlty. Change Item Tracking"
     UsageCategory = Tasks;
     AllowScheduling = false;
     Extensible = true;
-    AdditionalSearchTerms = 'Change Lot, Change Serial,Change Package,Change Expiration Date,Reclassify,Reclass,Reclassification,Change item tracking';
-    Description = 'Use this to update item tracking information.';
+    AdditionalSearchTerms = 'Change lot number, Change serial number, Change package number, Change Expiration Date';
+    ToolTip = 'Use this to update item tracking information.';
 
     dataset
     {
@@ -60,7 +60,7 @@ report 20409 "Qlty. Change Item Tracking"
         {
             area(Content)
             {
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'The quantity of the item to be reclassified.';
@@ -107,7 +107,7 @@ report 20409 "Qlty. Change Item Tracking"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = IsReclassSpecific;
@@ -186,7 +186,7 @@ report 20409 "Qlty. Change Item Tracking"
                         end;
                     }
                 }
-                group(SettingsForReclassType)
+                group(ReclassType)
                 {
                     Caption = 'Item Tracking';
 
@@ -215,7 +215,7 @@ report 20409 "Qlty. Change Item Tracking"
                         ToolTip = 'Specifies the new expiration date to use.';
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
                     InstructionalText = 'Optional filters that limit which inventory is updated if the inspected item is in more than one location or bin.';
@@ -235,7 +235,7 @@ report 20409 "Qlty. Change Item Tracking"
                         ToolTip = 'Specifies to optionally limit which bins will be used to pull the inventory from.';
                     }
                 }
-                group(SettingsForPostImmediately)
+                group(PostImmediately)
                 {
                     Caption = 'Post Now or Later';
 
@@ -268,9 +268,7 @@ report 20409 "Qlty. Change Item Tracking"
 
     var
         QltyQuantityBehavior: Enum "Qlty. Quantity Behavior";
-        NewLotNo: Code[50];
-        NewSerialNo: Code[50];
-        NewPackageNo: Code[50];
+        NewLotNo, NewSerialNo, NewPackageNo : Code[50];
         NewExpirationDate: Date;
         SpecificQuantity: Decimal;
         FilterOfSourceLocationCode: Code[100];

@@ -22,7 +22,7 @@ page 20404 "Qlty. Inspection Template List"
     SourceTable = "Qlty. Inspection Template Hdr.";
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
-    AdditionalSearchTerms = 'Quality Test Inspection,Template,Quality Template,Quality Inspection,questions,types of tests,templates,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
+    AdditionalSearchTerms = 'Standard operating procedures';
     AboutTitle = 'Quality Inspection Template';
     AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
 
@@ -74,7 +74,7 @@ page 20404 "Qlty. Inspection Template List"
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 AboutTitle = 'Inspection Generation Rules';
                 AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = TaskList;
+                Image = FilterLines;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -125,7 +125,7 @@ page 20404 "Qlty. Inspection Template List"
                 Scope = Repeater;
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-                Image = Report;
+                Image = TaskQualityMeasure;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;

@@ -52,7 +52,7 @@ page 20410 "Qlty. Inspect. Source Config."
                         CurrPage.Update(true);
                     end;
                 }
-                group(SettingsForFrom)
+                group(From)
                 {
                     Caption = 'From';
 
@@ -75,7 +75,7 @@ page 20410 "Qlty. Inspect. Source Config."
                         AboutText = 'Use this filter to define conditions for when to connect to a different table. This can be used when a source table could refer to multiple different tables.';
                     }
                 }
-                group(SettingsForTo)
+                group(To)
                 {
                     Caption = 'To';
 
@@ -87,7 +87,7 @@ page 20410 "Qlty. Inspect. Source Config."
                             CurrPage.Update();
                         end;
                     }
-                    group(SettingsForToTableVisibilityWrapper)
+                    group(ToTableVisibilityWrapper)
                     {
                         Caption = '';
                         ShowCaption = false;

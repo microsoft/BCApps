@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,9 +20,9 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Planning Component.';
             trigger OnValidate()
             var
-                SubSubcontractingMgmt: Codeunit "Subcontracting Management";
+                SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubSubcontractingMgmt.UpdateSubcontractingTypeForPlanningComponent(Rec);
+                SubcontractingManagement.UpdateSubcontractingTypeForPlanningComponent(Rec);
             end;
         }
         field(99001525; "Orig. Location Code"; Code[10])

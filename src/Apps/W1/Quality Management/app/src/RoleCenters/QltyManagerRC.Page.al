@@ -60,7 +60,7 @@ page 20421 "Qlty. Manager RC"
                 action(Qlty_ConfigureInspectionTemplates)
                 {
                     Caption = 'Quality Inspection Templates';
-                    Image = Database;
+                    Image = BreakpointsList;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
@@ -68,7 +68,7 @@ page 20421 "Qlty. Manager RC"
                 action(Qlty_ConfigureInspectionGenerationRules)
                 {
                     Caption = 'Quality Inspection Generation Rules';
-                    Image = MapDimensions;
+                    Image = FilterLines;
                     RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
@@ -76,7 +76,7 @@ page 20421 "Qlty. Manager RC"
                 action(Qlty_ConfigureTests)
                 {
                     Caption = 'Quality Inspection Tests';
-                    Image = MapDimensions;
+                    Image = Task;
                     RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
@@ -103,7 +103,7 @@ page 20421 "Qlty. Manager RC"
                     action(Qlty_AdvancedResults)
                     {
                         Caption = 'Quality Inspection Results';
-                        Image = CodesList;
+                        Image = ViewRegisteredOrder;
                         RunObject = Page "Qlty. Inspection Result List";
                         RunPageMode = Edit;
                         ToolTip = 'Results are effectively the incomplete/pass/fail state of an inspection. The document specific lot blocking available with results is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';

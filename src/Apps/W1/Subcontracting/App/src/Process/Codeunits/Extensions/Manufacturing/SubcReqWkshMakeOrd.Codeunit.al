@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,11 +15,11 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
     end;
 
-    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
+    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
-        EnhSubMgmt: Codeunit "Subcontracting Management";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
-        EnhSubMgmt.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchOrderLine, RequisitionLine);
-        EnhSubMgmt.TransferSubcontractingProdOrderComp(PurchOrderLine, RequisitionLine, NextLineNo);
+        SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderComp(PurchaseLine, RequisitionLine, NextLineNo);
     end;
 }

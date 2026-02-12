@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ codeunit 99001502 "Subc. Business Setup Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]
     local procedure OnCompanyInitialize()
     var
-        SubcontractingMgtCompInit: Codeunit "Subcontracting Comp. Init.";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
-        SubcontractingMgtCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
     end;
 }

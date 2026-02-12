@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,20 +34,20 @@ codeunit 99001555 "Subc. ProdOrderCreateBind"
         TransferSubcontractingFieldsBOMComponentForPurchaseProvision(ProdOrderComponent);
     end;
 
-    procedure SetSubcontractingPurchaseLine(PurchLine: Record "Purchase Line")
+    procedure SetSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line")
     begin
-        SubcontractingPurchaseLine := PurchLine;
+        SubcontractingPurchaseLine := PurchaseLine;
     end;
 
     local procedure TransferSubcontractingFieldsBOMComponentForPurchaseProvision(var ProdOrderComponent: Record "Prod. Order Component")
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         SubcontractingManagement: Codeunit "Subcontracting Management";
         ComponentsLocationCode: Code[10];
     begin
-        SubManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
-        SubManagementSetup.Get();
-        if (ProdOrderComponent."Routing Link Code" <> SubManagementSetup."Rtng. Link Code Purch. Prov.") or
+        SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+        SubcManagementSetup.Get();
+        if (ProdOrderComponent."Routing Link Code" <> SubcManagementSetup."Rtng. Link Code Purch. Prov.") or
            (ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer) then
             exit;
 
