@@ -15,8 +15,8 @@ table 6107 "E-Documents Setup"
     InherentPermissions = RX;
     ReplicateData = false;
     ObsoleteReason = 'This table is obsolete and should not be used.';
-    ObsoleteState = Removed;
-    ObsoleteTag = '31.0';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     fields
     {
