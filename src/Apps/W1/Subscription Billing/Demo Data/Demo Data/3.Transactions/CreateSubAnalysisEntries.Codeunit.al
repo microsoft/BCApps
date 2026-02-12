@@ -32,11 +32,10 @@ codeunit 8123 "Create Sub. Analysis Entries"
     begin
         SubscriptionLine.SetFilter("Subscription Contract No.", '<>%1', '');
         SubscriptionLine.SetFilter("Subscription Line End Date", '%1|>=%2', 0D, AnalysisDate);
-        if SubscriptionLine.FindSet() then begin
+        if SubscriptionLine.FindSet() then
             repeat
                 CreateContractAnalysisEntry(SubscriptionLine, AnalysisDate);
             until SubscriptionLine.Next() = 0;
-        end;
     end;
 
     local procedure CreateContractAnalysisEntry(SubscriptionLine: Record "Subscription Line"; AnalysisDate: Date)

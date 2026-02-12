@@ -585,9 +585,7 @@ codeunit 8105 "Contoso Subscription Billing"
 
     procedure InsertVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
     var
-        VendorContract: Record "Vendor Subscription Contract";
         VendorContractLine: Record "Vend. Sub. Contract Line";
-        ServiceCommitment: Record "Subscription Line";
     begin
         VendorContractLine.SetRange("Subscription Contract No.", ContractNo);
         if VendorContractLine.FindFirst() then
@@ -601,7 +599,6 @@ codeunit 8105 "Contoso Subscription Billing"
     procedure AddVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
     var
         VendorContract: Record "Vendor Subscription Contract";
-        VendorContractLine: Record "Vend. Sub. Contract Line";
         ServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.SetRange("Subscription Header No.", ObjectNo);
