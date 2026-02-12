@@ -2434,13 +2434,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure TestTable_EnsureCanBeDeleted_ShouldConfirmAndDelete()
+    procedure TestTable_CheckDeleteConstraints_ShouldConfirmAndDelete()
     var
         ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the test
+        // [SCENARIO] CheckDeleteConstraints with confirm removes template lines but not the test
 
         Initialize();
 
@@ -2457,8 +2457,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Test from template line is retrieved
         ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
-        // [WHEN] EnsureCanBeDeleted is called with confirm=true (ConfirmHandler confirms)
-        ToLoadQltyTest.EnsureCanBeDeleted(true);
+        // [WHEN] CheckDeleteConstraints is called with confirm=true (ConfirmHandler confirms)
+        ToLoadQltyTest.CheckDeleteConstraints(true);
 
         // [GIVEN] Test record filter is set
         ToLoadQltyTest.SetRecFilter();
@@ -2468,8 +2468,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(1, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Should have deleted template line.');
 
-        // [THEN] Test still exists (EnsureCanBeDeleted only removes dependencies)
-        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have not deleted the test with just EnsureCanBeDeleted(true).');
+        // [THEN] Test still exists (CheckDeleteConstraints only removes dependencies)
+        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have not deleted the test with just CheckDeleteConstraints(true).');
     end;
 
     [Test]

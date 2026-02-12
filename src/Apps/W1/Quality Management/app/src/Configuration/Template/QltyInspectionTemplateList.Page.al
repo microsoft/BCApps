@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Foundation.Attachment;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 
@@ -67,24 +66,10 @@ page 20404 "Qlty. Inspection Template List"
     {
         area(Processing)
         {
-            action(ViewGenerationRules)
-            {
-                Scope = Repeater;
-                Caption = 'Inspection Generation Rules';
-                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = FilterLines;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                RunObject = Page "Qlty. Inspection Gen. Rules";
-                RunPageLink = "Template Code" = field(Code);
-                RunPageMode = Edit;
-            }
             action(CreateInspection)
             {
                 Scope = Repeater;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;
@@ -92,7 +77,6 @@ page 20404 "Qlty. Inspection Template List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -120,6 +104,24 @@ page 20404 "Qlty. Inspection Template List"
                     Report.Run(Report::"Qlty. Inspection Copy Template", true, true, ExistingQltyInspectionTemplateHdr);
                 end;
             }
+        }
+        area(Navigation)
+        {
+            action(ViewGenerationRules)
+            {
+                Scope = Repeater;
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                AboutTitle = 'Inspection Generation Rules';
+                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                Image = FilterLines;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                RunObject = Page "Qlty. Inspection Gen. Rules";
+                RunPageLink = "Template Code" = field(Code);
+                RunPageMode = Edit;
+            }
             action(ExistingInspection)
             {
                 Scope = Repeater;
@@ -135,18 +137,5 @@ page 20404 "Qlty. Inspection Template List"
                 RunPageMode = View;
             }
         }
-        area(Reporting)
-        {
-        }
     }
-
-    var
-        CanCreateInspection: Boolean;
-
-    trigger OnOpenPage()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-    end;
 }

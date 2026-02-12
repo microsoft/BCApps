@@ -292,10 +292,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
 
         if IsManualCreation then
-            QltyPermissionMgmt.VerifyCanCreateManualInspection()
-        else
-            if not QltyPermissionMgmt.CanCreateAutoInspection() then
-                exit(QltyInspectionCreateStatus::"Unable to Create");
+            QltyPermissionMgmt.VerifyCanCreateManualInspection();
 
         OriginalRecordId := TargetRecordRef.RecordId();
         OriginalRecordTableNo := TargetRecordRef.Number();
