@@ -57,6 +57,9 @@ page 20407 "Qlty. Inspection Subform"
 
                     trigger OnAssistEdit()
                     begin
+                        Rec.CalcFields("Test Value Type");
+                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                            exit;
                         UpdateRowData();
 
                         CurrPage.Update(true);
@@ -365,10 +368,10 @@ page 20407 "Qlty. Inspection Subform"
 
     local procedure GetCanEditTestValue() Result: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCanEditTestValue(Rec, Result, Handled);
-        if Handled then
+        OnBeforeCanEditTestValue(Rec, Result, IsHandled);
+        if IsHandled then
             exit;
 
         Rec.CalcFields("Test Value Type");
@@ -380,9 +383,9 @@ page 20407 "Qlty. Inspection Subform"
     /// </summary>
     /// <param name="QltyInspectionLine"></param>
     /// <param name="CanEditTestValue"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var Handled: Boolean)
+    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

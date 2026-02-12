@@ -420,7 +420,7 @@ page 20403 "Qlty. Inspection Template Subf"
         {
             action(NewTest)
             {
-                Image = Default;
+                Image = CopyFromTask;
                 Caption = 'Add Test(s) To This Template';
                 ToolTip = 'Add a new Test or existing Test(s) to this template';
                 Scope = Repeater;
@@ -432,7 +432,7 @@ page 20403 "Qlty. Inspection Template Subf"
             }
             action(EditTest)
             {
-                Image = Edit;
+                Image = EditLines;
                 Caption = 'Edit Test';
                 ToolTip = 'This will edit your existing selected test.';
                 Scope = Repeater;

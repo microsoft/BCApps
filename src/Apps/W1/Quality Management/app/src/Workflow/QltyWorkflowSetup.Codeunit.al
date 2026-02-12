@@ -28,11 +28,11 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseReopenInspectionTok: Label 'QLTY-R-REOPEN-1', Locked = true;
         QMWorkflowResponseCreateReinspectionTok: Label 'QLTY-R-REINSPECT-1', Locked = true;
         QMWorkflowResponseBlockLotTok: Label 'QLTY-R-BLCKLOT-1', Locked = true;
-        QMWorkflowResponseUnBlockLotTok: Label 'QLTY-R-UBLCKLOT-1', Locked = true;
+        QMWorkflowResponseUnblockLotTok: Label 'QLTY-R-UBLCKLOT-1', Locked = true;
         QMWorkflowResponseBlockSerialTok: Label 'QLTY-R-BLCKSERIAL-1', Locked = true;
-        QMWorkflowResponseUnBlockSerialTok: Label 'QLTY-R-UBLCKSERIAL-1', Locked = true;
+        QMWorkflowResponseUnblockSerialTok: Label 'QLTY-R-UBLCKSERIAL-1', Locked = true;
         QMWorkflowResponseBlockPackageTok: Label 'QLTY-R-BLCKPKG-1', Locked = true;
-        QMWorkflowResponseUnBlockPackageTok: Label 'QLTY-R-UBLCKPKG-1', Locked = true;
+        QMWorkflowResponseUnblockPackageTok: Label 'QLTY-R-UBLCKPKG-1', Locked = true;
         QMWorkflowResponseMoveInventoryTok: Label 'QLTY-R-MOVE-1', Locked = true;
         QMWorkflowResponseQuarantineLicensePlateTok: Label 'QLTY-R-QLP-1', Locked = true;
         QMWorkflowResponseUnQuarantineLicensePlateTok: Label 'QLTY-R-UQLP-1', Locked = true;
@@ -53,9 +53,9 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseDescriptionBlockLotLbl: Label 'Block Lot in the Inspection', Locked = true;
         QMWorkflowResponseDescriptionBlockSerialLbl: Label 'Block Serial in the Inspection', Locked = true;
         QMWorkflowResponseDescriptionBlockPackageLbl: Label 'Block Package in the Inspection', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockLotLbl: Label 'Un-Block Lot in the Inspection', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockSerialLbl: Label 'Un-Block Serial in the Inspection', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockPackageLbl: Label 'Un-Block Package in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnblockLotLbl: Label 'Unblock Lot in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnblockSerialLbl: Label 'Unblock Serial in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnblockPackageLbl: Label 'Unblock Package in the Inspection', Locked = true;
         QMWorkflowResponseDescriptionMoveInventoryLbl: Label 'Move Inventory from Inspection', Locked = true;
         QMWorkflowResponseDescriptionCreateInternalPutAwayLbl: Label 'Create an Internal Put-away', Locked = true;
         QMWorkflowResponseDescriptionSetDatabaseValueLbl: Label 'Set Database Value', Locked = true;
@@ -125,30 +125,30 @@ codeunit 20423 "Qlty. Workflow Setup"
     end;
 
     /// <summary>
-    /// Returns the token for a workflow response to unblock a lot
+    /// Returns the token for a workflow response to Unblock a lot
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnBlockLot(): Text
+    procedure GetWorkflowResponseUnblockLot(): Text
     begin
-        exit(QMWorkflowResponseUnBlockLotTok);
+        exit(QMWorkflowResponseUnblockLotTok);
     end;
 
     /// <summary>
-    /// Returns the token for a workflow response to unblock a serial
+    /// Returns the token for a workflow response to Unblock a serial
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnBlockSerial(): Text
+    procedure GetWorkflowResponseUnblockSerial(): Text
     begin
-        exit(QMWorkflowResponseUnBlockSerialTok);
+        exit(QMWorkflowResponseUnblockSerialTok);
     end;
 
     /// <summary>
-    /// Returns the token for a workflow response to unblock a package
+    /// Returns the token for a workflow response to Unblock a package
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnBlockPackage(): Text
+    procedure GetWorkflowResponseUnblockPackage(): Text
     begin
-        exit(QMWorkflowResponseUnBlockPackageTok);
+        exit(QMWorkflowResponseUnblockPackageTok);
     end;
 
     /// <summary>
@@ -426,10 +426,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockLot(), 1, 128));
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockSerial(), 1, 128), 0, QMWorkflowResponseDescriptionBlockSerialLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockSerial(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockSerial(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnBlockLot(), 1, 128), 0, QMWorkflowResponseDescriptionUnBlockLotLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnBlockLot(), 1, 20));
-        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnBlockLot(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnBlockSerial(), 1, 128), 0, QMWorkflowResponseDescriptionUnBlockSerialLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnBlockSerial(), 1, 20));
-        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnBlockSerial(), 1, 128));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockLot(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockLotLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockLot(), 1, 20));
+        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockLot(), 1, 128));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockSerial(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockSerialLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockSerial(), 1, 20));
+        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockSerial(), 1, 128));
 
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseMoveInventory(), 1, 128), 0, QMWorkflowResponseDescriptionMoveInventoryLbl + OptionalSuffix, CopyStr(GetWorkflowResponseMoveInventory(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseMoveInventory(), 1, 128));
@@ -448,8 +448,8 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 128));
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockPackage(), 1, 128), 0, QMWorkflowResponseDescriptionBlockPackageLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockPackage(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockPackage(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnBlockPackage(), 1, 128), 0, QMWorkflowResponseDescriptionUnBlockPackageLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnBlockPackage(), 1, 20));
-        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnBlockPackage(), 1, 128));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockPackage(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockPackageLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockPackage(), 1, 20));
+        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockPackage(), 1, 128));
         foreach QualityResponse in QualityResponseIdsToAdd do
             foreach QualityEvent in QualityEventIds do
                 WorkflowResponseHandling.AddResponsePredecessor(CopyStr(QualityResponse, 1, 128), CopyStr(QualityEvent, 1, 128));

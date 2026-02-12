@@ -20,6 +20,7 @@ using System.Reflection;
 codeunit 20408 "Qlty. Traversal"
 {
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ControlInfoToVisibility: Dictionary of [Text, Boolean];
         ControlInfoToCaptionClass: Dictionary of [Text, Text];
@@ -122,7 +123,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if at least one possible target configuration was found; False otherwise</returns>
     internal procedure FindPossibleTargetsBasedOnConfigRecursive(InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary): Boolean
     begin
-        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyMiscHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
+        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
     end;
 
     local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
@@ -215,7 +216,7 @@ codeunit 20408 "Qlty. Traversal"
         if TemporaryInspectionMatchRecordRef.Insert(false) then;
         QltyInspectionHeader.SetIsCreating(true);
         CouldApply := ApplySourceRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
             TemporaryInspectionMatchRecordRef,
             TempAvailableQltyInspectSourceConfig,
             QltyInspectionHeader,
@@ -476,7 +477,7 @@ codeunit 20408 "Qlty. Traversal"
             OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId 4".TableNo());
 
         foreach FromTableIterator in OFFromTableIds do begin
-            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyMiscHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
+            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
             if TestText <> '' then
                 break;
         end;
@@ -833,7 +834,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Vendor was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedVendor(var Vendor: Record Vendor; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedVendor(var Vendor: Record Vendor; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -912,7 +913,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Customer was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedCustomer(var Customer: Record Customer; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedCustomer(var Customer: Record Customer; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -991,7 +992,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Routing was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedRouting(var RoutingHeader: Record "Routing Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedRouting(var RoutingHeader: Record "Routing Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -1070,7 +1071,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to search (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to search (optional)</param>
     /// <returns>True if a Production BOM was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedBillOfMaterial(var ProductionBOMHeader: Record "Production BOM Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedBillOfMaterial(var ProductionBOMHeader: Record "Production BOM Header"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         ParentRecordRef: RecordRef;
     begin
@@ -1195,7 +1196,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="Optional4Variant">Fourth variant to check (optional)</param>
     /// <param name="Optional5Variant">Fifth variant to check (optional)</param>
     /// <returns>True if a Production Order Routing Line was found in any variant or parent; False otherwise</returns>
-    procedure FindRelatedProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; Optional1Variant: Variant; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         RecordRefToProdOrderRoutingLine: RecordRef;
     begin

@@ -201,7 +201,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 Caption = 'Create Assembly Rule';
                 ToolTip = 'Specifies to create a rule for assembly.';
-                Image = Receipt;
+                Image = AssemblyBOM;
                 ApplicationArea = Assembly;
 
                 trigger OnAction()
@@ -219,7 +219,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = Assembly;
                 Caption = 'Edit Assembly Rule';
                 ToolTip = 'Edit a Rule for assembly.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditWizardAssemblyRule;
 
@@ -242,7 +242,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 Caption = 'Create Production Rule';
                 ToolTip = 'Specifies to create a rule for production.';
-                Image = Receipt;
+                Image = Production;
                 ApplicationArea = Manufacturing;
 
                 trigger OnAction()
@@ -260,7 +260,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = Manufacturing;
                 Caption = 'Edit Production Rule';
                 ToolTip = 'Edit a Rule for production.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditWizardProductionRule;
 
@@ -301,7 +301,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = All;
                 Caption = 'Edit Receiving Rule';
                 ToolTip = 'Edit a Rule for receiving.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditWizardReceivingRule;
 
@@ -324,7 +324,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 Caption = 'Create Bin Movement Rule';
                 ToolTip = 'Specifies to create a rule for a bin movement.';
-                Image = CreatePutawayPick;
+                Image = CreateMovement;
                 ApplicationArea = Warehouse;
 
                 trigger OnAction()
@@ -342,7 +342,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = Warehouse;
                 Caption = 'Edit Bin Movement Rule';
                 ToolTip = 'Edit a rule for a bin movement.';
-                Image = InventoryPick;
+                Image = EditAdjustments;
                 Scope = Repeater;
                 Visible = ShowEditWizardMovementRule;
 
@@ -366,7 +366,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = All;
                 Caption = 'Job Queue Entries';
                 ToolTip = 'Display related job queue entries.';
-                Image = Timeline;
+                Image = EntriesList;
                 Scope = Repeater;
                 Visible = ShowJobQueueEntries;
 
@@ -382,7 +382,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = All;
                 Caption = 'Create a Job Queue Entry';
                 ToolTip = 'Creates another job queue entry.';
-                Image = Timeline;
+                Image = SelectEntries;
                 Scope = Repeater;
                 Visible = ShowJobQueueEntries;
 

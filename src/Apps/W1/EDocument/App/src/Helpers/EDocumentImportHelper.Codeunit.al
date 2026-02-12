@@ -258,6 +258,21 @@ codeunit 6109 "E-Document Import Helper"
 
     /// <summary>
     /// Use it to check if receiving company information is in line with Company Information.
+    /// Also checks if the Receiving Company Id matches a Company Service Participant.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
+    begin
+        // First, check if the Receiving Company Id matches a Company Service Participant
+        if MatchCompanyByServiceParticipant(EDocument, EDocService) then
+            exit;
+
+        ValidateReceivingCompanyInfo(EDocument);
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information is in line with Company Information.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
@@ -279,6 +294,25 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information matches a Company Service Participant for a specific service.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    /// <returns>True if a matching Company Service Participant is found.</returns>
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; EDocService: Record "E-Document Service"): Boolean
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        if EDocument."Receiving Company Id" = '' then
+            exit(false);
+
+        ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
+        ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
+        ServiceParticipant.SetRange(Service, EDocService.Code);
+        exit(not ServiceParticipant.IsEmpty());
     end;
 
     /// <summary>
@@ -589,6 +623,9 @@ codeunit 6109 "E-Document Import Helper"
     begin
         if not Vendor.Get(VendorNo) then
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(VendorNotFoundErr, EDocument."Bill-to/Pay-to Name"));
+
+        if Vendor."Self-Billing Agreement" then
+            LogErrorIfVendorIsSelfBilling(EDocument, Vendor);
     end;
 
     /// <summary>
@@ -610,6 +647,12 @@ codeunit 6109 "E-Document Import Helper"
         ServiceParticipant.SetRange(Service);
         if ServiceParticipant.FindFirst() then
             exit(ServiceParticipant.Participant);
+    end;
+
+    procedure LogErrorIfVendorIsSelfBilling(var EDocument: Record "E-Document"; Vendor: Record Vendor)
+    begin
+        if (EDocument."Direction" = Enum::"E-Document Direction"::"Incoming") then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBillingVendorErr, Vendor."No."));
     end;
 
 #if not CLEAN26
@@ -1000,5 +1043,6 @@ codeunit 6109 "E-Document Import Helper"
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';
         TotalsMismatchErr: Label 'The total amount %1 on the created document is different than the total amount %2 in the electronic document.', Comment = '%1 total amount, %2 expected total amount';
         VendorNotFoundErr: Label 'Cannot find vendor ''%1'' based on the vendor''s name, address or VAT registration number on the electronic document. Make sure that a card for the vendor exists with the corresponding name, address or VAT Registration No.', Comment = '%1 Vendor name (e.g. London Postmaster)';
+        SelfBillingVendorErr: Label 'Inbound E-Document blocked for vendor %1 due to Self-Billing Agreement. Supplier-issued invoices cannot be processed for this vendor.', Comment = '%1 Vendor name (e.g. London Postmaster)';
         NotSpecifiedUnitOfMeasureTxt: Label '<NONE>';
 }

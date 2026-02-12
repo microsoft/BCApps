@@ -2189,6 +2189,9 @@ End Function
         <Field Name="QltyInspection_Source_Serial_No_">
           <DataField>QltyInspection_Source_Serial_No_</DataField>
         </Field>
+        <Field Name="QltyInspection_Source_Package_No_">
+          <DataField>QltyInspection_Source_Package_No_</DataField>
+        </Field>
         <Field Name="QltyInspection_Source_Document_No_">
           <DataField>QltyInspection_Source_Document_No_</DataField>
         </Field>

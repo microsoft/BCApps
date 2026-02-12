@@ -37,7 +37,7 @@
     {
       "FeatureName": "Create Purchase Orders from Drop Shipment Sales Orders",
       "Description": "Create purchase orders directly from sales orders marked for Drop Shipment to speed up processing and improve backorder accuracy. Start on a sales order with Drop Shipment lines and use the \"Create Purchase Orders\" action to create purchase order. Or include these sales orders through \"Order Planning\" page or choose the \"Drop Shipment\" action group in the \"Planning Worksheet\".",
-      "Category": "Sales",
+      "Category": "Purchasing",
       "HelpURL": "",
       "VideoURL": ""
     },
@@ -75,5 +75,54 @@
       "Category": "Shopify",
       "HelpURL": "",
       "VideoURL": ""
-    }
+    },
+    {
+      "FeatureName": "Match purchase invoices to multiple order and receipt lines",
+      "Description": "Improve invoice accuracy by matching each invoice line to all relevant purchase order lines and receipts, even when receipts don't yet exist. To get started, open a purchase invoice and use the \"Get Order Lines\" action to select received or unreceived order lines. Review and adjust matches on the \"Matched Order Lines\" page, and explore the \"Receipt on Invoice\" toggle on purchase orders if you want receipts created automatically during posting.",
+      "Category": "Purchasing",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Approve requisitions worksheets and item journals",
+      "Description": "Gain stronger internal control and auditability by requiring approvals on item journal batches and requisition/planning worksheet batches before posting or converting them to purchasing documents. Start by opening Item Journals or Requisition/Planning Worksheets and use the \"Send for approval\" action. Track approval status on the pages or through Approval Entries, and configure workflows in the \"Workflows\" page.",
+      "Category": "Inventory",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Export items to Shopify with product options based on item attributes",
+      "Description": "Use item attributes from Business Central as Shopify product options to keep your catalog structured, consistent, and easier to manage across channels. To get started, open the \"Item Attributes\" page, choose which attributes should become Shopify options, and set \"Incl. in Product Sync\" to *As Option* (up to three per item). Then assign attribute values to your items and variants, ensure there are no duplicate attribute combinations, and export item to Shopify. If an item is skipped, review the \"Shopify Skipped Entries\" page, and remember this feature can't be used together with the \"UoM as Variant\" toggle on the \"Shopify Shop\" card.",
+      "Category": "Shopify",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Experience improved usability in manufacturing",
+      "Description": "Improve manufacturing usability with better output posting, WIP by location, and BOM certification notifications. Explore the Output Journal to see correct routing line explosions for serial-tracked items, review capacity and overhead postings by location on Value Entries, and configure warnings in My Notifications for non‑certified BOMs and routings.",
+      "Category": "Manufacturing",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Evaluate the quality of goods and materials",
+      "Description": "The Quality Management extension helps ensure regulatory compliance and improve product reliability by enabling quality checks during receiving, production, and assembly processes. To get started, open the Quality Management pages in Business Central to define test plans, configure triggers, and set quality check scopes. Explore fields on purchase receipts, production output, and assembly output to see where quality checks apply. Use the Certificate of Analysis report to review results.",
+      "Category": "Inventory",
+      "HelpURL": "https://go.microsoft.com/fwlink/?linkid=2338953",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Sync variant images between Business Central and Shopify",
+      "Description": "This feature ensures variant-level images stay aligned between Business Central and Shopify, reducing manual work and helping customers see the correct images for each variant. To get started, open the Item Card and explore the Item Variants and their Pictures. Use the Sync Images actions to push or pull variant images.",
+      "Category": "Shopify",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Reverse drop shipments when sales and purchase documents are not invoiced",
+      "Description": "Enable reversal of drop‑shipment receipts and shipments when neither side is invoiced. This lets you correct mistakes quickly while keeping item ledger entries clean. To use it, open a posted sales shipment or posted purchase receipt linked to a drop shipment and choose \"Undo Shipment\" or \"Undo Receipt\".",
+      "Category": "Purchasing",
+      "HelpURL": "",
+      "VideoURL": ""
+    }  
 ]

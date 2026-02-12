@@ -21,7 +21,7 @@ page 20432 "Qlty. Test Wizard"
     {
         area(Content)
         {
-            group(SettingsForStepNewOrExisting)
+            group(StepNewOrExisting)
             {
                 Visible = (CurrentStepCounter = Step1NewOrExisting) and (not EditingExistingTest);
 
@@ -47,7 +47,7 @@ page 20432 "Qlty. Test Wizard"
                         CurrPage.Update();
                     end;
                 }
-                group(SettingsForWrapExistingTests)
+                group(WrapExistingTests)
                 {
                     Visible = ChooseExistingTestOrTests or NewTest;
                     ShowCaption = false;
@@ -60,13 +60,13 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForEditingExistingTest)
+            group(EditingExistingTest)
             {
                 Caption = 'Edit Existing Test';
                 ShowCaption = false;
                 Visible = (Step2AddNewTest = CurrentStepCounter) and EditingExistingTest;
 
-                group(SettingsForEditExistingShortName)
+                group(EditExistingShortName)
                 {
                     Caption = 'Short name (Test Code)';
                     InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
@@ -80,7 +80,7 @@ page 20432 "Qlty. Test Wizard"
                         Editable = false;
                     }
                 }
-                group(SettingsForExistingTestDescription)
+                group(ExistingTestDescription)
                 {
                     Caption = 'Description';
                     InstructionalText = 'Change the description for what this test represents.';
@@ -98,7 +98,7 @@ page 20432 "Qlty. Test Wizard"
                         end;
                     }
                 }
-                group(SettingsForEditExistingType)
+                group(EditExistingType)
                 {
                     Caption = 'What type of data is it?';
                     InstructionalText = 'Is this a number, a choice from a pre-defined list, or something else?';
@@ -117,13 +117,13 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForCreateSingleNewTest)
+            group(CreateSingleNewTest)
             {
                 Caption = 'Add a New Test';
                 ShowCaption = false;
                 Visible = (Step2AddNewTest = CurrentStepCounter) and not EditingExistingTest;
 
-                group(SettingsForDescription)
+                group(Description)
                 {
                     Caption = 'Description';
                     InstructionalText = 'Type a relevant description for what this new test represents.';
@@ -140,7 +140,7 @@ page 20432 "Qlty. Test Wizard"
                             HandleTestDescriptionOnValidate();
                         end;
                     }
-                    group(SettingsForChooseDataLink)
+                    group(ChooseDataLink)
                     {
                         Visible = not ShowNewTestCode;
                         Caption = ' ';
@@ -161,7 +161,7 @@ page 20432 "Qlty. Test Wizard"
                         }
                     }
                 }
-                group(SettingsForShortName)
+                group(ShortName)
                 {
                     Caption = 'Short name (Test Code)';
                     InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
@@ -180,7 +180,7 @@ page 20432 "Qlty. Test Wizard"
                         end;
                     }
                 }
-                group(SettingsForType)
+                group(Type)
                 {
                     Caption = 'What type of data is it?';
                     InstructionalText = 'Is this a number, a choice from a pre-defined list, or something else?';
@@ -200,7 +200,7 @@ page 20432 "Qlty. Test Wizard"
                     }
                 }
             }
-            group(SettingsForFieldDataTypeDetails)
+            group(FieldDataTypeDetails)
             {
                 Visible = (Step3FieldDataTypeDetails = CurrentStepCounter);
 
@@ -366,7 +366,7 @@ page 20432 "Qlty. Test Wizard"
         IsMovingForward := Step > CurrentStepCounter;
 
         if IsMovingForward then
-            LeavingStepMovingForward(CurrentStepCounter, Step);
+            LeavingStepMovingForward(CurrentStepCounter);
 
         EvaluateStep(Step);
         CurrentStepCounter := Step;
@@ -375,7 +375,6 @@ page 20432 "Qlty. Test Wizard"
 
     local procedure EvaluateStep(Step: Integer)
     begin
-        OnEvaluateStep(Step, IsBackEnabled, IsNextEnabled, IsFinishEnabled);
         case Step of
             Step1NewOrExisting:
                 begin
@@ -413,9 +412,8 @@ page 20432 "Qlty. Test Wizard"
         CurrPage."Qlty. Choose Existing Tests".Page.GetTestsToAdd(TestsToAdd);
     end;
 
-    local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToStep: Integer);
+    local procedure LeavingStepMovingForward(LeavingThisStep: Integer);
     begin
-        OnLeavingStepMovingForward(LeavingThisStep, MovingToStep);
         case LeavingThisStep of
             Step2AddNewTest:
                 AddOrUpdateInternalField();
@@ -440,7 +438,6 @@ page 20432 "Qlty. Test Wizard"
     begin
         FinishActionChosen := true;
         AddOrUpdateInternalField();
-        OnFinishActionAfterAddUpdateInternalField();
         AddedOrChooseATest := NewTest or EditingExistingTest or (ChooseExistingTestOrTests and (TestsToAdd.Count() > 0));
 
         if AddedOrChooseATest and NewTest then
@@ -624,18 +621,4 @@ page 20432 "Qlty. Test Wizard"
         end;
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnLeavingStepMovingForward(LeavingThisStep: Integer; var MovingToStep: Integer);
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnEvaluateStep(Step: Integer; var IsBackEnabled: Boolean; var IsNextEnabled: Boolean; var IsFinishEnabled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnFinishActionAfterAddUpdateInternalField()
-    begin
-    end;
 }

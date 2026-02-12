@@ -43,7 +43,7 @@ page 20434 "Qlty. Test Number Card Part"
                     AssistEditDefaultValue();
                 end;
             }
-            group(SettingsForAllowedValues)
+            group(AllowedValues)
             {
                 Caption = 'What are the allowed values?';
                 AboutTitle = 'Allowed Values';
@@ -62,7 +62,7 @@ page 20434 "Qlty. Test Number Card Part"
                     end;
                 }
             }
-            group(SettingsForSimpleRange)
+            group(SimpleRange)
             {
                 Caption = 'Set the range of allowed values';
                 InstructionalText = 'Enter the minimum and maximum allowed values. Allowed values are possible values. For example, if you were collecting a thickness measurement then you might have allowed values between 1 and 100. "Pass" conditions values would potentially be a different number range, such as between 10 and 20.';
@@ -131,7 +131,7 @@ page 20434 "Qlty. Test Number Card Part"
                 ApplicationArea = All;
                 Caption = ' ';
             }
-            group(SettingsForPassConditions)
+            group(PassConditions)
             {
                 Caption = 'Field Conditions';
 
@@ -140,7 +140,7 @@ page 20434 "Qlty. Test Number Card Part"
                     ApplicationArea = All;
                     Caption = 'In this section you will define conditions for results, such as pass results.';
                 }
-                group(SettingsForNothingVisible)
+                group(NothingVisible)
                 {
                     ShowCaption = true;
                     Visible = not Visible1;
@@ -151,7 +151,7 @@ page 20434 "Qlty. Test Number Card Part"
                         Caption = 'There are no results available to display.';
                     }
                 }
-                group(SettingsForVisible1)
+                group(Visible1)
                 {
                     ShowCaption = false;
                     Visible = Visible1;
@@ -162,7 +162,7 @@ page 20434 "Qlty. Test Number Card Part"
                         ApplicationArea = All;
                         Caption = ' ';
                     }
-                    group(SettingsForVisible1Advanced)
+                    group(Visible1Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -187,7 +187,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible1Easy)
+                    group(Visible1Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -245,13 +245,13 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible2)
+                group(Visible2)
                 {
                     ShowCaption = false;
                     Visible = Visible2;
                     Caption = ' ';
 
-                    group(SettingsForVisible2Advanced)
+                    group(Visible2Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -274,7 +274,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible2Easy)
+                    group(Visible2Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -325,13 +325,13 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible3)
+                group(Visible3)
                 {
                     ShowCaption = false;
                     Visible = Visible3;
                     Caption = ' ';
 
-                    group(SettingsForVisible3Advanced)
+                    group(Visible3Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -352,7 +352,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible3Easy)
+                    group(Visible3Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -403,7 +403,7 @@ page 20434 "Qlty. Test Number Card Part"
                         end;
                     }
                 }
-                group(SettingsForVisible4)
+                group(Visible4)
                 {
                     ShowCaption = false;
                     Visible = Visible4;
@@ -424,7 +424,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(4);
                         end;
                     }
-                    group(SettingsForVisible4Advanced)
+                    group(Visible4Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -446,7 +446,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible4Easy)
+                    group(Visible4Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -481,7 +481,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible5)
+                group(Visible5)
                 {
                     ShowCaption = false;
                     Visible = Visible5;
@@ -502,7 +502,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(5);
                         end;
                     }
-                    group(SettingsForVisible5Advanced)
+                    group(Visible5Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -524,7 +524,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible5Easy)
+                    group(Visible5Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -559,7 +559,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible6)
+                group(Visible6)
                 {
                     ShowCaption = false;
                     Visible = Visible6;
@@ -580,7 +580,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(6);
                         end;
                     }
-                    group(SettingsForVisible6Advanced)
+                    group(Visible6Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -602,7 +602,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible6Easy)
+                    group(Visible6Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -637,7 +637,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible7)
+                group(Visible7)
                 {
                     ShowCaption = false;
                     Visible = Visible7;
@@ -658,7 +658,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(7);
                         end;
                     }
-                    group(SettingsForVisible7Advanced)
+                    group(Visible7Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -680,7 +680,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible7Easy)
+                    group(Visible7Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -715,7 +715,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible8)
+                group(Visible8)
                 {
                     ShowCaption = false;
                     Visible = Visible8;
@@ -736,7 +736,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(8);
                         end;
                     }
-                    group(SettingsForVisible8Advanced)
+                    group(Visible8Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -758,7 +758,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible8Easy)
+                    group(Visible8Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -793,7 +793,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible9)
+                group(Visible9)
                 {
                     ShowCaption = false;
                     Visible = Visible9;
@@ -814,7 +814,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(9);
                         end;
                     }
-                    group(SettingsForVisible9Advanced)
+                    group(Visible9Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -836,7 +836,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible9Easy)
+                    group(Visible9Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -871,7 +871,7 @@ page 20434 "Qlty. Test Number Card Part"
                         }
                     }
                 }
-                group(SettingsForVisible10)
+                group(Visible10)
                 {
                     ShowCaption = false;
                     Visible = Visible10;
@@ -892,7 +892,7 @@ page 20434 "Qlty. Test Number Card Part"
                             AssistEditConditionDescription(10);
                         end;
                     }
-                    group(SettingsForVisible10Advanced)
+                    group(Visible10Advanced)
                     {
                         Visible = ShowAdvanced;
                         ShowCaption = false;
@@ -914,7 +914,7 @@ page 20434 "Qlty. Test Number Card Part"
                             end;
                         }
                     }
-                    group(SettingsForVisible10Easy)
+                    group(Visible10Easy)
                     {
                         Visible = ShowSimpleRange;
                         ShowCaption = false;
@@ -950,7 +950,7 @@ page 20434 "Qlty. Test Number Card Part"
                     }
                 }
             }
-            group(SettingsForUOM)
+            group(UOM)
             {
                 Caption = 'Unit of Measure';
                 AboutTitle = 'Unit of Measure';
@@ -985,7 +985,7 @@ page 20434 "Qlty. Test Number Card Part"
     var
         QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -1100,7 +1100,7 @@ page 20434 "Qlty. Test Number Card Part"
             if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::"In Progress" then
                 AdvancedRange := DefaultRangeTok;
 
-        if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
+        if QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
             if not QltyTestIds.Contains(QltyTest.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
@@ -1229,7 +1229,7 @@ page 20434 "Qlty. Test Number Card Part"
 
         QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -1249,7 +1249,7 @@ page 20434 "Qlty. Test Number Card Part"
     begin
         QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
         QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
         QltyIResultConditConf.Modify(true);
         LoadExistingTest(QltyTest.Code);
         CurrPage.Update(false);

@@ -27,7 +27,7 @@ report 20405 "Qlty. General Purpose Inspect."
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
@@ -49,6 +49,7 @@ report 20405 "Qlty. General Purpose Inspect."
             column(QltyInspection_Source_Variant_Code; "Source Variant Code") { }
             column(QltyInspection_Source_Lot_No_; "Source Lot No.") { }
             column(QltyInspection_Source_Serial_No_; "Source Serial No.") { }
+            column(QltyInspection_Source_Package_No_; "Source Package No.") { }
             column(QltyInspection_Source_Document_No_; "Source Document No.") { }
             column(QltyInspection_Source_Task_No_; "Source Task No.") { }
             column(QltyInspection_Source_Custom_1; "Source Custom 1") { }
@@ -224,10 +225,10 @@ report 20405 "Qlty. General Purpose Inspect."
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
                     InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
                     FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
@@ -307,7 +308,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 end;
 
                 FinishedByUserName := CurrentInspection."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -343,6 +344,7 @@ report 20405 "Qlty. General Purpose Inspect."
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
         ArrayCompanyInformation: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];
