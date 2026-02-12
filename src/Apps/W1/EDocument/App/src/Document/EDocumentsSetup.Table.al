@@ -1,4 +1,5 @@
 #if not CLEANSCHEMA31
+#pragma warning disable AS0105
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -110,4 +111,5 @@ table 6107 "E-Documents Setup"
     end;
 
 }
+#pragma warning restore AS0105
 #endif
