@@ -381,50 +381,6 @@ page 20445 "Qlty. Test Lookup"
         }
     }
 
-    actions
-    {
-        area(Creation)
-        {
-            action(NewTest)
-            {
-                Image = CopyFromTask;
-                Caption = 'Add Test';
-                ToolTip = 'Add a new Test.';
-                Scope = Repeater;
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-        }
-        area(Processing)
-        {
-            action(EditTest)
-            {
-                Image = EditLines;
-                Caption = 'Edit Test';
-                ToolTip = 'This will edit your existing selected test.';
-                Scope = Repeater;
-
-                trigger OnAction()
-                var
-                    QltyTest: Record "Qlty. Test";
-                    QltyTestWizard: Page "Qlty. Test Wizard";
-                begin
-                    QltyTest.Get(Rec.Code);
-                    QltyTestWizard.RunModalEditExistingTest(QltyTest);
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-    }
-
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -490,17 +446,6 @@ page 20445 "Qlty. Test Lookup"
         QltyIResultConditConf.Get(MatrixSourceRecordId[MatrixField]);
         QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[MatrixField]);
         QltyIResultConditConf.Modify(true);
-        CurrPage.Update(false);
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyTestWizard: Page "Qlty. Test Wizard";
-    begin
-        QltyTestWizard.RunModalForTest();
         CurrPage.Update(false);
     end;
 }

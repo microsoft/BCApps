@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.QualityManagement.Configuration.Result;
-using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
@@ -414,49 +413,6 @@ page 20403 "Qlty. Inspection Template Subf"
         }
     }
 
-    actions
-    {
-        area(Processing)
-        {
-            action(NewTest)
-            {
-                Image = CopyFromTask;
-                Caption = 'Add Test(s) To This Template';
-                ToolTip = 'Add a new Test or existing Test(s) to this template';
-                Scope = Repeater;
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-            action(EditTest)
-            {
-                Image = EditLines;
-                Caption = 'Edit Test';
-                ToolTip = 'This will edit your existing selected test.';
-                Scope = Repeater;
-
-                trigger OnAction()
-                var
-                    QltyTest: Record "Qlty. Test";
-                    QltyTestWizard: Page "Qlty. Test Wizard";
-                begin
-                    QltyTest.Get(Rec."Test Code");
-                    if QltyTestWizard.RunModalEditExistingTest(QltyTest) in [Action::OK, Action::LookupOK, Action::Yes] then begin
-                        QltyTest.Get(QltyTest.Code);
-                        Rec.Validate("Test Code", QltyTest.Code);
-                        Rec.Description := QltyTest.Description;
-                        Rec."Expression Formula" := QltyTest."Expression Formula";
-                        Rec.EnsureResultsExist(true);
-                        CurrPage.Update(true);
-                    end else
-                        CurrPage.Update(false);
-                end;
-            }
-        }
-    }
-
     var
         CachedQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
@@ -607,34 +563,5 @@ page 20403 "Qlty. Inspection Template Subf"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test to this template.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestWizard: Page "Qlty. Test Wizard";
-        OfFieldsToAdd: list of [Code[20]];
-        TemplateCode: Code[20];
-        TestCode: Code[20];
-        FilterGroupIterator: Integer;
-    begin
-        FilterGroupIterator := 4;
-        repeat
-            Rec.FilterGroup(FilterGroupIterator);
-            if Rec.GetFilter("Template Code") <> '' then
-                TemplateCode := Rec.GetRangeMin("Template Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (TemplateCode <> '');
-        QltyInspectionTemplateHdr.Get(TemplateCode);
-        Rec.FilterGroup(0);
-        QltyTestWizard.RunModal();
-        if QltyTestWizard.GetFieldsToAdd(OfFieldsToAdd) then
-            foreach TestCode in OfFieldsToAdd do
-                QltyInspectionTemplateHdr.AddTestToTemplate(TestCode);
-        CurrPage.Update();
     end;
 }

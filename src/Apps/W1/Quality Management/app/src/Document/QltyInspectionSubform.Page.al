@@ -270,7 +270,7 @@ page 20407 "Qlty. Inspection Subform"
         }
     }
 
-    protected var
+    var
         CachedReadOnlyQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
