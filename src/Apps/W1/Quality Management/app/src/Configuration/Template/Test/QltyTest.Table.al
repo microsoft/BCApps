@@ -144,16 +144,6 @@ table 20401 "Qlty. Test"
                 Rec.UpdateAllowedValuesFromTableLookup();
             end;
         }
-        field(14; "Wizard Internal"; Enum "Qlty. Test Wizard State")
-        {
-            Caption = '(internal use) Test Wizard State';
-            DataClassification = SystemMetadata;
-        }
-        field(15; "Example Value"; Text[250])
-        {
-            Caption = 'Example Value';
-            Description = '(internal) Used for a variety of buffers.';
-        }
         field(16; "Default Value"; Text[250])
         {
             Caption = 'Default Value';
@@ -201,7 +191,7 @@ table 20401 "Qlty. Test"
         fieldgroup(DropDown; Code, Description, "Allowable Values", "Test Value Type")
         {
         }
-        fieldgroup(Brick; Code, Description, "Example Value", "Allowable Values", "Test Value Type")
+        fieldgroup(Brick; Code, Description, "Allowable Values", "Test Value Type")
         {
         }
     }
@@ -376,10 +366,10 @@ table 20401 "Qlty. Test"
 
     trigger OnDelete()
     begin
-        EnsureCanBeDeleted(false);
+        CheckDeleteConstraints(false);
     end;
 
-    procedure EnsureCanBeDeleted(AskQuestion: Boolean)
+    procedure CheckDeleteConstraints(AskQuestion: Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionLine: Record "Qlty. Inspection Line";

@@ -2,21 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Test;
+namespace Microsoft.ExternalStorage.DocumentAttachments;
 
 /// <summary>
-/// Helps note the expected wizard test state.
+/// Permission set for External Storage functionality.
+/// Grants necessary permissions to use external storage features.
 /// </summary>
-enum 20421 "Qlty. Test Wizard State"
+permissionset 8751 "DA Ext. Stor. Admin"
 {
-    Caption = 'Quality Test Wizard State';
-
-    value(0; Complete)
-    {
-        Caption = 'Complete';
-    }
-    value(1; "In Progress")
-    {
-        Caption = 'In Progress';
-    }
+    Assignable = true;
+    Caption = 'DA - External Storage Admin';
+    Permissions = tabledata "DA External Storage Setup" = rimd;
 }
