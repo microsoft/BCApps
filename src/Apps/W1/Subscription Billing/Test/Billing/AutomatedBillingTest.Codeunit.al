@@ -77,6 +77,7 @@ codeunit 139684 "Automated Billing Test"
     var
         CustomerSubscriptionContract: Record "Customer Subscription Contract";
         SubscriptionHeader: Record "Subscription Header";
+        SubscriptionLine: Record "Subscription Line";
         BillingTemplate: Record "Billing Template";
         BillingLine: Record "Billing Line";
         SalesHeader: Record "Sales Header";
@@ -87,8 +88,16 @@ codeunit 139684 "Automated Billing Test"
         // [GIVEN] A Billing Template with automation settings
         CreateBillingTemplateWithAutomation(BillingTemplate);
 
-        // [WHEN] Bill the contracts automatically
+        // [GIVEN] A contract with subscription lines starting today
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerSubscriptionContract, SubscriptionHeader, '');
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.FindSet();
+        repeat
+            SubscriptionLine.Validate("Subscription Line Start Date", Today());
+            SubscriptionLine.Modify(true);
+        until SubscriptionLine.Next() = 0;
+
+        // [WHEN] Bill the contracts automatically
         BillingTemplate.BillContractsAutomatically();
 
         // [THEN] Verify that Sales Header is created for the billed contract
@@ -118,8 +127,15 @@ codeunit 139684 "Automated Billing Test"
         CreateBillingTemplateWithAutomation(BillingTemplate);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerSubscriptionContract, SubscriptionHeader, '');
 
-        // [GIVEN]Remove Item UOM to cause error during billing
+        // [GIVEN] Subscription lines starting today
         SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.FindSet();
+        repeat
+            SubscriptionLine.Validate("Subscription Line Start Date", Today());
+            SubscriptionLine.Modify(true);
+        until SubscriptionLine.Next() = 0;
+
+        // [GIVEN] Remove Item UOM to cause error during billing
         SubscriptionLine.FindLast();
         ItemUnitOfMeasure.Get(SubscriptionLine."Invoicing Item No.", SubscriptionHeader."Unit of Measure");
         ItemUnitOfMeasure.Delete();
