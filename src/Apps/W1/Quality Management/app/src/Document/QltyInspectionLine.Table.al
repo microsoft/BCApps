@@ -114,10 +114,10 @@ table 20406 "Qlty. Inspection Line"
             begin
                 QltyInspectionTemplateLine.Get(Rec."Template Code", Rec."Template Line No.");
                 ValidateTestValue();
-                Rec."Numeric Value" := 0;
+                Rec."Derived Numeric Value" := 0;
                 OnBeforeEvaluateNumericTestValue(Rec, IsHandled);
                 if not IsHandled then
-                    if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+                    if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
 
                 SetLargeText(Rec."Test Value", false, true);
 
@@ -129,13 +129,14 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Blob';
             ToolTip = 'Specifies large test value data. Typically used for larger text that is captured.';
         }
-        field(25; "Numeric Value"; Decimal)
+        field(25; "Derived Numeric Value"; Decimal)
         {
+            Caption = 'Derived Numeric Value';
+            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations and analysis.';
             Editable = false;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
-            Caption = 'Numeric Value';
-            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations. eg: easier to use for Business Central charting.';
+            BlankZero = true;
         }
         field(28; "Result Code"; Code[20])
         {
@@ -213,8 +214,8 @@ table 20406 "Qlty. Inspection Line"
         if not Rec.IsTemporary() then
             TestStatusOpen();
 
-        Rec."Numeric Value" := 0;
-        if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+        Rec."Derived Numeric Value" := 0;
+        if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
     end;
 
     trigger OnDelete()
