@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
-using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.Document;
 using System.Reflection;
 
@@ -153,8 +152,6 @@ table 20407 "Qlty. Inspect. Source Config."
         TheFromAndToCannotBeTheSameErr: Label 'The From Table and To Table cannot refer to the same table.';
         CannotHaveATemplateWithReversedFromAndToErr: Label 'There is another template ''%1'' that reverses the from table and to table. You cannot have this combination to prevent recursive logic. Please change either this source configuration, or please change ''%1''', Comment = '%1=The other template code with conflicting configuration';
         ExistingLinesQst: Label 'There are existing lines that refer to a different table. These lines will need to be reconfigured. Do you want to proceed?';
-        InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
-        BufferTok: Label 'buffer', Locked = true;
 
     trigger OnInsert()
     begin
@@ -222,19 +219,5 @@ table 20407 "Qlty. Inspect. Source Config."
 
         QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         QltyInspectSrcFldConf.ModifyAll("To Table No.", Rec."To Table No.");
-    end;
-
-    internal procedure DetectInterestingConfiguration()
-    begin
-        if Rec."From Table No." <> 0 then begin
-            Rec.CalcFields("From Table Caption");
-            if (Rec."From Table No." in [Database::"Reservation Entry", Database::"Tracking Specification"]) or (Rec."From Table Caption".Contains(BufferTok)) then
-                Error(InterestingDetectionErr);
-        end;
-        if Rec."To Table No." <> 0 then begin
-            Rec.CalcFields("To Table Caption");
-            if (Rec."To Table No." in [Database::"Reservation Entry", Database::"Tracking Specification"]) or (Rec."To Table Caption".Contains(BufferTok)) then
-                Error(InterestingDetectionErr);
-        end;
     end;
 }

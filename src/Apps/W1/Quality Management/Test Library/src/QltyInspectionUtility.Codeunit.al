@@ -1090,20 +1090,6 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Inspect. Source Config. Helpers
 
-    #region Qlty. Inspect. Source Config. Wrappers
-
-    /// <summary>
-    /// Wrapper for internal QltyInspectSourceConfig.DetectInterestingConfiguration.
-    /// Detects if the source configuration has interesting (potentially problematic) table configurations.
-    /// </summary>
-    /// <param name="QltyInspectSourceConfig">The source configuration record to check.</param>
-    internal procedure DetectInterestingConfiguration(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
-    begin
-        QltyInspectSourceConfig.DetectInterestingConfiguration();
-    end;
-
-    #endregion Qlty. Inspect. Source Config. Wrappers
-
     #region Qlty. Inspect. Src. Fld. Conf. Helpers
 
     /// <summary>
