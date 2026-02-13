@@ -144,6 +144,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Customer Export" = X,
         codeunit "Shpfy Customer Import" = X,
         codeunit "Shpfy Customer Mapping" = X,
+        codeunit "Shpfy Delete Webhook Subs." = X,
         codeunit "Shpfy Disabled Value" = X,
         codeunit "Shpfy Document Link Mgt." = X,
         codeunit "Shpfy Draft Orders API" = X,

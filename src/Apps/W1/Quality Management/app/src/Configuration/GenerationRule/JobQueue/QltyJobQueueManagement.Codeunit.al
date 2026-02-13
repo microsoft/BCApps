@@ -50,7 +50,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Common usage: Called when setting up inspection generation rules to ensure scheduled execution infrastructure exists.
     /// </summary>
     /// <param name="ScheduleGroup">The schedule group code to check and potentially create a job queue entry for</param>
-    procedure PromptCreateJobQueueEntryIfMissing(ScheduleGroup: Code[20])
+    internal procedure PromptCreateJobQueueEntryIfMissing(ScheduleGroup: Code[20])
     begin
         if IsJobQueueCreated(ScheduleGroup) then
             exit;
@@ -80,7 +80,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Common usage: When users want multiple schedules for the same rule group (e.g., hourly and daily runs).
     /// </summary>
     /// <param name="ScheduleGroup">The schedule group code to create a job queue entry for (defaults to 'QM' if empty)</param>
-    procedure PromptCreateJobQueueEntry(ScheduleGroup: Code[20])
+    internal procedure PromptCreateJobQueueEntry(ScheduleGroup: Code[20])
     begin
         if ScheduleGroup = '' then
             ScheduleGroup := DefaultScheduleGroupTok;
@@ -113,7 +113,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// </summary>
     /// <param name="ToExcludeQltyInspectionGenRule">The rule to exclude from the check (typically the rule being deleted or modified)</param>
     /// <param name="ScheduleGroupToConsiderRemoving">The schedule group code whose job queue entries should be considered for removal</param>
-    procedure DeleteJobQueueIfNothingElseIsUsingThisGroup(ToExcludeQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; ScheduleGroupToConsiderRemoving: Code[20])
+    internal procedure DeleteJobQueueIfNothingElseIsUsingThisGroup(ToExcludeQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; ScheduleGroupToConsiderRemoving: Code[20])
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         JobQueueEntry: Record "Job Queue Entry";
@@ -151,7 +151,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// report with filters matching the specified schedule group.
     /// </summary>
     /// <param name="ScheduleGroup">The schedule group code to filter job queue entries by</param>
-    procedure RunPageLookupJobQueueEntriesForScheduleGroup(ScheduleGroup: Code[20])
+    internal procedure RunPageLookupJobQueueEntriesForScheduleGroup(ScheduleGroup: Code[20])
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -261,7 +261,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Error thrown: FilterMandatoryErr with schedule group in message
     /// </summary>
     /// <param name="ThisQltyInspectionGenRule">The inspection generation rule to validate for scheduling</param>
-    procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    internal procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     begin
         if (ThisQltyInspectionGenRule."Condition Filter" = '') and (ThisQltyInspectionGenRule."Item Filter" = '') and (ThisQltyInspectionGenRule."Item Attribute Filter" = '') then
             Error(FilterMandatoryErr, ThisQltyInspectionGenRule."Schedule Group");

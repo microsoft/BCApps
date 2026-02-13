@@ -27,7 +27,7 @@ report 20403 "Qlty. Non-Conformance"
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
@@ -225,10 +225,10 @@ report 20403 "Qlty. Non-Conformance"
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
                     InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
                     FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
@@ -309,7 +309,7 @@ report 20403 "Qlty. Non-Conformance"
 
                 FinishedByUserName := CurrentInspection."Finished By User ID";
 
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -345,6 +345,7 @@ report 20403 "Qlty. Non-Conformance"
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

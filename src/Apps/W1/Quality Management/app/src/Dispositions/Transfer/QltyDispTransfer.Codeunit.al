@@ -59,11 +59,11 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferHeader: Record "Transfer Header";
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        Handled: Boolean;
+        IsHandled: Boolean;
         IsDirectTransfer: Boolean;
     begin
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, IsHandled);
+        if IsHandled then
             exit;
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
@@ -142,10 +142,10 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -154,9 +154,9 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean)
     begin
     end;
 

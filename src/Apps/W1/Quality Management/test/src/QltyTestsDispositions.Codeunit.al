@@ -55,7 +55,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ReUsedLibraryItemTracking: Codeunit "Library - Item Tracking";
         NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=re-inspection';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
+        WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         MissingAdjBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
         MissingBinReclassBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
         MissingReclassBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclassification Journal Batch or Warehouse Reclassification Batch';
@@ -63,8 +63,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LocationTok: Label ' Location: %1', Comment = '%1=location';
         NoTrackingChangesErr: Label 'No changes to item tracking information were provided.';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
-        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item,variant,lot,and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the inspection';
-        RequestedBinMoveButUnableToFindSufficientDetailsErr: Label 'A bin movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the location, item, variant, lot, and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the inspection';
+        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. \\ Make sure to define the quantity to move.', Comment = '%1=the inspection';
+        RequestedBinMoveButUnableToFindSufficientDetailsErr: Label 'A bin movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\ Please verify that the inspection has sufficient details for the location, item, variant, lot, serial and package. \\ Make sure to define the quantity to move.', Comment = '%1=Inspection No';
         ThereIsNothingToMoveToErr: Label 'There is no location or bin to move to. Unable to perform the inventory related transaction on the inspection %1. Please define the target location and bin and try again.', Locked = true, Comment = '%1=the inspection';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the inspection, %2=from location, %3=to location';
         IsInitialized: Boolean;
@@ -1475,7 +1475,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         asserterror QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity", '', '', QltyItemAdjPostBehavior::Post, '');
 
         // [THEN] An error is raised indicating the entire lot must be written off
-        LibraryAssert.ExpectedError(StrSubstNo(WriteOffEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier()));
+        LibraryAssert.ExpectedError(StrSubstNo(WriteOffEntireItemTrackingErr, QltyInspectionHeader.GetFriendlyIdentifier()));
     end;
 
     [Test]
@@ -7087,7 +7087,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatic location detection from purchase line using naming conventions when populating quantity buffer for inventory availability
@@ -7109,8 +7108,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A quality order is created from the purchase line and cleared for testing
         RecordRef.GetTable(PurchaseLine);
-        if QltyInspectionCreate.CreateInspection(RecordRef, false) then
-            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
 
         // [GIVEN] A disposition buffer is configured for automatic choice with specific quantity of 5 units
         TempInstructionQltyDispositionBuffer.Init();

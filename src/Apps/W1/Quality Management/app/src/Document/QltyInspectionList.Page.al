@@ -46,6 +46,10 @@ page 20408 "Qlty. Inspection List"
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                 }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Visible = false;
+                }
                 field("Template Code"; Rec."Template Code")
                 {
                 }
@@ -80,16 +84,15 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Source Document No."; Rec."Source Document No.")
                 {
-                    Visible = false;
                 }
                 field("Source Line No."; Rec."Source Document Line No.")
                 {
                     Visible = false;
                 }
-                field("Serial No."; Rec."Source Serial No.")
+                field("Lot No."; Rec."Source Lot No.")
                 {
                 }
-                field("Lot No."; Rec."Source Lot No.")
+                field("Serial No."; Rec."Source Serial No.")
                 {
                 }
                 field("Package No."; Rec."Source Package No.")
@@ -178,6 +181,7 @@ page 20408 "Qlty. Inspection List"
             action(CreateInspection)
             {
                 Scope = Repeater;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection.';
                 Image = CreateForm;
@@ -185,7 +189,6 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -198,6 +201,7 @@ page 20408 "Qlty. Inspection List"
             }
             action("Create Re-inspection")
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
@@ -222,11 +226,12 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -250,6 +255,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
@@ -274,10 +280,10 @@ page 20408 "Qlty. Inspection List"
             action(AssignToSelf)
             {
                 Scope = Repeater;
-                Image = CreateInventoryPick;
-                Caption = 'Pick Up';
+                Image = AddContacts;
+                Caption = 'Take ownership';
                 ToolTip = 'Specifies whether to assign the inspection to yourself.';
-                AboutTitle = 'Pick Up';
+                AboutTitle = 'Take ownership';
                 AboutText = 'Use this to assign the inspection to yourself.';
                 Visible = CanAssignToSelf;
                 Enabled = CanAssignToSelf;
@@ -298,7 +304,7 @@ page 20408 "Qlty. Inspection List"
             action(Unassign)
             {
                 Scope = Repeater;
-                Image = CreatePutAway;
+                Image = ExportContact;
                 Caption = 'Unassign';
                 ToolTip = 'Specifies whether to unassign this inspection.';
                 AboutTitle = 'Unassign';
@@ -355,7 +361,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Transfer Order';
                 Enabled = RowActionsAreEnabled;
-                Image = NewShipment;
+                Image = NewTransferOrder;
                 ToolTip = 'Transfer related inventory to a different location.';
 
                 trigger OnAction()
@@ -371,7 +377,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Negative Adjustment';
                 Enabled = RowActionsAreEnabled;
-                Image = CalculateWarehouseAdjustment;
+                Image = MoveNegativeLines;
                 ToolTip = 'Reduce inventory quantity, for disposal after performing destructive testing or doing a stock write-off for damage or spoilage.';
 
                 trigger OnAction()
@@ -387,7 +393,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Change Item Tracking';
                 Enabled = RowActionsAreEnabled;
-                Image = CalculateWarehouseAdjustment;
+                Image = ItemTrackingLedger;
                 ToolTip = 'Change Item Tracking Information.';
 
                 trigger OnAction()
@@ -403,7 +409,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Purchase Return Order';
                 Enabled = RowActionsAreEnabled;
-                Image = PurchaseCreditMemo;
+                Image = ReturnOrder;
                 ToolTip = 'Create a purchase Return Order.';
 
                 trigger OnAction()
@@ -446,7 +452,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Non Conformance Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = Certificate;
+                Image = PrintReport;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -467,7 +473,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Inspection Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'General purpose inspection report.';
-                Image = Certificate;
+                Image = PrintReport;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -511,9 +517,9 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToSourceDocument(Rec);
+                    QltyDocumentNavigation.NavigateToSourceDocument(Rec);
                 end;
             }
             action(FindEntries)
@@ -527,12 +533,12 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToFindEntries(Rec);
+                    QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-            group(SettingsForItemAvailabilityBy)
+            group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
                 Enabled = RowActionsAreEnabled;
@@ -675,7 +681,6 @@ page 20408 "Qlty. Inspection List"
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        CanCreateInspection: Boolean;
         CanAssignToSelf: Boolean;
         CanCreateReinspection: Boolean;
         CanUnassign: Boolean;
@@ -686,10 +691,9 @@ page 20408 "Qlty. Inspection List"
     trigger OnOpenPage()
     begin
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReinspection();
+        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
+        CanCreateReinspection := RowActionsAreEnabled;
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -697,8 +701,8 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
+        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;

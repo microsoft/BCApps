@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Inventory.Tracking;
 
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
@@ -17,12 +16,12 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
-                Visible = QltyReadTestResults;
 
-                trigger OnAction()                    
+                trigger OnAction()
                 begin
                     ShowQualityInspections();
                 end;
@@ -30,31 +29,17 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
         }
     }
 
-    var
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
-
     local procedure ShowQualityInspections()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         QltyInspectionHeader.SetFilter("Source Item No.", ItemNoFilter);
         if VariantFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);                    
-        if SerialNoFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
+            QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);
         if LotNoFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Lot No.", LotNoFilter);
+        if SerialNoFilter <> '' then
+            QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
         if PackageNoFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Package No.", PackageNoFilter);
         if Rec."Location Code" <> '' then

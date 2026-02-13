@@ -78,7 +78,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
@@ -86,7 +86,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
@@ -94,7 +94,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
@@ -102,7 +102,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
@@ -110,7 +110,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
@@ -118,7 +118,7 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
@@ -126,85 +126,85 @@ page 20401 "Qlty. Tests"
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                 }
@@ -268,37 +268,14 @@ page 20401 "Qlty. Tests"
 
                 trigger OnAction()
                 begin
-                    Rec.EnsureCanBeDeleted(true);
+                    Rec.CheckDeleteConstraints(true);
                     Rec.Delete(true);
                     CurrPage.Update(false);
                 end;
             }
         }
-        area(Creation)
-        {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add a Test';
-                ToolTip = 'Add a new Test.';
-                Scope = Repeater;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-        }
-        area(Reporting)
-        {
-        }
         area(Promoted)
         {
-            actionref(NewTest_Promoted; NewTest)
-            {
-            }
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
             {
             }
@@ -322,6 +299,8 @@ page 20401 "Qlty. Tests"
         Visible8: Boolean;
         Visible9: Boolean;
         Visible10: Boolean;
+        DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
+        ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnOpenPage()
     begin
@@ -329,7 +308,7 @@ page 20401 "Qlty. Tests"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        Rec.EnsureCanBeDeleted(true);
+        Rec.CheckDeleteConstraints(true);
     end;
 
     trigger OnAfterGetRecord()
@@ -401,16 +380,5 @@ page 20401 "Qlty. Tests"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyTestWizard: Page "Qlty. Test Wizard";
-    begin
-        QltyTestWizard.RunModalForTest();
-        CurrPage.Update(false);
     end;
 }

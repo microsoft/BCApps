@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 using System.Agents.TaskPane;
+using System.Environment;
 
 page 6105 "Inbound E-Documents"
 {
@@ -444,22 +445,19 @@ page 6105 "Inbound E-Documents"
     end;
 
     local procedure PopulateTaskInfo()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        Clear(AgentTask);
+        AgentTaskStatus := '';
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+        if not AgentTask.ReadPermission() then
+            exit;
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
-        if not AgentTask.FindFirst() then
-            Clear(AgentTask);
-        AgentTaskStatus := '';
-        if AgentTask.ID <> 0 then
+        if AgentTask.FindFirst() and (AgentTask.ID <> 0) then
             AgentTaskStatus := Format(AgentTask.Status);
-    end;
-
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
     end;
 
     #region File Upload Actions

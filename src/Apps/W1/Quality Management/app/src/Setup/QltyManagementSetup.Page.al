@@ -8,6 +8,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Telemetry;
 
@@ -26,10 +27,10 @@ page 20400 "Qlty. Management Setup"
     {
         area(Content)
         {
-            group(SettingsForDefaults)
+            group(Defaults)
             {
                 Caption = 'General';
-                group(SettingsForNumbering)
+                group(Numbering)
                 {
                     Caption = 'Number Series';
 
@@ -38,10 +39,10 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
+                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
-                group(SettingsForInspections)
+                group(Inspections)
                 {
                     Caption = 'Creating and finding inspections';
 
@@ -61,7 +62,7 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Specifies the criteria the system uses to search for existing inspections.';
                     }
                 }
-                group(SettingsForMiscellaneous)
+                group(Miscellaneous)
                 {
                     Caption = 'Miscellaneous';
 
@@ -80,14 +81,6 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
 
                     }
-                    field("When to show inspections"; Rec."When to show inspections")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        Importance = Promoted;
-                        AboutTitle = 'When To Show Inspections';
-                        AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
-                    }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
@@ -103,7 +96,7 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Generation Rule Trigger Defaults';
                 InstructionalText = 'Manage receiving, production, and warehousing options here, such as automatically creating inspections when receipts or output are posted, and defining default automation and trigger settings for inspection generation rules.';
 
-                group(SettingsForReceiveAutomation)
+                group(ReceiveAutomation)
                 {
                     Caption = 'Receiving';
                     AboutTitle = 'Receiving Related Automation Settings';
@@ -130,7 +123,7 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Transfer Orders Trigger';
                     }
                 }
-                group(SettingsForProductionAutomation)
+                group(ProductionAutomation)
                 {
                     Caption = 'Production';
                     AboutTitle = 'Production Related Automation Settings';
@@ -171,7 +164,7 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
-                group(SettingsForWarehouseAutomation)
+                group(WarehouseAutomation)
                 {
                     Caption = 'Inventory and Warehousing';
                     AboutTitle = 'Warehousing Related Automation Settings';
@@ -187,7 +180,7 @@ page 20400 "Qlty. Management Setup"
                     }
                 }
             }
-            group(SettingsForBinMovements)
+            group(BinMovements)
             {
                 Caption = 'Bin Movements and Reclassifications';
                 InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
@@ -214,7 +207,7 @@ page 20400 "Qlty. Management Setup"
                     AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
                 }
             }
-            group(SettingsForAdjustments)
+            group(Adjustments)
             {
                 Caption = 'Inventory Adjustments';
                 InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
@@ -235,7 +228,7 @@ page 20400 "Qlty. Management Setup"
                 }
             }
 
-            group(SettingsForTracking)
+            group(Tracking)
             {
                 Caption = 'Item Tracking';
                 InstructionalText = 'Will your item tracking numbers always be posted when performing quality inspections?';
@@ -244,120 +237,14 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = All;
                     AboutTitle = 'Item Tracking';
-                    AboutText = 'Will your lot numbers always be posted when performing quality inspections?';
+                    AboutText = 'Will your item tracking numbers always be posted when performing quality inspections?';
                 }
                 field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
                     ShowCaption = true;
-                    AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
+                    AboutTitle = 'Which inspections to inspect when analyzing document specific item tracking blocking.';
                     AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
-                }
-            }
-            group(SettingsForMobileAndBricks)
-            {
-                Caption = 'Personal Device Interface';
-                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface.';
-                Visible = false;
-
-                field("Brick Top Left Header"; Rec."Brick Top Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Top Left Expression"; Rec."Brick Top Left Expression")
-                {
-                    ApplicationArea = All;
-
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Top Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Left Header"; Rec."Brick Middle Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Left Expression"; Rec."Brick Middle Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Right Header"; Rec."Brick Middle Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Right Expression"; Rec."Brick Middle Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Left Header"; Rec."Brick Bottom Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Left Expression"; Rec."Brick Bottom Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Right Header"; Rec."Brick Bottom Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Right Expression"; Rec."Brick Bottom Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(ChooseBrickRevertToDefaults; 'Revert To Defaults')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to use defaults for this Personal Device Interface group.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-                        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-                        Rec.Modify();
-                    end;
-                }
-                field(ChooseBrickUpdateExistingInspection; 'Update Existing Inspections')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to update existing inspections with your new brick expressions.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.UpdateBrickFieldsOnAllExistingInspection();
-                    end;
                 }
             }
         }
@@ -372,7 +259,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Templates';
                 ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
-                Image = TaskQualityMeasure;
+                Image = BreakpointsList;
                 AboutTitle = 'Quality Inspection Template';
                 AboutText = 'A Quality Inspection Template is a set of questions and data points that you want to collect.';
                 RunObject = Page "Qlty. Inspection Template List";
@@ -383,7 +270,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                Image = EditFilter;
+                Image = FilterLines;
                 AboutTitle = 'Quality Inspection Generation Rule';
                 AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
                 RunObject = Page "Qlty. Inspection Gen. Rules";
@@ -394,10 +281,21 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Results';
                 ToolTip = 'View the Quality Inspection Results. Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
-                Image = Permission;
+                Image = ViewRegisteredOrder;
                 AboutTitle = 'Results';
                 AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 RunObject = Page "Qlty. Inspection Result List";
+                RunPageMode = Edit;
+            }
+            action(Tests)
+            {
+                ApplicationArea = All;
+                Caption = 'Tests';
+                ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                Image = Task;
+                AboutTitle = 'Tests';
+                AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
             }
         }
@@ -416,9 +314,6 @@ page 20400 "Qlty. Management Setup"
             if Rec.Get() then;
             FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
         end;
-
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
     end;
 
     trigger OnClosePage()

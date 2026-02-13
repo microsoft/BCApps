@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Inventory.Tracking;
 
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries"
@@ -17,10 +16,10 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
-                Visible = QltyReadTestResults;
 
                 trigger OnAction()
                 begin
@@ -30,20 +29,6 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
         }
     }
 
-    var
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
-
     local procedure ShowQualityInspections()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -51,10 +36,10 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
         QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
         if Rec."Variant Code" <> '' then
             QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
-        if Rec."Serial No." <> '' then
-            QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
         if Rec."Lot No." <> '' then
             QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
+        if Rec."Serial No." <> '' then
+            QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
         if Rec."Package No." <> '' then
             QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
         if Rec."Location Code" <> '' then

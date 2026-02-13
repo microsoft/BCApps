@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.QualityManagement.Configuration.Result;
-using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
@@ -72,7 +71,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
                     Editable = Visible1;
@@ -89,7 +88,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
                     Editable = Visible1;
@@ -106,7 +105,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                     Editable = Visible2;
@@ -123,7 +122,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                     Editable = Visible2;
@@ -140,7 +139,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                     Editable = Visible3;
@@ -157,7 +156,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                     Editable = Visible3;
@@ -174,7 +173,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
@@ -191,7 +190,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
@@ -208,7 +207,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
@@ -225,7 +224,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
@@ -242,7 +241,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
@@ -259,7 +258,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
@@ -276,7 +275,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
@@ -293,7 +292,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
@@ -310,7 +309,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
@@ -327,7 +326,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
@@ -344,7 +343,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
@@ -361,7 +360,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
@@ -378,7 +377,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10];
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
@@ -395,7 +394,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
@@ -410,49 +409,6 @@ page 20403 "Qlty. Inspection Template Subf"
                         AssistEditConditionDescription(10);
                     end;
                 }
-            }
-        }
-    }
-
-    actions
-    {
-        area(Processing)
-        {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add Test(s) To This Template';
-                ToolTip = 'Add a new Test or existing Test(s) to this template';
-                Scope = Repeater;
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-            action(EditTest)
-            {
-                Image = Edit;
-                Caption = 'Edit Test';
-                ToolTip = 'This will edit your existing selected test.';
-                Scope = Repeater;
-
-                trigger OnAction()
-                var
-                    QltyTest: Record "Qlty. Test";
-                    QltyTestWizard: Page "Qlty. Test Wizard";
-                begin
-                    QltyTest.Get(Rec."Test Code");
-                    if QltyTestWizard.RunModalEditExistingTest(QltyTest) in [Action::OK, Action::LookupOK, Action::Yes] then begin
-                        QltyTest.Get(QltyTest.Code);
-                        Rec.Validate("Test Code", QltyTest.Code);
-                        Rec.Description := QltyTest.Description;
-                        Rec."Expression Formula" := QltyTest."Expression Formula";
-                        Rec.EnsureResultsExist(true);
-                        CurrPage.Update(true);
-                    end else
-                        CurrPage.Update(false);
-                end;
             }
         }
     }
@@ -477,6 +433,8 @@ page 20403 "Qlty. Inspection Template Subf"
         Visible8: Boolean;
         Visible9: Boolean;
         Visible10: Boolean;
+        DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
+        ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
@@ -605,34 +563,5 @@ page 20403 "Qlty. Inspection Template Subf"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test to this template.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestWizard: Page "Qlty. Test Wizard";
-        OfFieldsToAdd: list of [Code[20]];
-        TemplateCode: Code[20];
-        TestCode: Code[20];
-        FilterGroupIterator: Integer;
-    begin
-        FilterGroupIterator := 4;
-        repeat
-            Rec.FilterGroup(FilterGroupIterator);
-            if Rec.GetFilter("Template Code") <> '' then
-                TemplateCode := Rec.GetRangeMin("Template Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (TemplateCode <> '');
-        QltyInspectionTemplateHdr.Get(TemplateCode);
-        Rec.FilterGroup(0);
-        QltyTestWizard.RunModal();
-        if QltyTestWizard.GetFieldsToAdd(OfFieldsToAdd) then
-            foreach TestCode in OfFieldsToAdd do
-                QltyInspectionTemplateHdr.AddTestToTemplate(TestCode);
-        CurrPage.Update();
     end;
 }

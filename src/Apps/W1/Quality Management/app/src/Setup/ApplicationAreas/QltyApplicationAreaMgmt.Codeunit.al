@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.ApplicationAreas;
 
-using Microsoft.QualityManagement.Setup;
 using System.Environment.Configuration;
 
 codeunit 20420 "Qlty. Application Area Mgmt."
@@ -32,27 +31,14 @@ codeunit 20420 "Qlty. Application Area Mgmt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", 'OnGetEssentialExperienceAppAreas', '', false, true)]
     local procedure HandleOnGetEssentialExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary);
     begin
-        AutoEnableAppAreaForUpresults(TempApplicationAreaSetup);
+        TempApplicationAreaSetup."Quality Management" := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", 'OnGetPremiumExperienceAppAreas', '', false, true)]
     local procedure HandleOnGetPremiumExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary);
     begin
-        AutoEnableAppAreaForUpresults(TempApplicationAreaSetup);
+        TempApplicationAreaSetup."Quality Management" := true;
     end;
 
     #endregion Event Subscribers
-
-    local procedure AutoEnableAppAreaForUpresults(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        TempApplicationAreaSetup."Quality Management" := true;
-
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-
-        if QltyManagementSetup.Get() then;
-        TempApplicationAreaSetup."Quality Management" := QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Show;
-    end;
 }

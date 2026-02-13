@@ -54,6 +54,11 @@ table 20401 "Qlty. Test"
         {
             Caption = 'Allowable Values';
             ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+            trigger OnValidate()
+            begin
+                if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Option", Rec."Test Value Type"::"Value Type Table Lookup"] then
+                    Rec."Allowable Values" := CopyStr(Rec."Allowable Values".Replace(', ', ','), 1, MaxStrLen(Rec."Allowable Values"));
+            end;
         }
         field(6; "Lookup Table No."; Integer)
         {
@@ -65,7 +70,7 @@ table 20401 "Qlty. Test"
 
             trigger OnValidate()
             var
-                TempFilteringOnlyQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+                TempFilteringOnlyQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
                 QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
                 LookupFilter: Text;
             begin
@@ -73,11 +78,11 @@ table 20401 "Qlty. Test"
                     Rec.Validate("Lookup Field No.", 0);
                     Rec."Lookup Table Filter" := '';
                     Rec."Allowable Values" := '';
-                    if Rec."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
-                        TempFilteringOnlyQltyLookupCode.SetRange("Group Code", Rec."Code");
-                        LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyLookupCode.GetView());
+                    if Rec."Lookup Table No." = Database::"Qlty. Test Lookup Value" then begin
+                        TempFilteringOnlyQltyTestLookupValue.SetRange("Lookup Group Code", Rec."Code");
+                        LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyTestLookupValue.GetView());
                         Rec.Validate("Lookup Table Filter", CopyStr(LookupFilter, 1, MaxStrLen(Rec."Lookup Table Filter")));
-                        Rec.Validate("Lookup Field No.", TempFilteringOnlyQltyLookupCode.FieldNo(Code));
+                        Rec.Validate("Lookup Field No.", TempFilteringOnlyQltyTestLookupValue.FieldNo("Value"));
                     end;
                 end;
 
@@ -139,16 +144,6 @@ table 20401 "Qlty. Test"
                 Rec.UpdateAllowedValuesFromTableLookup();
             end;
         }
-        field(14; "Wizard Internal"; Enum "Qlty. Test Wizard State")
-        {
-            Caption = '(internal use) Test Wizard State';
-            DataClassification = SystemMetadata;
-        }
-        field(15; "Example Value"; Text[250])
-        {
-            Caption = 'Example Value';
-            Description = '(internal) Used for a variety of buffers.';
-        }
         field(16; "Default Value"; Text[250])
         {
             Caption = 'Default Value';
@@ -162,13 +157,11 @@ table 20401 "Qlty. Test"
         field(17; "Case Sensitive"; Enum "Qlty. Case Sensitivity")
         {
             Caption = 'Case Sensitivity';
-            Description = 'Specifies if case sensitivity will be enabled for text-based fields.';
             ToolTip = 'Specifies if case sensitivity will be enabled for text-based fields.';
         }
         field(18; "Expression Formula"; Text[500])
         {
             Caption = 'Expression Formula';
-            Description = 'Used with expression field types, this contains the formula for the expression content.';
             ToolTip = 'Specifies the formula for the expression content when using expression field types.';
 
             trigger OnValidate()
@@ -198,7 +191,7 @@ table 20401 "Qlty. Test"
         fieldgroup(DropDown; Code, Description, "Allowable Values", "Test Value Type")
         {
         }
-        fieldgroup(Brick; Code, Description, "Example Value", "Allowable Values", "Test Value Type")
+        fieldgroup(Brick; Code, Description, "Allowable Values", "Test Value Type")
         {
         }
     }
@@ -211,9 +204,9 @@ table 20401 "Qlty. Test"
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
         ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
-        DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed?', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
         DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections. ';
+        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections.';
         TestValueTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
@@ -262,10 +255,10 @@ table 20401 "Qlty. Test"
     /// </summary>
     procedure AssistEditDefaultValue()
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistEditDefaultValue(Rec, Handled);
-        if Handled then
+        OnBeforeAssistEditDefaultValue(Rec, IsHandled);
+        if IsHandled then
             exit;
 
         case Rec."Test Value Type" of
@@ -291,11 +284,11 @@ table 20401 "Qlty. Test"
 
     local procedure AssistEditChooseFromTableLookup()
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        Rec.CollectAllowableValues(TempBufferQltyLookupCode, Rec."Default Value");
-        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyLookupCode) = Action::LookupOK then
-            Rec.Validate("Default Value", CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(Rec."Default Value")));
+        Rec.CollectAllowableValues(TempBufferQltyTestLookupValue, Rec."Default Value");
+        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyTestLookupValue) = Action::LookupOK then
+            Rec.Validate("Default Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Default Value")));
     end;
 
     internal procedure AssistEditFreeText()
@@ -373,10 +366,10 @@ table 20401 "Qlty. Test"
 
     trigger OnDelete()
     begin
-        EnsureCanBeDeleted(false);
+        CheckDeleteConstraints(false);
     end;
 
-    procedure EnsureCanBeDeleted(AskQuestion: Boolean)
+    procedure CheckDeleteConstraints(AskQuestion: Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -487,17 +480,17 @@ table 20401 "Qlty. Test"
     /// Custom 3 = uppercase value.
     /// </summary>
     /// <param name="ContextQltyInspectionHeader">Supply if you want to give an inspection, this is useful for table lookups which can have additional values.</param>
-    /// <param name="TempBufferQltyLookupCode"></param>
+    /// <param name="TempBufferQltyTestLookupValue"></param>
     /// <param name="OptionalSetToValue">Leave empty to ignore. Supply a value to have the record auto-filtered to the supplied record that matches</param>
-    procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
+    procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
         TempDummyContextQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyContextQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyLookupCode, OptionalSetToValue);
+        CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyTestLookupValue, OptionalSetToValue);
     end;
 
-    procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
+    procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         OfChoices: List of [Text];
@@ -506,34 +499,34 @@ table 20401 "Qlty. Test"
         case Rec."Test Value Type" of
             Rec."Test Value Type"::"Value Type Table Lookup":
                 begin
-                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode);
-                    if TempBufferQltyLookupCode.FindSet() then begin
+                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyTestLookupValue);
+                    if TempBufferQltyTestLookupValue.FindSet() then begin
                         if OptionalSetToValue <> '' then begin
-                            TempBufferQltyLookupCode.SetRange(Code, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyLookupCode.Code)));
-                            if not TempBufferQltyLookupCode.FindSet() then begin
-                                TempBufferQltyLookupCode.SetRange(Description, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyLookupCode.Description)));
-                                if not TempBufferQltyLookupCode.FindSet() then;
+                            TempBufferQltyTestLookupValue.SetRange("Value", CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value")));
+                            if not TempBufferQltyTestLookupValue.FindSet() then begin
+                                TempBufferQltyTestLookupValue.SetRange(Description, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyTestLookupValue.Description)));
+                                if not TempBufferQltyTestLookupValue.FindSet() then;
                             end;
                         end;
-                        TempBufferQltyLookupCode.SetRange(Code);
-                        TempBufferQltyLookupCode.SetRange(Description);
+                        TempBufferQltyTestLookupValue.SetRange("Value");
+                        TempBufferQltyTestLookupValue.SetRange(Description);
                     end;
                 end;
             Rec."Test Value Type"::"Value Type Option":
                 begin
-                    TempBufferQltyLookupCode.Reset();
+                    TempBufferQltyTestLookupValue.Reset();
                     OfChoices := Rec."Allowable Values".Split(',');
                     foreach Choice in OfChoices do begin
                         Choice := Choice.Trim();
-                        if not TempBufferQltyLookupCode.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code))) then begin
-                            TempBufferQltyLookupCode.Init();
-                            TempBufferQltyLookupCode."Group Code" := Rec.Code;
-                        TempBufferQltyLookupCode.Code := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code));
-                        TempBufferQltyLookupCode.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Description));
-                        TempBufferQltyLookupCode."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
-                        TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
-                        TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
-                            TempBufferQltyLookupCode.Insert();
+                        if not TempBufferQltyTestLookupValue.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value"))) then begin
+                            TempBufferQltyTestLookupValue.Init();
+                            TempBufferQltyTestLookupValue."Lookup Group Code" := Rec.Code;
+                            TempBufferQltyTestLookupValue."Value" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value"));
+                            TempBufferQltyTestLookupValue.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue.Description));
+                            TempBufferQltyTestLookupValue."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Custom 1"));
+                            TempBufferQltyTestLookupValue."Custom 2" := TempBufferQltyTestLookupValue."Custom 1".ToLower();
+                            TempBufferQltyTestLookupValue."Custom 3" := TempBufferQltyTestLookupValue."Custom 1".ToUpper();
+                            TempBufferQltyTestLookupValue.Insert();
                         end;
                     end;
                 end;
@@ -562,7 +555,7 @@ table 20401 "Qlty. Test"
             Rec."Lookup Table Filter" := '';
 
             if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then
-                Rec.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
+                Rec.Validate("Lookup Table No.", Database::"Qlty. Test Lookup Value");
         end;
 
         QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
@@ -586,19 +579,19 @@ table 20401 "Qlty. Test"
 
     procedure AssistEditAllowableValues()
     var
-        QltyLookupCode: Record "Qlty. Lookup Code";
+        QltyTestLookupValue: Record "Qlty. Test Lookup Value";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, Handled);
-        if Handled then
+        OnBeforeAssistAllowableValues(Rec, QltyInspectionTemplateEdit, IsHandled);
+        if IsHandled then
             exit;
 
         if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then begin
-            if (Rec.Code <> '') and (Rec."Lookup Table No." = Database::"Qlty. Lookup Code") then begin
-                QltyLookupCode.SetRange("Group Code", Rec.Code);
-                Page.RunModal(Page::"Qlty. Lookup Code List", QltyLookupCode);
+            if (Rec.Code <> '') and (Rec."Lookup Table No." = Database::"Qlty. Test Lookup Value") then begin
+                QltyTestLookupValue.SetRange("Lookup Group Code", Rec.Code);
+                Page.RunModal(Page::"Qlty. Test Lookup Values", QltyTestLookupValue);
             end;
             Rec.UpdateAllowedValuesFromTableLookup();
         end else begin
@@ -616,10 +609,10 @@ table 20401 "Qlty. Test"
     /// <returns></returns>
     procedure IsNumericFieldType() IsNumeric: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnGetIsNumericFieldType(Rec, IsNumeric, Handled);
-        if Handled then
+        OnBeforeIsNumericFieldType(Rec, IsNumeric, IsHandled);
+        if IsHandled then
             exit;
 
         IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
@@ -633,9 +626,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="IsNumeric"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
+    local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -644,9 +637,9 @@ table 20401 "Qlty. Test"
     /// </summary>
     /// <param name="QltyTest"></param>
     /// <param name="QltyInspectionTemplateEdit"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var Handled: Boolean)
+    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var IsHandled: Boolean)
     begin
     end;
 
@@ -654,9 +647,9 @@ table 20401 "Qlty. Test"
     /// Provides an ability to extend or replace assist editing the default value.
     /// </summary>
     /// <param name="QltyTest"></param>
-    /// <param name="Handled">Set to true to prevent base behavior from occurring.</param>
+    /// <param name="IsHandled">Set to true to prevent base behavior from occurring.</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var Handled: Boolean)
+    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var IsHandled: Boolean)
     begin
     end;
 }
