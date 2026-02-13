@@ -27,8 +27,10 @@ codeunit 8351 "MCP Config Implementation"
         CreateUpdateDeleteNotAllowedErr: Label 'Create, update and delete tools are not allowed for this MCP configuration.';
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
         PageNotFoundErr: Label 'Page not found.';
+        QueryNotFoundErr: Label 'Query not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
-        InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
+        InvalidQueryTypeErr: Label 'Only API queries are supported.';
+        InvalidAPIVersionErr: Label 'Only API v2.0 objects are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
         VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
@@ -115,6 +117,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
         MCPConfigurationTool.SetRange(ID, ConfigId);
         if MCPConfigurationTool.IsEmpty() then
             exit;
@@ -349,7 +352,7 @@ codeunit 8351 "MCP Config Implementation"
     #endregion
 
     #region Tools
-    internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
+    internal procedure CreateAPIPageTool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -361,26 +364,49 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        PageMetadata := ValidateAPITool(APIPageId, ValidateAPIPublisher);
+        PageMetadata := ValidateAPIPageTool(APIPageId, ValidateAPIPublisher);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool."Allow Read" := true;
-        MCPConfigurationTool."API Version" := GetHighestAPIVersion(PageMetadata);
+        MCPConfigurationTool."API Version" := GetHighestAPIPageVersion(PageMetadata);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    internal procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
+    internal procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Guid
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         EmptyGuid: Guid;
     begin
-        if MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, APIPageId) then
+        if MCPConfigurationTool.Get(ConfigId, ObjectType, ObjectId) then
             exit(MCPConfigurationTool.SystemId);
 
         exit(EmptyGuid);
+    end;
+
+    internal procedure CreateAPIQueryTool(ConfigId: Guid; QueryAPIId: Integer): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        QueryMetadata: Record "Query Metadata";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if IsDefaultConfiguration(MCPConfiguration) then
+            Error(ToolsCannotBeAddedToDefaultConfigErr);
+
+        QueryMetadata := ValidateAPIQueryTool(QueryAPIId);
+
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
+        MCPConfigurationTool."Object ID" := QueryAPIId;
+        MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."API Version" := GetHighestAPIQueryVersion(QueryMetadata);
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
     end;
 
     internal procedure DeleteTool(ToolId: Guid)
@@ -411,6 +437,9 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
+            exit; // Create is not applicable for query tools
+
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
@@ -424,6 +453,9 @@ codeunit 8351 "MCP Config Implementation"
     begin
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
+
+        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
+            exit; // Modify is not applicable for query tools
 
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
@@ -439,6 +471,9 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
+            exit; // Delete is not applicable for query tools
+
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
@@ -453,6 +488,9 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
+            exit; // Bound actions is not applicable for query tools
+
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
@@ -460,7 +498,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
+    internal procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
     var
         MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
     begin
@@ -477,7 +515,7 @@ codeunit 8351 "MCP Config Implementation"
         exit(true);
     end;
 
-    internal procedure LookupQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
+    internal procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
     var
         MCPQueryConfigToolLookup: Page "MCP Query Config Tool Lookup";
     begin
@@ -485,17 +523,22 @@ codeunit 8351 "MCP Config Implementation"
         QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         QueryMetadata.SetFilter(ID, '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
 
-        // MCPQueryConfigToolLookup.LookupMode := true;
+        MCPQueryConfigToolLookup.LookupMode := true;
         MCPQueryConfigToolLookup.SetTableView(QueryMetadata);
-        MCPQueryConfigToolLookup.Run();
-        // if MCPQueryConfigToolLookup.RunModal() <> Action::LookupOK then
-        //     exit(false);
+        if MCPQueryConfigToolLookup.RunModal() <> Action::LookupOK then
+            exit(false);
 
         MCPQueryConfigToolLookup.SetSelectionFilter(QueryMetadata);
         exit(true);
     end;
 
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
+    begin
+        GetAPIPagePublishers(MCPAPIPublisherGroup);
+        GetAPIQueryPublishers(MCPAPIPublisherGroup);
+    end;
+
+    local procedure GetAPIPagePublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
         PageMetadata: Record "Page Metadata";
     begin
@@ -512,6 +555,25 @@ codeunit 8351 "MCP Config Implementation"
             MCPAPIPublisherGroup."API Group" := PageMetadata.APIGroup;
             MCPAPIPublisherGroup.Insert();
         until PageMetadata.Next() = 0;
+    end;
+
+    local procedure GetAPIQueryPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
+    var
+        QueryMetadata: Record "Query Metadata";
+    begin
+        QueryMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
+        QueryMetadata.SetFilter(EntityName, '<>%1', '');
+        QueryMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        if not QueryMetadata.FindSet() then
+            exit;
+
+        repeat
+            if MCPAPIPublisherGroup.Get(QueryMetadata.APIPublisher, QueryMetadata.APIGroup) then
+                continue;
+            MCPAPIPublisherGroup."API Publisher" := QueryMetadata.APIPublisher;
+            MCPAPIPublisherGroup."API Group" := QueryMetadata.APIGroup;
+            MCPAPIPublisherGroup.Insert();
+        until QueryMetadata.Next() = 0;
     end;
 
     internal procedure LookupAPIPublisher(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; var APIGroup: Text)
@@ -532,7 +594,7 @@ codeunit 8351 "MCP Config Implementation"
             APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
-    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
+    internal procedure ValidateAPIPageTool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
     var
         PageMetadata: Record "Page Metadata";
     begin
@@ -554,9 +616,24 @@ codeunit 8351 "MCP Config Implementation"
         exit(PageMetadata);
     end;
 
+    internal procedure ValidateAPIQueryTool(QueryId: Integer): Record "Query Metadata"
+    var
+        QueryMetadata: Record "Query Metadata";
+    begin
+        if not QueryMetadata.Get(QueryId) then
+            Error(QueryNotFoundErr);
+
+        if QueryMetadata.EntityName = '' then
+            Error(InvalidQueryTypeErr);
+
+        if QueryMetadata."AL Namespace" = 'Microsoft.API.V1' then
+            Error(InvalidAPIVersionErr);
+
+        exit(QueryMetadata);
+    end;
+
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
     var
-        PageMetadata: Record "Page Metadata";
         MCPToolsByAPIGroup: Page "MCP Tools By API Group";
         APIGroup: Text;
         APIPublisher: Text;
@@ -574,6 +651,15 @@ codeunit 8351 "MCP Config Implementation"
         if APIPublisher = 'microsoft' then
             exit;
 
+        AddAPIPageTools(ConfigId, APIPublisher, APIGroup);
+        AddAPIQueryTools(ConfigId, APIPublisher, APIGroup);
+    end;
+
+    local procedure AddAPIPageTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
+    var
+        PageMetadata: Record "Page Metadata";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, APIPublisher);
         PageMetadata.SetFilter(APIGroup, APIGroup);
@@ -581,15 +667,34 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
                 continue;
-            CreateAPITool(ConfigId, PageMetadata.ID, false);
+            CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
+    end;
+
+    local procedure AddAPIQueryTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
+    var
+        QueryMetadata: Record "Query Metadata";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        QueryMetadata.SetFilter(EntityName, '<>%1', '');
+        QueryMetadata.SetFilter(APIPublisher, APIPublisher);
+        QueryMetadata.SetFilter(APIGroup, APIGroup);
+        if not QueryMetadata.FindSet() then
+            exit;
+
+        repeat
+            if CheckAPIToolExists(ConfigId, QueryMetadata.ID, MCPConfigurationTool."Object Type"::Query) then
+                continue;
+            CreateAPIQueryTool(ConfigId, QueryMetadata.ID);
+        until QueryMetadata.Next() = 0;
     end;
 
     internal procedure AddStandardAPITools(ConfigId: Guid)
     var
         PageMetadata: Record "Page Metadata";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '=%1', '');
@@ -599,19 +704,19 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
                 continue;
-            CreateAPITool(ConfigId, PageMetadata.ID, false);
+            CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
 
-    internal procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    internal procedure CheckAPIToolExists(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Boolean
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
         MCPConfigurationTool.SetRange(ID, ConfigId);
-        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
-        MCPConfigurationTool.SetRange("Object ID", PageId);
+        MCPConfigurationTool.SetRange("Object Type", ObjectType);
+        MCPConfigurationTool.SetRange("Object ID", ObjectId);
         exit(not MCPConfigurationTool.IsEmpty());
     end;
 
@@ -624,8 +729,12 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit('');
 
-        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Page then
-            ObjectType := ObjectType::Page;
+        case MCPConfigurationTool."Object Type" of
+            MCPConfigurationTool."Object Type"::Page:
+                ObjectType := ObjectType::Page;
+            MCPConfigurationTool."Object Type"::Query:
+                ObjectType := ObjectType::Query;
+        end;
 
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
@@ -653,7 +762,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPSystemTool.Insert();
     end;
 
-    internal procedure ValidateAPIVersion(ObjectId: Integer; APIVersion: Text)
+    internal procedure ValidateAPIPageVersion(ObjectId: Integer; APIVersion: Text)
     var
         PageMetadata: Record "Page Metadata";
         Versions: List of [Text];
@@ -666,7 +775,20 @@ codeunit 8351 "MCP Config Implementation"
             Error(VersionNotValidErr);
     end;
 
-    internal procedure LookupAPIVersions(PageId: Integer; var APIVersion: Text[30])
+    internal procedure ValidateAPIQueryVersion(ObjectId: Integer; APIVersion: Text)
+    var
+        QueryMetadata: Record "Query Metadata";
+        Versions: List of [Text];
+    begin
+        if not QueryMetadata.Get(ObjectId) then
+            exit;
+
+        Versions := QueryMetadata.APIVersion.Split(',');
+        if not Versions.Contains(APIVersion) then
+            Error(VersionNotValidErr);
+    end;
+
+    internal procedure LookupAPIPageVersions(PageId: Integer; var APIVersion: Text[30])
     var
         PageMetadata: Record "Page Metadata";
         MCPAPIVersion: Record "MCP API Version";
@@ -686,9 +808,44 @@ codeunit 8351 "MCP Config Implementation"
             APIVersion := MCPAPIVersion."API Version";
     end;
 
-    internal procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    internal procedure LookupAPIQueryVersions(QueryId: Integer; var APIVersion: Text[30])
     var
+        QueryMetadata: Record "Query Metadata";
+        MCPAPIVersion: Record "MCP API Version";
         Versions: List of [Text];
+        Version: Text[30];
+    begin
+        if not QueryMetadata.Get(QueryId) then
+            exit;
+
+        Versions := QueryMetadata.APIVersion.Split(',');
+        foreach Version in Versions do begin
+            MCPAPIVersion."API Version" := Version;
+            MCPAPIVersion.Insert();
+        end;
+
+        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
+            APIVersion := MCPAPIVersion."API Version";
+    end;
+
+    internal procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    begin
+        if PageMetadata.APIVersion = '' then
+            exit('');
+
+        exit(GetHighestVersion(PageMetadata.APIVersion.Split(',')));
+    end;
+
+    internal procedure GetHighestAPIQueryVersion(QueryMetadata: Record "Query Metadata"): Text[30]
+    begin
+        if QueryMetadata.APIVersion = '' then
+            exit('');
+
+        exit(GetHighestVersion(QueryMetadata.APIVersion.Split(',')));
+    end;
+
+    local procedure GetHighestVersion(Versions: List of [Text]): Text[30]
+    var
         Version: Text;
         HighestVersion: Text;
         HighestMajor: Integer;
@@ -696,11 +853,6 @@ codeunit 8351 "MCP Config Implementation"
         CurrentMajor: Integer;
         CurrentMinor: Integer;
     begin
-        if PageMetadata.APIVersion = '' then
-            exit('');
-
-        Versions := PageMetadata.APIVersion.Split(',');
-
         if Versions.Count() = 1 then
             exit(CopyStr(Versions.Get(1), 1, 30));
 
@@ -1008,6 +1160,8 @@ codeunit 8351 "MCP Config Implementation"
             ObjectTypeText := ToolJson.GetText('objectType');
             if ObjectTypeText = 'Page' then
                 MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
+            if ObjectTypeText = 'Query' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
         end;
 
         if ToolJson.Contains('objectId') then

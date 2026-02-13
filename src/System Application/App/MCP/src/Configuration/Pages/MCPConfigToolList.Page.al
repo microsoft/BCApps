@@ -35,17 +35,37 @@ page 8352 "MCP Config Tool List"
                         PageMetadata: Record "Page Metadata";
                         QueryMetadata: Record "Query Metadata";
                     begin
-                        if not MCPConfigImplementation.LookupQueryTools(QueryMetadata) then
-                            exit;
+                        case Rec."Object Type" of
+                            Rec."Object Type"::Page:
+                                begin
+                                    if not MCPConfigImplementation.LookupAPIPageTools(PageMetadata) then
+                                        exit;
 
-                        if not PageMetadata.FindSet() then
-                            exit;
+                                    if not PageMetadata.FindSet() then
+                                        exit;
 
-                        repeat
-                            if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
-                                continue;
-                            MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
-                        until PageMetadata.Next() = 0;
+                                    repeat
+                                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID, Rec."Object Type") then
+                                            continue;
+                                        MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
+                                    until PageMetadata.Next() = 0;
+                                end;
+                            Rec."Object Type"::Query:
+                                begin
+                                    if not MCPConfigImplementation.LookupAPIQueryTools(QueryMetadata) then
+                                        exit;
+
+                                    if not QueryMetadata.FindSet() then
+                                        exit;
+
+                                    repeat
+                                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, QueryMetadata.ID, Rec."Object Type") then
+                                            continue;
+                                        MCPConfig.CreateQueryAPITool(Rec.ID, QueryMetadata.ID);
+                                    until QueryMetadata.Next() = 0;
+                                end;
+                        end;
+
 
                         if not IsNullGuid(Rec.SystemId) then
                             Rec.Delete();
@@ -55,9 +75,20 @@ page 8352 "MCP Config Tool List"
                     trigger OnValidate()
                     var
                         PageMetadata: Record "Page Metadata";
+                        QueryMetadata: Record "Query Metadata";
                     begin
-                        PageMetadata := MCPConfigImplementation.ValidateAPITool(Rec."Object Id", true);
-                        Rec."API Version" := MCPConfigImplementation.GetHighestAPIVersion(PageMetadata);
+                        case Rec."Object Type" of
+                            Rec."Object Type"::Page:
+                                begin
+                                    PageMetadata := MCPConfigImplementation.ValidateAPIPageTool(Rec."Object Id", true);
+                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata);
+                                end;
+                            Rec."Object Type"::Query:
+                                begin
+                                    QueryMetadata := MCPConfigImplementation.ValidateAPIQueryTool(Rec."Object Id");
+                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIQueryVersion(QueryMetadata);
+                                end;
+                        end;
                         SetPermissions();
                     end;
                 }
@@ -79,32 +110,42 @@ page 8352 "MCP Config Tool List"
                         if Rec."Object ID" = 0 then
                             exit;
 
-                        MCPConfigImplementation.LookupAPIVersions(Rec."Object Id", APIVersion);
+                        case Rec."Object Type" of
+                            Rec."Object Type"::Page:
+                                MCPConfigImplementation.LookupAPIPageVersions(Rec."Object Id", APIVersion);
+                            Rec."Object Type"::Query:
+                                MCPConfigImplementation.LookupAPIQueryVersions(Rec."Object Id", APIVersion);
+                        end;
                         if APIVersion <> '' then
                             Rec."API Version" := APIVersion;
                     end;
 
                     trigger OnValidate()
                     begin
-                        MCPConfigImplementation.ValidateAPIVersion(Rec."Object Id", Rec."API Version");
+                        case Rec."Object Type" of
+                            Rec."Object Type"::Page:
+                                MCPConfigImplementation.ValidateAPIPageVersion(Rec."Object Id", Rec."API Version");
+                            Rec."Object Type"::Query:
+                                MCPConfigImplementation.ValidateAPIQueryVersion(Rec."Object Id", Rec."API Version");
+                        end;
                     end;
                 }
                 field("Allow Read"; Rec."Allow Read") { }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools;
+                    Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools;
+                    Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools;
+                    Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
-                    Editable = AllowCreateUpdateDeleteTools;
+                    Editable = AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
             }
         }
@@ -124,19 +165,41 @@ page 8352 "MCP Config Tool List"
                 trigger OnAction()
                 var
                     PageMetadata: Record "Page Metadata";
+                    QueryMetadata: Record "Query Metadata";
                 begin
-                    if not MCPConfigImplementation.LookupAPITools(PageMetadata) then
-                        exit;
+                    case Rec."Object Type" of
+                        Rec."Object Type"::Page:
+                            begin
+                                if not MCPConfigImplementation.LookupAPIPageTools(PageMetadata) then
+                                    exit;
 
-                    if not PageMetadata.FindSet() then
-                        exit;
+                                if not PageMetadata.FindSet() then
+                                    exit;
 
-                    repeat
-                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID) then
-                            continue;
-                        MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
-                    until PageMetadata.Next() = 0;
+                                repeat
+                                    if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, PageMetadata.ID, Rec."Object Type") then
+                                        continue;
+                                    MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
+                                until PageMetadata.Next() = 0;
+                            end;
+                        Rec."Object Type"::Query:
+                            begin
+                                if not MCPConfigImplementation.LookupAPIQueryTools(QueryMetadata) then
+                                    exit;
 
+                                if not QueryMetadata.FindSet() then
+                                    exit;
+
+                                repeat
+                                    if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, QueryMetadata.ID, Rec."Object Type") then
+                                        continue;
+                                    MCPConfig.CreateQueryAPITool(Rec.ID, QueryMetadata.ID);
+                                until QueryMetadata.Next() = 0;
+                            end;
+                    end;
+
+                    if not IsNullGuid(Rec.SystemId) then
+                        Rec.Delete();
                     CurrPage.Update();
                 end;
             }

@@ -7,7 +7,7 @@ namespace System.MCP;
 
 using System.Reflection;
 
-page 8357 "MCP Query Config Tool Lookup"
+page 8367 "MCP Query Config Tool Lookup"
 {
     PageType = List;
     ApplicationArea = All;
@@ -30,32 +30,32 @@ page 8357 "MCP Query Config Tool Lookup"
                 field(ID; Rec.ID)
                 {
                     Caption = 'ID';
-                    ToolTip = 'Specifies the unique identifier for the query API page.';
+                    ToolTip = 'Specifies the unique identifier for the query API tool.';
                 }
                 field(Name; Rec.Name)
                 {
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the query API page.';
+                    ToolTip = 'Specifies the name of the query API tool.';
                 }
                 field(EntityName; Rec.EntityName)
                 {
                     Caption = 'Entity Name';
-                    ToolTip = 'Specifies the entity name of the query API page.';
+                    ToolTip = 'Specifies the entity name of the query API tool.';
                 }
                 field(APIPublisher; Rec.APIPublisher)
                 {
                     Caption = 'API Publisher';
-                    ToolTip = 'Specifies the API publisher of the query API page.';
+                    ToolTip = 'Specifies the API publisher of the query API tool.';
                 }
                 field(APIGroup; Rec.APIGroup)
                 {
                     Caption = 'API Group';
-                    ToolTip = 'Specifies the API group of the query API page.';
+                    ToolTip = 'Specifies the API group of the query API tool.';
                 }
                 field(APIVersion; Rec.APIVersion)
                 {
                     Caption = 'API Version';
-                    ToolTip = 'Specifies the API version of the query API page.';
+                    ToolTip = 'Specifies the API version of the query API tool.';
                 }
             }
         }
