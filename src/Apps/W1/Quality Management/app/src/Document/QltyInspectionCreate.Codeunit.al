@@ -282,8 +282,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     begin
         case true of
             TargetRecordRef.Number() = 0,
-            not QltyManagementSetup.GetSetupRecord(),
-            QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide:
+            not QltyManagementSetup.GetSetupRecord():
                 exit(QltyInspectionCreateStatus::"Unable to Create");
         end;
 
