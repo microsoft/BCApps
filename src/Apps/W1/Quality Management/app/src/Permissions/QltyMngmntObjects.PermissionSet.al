@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.GuidedExperience;
 using Microsoft.QualityManagement.Installation;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
@@ -59,6 +60,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
+        codeunit "Qlty. Guided Experience" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
@@ -93,21 +95,16 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Workflow Setup" = X,
 
         // Pages
-        page "Qlty. Test Card Part" = X,
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Inspection Template Edit" = X,
-        page "Qlty. Choose Existing Tests" = X,
         page "Qlty. Manager RC" = X,
         page "Qlty. Test Card" = X,
         page "Qlty. Test Lookup" = X,
-        page "Qlty. Test Number Card Part" = X,
-        page "Qlty. Test Wizard" = X,
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Lookup Code List" = X,
-        page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
         page "Qlty. Management Setup" = X,

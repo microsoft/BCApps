@@ -477,14 +477,11 @@ page 6181 "E-Document Purchase Draft"
 
     trigger OnOpenPage()
     var
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);

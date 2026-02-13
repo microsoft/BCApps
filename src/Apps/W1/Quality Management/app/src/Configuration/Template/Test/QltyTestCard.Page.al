@@ -591,7 +591,7 @@ page 20479 "Qlty. Test Card"
 
                 trigger OnAction()
                 begin
-                    Rec.EnsureCanBeDeleted(true);
+                    Rec.CheckDeleteConstraints(true);
                     Rec.Delete(true);
                     CurrPage.Update(false);
                 end;

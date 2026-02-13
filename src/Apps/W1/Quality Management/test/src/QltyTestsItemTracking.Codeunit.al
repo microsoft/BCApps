@@ -2466,7 +2466,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         LotNo: Code[50];
@@ -2499,8 +2498,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         LotNo := ReservationEntry."Lot No.";
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '', QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2549,7 +2547,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2580,8 +2577,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '', QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2621,7 +2617,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2654,8 +2649,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         Serial := ReservationEntry."Serial No.";
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '', QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
