@@ -132,7 +132,7 @@ table 20406 "Qlty. Inspection Line"
         field(25; "Derived Numeric Value"; Decimal)
         {
             Caption = 'Derived Numeric Value';
-            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations and analysis.';
+            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations and analysis. This value is automatically calculated when the Test Value is entered or modified based on the configuration of the Test Value and is not directly editable.';
             Editable = false;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
