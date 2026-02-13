@@ -1294,7 +1294,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,GetVendorContractLinesProducesCorrectAmountsDuringSelectionPageHandler,ExchangeRateSelectionModalPageHandler')]
+    [HandlerFunctions('GetVendorContractLinesProducesCorrectAmountsDuringSelectionPageHandler')]
     procedure GetVendorContractLinesProducesCorrectAmountsDuringSelection()
     var
         Item: Record Item;
@@ -1306,7 +1306,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [GIVEN] Setup Subscription with Subscription Line and assign it to Vendor Subscription Contract
         // [GIVEN] Create Purchase Invoice with Purchase Invoice Line
         ContractTestLibrary.DeleteAllContractRecords();
-        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         GetVendorContractServiceCommitment(VendorContract."No.");
         ServiceCommitment."Billing Rhythm" := ServiceCommitment."Billing Base Period";
