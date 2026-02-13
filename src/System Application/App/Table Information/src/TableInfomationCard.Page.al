@@ -14,17 +14,13 @@ using System.Reflection;
 page 8705 "Table Information Card"
 {
     PageType = Card;
-
     ApplicationArea = All;
     AdditionalSearchTerms = 'Database,Size,Storage';
     SourceTable = "Table Metadata";
-
     Caption = 'Table Data Management - Card';
-
+    DataCaptionExpression = StrSubstNo('%1 - %2', rec.Name, rec.ID);
     Permissions = tabledata "Table Metadata" = r,
                   tabledata "Database Index" = r;
-
-    DataCaptionExpression = StrSubstNo('%1 - %2', rec.Name, rec.ID);
 
     layout
     {
@@ -32,24 +28,24 @@ page 8705 "Table Information Card"
         {
             group(General)
             {
-                field(TableNo; rec.ID)
+                field(TableNo; Rec.ID)
                 {
                     Caption = 'Table No.';
                     Editable = false;
-                    ToolTip = 'The ID number for the table';
+                    ToolTip = 'Specifies the number for the table.';
                 }
-                field(TableName; rec.Name)
+                field(TableName; Rec.Name)
                 {
                     Caption = 'Table Name';
                     Editable = false;
-                    ToolTip = 'The name of the table';
+                    ToolTip = 'Specifies the name of the table.';
                 }
                 field(Company; SetCompanyName)
                 {
                     Enabled = PerCompany;
                     Caption = 'Company Name';
                     TableRelation = Company.Name;
-                    ToolTip = 'The name of the company the table belongs to if table is per-company. Changing this value will update the data shown on this page to reflect the selected company.';
+                    ToolTip = 'Specifies the name of the company the table belongs to if the table is per-company. Changing this value will update the data shown on this page to reflect the selected company.';
 
                     trigger OnValidate()
                     begin
@@ -62,19 +58,19 @@ page 8705 "Table Information Card"
                 {
                     Caption = 'Combined Index Size (KB)';
                     Editable = false;
-                    ToolTip = 'The combined size of all indexes on the table for this company, presented in kilobytes.';
+                    ToolTip = 'Specifies the combined size of all indexes on the table for this company, presented in kilobytes.';
                 }
                 field(RowCount; RowCount)
                 {
                     Caption = 'Table Row Count';
                     Editable = false;
-                    ToolTip = 'The number of rows in the table for this company';
+                    ToolTip = 'Specifies the number of rows in the table for this company.';
                 }
                 field("Database start time"; SqlServerRestartTime)
                 {
                     Caption = 'Database start time';
                     Editable = false;
-                    ToolTip = 'The last time the database engineer was. Index statistics are reset when SQL Server is restarted.';
+                    ToolTip = 'Specifies the last time the database engine was started. Index statistics are reset when SQL Server is restarted.';
                 }
             }
 
@@ -87,17 +83,17 @@ page 8705 "Table Information Card"
 
     trigger OnOpenPage()
     begin
-        SetBasedOnCompanyName(rec.CurrentCompany());
+        SetBasedOnCompanyName(Rec.CurrentCompany());
     end;
 
     local procedure SetBasedOnCompanyName(cn: Text[30])
     var
-        recref: RecordRef;
+        Recref: RecordRef;
         DatabaseIndex: Record "Database Index";
         TableMetadata: Record "Table Metadata";
         TableId: Integer;
     begin
-        if (Rec.ID <> 0)
+        if Rec.ID <> 0
         then
             TableId := Rec.ID
         else if (Evaluate(TableId, Rec.GetFilter("ID")) AND (TableId <> 0)) then
@@ -116,15 +112,15 @@ page 8705 "Table Information Card"
             DatabaseIndex.SetRange(DatabaseIndex."Company Name", SetCompanyName);
         end;
 
-        recref.Open(TableId, false, SetCompanyName);
+        Recref.Open(TableId, false, SetCompanyName);
 
-        RowCount := recref.Count();
+        RowCount := Recref.Count();
         IndexSizeKB := 0;
         SqlServerRestartTime := 0DT;
         DatabaseIndex.SetRange(DatabaseIndex.TableId, TableId);
-        if (DatabaseIndex.FindSet()) then
+        if DatabaseIndex.FindSet() then
             repeat
-                if (SqlServerRestartTime = 0DT) then
+                if SqlServerRestartTime = 0DT then
                     SqlServerRestartTime := DatabaseIndex."Database Start time";
 
                 IndexSizeKB += DatabaseIndex."Index Size (KB)";

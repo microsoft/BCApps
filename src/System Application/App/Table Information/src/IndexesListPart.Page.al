@@ -18,11 +18,9 @@ page 8704 "Indexes List Part"
     SourceTable = "Database Index";
     SourceTableTemporary = true;
     Editable = false;
-
     // Added to remove the New and Delete on the action bar.
     InsertAllowed = false;
     DeleteAllowed = false;
-
     Permissions = tabledata "Key" = r,
                   tabledata "Database Index" = r;
 
@@ -30,87 +28,87 @@ page 8704 "Indexes List Part"
     {
         area(Content)
         {
-            repeater(GroupName)
+            repeater(Indexes)
             {
-                field("Index name"; rec."Index Name")
+                field("Index name"; Rec."Index Name")
                 {
                     Width = 30;
                     Caption = 'Index Name';
-                    ToolTip = 'The name of the index.';
+                    ToolTip = 'Specifies the name of the index.';
                 }
-                field(Enabled; rec.Enabled)
+                field(Enabled; Rec.Enabled)
                 {
-                    Caption = 'Enabled in Database.';
-                    ToolTip = 'Indicates whether the index is enabled in the database.';
+                    Caption = 'Enabled in Database';
+                    ToolTip = 'Specifies whether the index is enabled in the database.';
                 }
-                field("AL defined"; rec."Metadata Defined")
+                field("AL defined"; Rec."Metadata Defined")
                 {
                     Caption = 'AL Defined';
-                    ToolTip = 'Indicates whether the index is defined as an AL key or automatically created to improve performance.';
+                    ToolTip = 'Specifies whether the index is defined as an AL key or automatically created to improve performance.';
                 }
-                field("Unique"; rec.Unique)
+                field("Unique"; Rec.Unique)
                 {
-                    Caption = 'AL defined as unique';
-                    ToolTip = 'Indicates whether an AL defined key is defined as unique.';
+                    Caption = 'Unique';
+                    ToolTip = 'Specifies whether the index is defined as unique in AL.';
                 }
-                field("Fragmentation"; rec."Fragmentation %")
+                field("Fragmentation"; Rec."Fragmentation %")
                 {
                     Caption = 'Fragmentation (%)';
-                    ToolTip = 'Indicates the percentage of fragmentation in the index.';
+                    ToolTip = 'Specifies the percentage of fragmentation in the index.';
                 }
-                field("Index size in KB"; rec."Index Size (KB)")
+                field("Index size in KB"; Rec."Index Size (KB)")
                 {
-                    Caption = 'Index Size (KB).';
-                    ToolTip = 'The size of the index in kilobytes.';
+                    Caption = 'Index Size (KB)';
+                    ToolTip = 'Specifies the size of the index in kilobytes.';
                 }
-                field("User seeks"; rec."User seeks")
+                field("User seeks"; Rec."User seeks")
                 {
                     Width = 10;
                     Caption = 'User Seeks';
-                    ToolTip = 'Number of user seeks on this index since the database was last started.';
+                    ToolTip = 'Specifies the number of user seeks on this index since the database was last started.';
                 }
-                field("User scans"; rec."User scans")
+                field("User scans"; Rec."User scans")
                 {
                     Width = 10;
                     Caption = 'User Scans';
-                    ToolTip = 'Number of user scans on this index since the database was last started.';
+                    ToolTip = 'Specifies the number of user scans on this index since the database was last started.';
                 }
-                field("User lookups"; rec."User lookups")
+                field("User lookups"; Rec."User lookups")
                 {
                     Width = 10;
                     Caption = 'User Lookups';
-                    ToolTip = 'Number of user lookups on this index since the database was last started.';
+                    ToolTip = 'Specifies the number of user lookups on this index since the database was last started.';
                 }
-                field("User updates"; rec."User updates")
+                field("User updates"; Rec."User updates")
                 {
                     Width = 10;
                     Caption = 'User Updates';
-                    ToolTip = 'Number of user updates on this index since the database was last started.';
+                    ToolTip = 'Specifies the number of user updates on this index since the database was last started.';
                 }
-                field("Last seek"; rec."Last seek")
+                field("Last seek"; Rec."Last seek")
                 {
                     Caption = 'Last Seek';
-                    ToolTip = 'Timestamp of the last user seek on this index since the database was last started.';
+                    ToolTip = 'Specifies the timestamp of the last user seek on this index since the database was last started.';
                 }
-                field("Last scan"; rec."Last scan")
+                field("Last scan"; Rec."Last scan")
                 {
                     Caption = 'Last Scan';
-                    ToolTip = 'Timestamp of the last user scan on this index since the database was last started.';
+                    ToolTip = 'Specifies the timestamp of the last user scan on this index since the database was last started.';
                 }
-                field("Last lookup"; rec."Last lookup")
+                field("Last lookup"; Rec."Last lookup")
                 {
                     Caption = 'Last Lookup';
-                    ToolTip = 'Timestamp of the last user lookup on this index since the database was last started.';
+                    ToolTip = 'Specifies the timestamp of the last user lookup on this index since the database was last started.';
                 }
-                field("Last Update"; rec."Last update")
+                field("Last Update"; Rec."Last update")
                 {
                     Caption = 'Last Update';
-                    ToolTip = 'Timestamp of the last user update on this index since the database was last started.';
+                    ToolTip = 'Specifies the timestamp of the last user update on this index since the database was last started.';
                 }
                 field("Stat updated at"; rec."Statistics rebuild at")
                 {
-                    Caption = 'Statistics Last Rebuild';
-                    ToolTip = 'Last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
+                    Caption = 'Statistics updated at';
+                    ToolTip = 'Specifies the last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
                 }
             }
         }
@@ -118,73 +116,69 @@ page 8704 "Indexes List Part"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
-        t: Record "Database Index" temporary;
-        tid: Integer;
-        prevFilterGroup: Integer;
+        LinkTableId: Integer;
+        PrevFilterGroup: Integer;
         TempDatabaseIndex: Record "Database Index";
-        keyRec: Record "Key";
+        KeyRec: Record "Key";
     begin
         // After calling a action this method gets called again, ensure we don't double insert records into the temporary table.
-        if (rec.Count() <> 0) then begin
-            exit(rec.Find(Which));
+        if Rec.Count() <> 0 then begin
+            exit(Rec.Find(Which));
         end;
 
-        prevFilterGroup := rec.FilterGroup;
-        rec.FilterGroup := 4; // Link group.
-        if (Evaluate(tid, rec.GetFilter("TableId"))) then begin
-            // TableId filter is set.
-        end else begin
+        PrevFilterGroup := Rec.FilterGroup;
+        Rec.FilterGroup := 4; // Link group.
+        if not Evaluate(LinkTableId, Rec.GetFilter("TableId")) then
             exit(false);
-        end;
 
-        rec.FilterGroup := prevFilterGroup;
+        Rec.FilterGroup := PrevFilterGroup;
 
         // Combines the indexes from "Database Index" and "Key" virtual tables. "Database Index" contains all indexes currently in the database,
         // including those automatically created by the database engine, while "Key" contains all metadata defined keys.
 
-        TempDatabaseIndex.SetRange(TempDatabaseIndex.TableId, tid);
-        TempDatabaseIndex.SetRange(TempDatabaseIndex."Company Name", setCompanyName);
+        TempDatabaseIndex.SetRange(TempDatabaseIndex.TableId, LinkTableId);
+        TempDatabaseIndex.SetRange(TempDatabaseIndex."Company Name", SetCompanyName);
 
-        if (TempDatabaseIndex.FindSet()) then begin
+        if TempDatabaseIndex.FindSet() then begin
             repeat
-                rec.TransferFields(TempDatabaseIndex);
-                rec.Insert();
+                Rec.TransferFields(TempDatabaseIndex);
+                Rec.Insert();
             until TempDatabaseIndex.Next() = 0;
         end;
 
-        keyRec.SetRange(keyRec.TableNo, tid);
-        keyRec.SetRange(keyRec.SQLIndex);
-        if (keyRec.FindSet()) then begin
+        KeyRec.SetRange(KeyRec.TableNo, LinkTableId);
+        KeyRec.SetRange(KeyRec.SQLIndex);
+        if KeyRec.FindSet() then begin
             repeat
-                if (rec.Get(tid, keyRec."Key name", setCompanyName, keyRec."Source App ID")) then
+                if Rec.Get(LinkTableId, KeyRec."Key name", SetCompanyName, KeyRec."Source App ID") then
                     continue;
 
-                Clear(rec);
+                Clear(Rec);
 
-                rec.TableId := keyRec.TableNo;
-                rec."Column Names" := keyRec."Key";
-                rec."Company Name" := setCompanyName;
-                rec.Unique := keyRec.Unique;
-                rec.Enabled := false;
-                rec."Metadata Defined" := true;
-                rec."Index Name" := keyRec."Key name";
-                rec."Source App ID" := keyRec."Source App ID";
+                Rec.TableId := KeyRec.TableNo;
+                Rec."Column Names" := KeyRec."Key";
+                Rec."Company Name" := SetCompanyName;
+                Rec.Unique := KeyRec.Unique;
+                Rec.Enabled := false;
+                Rec."Metadata Defined" := true;
+                Rec."Index Name" := KeyRec."Key name";
+                Rec."Source App ID" := KeyRec."Source App ID";
 
-                rec.Insert();
-            until keyRec.Next() = 0;
+                Rec.Insert();
+            until KeyRec.Next() = 0;
         end;
 
-        exit(rec.Find(Which));
+        exit(Rec.Find(Which));
     end;
 
-    procedure SetCompanyFilter(cn: Text[30])
+    procedure SetCompanyFilter(PCompanyName: Text[30])
     begin
-        setCompanyName := cn;
+        SetCompanyName := PCompanyName;
 
         // Clear the temporary table to make sure only indexes for the selected company is shown.
-        rec.DeleteAll();
+        Rec.DeleteAll();
     end;
 
     var
-        setCompanyName: Text[30];
+        SetCompanyName: Text[30];
 }
