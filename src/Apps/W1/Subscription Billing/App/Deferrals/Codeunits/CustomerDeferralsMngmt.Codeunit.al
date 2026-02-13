@@ -4,7 +4,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -19,16 +18,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
         tabledata "Sales Invoice Line" = r;
 
     var
-        TempCustomerContractDeferral: Record "Cust. Sub. Contract Deferral" temporary;
         GLSetup: Record "General Ledger Setup";
         DeferralEntryNo: Integer;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostSalesDoc, '', false, false)]
-    local procedure ClearGlobals()
-    begin
-        TempCustomerContractDeferral.Reset();
-        TempCustomerContractDeferral.DeleteAll(false);
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(SalesLine: Record "Sales Line"; var SalesAccount: Code[20])
@@ -244,8 +235,6 @@ codeunit 8067 "Customer Deferrals Mngmt."
 #pragma warning restore AL0432
             OnBeforeInsertCustomerContractDeferral(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
             CustomerContractDeferral.Insert(false);
-            TempCustomerContractDeferral := CustomerContractDeferral;
-            TempCustomerContractDeferral.Insert(false); //Used for Preview Posting
         end;
     end;
 
@@ -302,26 +291,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
                 ContractDeferralRelease.SetRequestPageParameters(CreditMemoCustContractDeferral."Posting Date", SalesCrMemoLine."Posting Date");
                 ContractDeferralRelease.ReleaseCustomerContractDeferralAndInsertTempGenJournalLine(CreditMemoCustContractDeferral);
                 ContractDeferralRelease.PostTempGenJnlLineBufferForCustomerDeferrals();
-
-                TempCustomerContractDeferral := CreditMemoCustContractDeferral;
-                TempCustomerContractDeferral.Insert(false); //Used for Preview Posting
             until InvoiceCustContractDeferral.Next() = 0;
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterFillDocumentEntry, '', false, false)]
-    local procedure OnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
-    var
-        PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
-    begin
-        PostingPreviewEventHandler.InsertDocumentEntry(TempCustomerContractDeferral, DocumentEntry);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterShowEntries, '', false, false)]
-    local procedure OnAfterShowEntries(TableNo: Integer)
-    begin
-        if TableNo = Database::"Cust. Sub. Contract Deferral" then
-            Page.Run(Page::"Customer Contract Deferrals", TempCustomerContractDeferral);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::Navigate, OnAfterNavigateFindRecords, '', false, false)]

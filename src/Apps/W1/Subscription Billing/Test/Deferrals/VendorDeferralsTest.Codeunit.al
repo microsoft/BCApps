@@ -881,6 +881,7 @@ codeunit 139913 "Vendor Deferrals Test"
     procedure DeferralCodeNotAllowedWithContractDeferralsOnPurchaseLine()
     var
         DeferralTemplate: Record "Deferral Template";
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.', Locked = true;
     begin
         // [SCENARIO] A standard Deferral Code must not be assigned to a purchase invoice line
         //            that already has subscription contract deferrals enabled.
@@ -901,6 +902,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [THEN] An error is raised preventing double deferrals
         asserterror PurchaseLine.Validate("Deferral Code", DeferralTemplate."Deferral Code");
+        Assert.ExpectedError(DeferralCodeCannotBeUsedWithContractDeferralsErr);
     end;
 
     #endregion Tests

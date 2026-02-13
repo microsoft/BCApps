@@ -3,7 +3,6 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -19,18 +18,10 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         tabledata "Purch. Inv. Line" = r;
 
     var
-        TempVendorContractDeferral: Record "Vend. Sub. Contract Deferral" temporary;
         GLSetup: Record "General Ledger Setup";
         TempPurchaseLine: Record "Purchase Line" temporary;
         DeferralEntryNo: Integer;
         VendorContractDeferralLinePosting: Boolean;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePostPurchaseDoc, '', false, false)]
-    local procedure ClearGlobals()
-    begin
-        TempVendorContractDeferral.Reset();
-        TempVendorContractDeferral.DeleteAll(false);
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(PurchLine: Record "Purchase Line"; var SalesAccount: Code[20])
@@ -238,8 +229,6 @@ codeunit 8068 "Vendor Deferrals Mngmt."
             VendorContractDeferral."Entry No." := 0;
             OnBeforeInsertVendorContractDeferral(VendorContractDeferral, PurchaseLine, i, NumberOfPeriods);
             VendorContractDeferral.Insert(false);
-            TempVendorContractDeferral := VendorContractDeferral;
-            TempVendorContractDeferral.Insert(false); //Used for Preview Posting
         end;
     end;
 
@@ -297,26 +286,8 @@ codeunit 8068 "Vendor Deferrals Mngmt."
                 ContractDeferralRelease.SetRequestPageParameters(CreditMemoVendorContractDeferral."Posting Date", PurchCrMemoLine."Posting Date");
                 ContractDeferralRelease.ReleaseVendorContractDeferralsAndInsertTempGenJournalLines(CreditMemoVendorContractDeferral);
                 ContractDeferralRelease.PostTempGenJnlLineBufferForVendorDeferrals();
-
-                TempVendorContractDeferral := CreditMemoVendorContractDeferral;
-                TempVendorContractDeferral.Insert(false); //Used for Preview Posting
             until InvoiceVendorContractDeferral.Next() = 0;
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterFillDocumentEntry, '', false, false)]
-    local procedure OnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
-    var
-        PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
-    begin
-        PostingPreviewEventHandler.InsertDocumentEntry(TempVendorContractDeferral, DocumentEntry);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterShowEntries, '', false, false)]
-    local procedure OnAfterShowEntries(TableNo: Integer)
-    begin
-        if TableNo = Database::"Vend. Sub. Contract Deferral" then
-            Page.Run(Page::"Vendor Contract Deferrals", TempVendorContractDeferral);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::Navigate, OnAfterNavigateFindRecords, '', false, false)]
