@@ -63,7 +63,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(7; "All Open and Due Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
-                                                                "Planned Start Date" = filter('<=T')));
+                                                                "Planned Start Date" = filter('<=%NOW')));
             Caption = 'Open and Due Inspections (all)';
             ToolTip = 'Specifies the count of quality inspections that are open and due.';
             Editable = false;
@@ -73,7 +73,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                 "Assigned User ID" = filter('%me'),
-                                                                "Planned Start Date" = filter('<=T')));
+                                                                "Planned Start Date" = filter('<=%NOW')));
             Caption = 'Open and Due Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are open, due, and assigned to you.';
             Editable = false;
