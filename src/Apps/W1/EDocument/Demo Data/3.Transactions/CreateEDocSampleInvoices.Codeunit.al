@@ -179,8 +179,8 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
     begin
         if Rec.IsTemporary() then
             exit;
-        /// Always have NoTaxable tax group code for non-taxable purchase lines in order to avoid sales tax calculation in sample data because it is different in W1 and NA
-        if not Rec."Tax Liable" then
+        /// Always have NoTaxable tax group code for sales tax purchase lines in order to avoid sales tax calculation in sample data because it is different in W1 and NA
+        if Rec."VAT Calculation Type" <> Rec."VAT Calculation Type"::"Sales Tax" then
             exit;
         Rec.Validate("Tax Group Code", FindNoTaxableTaxGroup());
     end;
