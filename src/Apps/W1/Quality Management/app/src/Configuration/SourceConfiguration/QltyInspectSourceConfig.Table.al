@@ -13,14 +13,14 @@ using System.Reflection;
 /// Multiple tables can be defined because there are conditional filters that make this applicable.
 /// For example, you could have a conditional filter on a warehouse pick line based on the source type or source document type.
 /// When the to type is an inspection, the to table number is automatically associated with an inspection document.
-/// When the to type is a chaintable, that allows chaining multiple tables together.
+/// When the to type is a chained table, that allows linking multiple tables together.
 /// How you can use chained tables:
-///     - grab additional fields for related records:
-///         - example 1 : grab the item no. from the prod order line even though the inspection might be against a prod order routing line.)
+///     - take additional fields for related records:
+///         - example 1 : take the item no. from the prod order line even though the inspection might be against a prod order routing line.)
 ///             (use case being: visibility into seeing the item no., without having to add a flowfield to fetch the item no.)
-///         - example 2 : grab the item category or item attribute from the item card or item attribute card.
+///         - example 2 : take the item category or item attribute from the item card or item attribute card.
 ///             (use case being: we only want to create an inspection when the item attributes or item category is xyz.)
-///         - example 3 : grab the customer card, for customer specific filters.
+///         - example 3 : take the customer card, for customer specific filters.
 ///             (Use case being: we only want this inspection for items made or shipped to a specific customer)
 /// </summary>
 table 20407 "Qlty. Inspect. Source Config."
@@ -29,7 +29,7 @@ table 20407 "Qlty. Inspect. Source Config."
     DrillDownPageId = "Qlty. Ins. Source Config. List";
     LookupPageId = "Qlty. Ins. Source Config. List";
     DataClassification = CustomerContent;
-    Description = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    Description = 'Use this page to configure what will automatically populate from other tables into quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
 
     fields
     {

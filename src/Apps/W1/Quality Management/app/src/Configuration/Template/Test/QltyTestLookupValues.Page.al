@@ -5,15 +5,15 @@
 namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 /// <summary>
-/// A list of available codes that can be used as a lookup.
+/// A list of available test lookup values that can be used as a lookup.
 /// </summary>
-page 20409 "Qlty. Lookup Code List"
+page 20409 "Qlty. Test Lookup Values"
 {
-    Caption = 'Quality Lookup Codes';
+    Caption = 'Quality Test Lookup Values';
     DelayedInsert = true;
     PageType = List;
-    SourceTable = "Qlty. Lookup Code";
-    SourceTableView = sorting("Group Code", Code);
+    SourceTable = "Qlty. Test Lookup Value";
+    SourceTableView = sorting("Lookup Group Code", "Value");
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
@@ -21,14 +21,14 @@ page 20409 "Qlty. Lookup Code List"
     {
         area(Content)
         {
-            repeater(GroupLookupCodes)
+            repeater(GroupLookupValues)
             {
                 ShowCaption = false;
 
-                field("Group Code"; Rec."Group Code")
+                field("Lookup Group Code"; Rec."Lookup Group Code")
                 {
                 }
-                field("Code"; Rec.Code)
+                field(Value; Rec."Value")
                 {
                 }
                 field(Description; Rec.Description)
