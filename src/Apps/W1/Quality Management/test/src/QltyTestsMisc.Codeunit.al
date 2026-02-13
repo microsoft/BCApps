@@ -784,7 +784,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         LookupQualityMeasureQltyTest: Record "Qlty. Test";
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -868,13 +868,13 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns exactly one matching record
-        LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
+        LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
-        TempBufferQltyLookupCode.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyLookupCode.Code, 'first key should have been set');
+        TempBufferQltyTestLookupValue.FindFirst();
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
     end;
 
     [Test]
@@ -883,7 +883,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         LookupQualityMeasureQltyTest: Record "Qlty. Test";
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -982,10 +982,10 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns all three matching records
-        LibraryAssert.AreEqual(3, TempBufferQltyLookupCode.Count(), 'should have been 3 sales people with that email.');
+        LibraryAssert.AreEqual(3, TempBufferQltyTestLookupValue.Count(), 'should have been 3 sales people with that email.');
     end;
 
     [Test]
@@ -995,7 +995,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyTest: Record "Qlty. Test";
         LookupQualityMeasureQltyTest: Record "Qlty. Test";
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -1082,19 +1082,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyTest.Get(QltyInspectionLine."Test Code");
 
         // [WHEN] GetRecordsForTableField is called with different parameter combinations (field+header+line, field+header)
-        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns the correct record using all parameter overloads
-        LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
+        LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
-        TempBufferQltyLookupCode.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyLookupCode.Code, 'first key should have been set');
+        TempBufferQltyTestLookupValue.FindFirst();
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
 
-        QltyInspectionUtility.GetRecordsForTableField(QltyTest, QltyInspectionHeader, TempBufferQltyLookupCode);
-        LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
+        QltyInspectionUtility.GetRecordsForTableField(QltyTest, QltyInspectionHeader, TempBufferQltyTestLookupValue);
+        LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
 
-        TempBufferQltyLookupCode.FindFirst();
-        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyLookupCode.Code, 'first key should have been set');
+        TempBufferQltyTestLookupValue.FindFirst();
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyTestLookupValue.Value, 'first key should have been set');
     end;
 
     [Test]
