@@ -36,6 +36,7 @@ using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Setup.ManualSetup;
 using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
@@ -61,6 +62,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
         codeunit "Qlty. Guided Experience" = X,
+        codeunit "Qlty. Manual Setup" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
