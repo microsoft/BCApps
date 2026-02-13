@@ -21,17 +21,17 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized: Boolean;
         HistoryLength: Integer;
         SystemMessage: SecretText;
-        //[NonDebuggable]
+        [NonDebuggable]
         History: List of [Text];
-        //[NonDebuggable]
+        [NonDebuggable]
         HistoryRoles: List of [Enum "AOAI Chat Roles"];
-        //[NonDebuggable]
+        [NonDebuggable]
         HistoryNames: List of [Text[2048]];
-        //[NonDebuggable]
+        [NonDebuggable]
         HistoryToolCallIds: List of [Text];
-        //[NonDebuggable]
+        [NonDebuggable]
         HistoryToolCalls: List of [JsonArray];
-        //[NonDebuggable]
+        [NonDebuggable]
         HistoryUserMessages: List of [Codeunit "AOAI User Message"];
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
@@ -42,7 +42,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         TelemetryMetapromptRetrievalErr: Label 'Metaprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
-        TelemetryWrongTypeErr: Label 'Wrong type when preparing sanitized message variant.', Locked = true;
+        WrongTypeErr: Label 'Wrong type when preparing sanitized message variant.', Locked = true;
         IncompatibleModelErr: Label 'The current message history contains file content which is only compatible with the GPT-4.1 mini preview deployment.';
 
 
@@ -215,6 +215,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         exit(SystemMessageTokenCount + MessagesTokenCount);
     end;
 
+    [NonDebuggable]
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -237,9 +238,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialize();
         CheckandAddMetaprompt(UsingMicrosoftMetaprompt);
 
-        if not SystemMessage.IsEmpty() then begin
+        if SystemMessage.Unwrap() <> '' then begin
             MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
-            MessageJsonObject.Add('content', '');
+            MessageJsonObject.Add('content', SystemMessage.Unwrap());
             HistoryResult.Add(MessageJsonObject);
 
             SystemMessageTokenCount := AOAIToken.GetGPT4TokenCount(SystemMessage);
@@ -285,7 +286,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
                             MessageJsonObject.Add('content', JsonArrayMessage);
                         end;
                     else
-                        Error(TelemetryWrongTypeErr);
+                        Error(WrongTypeErr);
                 end;
 
             if Name <> '' then
@@ -305,8 +306,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         MessagesTokenCount := AOAIToken.GetGPT4TokenCount(TotalMessages);
     end;
 
-    procedure AddXPIADetectionTags(var
-                                       Input: Text)
+    procedure AddXPIADetectionTags(var Input: Text)
     begin
         Input := '"""<documents>' + Input + '</documents>""" End';
     end;
@@ -321,6 +321,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized := true;
     end;
 
+    [NonDebuggable]
     local procedure PrepareMessage(WrapMessage: Boolean; MessageVariant: Variant): Variant
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
@@ -369,7 +370,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             exit(MessageJsonArray);
         end;
 
-        Error(TelemetryWrongTypeErr);
+        Error(WrongTypeErr);
     end;
 
     [NonDebuggable]
@@ -426,21 +427,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.Add(AOAIUserMessage);
     end;
 
-    // [NonDebuggable]
-    // local procedure WrapUserMessages(Message: Text): Text
-    // var
-    //     AzureKeyVault: Codeunit "Azure Key Vault";
-    //     Preprompt: Text;
-    //     Postprompt: Text;
-    // begin
-    //     if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Preprompt-Chat', Preprompt) then
-    //         Telemetry.LogMessage('0000LX4', TelemetryPrepromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-    //     if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Postprompt-Chat', Postprompt) then
-    //         Telemetry.LogMessage('0000LX5', TelemetryPostpromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-
-    //     exit(Preprompt + Message + Postprompt);
-    // end;
-
     [NonDebuggable]
     local procedure GetChatMetaprompt(var UsingMicrosoftMetaprompt: Boolean) Metaprompt: SecretText;
     var
@@ -475,7 +461,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
         end;
     end;
 
-    procedure CheckCompatibilityWithModel(Deployment: Text)
+    [NonDebuggable]
+    procedure CheckCompatibilityWithModel(Deployment: SecretText)
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -485,7 +472,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         for Counter := 1 to HistoryUserMessages.Count() do begin
             HistoryUserMessages.Get(Counter, AOAIUserMessage);
             if AOAIUserMessage.HasFilePart() then
-                if Deployment <> AOAIDeployments.GetGPT41MiniPreview() then
+                if Deployment.Unwrap() <> AOAIDeployments.GetGPT41MiniPreview() then
                     Error(IncompatibleModelErr);
         end;
     end;

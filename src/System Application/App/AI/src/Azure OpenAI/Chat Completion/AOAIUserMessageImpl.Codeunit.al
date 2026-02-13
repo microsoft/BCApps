@@ -11,9 +11,11 @@ codeunit 7784 "AOAI User Message Impl"
     InherentPermissions = X;
 
     var
+        [NonDebuggable]
         ContentParts: JsonArray;
         HasFileContent, HasTextContent : Boolean;
 
+    [NonDebuggable]
     procedure AddTextPart(TextContent: Text)
     var
         TextPartObject: JsonObject;
@@ -24,6 +26,7 @@ codeunit 7784 "AOAI User Message Impl"
         HasTextContent := true;
     end;
 
+    [NonDebuggable]
     procedure AddFilePart(FileData: Text)
     var
         FilePartObject: JsonObject;
@@ -36,6 +39,7 @@ codeunit 7784 "AOAI User Message Impl"
         HasFileContent := true;
     end;
 
+    [NonDebuggable]
     procedure GetContentParts(): JsonArray
     begin
         exit(ContentParts);

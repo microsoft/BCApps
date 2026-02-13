@@ -396,7 +396,7 @@ codeunit 7763 "AOAI Chat Messages"
     [NonDebuggable]
     internal procedure CheckCompatibilityWithModel(Deployment: SecretText)
     begin
-        AOAIChatMessagesImpl.CheckCompatibilityWithModel(Deployment.Unwrap());
+        AOAIChatMessagesImpl.CheckCompatibilityWithModel(Deployment);
     end;
 
 }
