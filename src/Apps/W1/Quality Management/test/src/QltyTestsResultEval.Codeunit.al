@@ -1141,7 +1141,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ExpectedQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ActualQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -1207,7 +1206,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ExpectedQltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionLine."Test Code");
 
         // [WHEN] GetInspectionLineConfigFilters is called to retrieve actual filters
-        QltyResultEvaluation.GetInspectionLineConfigFilters(UsesReferenceQltyInspectionLine, ActualQltyIResultConditConf);
+        QltyInspectionUtility.GetInspectionLineConfigFilters(UsesReferenceQltyInspectionLine, ActualQltyIResultConditConf);
         // [THEN] Actual filters match expected filters for inspection line result conditions
         LibraryAssert.AreEqual(ExpectedQltyIResultConditConf.GetView(), ActualQltyIResultConditConf.GetView(), 'result condition filters should match.');
     end;
@@ -1304,7 +1303,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DecimalQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that decimal field default values must fall within allowable values range (1..3)
 
@@ -1326,24 +1324,24 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to 3 (maximum of range)
         DecimalQltyTest."Default Value" := '3';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 4 (exceeding maximum) causes error
         ClearLastError();
         DecimalQltyTest."Default Value" := '4';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 0.9999 (below minimum) causes error
         ClearLastError();
         DecimalQltyTest."Default Value" := '0.9999';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 1 (minimum of range) passes validation
         ClearLastError();
         DecimalQltyTest."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(DecimalQltyTest);
 
         // [THEN] Non-numeric default value causes error
         ClearLastError();
         DecimalQltyTest."Default Value" := 'this is not a number';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DecimalQltyTest);
     end;
 
     [Test]
@@ -1354,7 +1352,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         OptionListQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that option field default values must be one of the allowable comma-delimited options (A,B,C,D)
 
@@ -1376,28 +1373,28 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [THEN] Default value 'AA' (not in list) causes error
         ClearLastError();
         OptionListQltyTest."Default Value" := 'AA';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'E' (not in list) causes error
         ClearLastError();
         OptionListQltyTest."Default Value" := 'E';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'AB' (not in list) causes error
         ClearLastError();
         OptionListQltyTest."Default Value" := 'AB';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'A' (in list) passes validation
         ClearLastError();
         OptionListQltyTest."Default Value" := 'A';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
         // [THEN] Default value 'B' (in list) passes validation
         OptionListQltyTest."Default Value" := 'B';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
         // [THEN] Default value 'D' (in list) passes validation
         OptionListQltyTest."Default Value" := 'D';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(OptionListQltyTest);
     end;
 
     [Test]
@@ -1408,7 +1405,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         IntegerQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that integer field default values must fall within allowable values range (1..3)
 
@@ -1430,23 +1426,23 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to 3 (maximum of range)
         IntegerQltyTest."Default Value" := '3';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 4 (exceeding maximum) causes error
         ClearLastError();
         IntegerQltyTest."Default Value" := '4';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 0 (below minimum) causes error
         ClearLastError();
         IntegerQltyTest."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 1 (minimum of range) passes validation
         ClearLastError();
         IntegerQltyTest."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Non-integer default value causes error
         ClearLastError();
         IntegerQltyTest."Default Value" := 'this is not an integer';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(IntegerQltyTest);
     end;
 
     [Test]
@@ -1457,7 +1453,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TextQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that text field default values must be one of the allowable pipe-delimited options (A|B|C)
 
@@ -1479,19 +1474,19 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to 'A' (in list)
         TextQltyTest."Default Value" := 'A';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value 'D' (not in list) causes error
         ClearLastError();
         TextQltyTest."Default Value" := 'D';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value '0' (not in list) causes error
         ClearLastError();
         TextQltyTest."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value 'B' (in list) passes validation
         ClearLastError();
         TextQltyTest."Default Value" := 'B';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest);
     end;
 
     [Test]
@@ -1502,7 +1497,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DateQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that date field default values must match the exact allowable date value
 
@@ -1524,19 +1518,19 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to '2001-02-03' (exact match)
         DateQltyTest."Default Value" := '2001-02-03';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Default value '2001-02-04' (different date) causes error
         ClearLastError();
         DateQltyTest."Default Value" := '2001-02-04';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Default value '2001-01-01' (different date) causes error
         ClearLastError();
         DateQltyTest."Default Value" := '2001-01-01';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Non-date default value causes error
         ClearLastError();
         DateQltyTest."Default Value" := 'this is not a date';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateQltyTest);
     end;
 
     [Test]
@@ -1547,7 +1541,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DateTimeQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that datetime field default values must match the exact allowable datetime value
 
@@ -1569,19 +1562,19 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to '2001-02-03 04:05:06' (exact match)
         DateTimeQltyTest."Default Value" := '2001-02-03 04:05:06';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Default value '2001-02-03 04:05:07' (one second later) causes error
         ClearLastError();
         DateTimeQltyTest."Default Value" := '2001-02-03 04:05:07';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Default value '2001-02-03 04:05:00' (different time) causes error
         ClearLastError();
         DateTimeQltyTest."Default Value" := '2001-02-03 04:05:00';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Non-datetime default value causes error
         ClearLastError();
         DateTimeQltyTest."Default Value" := 'this is not a date time.';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(DateTimeQltyTest);
     end;
 
     [Test]
@@ -1592,7 +1585,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         BooleanQltyTest: Record "Qlty. Test";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         // [SCENARIO] Validate that boolean field default values must match the allowable boolean value and accept equivalent representations
 
@@ -1614,36 +1606,36 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to 'Yes' and equivalent true representations
         BooleanQltyTest."Default Value" := 'Yes';
         // [THEN] 'Yes' passes validation
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'True' (equivalent to Yes) passes validation
         BooleanQltyTest."Default Value" := 'True';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] '1' (equivalent to Yes) passes validation
         BooleanQltyTest."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'On' (equivalent to Yes) passes validation
         BooleanQltyTest."Default Value" := 'On';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'No' (not matching Yes) causes error
         ClearLastError();
         BooleanQltyTest."Default Value" := 'No';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'False' (not matching Yes) causes error
         ClearLastError();
         BooleanQltyTest."Default Value" := 'False';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] '0' (not matching Yes) causes error
         ClearLastError();
         BooleanQltyTest."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'Off' (not matching Yes) causes error
         ClearLastError();
         BooleanQltyTest."Default Value" := 'Off';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] Non-boolean value causes error
         ClearLastError();
         BooleanQltyTest."Default Value" := 'this is not a boolean';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
 
         // [GIVEN] A new boolean field with blank allowable values (accepts any boolean value)
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyTest."Test Value Type"::"Value Type Boolean", BooleanQltyTest, OriginalQltyInspectionTemplateLine);
@@ -1652,28 +1644,28 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         BooleanQltyTest.Modify();
         // [THEN] Blank default value passes validation
         BooleanQltyTest."Default Value" := '';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] All true representations pass validation when allowable values are blank
         BooleanQltyTest."Default Value" := 'Yes';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := 'True';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := 'On';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] All false representations pass validation when allowable values are blank
         BooleanQltyTest."Default Value" := 'No';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := 'False';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := '0';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         BooleanQltyTest."Default Value" := 'Off';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] Non-boolean value is converted to 'No'
         BooleanQltyTest."Default Value" := 'this is not a boolean';
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(BooleanQltyTest);
         LibraryAssert.AreEqual('No', BooleanQltyTest."Default Value", 'Not-yes should have been converted to No');
     end;
 
@@ -1689,7 +1681,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -1735,16 +1726,16 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [WHEN] Default value is set to 'A' (in allowable values)
         TextQltyTest."Default Value" := 'A';
         // [THEN] Validation passes with inspection header context
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
         // [THEN] Validation passes with inspection header and inspection line context
-        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
+        QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
 
         // [THEN] Default value 'D' (not in allowable values) causes error with inspection header context
         ClearLastError();
         TextQltyTest."Default Value" := 'D';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
         // [THEN] Default value 'D' causes error with inspection header and inspection line context
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
+        asserterror QltyInspectionUtility.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
         ClearLastError();
     end;
 
@@ -1761,7 +1752,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1833,27 +1823,27 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionLine.Modify(false);
         Commit();
         // [THEN] OnRun returns true and result is INPROGRESS
-        LibraryAssert.AreEqual(true, QltyResultEvaluation.Run(QltyInspectionLine), 'OnRun should have returned true for validation. blank.');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.RunResultEvaluation(QltyInspectionLine), 'OnRun should have returned true for validation. blank.');
         LibraryAssert.AreEqual('INPROGRESS', QltyInspectionLine."Result Code", 'blank value via onrun.');
 
         // [THEN] OnRun with value 6 (minimum) returns true and result is PASS
         QltyInspectionLine."Test Value" := '6';
-        LibraryAssert.AreEqual(true, QltyResultEvaluation.Run(QltyInspectionLine), 'OnRun should have returned true for validation. min');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.RunResultEvaluation(QltyInspectionLine), 'OnRun should have returned true for validation. min');
         LibraryAssert.AreEqual('PASS', QltyInspectionLine."Result Code", 'min value via onrun.');
 
         // [THEN] OnRun with invalid value 'not a number' returns false
         QltyInspectionLine."Test Value" := 'not a number';
-        LibraryAssert.AreEqual(false, QltyResultEvaluation.Run(QltyInspectionLine), 'should not have evaluated to a number.');
+        LibraryAssert.AreEqual(false, QltyInspectionUtility.RunResultEvaluation(QltyInspectionLine), 'should not have evaluated to a number.');
 
         // [THEN] OnRun with value 8 (exceeding max) returns true and result is FAIL
         QltyInspectionLine."Test Value" := '8';
-        LibraryAssert.AreEqual(true, QltyResultEvaluation.Run(QltyInspectionLine), 'OnRun should have returned true for validation. Fail');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.RunResultEvaluation(QltyInspectionLine), 'OnRun should have returned true for validation. Fail');
         LibraryAssert.AreEqual('FAIL', QltyInspectionLine."Result Code", 'exceeded value..');
 
         // [THEN] OnRun with decimal value '7.0001' returns false with expected error
         ClearLastError();
         QltyInspectionLine."Test Value" := '7.0001';
-        LibraryAssert.AreEqual(false, QltyResultEvaluation.Run(QltyInspectionLine), 'should not have evaluated to an integer.');
+        LibraryAssert.AreEqual(false, QltyInspectionUtility.RunResultEvaluation(QltyInspectionLine), 'should not have evaluated to an integer.');
         LibraryAssert.AreEqual(StrSubstNo(Expected2Err, NumericalMeasureQltyTest.Description), GetLastErrorText(), 'error text from failed run.');
     end;
 
@@ -1870,7 +1860,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         NumericMeasureQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -1933,7 +1922,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [THEN] ValidateInspectionLineWithAllowableValues also returns INPROGRESS for blank value
         NumericMeasureQltyInspectionLine."Test Value" := '';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyInspectionUtility.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('INPROGRESS', NumericMeasureQltyInspectionLine."Result Code", 'blank value with testing allowable values.');
 
         // [THEN] Value 6 (minimum of result range) evaluates to PASS
@@ -1948,7 +1937,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionUtility.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         LibraryAssert.AreEqual('FAIL', NumericMeasureQltyInspectionLine."Result Code", 'slightly exceeding max inspection line result');
-        QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyInspectionUtility.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('FAIL', NumericMeasureQltyInspectionLine."Result Code", 'slightly exceeding max inspection line result');
 
         // [THEN] Value 5.999999 (below minimum) evaluates to FAIL
@@ -1987,7 +1976,6 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         OptionListQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -2054,7 +2042,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [THEN] ValidateInspectionLineWithAllowableValues also returns INPROGRESS for blank value
         OptionListQltyInspectionLine."Test Value" := '';
         OptionListQltyInspectionLine.Modify();
-        QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyInspectionUtility.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('INPROGRESS', OptionListQltyInspectionLine."Result Code", 'blank value with testing allowable values.');
 
         // [THEN] Value 'C' (first PASS option in template condition) evaluates to PASS
@@ -2079,7 +2067,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [THEN] Value 'F' (not in allowable values) causes an error
         ClearLastError();
         OptionListQltyInspectionLine."Test Value" := 'F';
-        asserterror QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
+        asserterror QltyInspectionUtility.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.ExpectedError(StrSubstNo(Expected4Err, OptionListQltyInspectionLine."Test Code"));
     end;
 

@@ -23,7 +23,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
     var
         LibraryAssert: Codeunit "Library Assert";
-        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ItemFilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.', Locked = true;
         ItemAttributeFilterTok: Label '"%1"=Filter(1))', Comment = '%1=attribute', Locked = true;
@@ -50,7 +49,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         PurchaseLineRecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, true, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -73,7 +72,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         PurchaseLineRecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspectionUtility.FindMatchingGenerationRule(false, false, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
     end;
 
     [Test]
@@ -96,7 +95,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -119,7 +118,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspectionUtility.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
     end;
 
     [Test]
@@ -142,7 +141,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -165,7 +164,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -188,7 +187,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspectionUtility.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
     end;
 
     [Test]
@@ -212,7 +211,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspectionUtility.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
     end;
 
     [Test]
@@ -245,7 +244,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -282,7 +281,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspectionUtility.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
     end;
 
     [Test]

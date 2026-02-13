@@ -171,7 +171,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateInspectionLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, true, Modify);
     end;
 
-    procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; UpdateHeader: Boolean)
+    internal procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; UpdateHeader: Boolean)
     var
         QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -212,7 +212,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         end;
     end;
 
-    procedure GetInspectionLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
+    internal procedure GetInspectionLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     begin
         TemplateLineQltyIResultConditConf.SetRange("Condition Type", TemplateLineQltyIResultConditConf."Condition Type"::Inspection);
         TemplateLineQltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
@@ -287,7 +287,7 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyCaseSensitivity);
     end;
 
-    procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test")
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test")
     var
         TempDummyQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
@@ -302,7 +302,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateAllowableValuesOnTest(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine);
     end;
 
-    procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line")
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line")
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";

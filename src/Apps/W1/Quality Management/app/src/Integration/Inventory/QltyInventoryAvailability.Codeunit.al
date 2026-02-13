@@ -377,7 +377,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="TempQuantityQltyDispositionBuffer">The result.</param>
     /// <returns></returns>
-    procedure PopulateQuantityBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
+    internal procedure PopulateQuantityBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
     var
         Location: Record Location;
         TempExistingInventoryCopyBinContent: Record "Bin Content" temporary;

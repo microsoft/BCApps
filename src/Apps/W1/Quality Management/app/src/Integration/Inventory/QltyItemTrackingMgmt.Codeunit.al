@@ -36,7 +36,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="CreatedActualReservationEntry"></param>
-    procedure CreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry")
+    internal procedure CreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry")
     var
         InstructionForReservationEntry: Record "Reservation Entry";
         CreateReservEntry: Codeunit "Create Reserv. Entry";
@@ -310,7 +310,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// </summary>
     /// <param name="ItemNo"></param>
     /// <returns></returns>
-    procedure GetIsWarehouseTracked(ItemNo: Code[20]): Boolean
+    internal procedure GetIsWarehouseTracked(ItemNo: Code[20]): Boolean
     var
         ItemTrackingCode: Record "Item Tracking Code";
     begin
