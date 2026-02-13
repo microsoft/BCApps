@@ -5,12 +5,11 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Security.Authentication;
-using System.Utilities;
-codeunit 6374 "Authenticator"
+codeunit 6374 Authenticator
 {
     Access = Internal;
-    Permissions = tabledata "OAuth 2.0 Setup" = im,
-        tabledata "Connection Setup" = rim;
+    Permissions = tabledata "Connection Setup" = rim,
+                  tabledata "OAuth 2.0 Setup" = im;
 
     procedure CreateConnectionSetupRecord()
     var
@@ -50,7 +49,7 @@ codeunit 6374 "Authenticator"
             if GetTokenValue(ConnectionSetup."Token - Key", Token, DataScope::Company) then
                 exit;
 
-        if not GetTokenValue(ConnectionSetup."Client ID - Key", ClientId, DataScope::Company) then
+        if not GetTokenValue(ConnectionSetup."Client Id - Key", ClientId, DataScope::Company) then
             Error(AvalaraClientIdErr, ConnectionSetup.TableCaption);
 
         if not GetTokenValue(ConnectionSetup."Client Secret - Key", ClientSecret, DataScope::Company) then
@@ -96,14 +95,13 @@ codeunit 6374 "Authenticator"
         ExpiresIn := ExpiryJson.AsValue().AsInteger();
     end;
 
-
     procedure IsClientCredsSet(var ClientId: Text; var ClientSecret: Text): Boolean
     var
         ConnectionSetup: Record "Connection Setup";
     begin
         ConnectionSetup.Get();
 
-        if HasToken(ConnectionSetup."Client ID - Key", DataScope::Company) then
+        if HasToken(ConnectionSetup."Client Id - Key", DataScope::Company) then
             ClientId := '*';
         if HasToken(ConnectionSetup."Client Secret - Key", DataScope::Company) then
             ClientSecret := '*';
@@ -130,48 +128,12 @@ codeunit 6374 "Authenticator"
         exit(IsolatedStorage.Contains(TokenKey, TokenDataScope));
     end;
 
-    internal procedure GetAuthURL(): Text
     var
-        ConnectionSetup: Record "Connection Setup";
-        URI: Codeunit Uri;
-    begin
-        if ConnectionSetup.Get() then
-            exit(URI.ValidateIntegrationURL(ConnectionSetup."Authentication URL", AuthURLTxt));
-    end;
-
-    internal procedure GetSandboxAuthURL(): Text
-    var
-        ConnectionSetup: Record "Connection Setup";
-        URI: Codeunit Uri;
-    begin
-        if ConnectionSetup.Get() then
-            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox Authentication URL", SandboxAuthURLTxt));
-    end;
-
-    internal procedure GetAPIURL(): Text
-    var
-        ConnectionSetup: Record "Connection Setup";
-        URI: Codeunit Uri;
-    begin
-        if ConnectionSetup.Get() then
-            exit(URI.ValidateIntegrationURL(ConnectionSetup."API URL", APIURLTxt));
-    end;
-
-    internal procedure GetSandboxAPIURL(): Text
-    var
-        ConnectionSetup: Record "Connection Setup";
-        URI: Codeunit Uri;
-    begin
-        if ConnectionSetup.Get() then
-            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox API URL", SandboxAPIURLTxt));
-    end;
-
-    var
-        AuthURLTxt: Label 'https://identity.avalara.com', Locked = true;
         APIURLTxt: Label 'https://api.avalara.com', Locked = true;
-        SandboxAuthURLTxt: Label 'https://ai-sbx.avlr.sh', Locked = true;
-        SandboxAPIURLTxt: Label 'https://api.sbx.avalara.com', Locked = true;
+        AuthURLTxt: Label 'https://identity.avalara.com', Locked = true;
         AvalaraClientIdErr: Label 'Avalara Client Id is not set in %1', Comment = '%1 - Client id';
         AvalaraClientSecretErr: Label 'Avalara Client Secret is not set in %1', Comment = '%1 - Client secret';
         AvalaraGetTokenErr: Label 'Failed to parse response for Avalara Access token request';
+        SandboxAPIURLTxt: Label 'https://api.sbx.avalara.com', Locked = true;
+        SandboxAuthURLTxt: Label 'https://ai-sbx.avlr.sh', Locked = true;
 }

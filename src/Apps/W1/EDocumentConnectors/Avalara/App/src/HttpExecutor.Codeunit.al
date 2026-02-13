@@ -11,7 +11,6 @@ using System.Telemetry;
 /// </summary>
 codeunit 6377 "Http Executor"
 {
-
     Access = Internal;
 
     /// <summary>
@@ -107,13 +106,12 @@ codeunit 6377 "Http Executor"
     var
         AvalaraProcessing: Codeunit Processing;
         HttpResponseMessage: HttpResponseMessage;
-        HTTPSuccessMsg: Label 'The HTTP request was successful and the body contains the resource fetched.'; // 200
-        HTTPSuccessAndCreatedMsg: Label 'The HTTP request was successful and a new resource was created.'; //201
         HTTPBadRequestMsg: Label 'The HTTP request was incorrectly formed or invalid.'; // 400
-        HTTPUnauthorizedMsg: Label 'The HTTP request is not authorized. Authentication credentials are not valid.'; // 401
+        HttpErrorMsg: Label 'Error Code: %1, Error Message: %2', Comment = '%1 = Error Code, %2 = Error Message';
+        HTTPGeneralErrMsg: Label 'Something went wrong, try again later.';
         HTTPInternalServerErrorMsg: Label 'The HTTP request is not successful. An internal server error occurred.'; // 500
         HTTPServiceUnavailableMsg: Label 'The HTTP request is not successful. The service is unavailable.'; // 503
-        HTTPGeneralErrMsg: Label 'Something went wrong, try again later.';
-        HttpErrorMsg: Label 'Error Code: %1, Error Message: %2', Comment = '%1 = Error Code, %2 = Error Message';
-
+        HTTPSuccessAndCreatedMsg: Label 'The HTTP request was successful and a new resource was created.'; //201
+        HTTPSuccessMsg: Label 'The HTTP request was successful and the body contains the resource fetched.'; // 200
+        HTTPUnauthorizedMsg: Label 'The HTTP request is not authorized. Authentication credentials are not valid.'; // 401
 }
