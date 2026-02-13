@@ -242,7 +242,6 @@ codeunit 20411 "Qlty. Receiving Integration"
                             TempTrackingSpecification.DeleteAll(false);
                             TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-                            TempTrackingSpecification."Package No." := ReservationEntry."Package No.";
                             TempTrackingSpecification."Quantity (Base)" := ReservationEntry."Quantity (Base)";
                             TempTrackingSpecification.Insert();
                             AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempTrackingSpecification);

@@ -144,7 +144,6 @@ codeunit 20438 "Qlty. Warehouse Integration"
                 TempTrackingSpecification."Entry No." := ReservationCounter;
                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-                TempTrackingSpecification."Package No." := ReservationEntry."Package No.";
                 TempTrackingSpecification.Insert();
             until ReservationEntry.Next() = 0;
     end;
