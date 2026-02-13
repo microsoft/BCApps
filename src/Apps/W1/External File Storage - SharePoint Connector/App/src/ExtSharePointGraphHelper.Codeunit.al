@@ -316,7 +316,7 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         LastSlashPos: Integer;
     begin
         // Find the last slash to split path
-        LastSlashPos := StrPos(ReverseString(FullPath), '/');
+        LastSlashPos := FullPath.LastIndexOf('/');
 
         if LastSlashPos = 0 then begin
             // No slash found - item is in root
