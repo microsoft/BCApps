@@ -403,16 +403,16 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <returns></returns>
     procedure GetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Text
     var
-        CustomQltyExpressConfigValue: Record "Qlty. Express Config. Value";
+        QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
     begin
-        if not CustomQltyExpressConfigValue.ReadPermission() then
+        if not QltyWorkflowConfigValue.ReadPermission() then
             exit;
 
-        CustomQltyExpressConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
-        CustomQltyExpressConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
-        CustomQltyExpressConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key")));
-        if CustomQltyExpressConfigValue.FindFirst() then;
-        exit(CustomQltyExpressConfigValue.Value);
+        QltyWorkflowConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
+        QltyWorkflowConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
+        QltyWorkflowConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key")));
+        if QltyWorkflowConfigValue.FindFirst() then;
+        exit(QltyWorkflowConfigValue.Value);
     end;
 
     /// <summary>
@@ -445,22 +445,22 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="Value"></param>
     procedure SetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; Value: Text)
     var
-        CustomQltyExpressConfigValue: Record "Qlty. Express Config. Value";
+        QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
     begin
-        if not CustomQltyExpressConfigValue.ReadPermission() then
+        if not QltyWorkflowConfigValue.ReadPermission() then
             exit;
 
-        CustomQltyExpressConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
-        CustomQltyExpressConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
-        CustomQltyExpressConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key")));
-        if not CustomQltyExpressConfigValue.FindFirst() then begin
-            CustomQltyExpressConfigValue."Table ID" := Database::"Workflow Step Argument";
-            CustomQltyExpressConfigValue."Record ID" := WorkflowStepArgument.RecordId();
-            CustomQltyExpressConfigValue."Template Key" := CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key"));
-            CustomQltyExpressConfigValue.Insert();
+        QltyWorkflowConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
+        QltyWorkflowConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
+        QltyWorkflowConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key")));
+        if not QltyWorkflowConfigValue.FindFirst() then begin
+            QltyWorkflowConfigValue."Table ID" := Database::"Workflow Step Argument";
+            QltyWorkflowConfigValue."Record ID" := WorkflowStepArgument.RecordId();
+            QltyWorkflowConfigValue."Template Key" := CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key"));
+            QltyWorkflowConfigValue.Insert();
         end;
-        CustomQltyExpressConfigValue.Value := CopyStr(Value, 1, MaxStrLen(CustomQltyExpressConfigValue.Value));
-        CustomQltyExpressConfigValue.Modify();
+        QltyWorkflowConfigValue.Value := CopyStr(Value, 1, MaxStrLen(QltyWorkflowConfigValue.Value));
+        QltyWorkflowConfigValue.Modify();
     end;
 
     /// <summary>

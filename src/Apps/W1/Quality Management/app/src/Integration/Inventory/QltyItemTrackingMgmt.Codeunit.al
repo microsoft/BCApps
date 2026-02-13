@@ -536,6 +536,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
 
         ReservForReservationEntry."Lot No." := LotNo;
         ReservForReservationEntry."Serial No." := SerialNo;
+        ReservForReservationEntry."Package No." := PackageNo;
 
         CreateReservEntry.CreateReservEntryFor(Database::"Purchase Line", 5, PurchPurchaseLine."Document No.", '', 0, PurchPurchaseLine."Line No.", PurchPurchaseLine."Qty. per Unit of Measure", ChangeQty / PurchPurchaseLine."Qty. per Unit of Measure", ChangeQty, ReservForReservationEntry);
 
@@ -543,23 +544,6 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
             CreateReservEntry.SetDates(0D, ExpirationDate);
 
         CreateReservEntry.CreateEntry(PurchPurchaseLine."No.", PurchPurchaseLine."Variant Code", PurchPurchaseLine."Location Code", PurchPurchaseLine.Description, Today, 0D, 0, ReservationStatus::Surplus);
-
-        if PackageNo <> '' then begin
-            ReservationEntry.Reset();
-            ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
-            ReservationEntry.SetRange("Lot No.", LotNo);
-            ReservationEntry.SetRange("Serial No.", SerialNo);
-            ReservationEntry.SetFilter("Package No.", '%1', '');
-            ReservationEntry.SetRange("Location Code", PurchPurchaseLine."Location Code");
-            ReservationEntry.SetRange("Source Type", Database::"Purchase Line");
-            ReservationEntry.SetRange("Source ID", PurchPurchaseLine."Document No.");
-            ReservationEntry.SetRange("Source Ref. No.", PurchPurchaseLine."Line No.");
-            ReservationEntry.SetRange(Positive, false);
-            if ReservationEntry.FindLast() then begin
-                ReservationEntry."Package No." := PackageNo;
-                ReservationEntry.Modify();
-            end;
-        end;
     end;
 
     /// <summary>

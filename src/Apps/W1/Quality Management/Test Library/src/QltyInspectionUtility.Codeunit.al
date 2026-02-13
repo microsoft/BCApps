@@ -1139,7 +1139,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyInspectSourceConfig">The source configuration record to populate and insert (var parameter).</param>
     /// <param name="FromTableNo">The source table number.</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="ToTableNo">The target table number.</param>
     internal procedure CreateSourceConfig(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromTableNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer)
     var
@@ -1181,7 +1181,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <param name="SourceConfigCode">The code of the parent source configuration.</param>
     /// <param name="FromTableNo">The source table number.</param>
     /// <param name="FromFieldNo">The source field number.</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="ToTableNo">The target table number.</param>
     /// <param name="ToFieldNo">The target field number.</param>
     internal procedure CreateSourceFieldConfig(SourceConfigCode: Code[20]; FromTableNo: Integer; FromFieldNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer;
@@ -1207,7 +1207,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="SourceConfigCode">The code of the parent source configuration.</param>
     /// <param name="TableNo">The table number for both source and target (used for field name resolution).</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="FieldName">The field name to resolve to a field number.</param>
     internal procedure CreateSourceFieldConfigByName(SourceConfigCode: Code[20]; TableNo: Integer; ToType: Enum "Qlty. Target Type"; FieldName: Text)
     var
@@ -1838,12 +1838,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyTest">The quality field configuration defining lookup table and filters.</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation.</param>
-    /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values.</param>
-    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer populated with lookup values.</param>
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
-        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyTestLookupValue);
     end;
 
     /// <summary>
