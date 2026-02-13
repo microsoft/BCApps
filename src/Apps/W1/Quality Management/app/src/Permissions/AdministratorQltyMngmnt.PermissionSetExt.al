@@ -2,18 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup.ApplicationAreas;
+namespace Microsoft.QualityManagement.Permissions;
 
-enum 20423 "Qlty. Management Visibility"
+using System.Security.AccessControl;
+
+permissionsetextension 20402 "Administrator - QltyMngmnt" extends "Administrator"
 {
-    Caption = 'Quality Management Visibility';
-
-    value(0; Show)
-    {
-        Caption = 'Show Quality Management';
-    }
-    value(1; Hide)
-    {
-        Caption = 'Hide Quality Management';
-    }
+    IncludedPermissionSets = "QltyMngmnt - Edit";
 }

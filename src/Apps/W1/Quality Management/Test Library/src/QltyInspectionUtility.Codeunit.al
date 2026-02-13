@@ -51,6 +51,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryUtility: Codeunit "Library - Utility";
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
+        SupervisorRoleIDTok: Label 'QltyMngmnt - Edit', Locked = true;
 
     internal procedure EnsureSetupExists()
     var
@@ -58,7 +59,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
-        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
+        UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), SupervisorRoleIDTok);
     end;
 
     internal procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
@@ -1249,6 +1250,230 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionCreate.CreateMultipleInspectionsForMultipleRecords(SetOfRecordsRecordRef, IsManualCreation);
     end;
 
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspection.
+    /// Creates a quality inspection from a RecordRef using generation rule configuration.
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspection(TargetRecordRef: RecordRef; IsManualCreation: Boolean): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.CreateInspection(TargetRecordRef, IsManualCreation));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspection with output inspection header.
+    /// Creates a quality inspection and returns the created inspection.
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created inspection header.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspection(TargetRecordRef: RecordRef; IsManualCreation: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspection(TargetRecordRef, IsManualCreation);
+        if Result then
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariant.
+    /// Creates a quality inspection from a variant using generation rule configuration.
+    /// </summary>
+    /// <param name="ReferenceVariant">The source record (Record, RecordRef, or RecordId) to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithVariant(ReferenceVariant: Variant; IsManualCreation: Boolean): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.CreateInspectionWithVariant(ReferenceVariant, IsManualCreation));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariant with output inspection header.
+    /// Creates a quality inspection from a variant and returns the created inspection.
+    /// </summary>
+    /// <param name="ReferenceVariant">The source record (Record, RecordRef, or RecordId) to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created inspection header.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithVariant(ReferenceVariant: Variant; IsManualCreation: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspectionWithVariant(ReferenceVariant, IsManualCreation);
+        if Result then
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariantAndTemplate.
+    /// Creates a quality inspection from a variant using a specified template.
+    /// </summary>
+    /// <param name="ReferenceVariant">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use; empty string for rule-based selection.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithVariantAndTemplate(ReferenceVariant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ReferenceVariant, IsManualCreation, OptionalSpecificTemplate));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariantAndTemplate with output inspection header.
+    /// Creates a quality inspection from a variant using a specified template and returns the created inspection.
+    /// </summary>
+    /// <param name="ReferenceVariant">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use; empty string for rule-based selection.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created inspection header.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithVariantAndTemplate(ReferenceVariant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ReferenceVariant, IsManualCreation, OptionalSpecificTemplate);
+        if Result then
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithSpecificTemplate.
+    /// Creates a quality inspection using a specified template.
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.CreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithSpecificTemplate with output inspection header.
+    /// Creates a quality inspection using a specified template and returns the created inspection.
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created inspection header.</param>
+    /// <returns>True if inspection was successfully created.</returns>
+    internal procedure CreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate);
+        if Result then
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate.
+    /// Creates an inspection using multiple variant records with a specified template.
+    /// </summary>
+    /// <param name="OptionalRec1Variant">First record variant to attempt inspection creation from.</param>
+    /// <param name="OptionalRec2Variant">Second record variant.</param>
+    /// <param name="OptionalRec3Variant">Third record variant.</param>
+    /// <param name="OptionalRec4Variant">Fourth record variant.</param>
+    /// <param name="IsManualCreation">True for manual creation; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use; empty string for rule-based selection.</param>
+    /// <returns>True if inspection was successfully created from any variant.</returns>
+    internal procedure CreateInspectionWithMultiVariantsAndTemplate(OptionalRec1Variant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, OptionalSpecificTemplate));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate with output inspection header.
+    /// Creates an inspection using multiple variant records with a specified template and returns the created inspection.
+    /// </summary>
+    /// <param name="OptionalRec1Variant">First record variant to attempt inspection creation from.</param>
+    /// <param name="OptionalRec2Variant">Second record variant.</param>
+    /// <param name="OptionalRec3Variant">Third record variant.</param>
+    /// <param name="OptionalRec4Variant">Fourth record variant.</param>
+    /// <param name="IsManualCreation">True for manual creation; False for automatic/triggered creation.</param>
+    /// <param name="OptionalSpecificTemplate">The specific template code to use; empty string for rule-based selection.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created inspection header.</param>
+    /// <returns>True if inspection was successfully created from any variant.</returns>
+    internal procedure CreateInspectionWithMultiVariantsAndTemplate(OptionalRec1Variant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, OptionalSpecificTemplate);
+        if Result then
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateReinspection.
+    /// Creates a re-inspection from an existing inspection.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The existing inspection to create a re-inspection from.</param>
+    /// <param name="OutReQltyInspectionHeader">Output: the created re-inspection header.</param>
+    internal procedure CreateReinspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var OutReQltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, OutReQltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.FindExistingInspectionWithVariant (simple overload).
+    /// Finds an existing inspection matching the given variant.
+    /// </summary>
+    /// <param name="RaiseErrorIfNoRuleIsFound">If true, raises an error when no matching rule is found.</param>
+    /// <param name="ReferenceVariant">The source record to find an inspection for.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the found inspection header.</param>
+    /// <returns>True if an existing inspection was found.</returns>
+    internal procedure FindExistingInspectionWithVariant(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.FindExistingInspectionWithVariant(RaiseErrorIfNoRuleIsFound, ReferenceVariant, OutQltyInspectionHeader));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspectionCreate.FindExistingInspectionWithVariant (with TempQltyInspectionGenRule).
+    /// Finds existing inspections with generation rule filtering.
+    /// </summary>
+    /// <param name="TargetRecordRef">The main target record.</param>
+    /// <param name="OptionalVariant2">Optional second variant.</param>
+    /// <param name="OptionalVariant3">Optional third variant.</param>
+    /// <param name="OptionalVariant4">Optional fourth variant.</param>
+    /// <param name="TempQltyInspectionGenRule">Temporary generation rule for filtering.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the found inspection header.</param>
+    /// <param name="FindAll">If true, finds all matching inspections.</param>
+    /// <returns>True if an existing inspection was found.</returns>
+    internal procedure FindExistingInspectionWithVariant(TargetRecordRef: RecordRef; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        exit(QltyInspectionCreate.FindExistingInspectionWithVariant(TargetRecordRef, OptionalVariant2, OptionalVariant3, OptionalVariant4, TempQltyInspectionGenRule, OutQltyInspectionHeader, FindAll));
+    end;
+
     #endregion Qlty. Inspection - Create Wrappers
 
     #region Qlty. Disposition Wrappers
@@ -1567,16 +1792,29 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.NavigateToFindEntries.
+    /// Wrapper for QltyDocumentNavigation.NavigateToSourceDocument.
+    /// Opens the source document associated with a quality inspection in its appropriate page.
+    /// Automatically determines the correct page to display based on the source record type.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The Inspection whose source document should be displayed.</param>
+    internal procedure NavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
+    begin
+        QltyDocumentNavigation.NavigateToSourceDocument(QltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyDocumentNavigation.NavigateToFindEntries.
     /// Opens the Navigate page to find all related entries for an Inspection's source document.
     /// Pre-fills search criteria with test source information including item, document number, and tracking.
     /// </summary>
     /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found.</param>
     internal procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
     begin
-        QltyMiscHelpers.NavigateToFindEntries(QltyInspectionHeader);
+        QltyDocumentNavigation.NavigateToFindEntries(QltyInspectionHeader);
     end;
 
     #endregion Qlty. Misc Helpers Wrappers
@@ -1643,33 +1881,46 @@ codeunit 139940 "Qlty. Inspection Utility"
     #region Qlty. Misc Helpers Additional Wrappers
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBooleanFor.
+    /// Wrapper for QltyBooleanParsing.GetBooleanFor.
     /// Converts text input to a boolean value using flexible interpretation rules.
     /// </summary>
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
     internal procedure GetBooleanFor(Input: Text): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
     begin
-        exit(QltyMiscHelpers.GetBooleanFor(Input));
+        exit(QltyBooleanParsing.GetBooleanFor(Input));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.IsTextValuePositiveBoolean.
+    /// Wrapper for QltyBooleanParsing.IsTextValuePositiveBoolean.
     /// Checks if a text value represents a "positive" or "true-ish" boolean value.
     /// </summary>
     /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
     internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
     begin
-        exit(QltyMiscHelpers.IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean));
+        exit(QltyBooleanParsing.IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBasicPersonDetails.
+    /// Wrapper for QltyBooleanParsing.IsTextValueNegativeBoolean.
+    /// Checks if text represents a negative/false boolean value.
+    /// </summary>
+    /// <param name="ValueToCheckIfNegativeBoolean">The text value to check</param>
+    /// <returns>True if text represents a negative boolean value; False otherwise</returns>
+    internal procedure IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean: Text): Boolean
+    var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
+    begin
+        exit(QltyBooleanParsing.IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyPersonLookup.GetBasicPersonDetails.
     /// Retrieves basic person details from various person-related tables.
     /// </summary>
     /// <param name="Input">The primary key value to search for</param>
@@ -1681,13 +1932,13 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if person details were found; False otherwise</returns>
     internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
     begin
-        exit(QltyMiscHelpers.GetBasicPersonDetails(Input, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
+        exit(QltyPersonLookup.GetBasicPersonDetails(Input, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
     end;
 
     /// <summary>
-    /// Wrapper for QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine.
+    /// Wrapper for QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine.
     /// Retrieves person details based on the value in an inspection line's table lookup field.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the person reference</param>
@@ -1699,9 +1950,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <returns>True if details were retrieved; False otherwise</returns>
     internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
     begin
-        exit(QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
+        exit(QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
     end;
 
     #endregion Qlty. Misc Helpers Additional Wrappers
@@ -1763,16 +2014,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     #region Qlty. Permission Mgmt. Wrappers
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanReadInspectionResults
-    /// </summary>
-    internal procedure CanReadInspectionResults(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanReadInspectionResults());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanCreateManualInspection
     /// </summary>
     internal procedure VerifyCanCreateManualInspection()
@@ -1780,36 +2021,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
         QltyPermissionMgmt.VerifyCanCreateManualInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateManualInspection
-    /// </summary>
-    internal procedure CanCreateManualInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateManualInspection());
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanCreateAutoInspection
-    /// </summary>
-    internal procedure VerifyCanCreateAutoInspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanCreateAutoInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateAutoInspection
-    /// </summary>
-    internal procedure CanCreateAutoInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateAutoInspection());
     end;
 
     /// <summary>
@@ -1823,16 +2034,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanCreateReinspection
-    /// </summary>
-    internal procedure CanCreateReinspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanCreateReinspection());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanDeleteOpenInspection
     /// </summary>
     internal procedure VerifyCanDeleteOpenInspection()
@@ -1840,16 +2041,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
         QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanDeleteOpenInspection
-    /// </summary>
-    internal procedure CanDeleteOpenInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanDeleteOpenInspection());
     end;
 
     /// <summary>
@@ -1903,16 +2094,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanReopenInspection
-    /// </summary>
-    internal procedure CanReopenInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanReopenInspection());
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanFinishInspection
     /// </summary>
     internal procedure VerifyCanFinishInspection()
@@ -1933,23 +2114,23 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanChangeTrackingNo
+    /// Wrapper for QltyPermissionMgmt.VerifyCanChangeItemTracking
     /// </summary>
-    internal procedure VerifyCanChangeTrackingNo()
+    internal procedure VerifyCanChangeItemTracking()
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeTrackingNo();
+        QltyPermissionMgmt.VerifyCanChangeItemTracking();
     end;
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanChangeTrackingNo
+    /// Wrapper for QltyPermissionMgmt.CanChangeItemTracking
     /// </summary>
-    internal procedure CanChangeTrackingNo(): Boolean
+    internal procedure CanChangeItemTracking(): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeTrackingNo());
+        exit(QltyPermissionMgmt.CanChangeItemTracking());
     end;
 
     /// <summary>

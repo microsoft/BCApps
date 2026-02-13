@@ -17,7 +17,6 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Worksheet;
 using System.Apps;
@@ -126,32 +125,6 @@ table 20400 "Qlty. Management Setup"
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
                         if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
                             QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
-                end;
-            end;
-        }
-        field(70; "Visibility"; Enum "Qlty. Management Visibility")
-        {
-            Caption = 'Visibility';
-            ToolTip = 'Specifies the application area setting that shows or hides the Quality Management.';
-            DataClassification = SystemMetadata;
-
-            trigger OnValidate()
-            var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-            begin
-                if Rec.Visibility <> Rec.Visibility::Hide then
-                    exit;
-
-                QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
-                if QltyInspectionGenRule.IsEmpty() then
-                    exit;
-
-                if not GuiAllowed() then
-                    exit;
-
-                if Confirm(ShouldDisableInspectionGenerationRulesQst) then begin
-                    QltyInspectionGenRule.ModifyAll("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
-                    Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
         }
@@ -420,8 +393,6 @@ table 20400 "Qlty. Management Setup"
 
     var
         RecordHasBeenRead: Boolean;
-        ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
-        InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';

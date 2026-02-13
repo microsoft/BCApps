@@ -2,25 +2,23 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup;
+
+namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Defines when to automatically show the inspections.
+/// Enum Shpfy Incl. in Product Sync (ID 30179).
 /// </summary>
-enum 20401 "Qlty. When to Show Inspections"
+enum 30179 "Shpfy Incl. in Product Sync"
 {
-    Caption = 'When to Show Inspections';
+    Caption = 'Include in Product Sync';
+    Extensible = false;
 
-    value(0; "Always")
+    value(0; " ")
     {
-        Caption = 'Always';
+        Caption = ' ', Locked = true;
     }
-    value(1; "Only manually created inspections")
+    value(1; "As Option")
     {
-        Caption = 'Only manually created inspections';
-    }
-    value(2; "Never")
-    {
-        Caption = 'Never';
+        Caption = 'As Option';
     }
 }

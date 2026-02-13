@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.GuidedExperience;
 using Microsoft.QualityManagement.Installation;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
@@ -42,8 +43,8 @@ using Microsoft.QualityManagement.Workflow;
 permissionset 20406 "QltyMngmnt - Objects"
 {
     Caption = 'Quality Management - Objects';
-    Assignable = true;
     Access = Internal;
+    Assignable = true;
 
     Permissions =
         // Codeunits
@@ -59,6 +60,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
+        codeunit "Qlty. Guided Experience" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
@@ -72,10 +74,13 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Utilities Integration" = X,
         codeunit "Qlty. Navigate Integration" = X,
         codeunit "Qlty. Tracking Integration" = X,
+        codeunit "Qlty. Boolean Parsing" = X,
         codeunit "Qlty. Configuration Helpers" = X,
+        codeunit "Qlty. Document Navigation" = X,
         codeunit "Qlty. File Import" = X,
         codeunit "Qlty. Localization" = X,
         codeunit "Qlty. Misc Helpers" = X,
+        codeunit "Qlty. Person Lookup" = X,
         codeunit "Qlty. Value Parsing" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
@@ -90,21 +95,16 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Workflow Setup" = X,
 
         // Pages
-        page "Qlty. Test Card Part" = X,
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Inspection Template Edit" = X,
-        page "Qlty. Choose Existing Tests" = X,
         page "Qlty. Manager RC" = X,
         page "Qlty. Test Card" = X,
         page "Qlty. Test Lookup" = X,
-        page "Qlty. Test Number Card Part" = X,
-        page "Qlty. Test Wizard" = X,
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Lookup Code List" = X,
-        page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
         page "Qlty. Management Setup" = X,
@@ -124,6 +124,9 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Inspection List" = X,
         page "Qlty. Whse. Gen. Rule Wizard" = X,
         page "Qlty. Inspection" = X,
+        page "Qlty. Inspect. Source Config." = X,
+        page "Qlty. Source Config Line Part" = X,
+        page "Qlty. Ins. Source Config. List" = X,
 
         // Queries  
         query "Qlty. Inspection Values" = X,
