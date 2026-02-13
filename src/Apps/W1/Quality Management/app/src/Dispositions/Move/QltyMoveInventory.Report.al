@@ -12,7 +12,7 @@ using Microsoft.Warehouse.Structure;
 report 20404 "Qlty. Move Inventory"
 {
     Caption = 'Quality Management - Move Inventory';
-    AdditionalSearchTerms = 'Move To Bin,Quarantine lot,quarantine';
+    AdditionalSearchTerms = 'Quarantine';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
@@ -20,9 +20,9 @@ report 20404 "Qlty. Move Inventory"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -30,12 +30,12 @@ report 20404 "Qlty. Move Inventory"
                 InventoryQltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
             begin
                 if (SpecificQuantity = 0) and (QltyQuantityBehavior = QltyQuantityBehavior::"Specific Quantity") then begin
-                    SpecificQuantity := CurrentTest."Source Quantity (Base)";
+                    SpecificQuantity := CurrentInspection."Source Quantity (Base)";
                     if SpecificQuantity = 0 then
                         Error(InventoryNeedsQuantityErr);
                 end;
 
-                if (QltyQuantityBehavior = QltyQuantityBehavior::"Sample Quantity") and (CurrentTest."Sample Size" <= 0) then
+                if (QltyQuantityBehavior = QltyQuantityBehavior::"Sample Quantity") and (CurrentInspection."Sample Size" <= 0) then
                     Error(SampleMoveErr);
 
                 TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with automatic choice";
@@ -49,7 +49,7 @@ report 20404 "Qlty. Move Inventory"
                 TempInstructionQltyDispositionBuffer."New Location Code" := DestinationLocationCode;
                 TempInstructionQltyDispositionBuffer."New Bin Code" := DestinationBinCode;
 
-                InventoryQltyDispMoveAutoChoose.MoveInventory(CurrentTest, TempInstructionQltyDispositionBuffer, UseMovement);
+                InventoryQltyDispMoveAutoChoose.MoveInventory(CurrentInspection, TempInstructionQltyDispositionBuffer, UseMovement);
             end;
         }
     }
@@ -60,7 +60,7 @@ report 20404 "Qlty. Move Inventory"
         {
             area(Content)
             {
-                group(SettingsForMovementMethod)
+                group(MovementMethod)
                 {
                     Caption = 'Movement Method';
 
@@ -87,10 +87,10 @@ report 20404 "Qlty. Move Inventory"
                         end;
                     }
                 }
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(ChooseMoveAllInventory; IsMoveTracked)
                     {
@@ -134,7 +134,7 @@ report 20404 "Qlty. Move Inventory"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = IsMoveSpecific;
@@ -214,10 +214,10 @@ report 20404 "Qlty. Move Inventory"
                         end;
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocationCode)
                     {
@@ -237,7 +237,7 @@ report 20404 "Qlty. Move Inventory"
                     }
                 }
 
-                group(SettingsForDestination)
+                group(Destination)
                 {
                     Caption = 'Destination';
                     InstructionalText = 'Where the inventory should be moved to.';
@@ -270,7 +270,7 @@ report 20404 "Qlty. Move Inventory"
                         Enabled = ShowBinCode;
                     }
                 }
-                group(SettingsForPostImmediately)
+                group(PostImmediately)
                 {
                     Caption = 'Post Now or Later';
 

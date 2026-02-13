@@ -5,12 +5,12 @@
 namespace Microsoft.QualityManagement.RoleCenters;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 page 20421 "Qlty. Manager RC"
 {
@@ -26,12 +26,12 @@ page 20421 "Qlty. Manager RC"
             {
                 Caption = 'Quality Inspection';
 
-                action(Qlty_ShowTests)
+                action(Qlty_ShowInspections)
                 {
-                    Caption = 'Quality Inspection Tests';
+                    Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
-                    ToolTip = 'See existing Quality Inspection Tests and create a new test.';
-                    RunObject = Page "Qlty. Inspection Test List";
+                    ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                    RunObject = Page "Qlty. Inspection List";
                 }
                 action(Qlty_CertificateOfAnalysis)
                 {
@@ -45,41 +45,41 @@ page 20421 "Qlty. Manager RC"
             {
                 Caption = 'Analysis';
 
-                action(Qlty_QualityInspectionTestValues)
+                action(Qlty_InspectionLines)
                 {
-                    Caption = 'Quality Inspection Test Values';
+                    Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection Test values. Use this with analysis mode.';
-                    RunObject = Page "Qlty. Inspection Test Lines";
+                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
+                    RunObject = Page "Qlty. Inspection Lines";
                 }
             }
             group(Qlty_SemiRegularSetup)
             {
                 Caption = 'Templates and Rules';
 
-                action(Qlty_ConfigureTestTemplates)
+                action(Qlty_ConfigureInspectionTemplates)
                 {
                     Caption = 'Quality Inspection Templates';
-                    Image = Database;
+                    Image = BreakpointsList;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                    ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 }
-                action(Qlty_ConfigureTestGenerationRules)
+                action(Qlty_ConfigureInspectionGenerationRules)
                 {
-                    Caption = 'Quality Inspection Test Generation Rules';
-                    Image = MapDimensions;
-                    RunObject = Page "Qlty. In. Test Generat. Rules";
+                    Caption = 'Quality Inspection Generation Rules';
+                    Image = FilterLines;
+                    RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                    ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
                 }
-                action(Qlty_ConfigureFields)
+                action(Qlty_ConfigureTests)
                 {
-                    Caption = 'Quality Inspection Fields';
-                    Image = MapDimensions;
-                    RunObject = Page "Qlty. Fields";
+                    Caption = 'Quality Inspection Tests';
+                    Image = Task;
+                    RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a quality inspection field is a data points to capture, or questions, or measurements.';
+                    ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                 }
             }
             group(Qlty_ManagementConfigure)
@@ -100,13 +100,13 @@ page 20421 "Qlty. Manager RC"
                 {
                     Caption = 'Advanced Quality Management Configuration';
 
-                    action(Qlty_AdvancedGrades)
+                    action(Qlty_AdvancedResults)
                     {
-                        Caption = 'Quality Inspection Grades';
-                        Image = CodesList;
-                        RunObject = Page "Qlty. Inspection Grade List";
+                        Caption = 'Quality Inspection Results';
+                        Image = ViewRegisteredOrder;
+                        RunObject = Page "Qlty. Inspection Result List";
                         RunPageMode = Edit;
-                        ToolTip = 'Grades are effectively the incomplete/pass/fail state of a test. The document specific lot blocking available with grades is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+                        ToolTip = 'Results are effectively the incomplete/pass/fail state of an inspection. The document specific lot blocking available with results is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
                     }
                 }
             }

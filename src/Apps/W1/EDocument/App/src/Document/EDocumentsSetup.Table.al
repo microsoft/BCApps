@@ -1,3 +1,5 @@
+#if not CLEANSCHEMA31
+#pragma warning disable AS0105
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +15,9 @@ table 6107 "E-Documents Setup"
     InherentEntitlements = RIX;
     InherentPermissions = RX;
     ReplicateData = false;
+    ObsoleteReason = 'This table is obsolete and should not be used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     fields
     {
@@ -38,6 +43,7 @@ table 6107 "E-Documents Setup"
     var
         EnvironmentInformation: Codeunit "Environment Information";
         TenantId: Text;
+        ListOfAvailableCountries: List of [Text];
     begin
         Clear(Rec);
         if Rec.FindFirst() then
@@ -59,7 +65,31 @@ table 6107 "E-Documents Setup"
         if EnvironmentInformation.GetEnvironmentSetting('EnableNewEDocumentExperience') <> '' then
             exit(true);
 
-        exit(EnvironmentInformation.GetApplicationFamily() in ['US', 'AU', 'NZ', 'GB', 'W1'])
+        ListOfAvailableCountries := GetListOfNewExperienceCountries();
+        ListOfAvailableCountries.Add('W1');
+
+        exit(ListOfAvailableCountries.Contains(EnvironmentInformation.GetApplicationFamily()));
+    end;
+
+    internal procedure GetListOfNewExperienceCountries(): List of [Text]
+    var
+        CountryList: List of [Text];
+    begin
+        CountryList.Add('AU');
+        CountryList.Add('BE');
+        CountryList.Add('CA');
+        CountryList.Add('DE');
+        CountryList.Add('DK');
+        CountryList.Add('ES');
+        CountryList.Add('FR');
+        CountryList.Add('GB');
+        CountryList.Add('IT');
+        CountryList.Add('NL');
+        CountryList.Add('NO');
+        CountryList.Add('NZ');
+        CountryList.Add('SE');
+        CountryList.Add('US');
+        exit(CountryList);
     end;
 
     [TryFunction]
@@ -81,3 +111,5 @@ table 6107 "E-Documents Setup"
     end;
 
 }
+#pragma warning restore AS0105
+#endif

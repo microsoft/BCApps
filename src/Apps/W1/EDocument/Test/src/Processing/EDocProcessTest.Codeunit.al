@@ -194,8 +194,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.FindFirst();
         Assert.AreEqual(PurchaseHeader."No.", EDocumentPurchaseHeader."[BC] Purchase Order No.", 'The purchase order should be found when explicitly specified in the E-Document.');
         EDocument.SetRecFilter();
-        EDocument.FindFirst();
-        Assert.AreEqual("E-Document Type"::"Purchase Order", EDocument."Document Type", 'The document type should be set to Purchase Order after preparing the draft.');
 
         PurchaseHeader.SetRecFilter();
         PurchaseHeader.Delete();
@@ -656,7 +654,6 @@ codeunit 139883 "E-Doc Process Test"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -697,7 +694,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
-        EDocumentsSetup.InsertNewExperienceSetup();
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();

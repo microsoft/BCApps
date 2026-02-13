@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 page 4308 "Agent Task Message Card"
 {
     PageType = Card;
@@ -87,11 +89,28 @@ page 4308 "Agent Task Message Card"
                     begin
                         AgentMessage.UpdateText(Rec, GlobalMessageText);
                     end;
-
                 }
+            }
+            part(Attachments; "Agent Task Message Attachments")
+            {
+                Visible = AttachmentsCount > 0;
+                ApplicationArea = All;
+                SubPageLink = "Task ID" = field("Task ID");
+                Caption = 'Attachments';
             }
         }
 
+        area(FactBoxes)
+        {
+            part(TaskContext; "Agent Task Context Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Task context';
+                AboutTitle = 'Context information about the task and agent';
+                AboutText = 'Shows context information such as the agent name, task ID, and company name.';
+                SubPageLink = ID = field("Task ID");
+            }
+        }
     }
 
     actions
@@ -149,6 +168,8 @@ page 4308 "Agent Task Message Card"
             CurrPage.Caption(OutgoingMessageTxt);
         if Rec.Type = Rec.Type::Input then
             CurrPage.Caption(IncomingMessageTxt);
+
+        CurrPage.Attachments.Page.LoadRecords(Rec);
     end;
 
     local procedure DownloadAttachments()

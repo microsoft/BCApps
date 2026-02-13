@@ -9,18 +9,18 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Inventory.Item;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Service.Setup;
-using Microsoft.Service.Document;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Service.Test;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Service.Document;
+using Microsoft.Service.Setup;
+using Microsoft.Service.Test;
 using System.IO;
 using System.TestLibraries.Utilities;
 
@@ -104,7 +104,6 @@ codeunit 139519 "E-Doc. Format Tests"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -145,7 +144,6 @@ codeunit 139519 "E-Doc. Format Tests"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
-        EDocumentsSetup.InsertNewExperienceSetup();
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();

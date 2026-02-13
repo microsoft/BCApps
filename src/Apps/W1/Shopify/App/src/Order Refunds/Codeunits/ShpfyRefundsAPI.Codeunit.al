@@ -45,6 +45,7 @@ codeunit 30228 "Shpfy Refunds API"
     local procedure GetRefundHeader(RefundId: BigInteger; UpdatedAt: DateTime; var RefundHeader: Record "Shpfy Refund Header")
     var
         DataCapture: Record "Shpfy Data Capture";
+        ImportOrder: Codeunit "Shpfy Import Order";
         RefundHeaderRecordRef: RecordRef;
         IsNew: Boolean;
         Parameters: Dictionary of [Text, Text];
@@ -72,10 +73,15 @@ codeunit 30228 "Shpfy Refunds API"
         RefundHeaderRecordRef.GetTable(RefundHeader);
         JsonHelper.GetValueIntoField(JRefund, 'updatedAt', RefundHeaderRecordRef, RefundHeader.FieldNo("Updated At"));
         JsonHelper.GetValueIntoField(JRefund, 'totalRefundedSet.shopMoney.amount', RefundHeaderRecordRef, RefundHeader.FieldNo("Total Refunded Amount"));
+        JsonHelper.GetValueIntoField(JRefund, 'totalRefundedSet.shopMoney.currencyCode', RefundHeaderRecordRef, RefundHeader.FieldNo("Currency Code"));
         JsonHelper.GetValueIntoField(JRefund, 'totalRefundedSet.presentmentMoney.amount', RefundHeaderRecordRef, RefundHeader.FieldNo("Pres. Tot. Refunded Amount"));
-        RefundHeaderRecordRef.Modify();
+        JsonHelper.GetValueIntoField(JRefund, 'totalRefundedSet.presentmentMoney.currencyCode', RefundHeaderRecordRef, RefundHeader.FieldNo("Presentment Currency Code"));
+        RefundHeaderRecordRef.Modify(false);
         RefundHeaderRecordRef.SetTable(RefundHeader);
         RefundHeaderRecordRef.Close();
+        RefundHeader."Currency Code" := ImportOrder.TranslateCurrencyCode(RefundHeader."Currency Code");
+        RefundHeader."Presentment Currency Code" := ImportOrder.TranslateCurrencyCode(RefundHeader."Presentment Currency Code");
+        RefundHeader.Modify();
         DataCapture.Add(Database::"Shpfy Refund Header", RefundHeader.SystemId, JResponse);
         UpdateTransactions(JRefund, RefundHeader);
     end;
@@ -141,15 +147,17 @@ codeunit 30228 "Shpfy Refunds API"
         DataCapture: Record "Shpfy Data Capture";
         RefundLine: Record "Shpfy Refund Line";
         RefundLineRecordRef: RecordRef;
-        Id: BigInteger;
+        RefundLineId: BigInteger;
+        LineItemId: BigInteger;
         ReturnLocation: BigInteger;
     begin
-        Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'lineItem.id'));
+        RefundLineId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'id'));
+        LineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'lineItem.id'));
 
-        if not RefundLine.Get(RefundId, Id) then begin
-            RefundLine."Refund Line Id" := Id;
+        if not RefundLine.Get(RefundId, RefundLineId) then begin
+            RefundLine."Refund Line Id" := RefundLineId;
             RefundLine."Refund Id" := RefundId;
-            RefundLine."Order Line Id" := Id;
+            RefundLine."Order Line Id" := LineItemId;
             RefundLine.Insert();
         end;
 

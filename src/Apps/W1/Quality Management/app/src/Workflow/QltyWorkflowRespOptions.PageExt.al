@@ -71,7 +71,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpQuantity;
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(Qlty_QuantityMoveAll; QltyMoveAll)
                     {
@@ -213,7 +213,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpItemTrackingChange;
                     Caption = 'New Item Tracking';
-                    InstructionalText = 'Use this to change the tested item''s tracking information, such as updating the lot no. or expiry date.';
+                    InstructionalText = 'Use this to change the inspected item''s tracking information, such as updating the lot no. or expiry date.';
 
                     field(Qlty_NewLotNo; NewLotNoExpression)
                     {
@@ -235,7 +235,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewLotNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewLotNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewLotNo(), NewLotNoExpression);
                             end;
@@ -263,7 +263,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewSerialNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewSerialNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewSerialNo(), NewSerialNoExpression);
                             end;
@@ -291,7 +291,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewPackageNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewPackageNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewPackageNo(), NewPackageNoExpression);
                             end;
@@ -337,7 +337,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpSource;
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(Qlty_SourceLocationCodeFilter; OptionalSourceLocationCodeFilter)
                     {
@@ -382,29 +382,60 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         trigger OnValidate()
                         var
                             DestinationLocation: Record Location;
+                            DestinationBin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation(), QltyLocationCode);
                             if not QltyShouldShowGrpTransfer then begin
                                 QltyShowBinCode := true;
-                                if DestinationLocation.Get(QltyLocationCode) then
+                                if DestinationLocation.Get(QltyLocationCode) then begin
                                     QltyShowBinCode := DestinationLocation."Bin Mandatory";
+                                    if QltyBinCode <> '' then
+                                        if not DestinationBin.Get(QltyLocationCode, QltyBinCode) then
+                                            QltyBinCode := '';
+                                end;
                             end;
                         end;
                     }
                     field(Qlty_BinCode; QltyBinCode)
                     {
                         ApplicationArea = QualityManagement;
-                        TableRelation = Bin.Code;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the destination bin to use.';
                         ShowMandatory = true;
                         Enabled = QltyShowBinCode;
+                        AssistEdit = true;
+
+                        trigger OnAssistEdit()
+                        var
+                            Bin: Record Bin;
+                            QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+                            BinList: Page "Bin List";
+                        begin
+                            if QltyLocationCode <> '' then
+                                Bin.SetRange("Location Code", QltyLocationCode);
+                            BinList.SetTableView(Bin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() in [Action::LookupOK] then begin
+                                BinList.GetRecord(Bin);
+                                QltyBinCode := Bin.Code;
+                                QltyWorkflowResponse.SetStepConfigurationValue(
+                                    Rec,
+                                    QltyWorkflowResponse.GetWellKnownKeyBin(),
+                                    QltyBinCode);
+                            end;
+                        end;
 
                         trigger OnValidate()
                         var
+                            Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
+                            // After the table relation is removed to change from a drop-down to an assist-edit
+                            // to allow the bins to be filtered by the location code, there needs to be an ability
+                            // to validate the bin is still valid.  We do this by fetching the record and 
+                            // letting it fail if it doesn't exist.
+                            Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
                     }
@@ -492,7 +523,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpPosting;
                     Caption = 'Post/Release Now or Later';
-                    InstructionalText = 'Posting immediately can impact the Business Central licensing requirements. https://aka.ms/businesscentrallicensing';
+                    InstructionalText = 'Posting immediately can impact the Business Central licensing requirements.';
 
                     group(Qlty_CreatePutAway_Group)
                     {
@@ -700,8 +731,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Field';
-                        Tooltip = 'Specifies which field on the table to set? [QITestField] nomenclature can be used to help find record based on another value in the quality inspection test.';
-                        InstructionalText = '[QITestField] nomenclature can be used to help find record based on another value in the quality inspection test.';
+                        Tooltip = 'Specifies which field on the table to set? [QltyInspectionField] nomenclature can be used to help find record based on another value in the quality inspection.';
+                        InstructionalText = '[QltyInspectionField] nomenclature can be used to help find record based on another value in the quality inspection.';
 
                         trigger OnValidate()
                         var
@@ -735,8 +766,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Value to Set';
-                        Tooltip = 'Specifies what value do you want to set? [QITestField] nomenclature can be used to use a field on the quality inspection test while setting the value.';
-                        InstructionalText = '[QITestField] nomenclature can be used to use a field on the quality inspection test while setting the value.';
+                        Tooltip = 'Specifies what value do you want to set? [QltyInspectionField] nomenclature can be used to use a field on the quality inspection while setting the value.';
+                        InstructionalText = '[QltyInspectionField] nomenclature can be used to use a field on the quality inspection while setting the value.';
 
                         trigger OnValidate()
                         begin
@@ -750,7 +781,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := TestValueExpressionToSet;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 TestValueExpressionToSet := Expression;
                                 Qlty_SetCommonDatabaseVariables();
                             end;
@@ -797,9 +828,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyShouldShowReasonCode: Boolean;
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
         QltyShouldShowGrpItemTrackingChange: Boolean;
-        NewLotNoExpression: Text;
-        NewSerialNoExpression: Text;
-        NewPackageNoExpression: Text;
+        NewLotNoExpression, NewSerialNoExpression, NewPackageNoExpression : Text;
         NewExpirationDate: Date;
         QltyReasonCode: Code[10];
         QltyReturnReasonCode: Code[10];

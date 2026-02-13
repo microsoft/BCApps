@@ -146,7 +146,7 @@ page 20480 "Qlty. Related Transfer Orders"
             }
             action(Dimensions)
             {
-                AccessByPermission = TableData Dimension = R;
+                AccessByPermission = tabledata Dimension = R;
                 Caption = 'Dimensions';
                 Image = Dimensions;
                 ShortCutKey = 'Alt+D';
@@ -175,7 +175,7 @@ page 20480 "Qlty. Related Transfer Orders"
                     end;
                 end;
             }
-            group(SettingsForOrderDocuments)
+            group(OrderDocuments)
             {
                 Caption = 'Documents';
                 Image = Documents;
@@ -184,7 +184,7 @@ page 20480 "Qlty. Related Transfer Orders"
                 {
                     Visible = IsTransferOrder;
                     Caption = 'Shipments';
-                    Image = Shipment;
+                    Image = PostedShipment;
                     RunObject = Page "Posted Transfer Shipments";
                     RunPageLink = "Transfer Order No." = field("Transfer Document No.");
                     ToolTip = 'View related posted transfer shipments.';
@@ -199,7 +199,7 @@ page 20480 "Qlty. Related Transfer Orders"
                     ToolTip = 'View related posted transfer receipts.';
                 }
             }
-            group(SettingsForWarehouse)
+            group(Warehouse)
             {
                 Caption = 'Warehouse';
                 Image = Warehouse;
@@ -325,7 +325,7 @@ page 20480 "Qlty. Related Transfer Orders"
             {
                 ApplicationArea = Location;
                 Caption = 'Inventory - Inbound Transfer';
-                Image = "Report";
+                Image = Report;
                 RunObject = Report "Inventory - Inbound Transfer";
                 ToolTip = 'View which items are currently on inbound transfer orders.';
             }
@@ -333,8 +333,8 @@ page 20480 "Qlty. Related Transfer Orders"
     }
 
     var
-        TestNo: Code[20];
-        RetestNo: Integer;
+        InspectionNo: Code[20];
+        ReinspectionNo: Integer;
         IsTransferOrder: Boolean;
         IsTransferShipment: Boolean;
         IsTransferReceipt: Boolean;
@@ -381,13 +381,13 @@ page 20480 "Qlty. Related Transfer Orders"
     end;
 
     /// <summary>
-    /// Initializes the page with the provided Quality Inspection Test
+    /// Initializes the page with the provided Quality Inspection
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
-    procedure InitializeWithTest(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    /// <param name="QltyInspectionHeader"></param>
+    procedure InitializeWithInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
-        TestNo := QltyInspectionTestHeader."No.";
-        RetestNo := QltyInspectionTestHeader."Retest No.";
+        InspectionNo := QltyInspectionHeader."No.";
+        ReinspectionNo := QltyInspectionHeader."Re-inspection No.";
     end;
 
     local procedure ReloadBuffer()
@@ -414,8 +414,8 @@ page 20480 "Qlty. Related Transfer Orders"
         QltyTransferBufferStatus: Enum "Qlty. Transfer Buffer Status";
     begin
         TransferHeader.SetLoadFields(Status, "Transfer-from Code", "Transfer-to Code", "Posting Date");
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TestNo);
-        TransferHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferHeader.SetRange("Qlty. Inspection No.", InspectionNo);
+        TransferHeader.SetRange("Qlty. Re-inspection No.", ReinspectionNo);
         if TransferHeader.FindSet() then
             repeat
                 if TransferHeader.Status = TransferHeader.Status::Open then
@@ -439,8 +439,8 @@ page 20480 "Qlty. Related Transfer Orders"
         QltyTransferBufferStatus: Enum "Qlty. Transfer Buffer Status";
     begin
         TransferShipmentHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
-        TransferShipmentHeader.SetRange("Qlty. Inspection Test No.", TestNo);
-        TransferShipmentHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferShipmentHeader.SetRange("Qlty. Inspection No.", InspectionNo);
+        TransferShipmentHeader.SetRange("Qlty. Re-inspection No.", ReinspectionNo);
         if TransferShipmentHeader.FindSet() then
             repeat
                 AddToBuffer(TransferShipmentHeader."No.",
@@ -459,8 +459,8 @@ page 20480 "Qlty. Related Transfer Orders"
         QltyTransferBufferStatus: Enum "Qlty. Transfer Buffer Status";
     begin
         TransferReceiptHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
-        TransferReceiptHeader.SetRange("Qlty. Inspection Test No.", TestNo);
-        TransferReceiptHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferReceiptHeader.SetRange("Qlty. Inspection No.", InspectionNo);
+        TransferReceiptHeader.SetRange("Qlty. Re-inspection No.", ReinspectionNo);
         if TransferReceiptHeader.FindSet() then
             repeat
                 AddToBuffer(TransferReceiptHeader."No.",
@@ -479,8 +479,8 @@ page 20480 "Qlty. Related Transfer Orders"
         QltyTransferBufferStatus: Enum "Qlty. Transfer Buffer Status";
     begin
         DirectTransHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
-        DirectTransHeader.SetRange("Qlty. Inspection Test No.", TestNo);
-        DirectTransHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        DirectTransHeader.SetRange("Qlty. Inspection No.", InspectionNo);
+        DirectTransHeader.SetRange("Qlty. Re-inspection No.", ReinspectionNo);
         if DirectTransHeader.FindSet() then
             repeat
                 AddToBuffer(DirectTransHeader."No.",

@@ -7,9 +7,7 @@ namespace System.Agents;
 
 using System.Environment;
 
-#pragma warning disable AS0130, PTE0025 // The object conflicts with a platform codeunit which will be renamed.
 codeunit 4303 "Agent Task"
-#pragma warning restore AS0130, PTE0025
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -39,7 +37,9 @@ codeunit 4303 "Agent Task"
         AgentTask: Record "Agent Task";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTask.Get(AgentUserSecurityId, ExternalId);
+        AgentTask.SetRange("Agent User Security ID", AgentUserSecurityId);
+        AgentTask.SetRange("External ID", ExternalId);
+        AgentTask.FindFirst();
         exit(AgentTask);
     end;
 

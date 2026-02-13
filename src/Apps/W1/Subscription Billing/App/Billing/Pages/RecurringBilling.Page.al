@@ -16,6 +16,9 @@ page 8067 "Recurring Billing"
     SourceTable = "Billing Line";
     SourceTableTemporary = true;
     UsageCategory = Tasks;
+    AdditionalSearchTerms = 'Recurring Billing, Create Invoice, Billing Proposal, Contract Billing, Subscription Billing, Invoice Generation';
+    AboutTitle = 'About Recurring Billing';
+    AboutText = 'Use this page to prepare the billing of subscriptions and contracts. It creates a billing proposal before actual invoicing.';
 
     layout
     {
@@ -28,6 +31,8 @@ page 8067 "Recurring Billing"
                 {
                     Caption = 'Billing Template';
                     ToolTip = 'Specifies the name of the template that is used to calculate billable Subscription Lines.';
+                    AboutTitle = 'Defined views';
+                    AboutText = 'Personalized views help to create billing proposals.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -124,6 +129,8 @@ page 8067 "Recurring Billing"
                 {
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';
                     StyleExpr = LineStyleExpr;
+                    AboutTitle = 'What''s the amount to be invoiced?';
+                    AboutText = 'The overview shows what is supposed to be invoiced per subscription and contract.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -234,6 +241,8 @@ page 8067 "Recurring Billing"
                 Caption = 'Create Billing Proposal';
                 Image = Process;
                 ToolTip = 'Suggests the Subscription Lines to be billed based on the selected billing template. The billing proposal can be supplemented by changing the billing template and calling it up again.';
+                AboutTitle = 'Suggest contract lines to be billed based on the selected criteria.';
+                AboutText = 'The contract lines to be invoiced are proposed before the invoice is issued.';
 
                 trigger OnAction()
                 begin
@@ -247,18 +256,29 @@ page 8067 "Recurring Billing"
                 Image = CreateDocuments;
                 Scope = Page;
                 ToolTip = 'The action creates contract invoices or credit memos for the billing lines displayed on this page.';
+                AboutTitle = 'How to create invoices?';
+                AboutText = 'Invoices can be created in batches and posted immediately if required.';
 
                 trigger OnAction()
                 var
                     ErrorMessageMgt: Codeunit "Error Message Management";
                     ErrorMessageHandler: Codeunit "Error Message Handler";
                     ErrorContextElement: Codeunit "Error Context Element";
+                    CreateBillingDocuments: Codeunit "Create Billing Documents";
+                    DocumentDate: Date;
+                    PostingDate: Date;
                     IsSuccess: Boolean;
                 begin
                     ErrorMessageMgt.Activate(ErrorMessageHandler);
                     ErrorMessageMgt.PushContext(ErrorContextElement, 0, 0, '');
                     Commit(); //commit to database before processing
-                    IsSuccess := Codeunit.Run(Codeunit::"Create Billing Documents", Rec);
+                    if BillingTemplate.Get(BillingTemplate.Code) then begin
+                        BillingTemplate.CalculateDocumentDates(PostingDate, DocumentDate, false);
+                        if BillingTemplate.Partner = BillingTemplate.Partner::Customer then
+                            CreateBillingDocuments.SetCustomerRecurringBillingGrouping(BillingTemplate."Customer Document per");
+                        CreateBillingDocuments.SetDocumentDataFromRequestPage(DocumentDate, PostingDate, false, false);
+                    end;
+                    IsSuccess := CreateBillingDocuments.Run(Rec);
                     if not IsSuccess then
                         ErrorMessageHandler.ShowErrors();
                     InitTempTable();
@@ -299,7 +319,7 @@ page 8067 "Recurring Billing"
 
                 trigger OnAction()
                 begin
-                    BillingProposal.DeleteBillingDocuments();
+                    BillingProposal.DeleteBillingDocuments(BillingTemplate.Code);
                     InitTempTable();
                 end;
             }
@@ -508,16 +528,7 @@ page 8067 "Recurring Billing"
 
     local procedure ApplyBillingTemplateFilter(var BillingTemplate2: Record "Billing Template")
     begin
-        if Format(BillingTemplate2."Billing Date Formula") <> '' then
-            BillingDate := CalcDate(BillingTemplate2."Billing Date Formula", WorkDate())
-        else
-            BillingDate := WorkDate();
-
-        if Format(BillingTemplate2."Billing to Date Formula") <> '' then
-            BillingToDate := CalcDate(BillingTemplate2."Billing to Date Formula", WorkDate())
-        else
-            BillingToDate := 0D;
-
+        BillingTemplate2.CalculateBillingDates(BillingDate, BillingToDate, false);
         if BillingTemplate2."My Suggestions Only" then
             Rec.SetRange("User ID", UserId())
         else

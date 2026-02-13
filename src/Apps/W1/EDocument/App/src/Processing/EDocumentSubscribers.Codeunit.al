@@ -394,6 +394,8 @@ codeunit 6103 "E-Document Subscribers"
         EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
         EDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
         EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
@@ -403,7 +405,6 @@ codeunit 6103 "E-Document Subscribers"
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Service Data Exch. Def.");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Documents Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Data Storage");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Integration Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Log");
@@ -437,6 +438,7 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc. Purch. Line Field Setup");
 #pragma warning restore AL0432
 #endif
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
     end;
 
 

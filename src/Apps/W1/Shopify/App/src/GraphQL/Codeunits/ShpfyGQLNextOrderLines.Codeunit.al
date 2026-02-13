@@ -16,6 +16,6 @@ codeunit 30209 "Shpfy GQL NextOrderLines" implements "Shpfy IGraphQL"
 
     procedure GetExpectedCost(): Integer
     begin
-        exit(65)
+        exit(23)
     end;
 }

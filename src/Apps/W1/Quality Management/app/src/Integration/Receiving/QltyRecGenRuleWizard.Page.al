@@ -9,14 +9,14 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 
 page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Receipt Quality Test Generation Rule Wizard';
+    Caption = 'Receipt Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
@@ -26,19 +26,19 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     {
         area(Content)
         {
-            group(SettingsFor_iStepWhichTemplate)
+            group(StepWhichTemplate)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 Visible = (StepWhichTemplateCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepWhichTemplate_Instruction1)
+                group(StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Define a rule for lot or serial related tests when products are received.';
+                    InstructionalText = 'Define a rule for item tracking related inspections when products are received.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepWhichTemplate_Instruction2)
+                group(StepWhichTemplate_Instruction2)
                 {
                     InstructionalText = 'Which Quality Inspection template do you want to use?';
                     Caption = ' ';
@@ -47,7 +47,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                 field(ChoosechooseTemplate; TemplateCode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 
@@ -56,7 +56,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         QltyFilterHelpers.AssistEditQltyInspectionTemplate(TemplateCode);
                     end;
                 }
-                group(SettingsFor_whatType)
+                group(whatType)
                 {
                     Caption = ' ';
                     ShowCaption = false;
@@ -80,7 +80,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     {
                         ApplicationArea = All;
                         Caption = 'Return Receipt';
-                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt. ';
+                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt.';
 
                         trigger OnValidate()
                         begin
@@ -123,14 +123,14 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     }
                 }
             }
-            group(SettingsFor_iStepWhichPurchaseLine)
+            group(StepWhichPurchaseLine)
             {
                 Caption = ' ';
                 ShowCaption = false;
-                InstructionalText = 'A test should be created for receiving lines when these filters match. You can choose other fields on the last step.';
+                InstructionalText = 'An inspection should be created for receiving lines when these filters match. You can choose other fields on the last step.';
                 Visible = (StepWhichLineCounter = CurrentStepCounter);
 
-                group(SettingsFor_LocationWrapper)
+                group(LocationWrapper)
                 {
                     ShowCaption = false;
                     Visible = IsPurchaseLine or IsReturnReceipt or IsWarehouseReceipt;
@@ -148,12 +148,13 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(LocationFilerErr, GetLastErrorText());
                         end;
                     }
                 }
-                group(SettingsFor_PurchaseFieldsWrapper)
+                group(PurchaseFieldsWrapper)
                 {
                     ShowCaption = false;
                     Visible = IsPurchaseLine;
@@ -171,6 +172,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(VendorFilterErr, GetLastErrorText());
                         end;
@@ -188,12 +190,13 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(PurchasingCodeErr, GetLastErrorText());
                         end;
                     }
                 }
-                group(SettingsFor_CustomerFieldsWrapper)
+                group(CustomerFieldsWrapper)
                 {
                     ShowCaption = false;
                     Visible = IsReturnReceipt;
@@ -210,6 +213,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(CustomerFilterErr, GetLastErrorText());
                         end;
@@ -227,12 +231,13 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(ReturnReasonFilterErr, GetLastErrorText());
                         end;
                     }
                 }
-                group(SettingsFor_TransferFieldsWrapper)
+                group(TransferFieldsWrapper)
                 {
                     ShowCaption = false;
                     Visible = IsTransferLine;
@@ -250,6 +255,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(TransferFromFilterErr, GetLastErrorText());
                         end;
@@ -267,12 +273,13 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(TransferToFilterErr, GetLastErrorText());
                         end;
                     }
                 }
-                group(SettingsFor_WarehouseReceiptFieldsWrapper)
+                group(WarehouseReceiptFieldsWrapper)
                 {
                     ShowCaption = false;
                     Visible = IsWarehouseReceipt;
@@ -290,6 +297,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(ToZoneFilterErr, GetLastErrorText());
                         end;
@@ -307,12 +315,13 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                         trigger OnValidate()
                         begin
+                            ClearLastError();
                             if not UpdateFullTextRuleStringsFromFilters() then
                                 Error(ToBinFilterErr, GetLastErrorText());
                         end;
                     }
                 }
-                field(Chooseadvanced; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -330,7 +339,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichItem)
+            group(StepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -350,6 +359,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -367,6 +377,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -384,11 +395,12 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;
                 }
-                field(Chooseadvanced_item; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced_Item; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -401,26 +413,26 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepDone)
+            group(StepDone)
             {
                 Caption = ' ';
                 InstructionalText = '';
                 ShowCaption = false;
                 Visible = (StepDoneCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepDone_Instruction1)
+                group(StepDone_Instruction1)
                 {
                     Caption = ' ';
-                    InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
+                    InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepDone_Instruction2)
+                group(StepDone_Instruction2)
                 {
                     Caption = ' ';
                     InstructionalText = 'Please review and set any additional filters you may need, for example if you want to limit this to specific items.';
                     ShowCaption = false;
                 }
-                group(SettingsForWrapPurchaseLineRule)
+                group(WrapPurchaseLineRule)
                 {
                     ShowCaption = false;
                     Visible = IsPurchaseLine;
@@ -438,7 +450,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         end;
                     }
                 }
-                group(SettingsForWrapTransferLineRule)
+                group(WrapTransferLineRule)
                 {
                     ShowCaption = false;
                     Visible = IsTransferLine;
@@ -456,7 +468,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         end;
                     }
                 }
-                group(SettingsForWrapWarehouseJournalLineRule)
+                group(WrapWarehouseJournalLineRule)
                 {
                     ShowCaption = false;
                     Visible = IsWarehouseReceipt;
@@ -474,7 +486,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         end;
                     }
                 }
-                group(SettingsForWrapSalesLineRule)
+                group(WrapSalesLineRule)
                 {
                     ShowCaption = false;
                     Visible = IsReturnReceipt;
@@ -504,57 +516,57 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(bAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'Do you want to automatically create tests when these are received?  This will set the activation trigger for this rule and set the default trigger value for new test generation rules of this record type.';
+                    InstructionalText = 'Do you want to automatically create inspections when these are received?  This will set the activation trigger for this rule and set the default trigger value for new inspection generation rules of this record type.';
 
-                    group(SettingsForWrapAutoPurchaseLine)
+                    group(WrapAutoPurchaseLine)
                     {
                         ShowCaption = false;
                         Visible = IsPurchaseLine;
 
-                        field(ChooseeAutomaticallyCreateTestPurchase; QltyPurchaseTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionPurchase; QltyPurchaseTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a purchase order.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a purchase order.';
                         }
                     }
-                    group(SettingsForWrapAutoTransferLine)
+                    group(WrapAutoTransferLine)
                     {
                         ShowCaption = false;
                         Visible = IsTransferLine;
 
-                        field(ChooseeAutomaticallyCreateTestTransfer; QltyTransferTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionTransfer; QltyTransferTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a transfer order.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a transfer order.';
                         }
                     }
-                    group(SettingsForWrapAutoWarehouseReceipt)
+                    group(WrapAutoWarehouseReceipt)
                     {
                         ShowCaption = false;
                         Visible = IsWarehouseReceipt;
 
-                        field(ChooseeAutomaticallyCreateTestWarehouseReceipt; QltyWhseReceiveTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionWarehouseReceipt; QltyWhseReceiveTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a warehouse receipt.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a warehouse receipt.';
                         }
                     }
-                    group(SettingsForWrapAutoSalesReturn)
+                    group(WrapAutoSalesReturn)
                     {
                         ShowCaption = false;
                         Visible = IsReturnReceipt;
 
-                        field(ChooseeAutomaticallyCreateTestSalesReturn; QltySalesReturnTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionSalesReturn; QltySalesReturnTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a sales return.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a sales return.';
                         }
                     }
                 }
@@ -614,7 +626,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         TempTransferLine: Record "Transfer Line" temporary;
         TempItem: Record "Item" temporary;
-        TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
+        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         CurrentStepCounter: Integer;
         LocationCodeFilter: Code[20];
@@ -630,15 +642,15 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TransferToCode: Code[20];
         ToZoneCodeFilter: Code[20];
         ToBinCodeFilter: Code[20];
-        QltyPurchaseTrigger: Enum "Qlty. Purchase Trigger";
-        QltyTransferTrigger: Enum "Qlty. Transfer Trigger";
-        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receive Trigger";
+        QltyPurchaseTrigger: Enum "Qlty. Purchase Order Trigger";
+        QltyTransferTrigger: Enum "Qlty. Transfer Order Trigger";
+        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receipt Trigger";
         QltySalesReturnTrigger: Enum "Qlty. Sales Return Trigger";
-        PurchaseLineRule: Text[400];
-        SalesReturnLineRule: Text[400];
-        ItemRule: Text[400];
-        TransferLineRule: Text[400];
-        WarehouseJournalLineRule: Text[400];
+        PurchaseLineRule: Text[2048];
+        SalesReturnLineRule: Text[2048];
+        ItemRule: Text[2048];
+        TransferLineRule: Text[2048];
+        WarehouseJournalLineRule: Text[2048];
         IsReturnReceipt: Boolean;
         IsPurchaseLine: Boolean;
         IsIsBackEnabledd: Boolean;
@@ -680,10 +692,10 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
         IsPurchaseLine := true;
 
-        QltyPurchaseTrigger := QltyManagementSetup."Purchase Trigger";
-        QltyTransferTrigger := QltyManagementSetup."Transfer Trigger";
+        QltyPurchaseTrigger := QltyManagementSetup."Purchase Order Trigger";
+        QltyTransferTrigger := QltyManagementSetup."Transfer Order Trigger";
         QltySalesReturnTrigger := QltyManagementSetup."Sales Return Trigger";
-        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receive Trigger";
+        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receipt Trigger";
         MaxStep := StepDoneCounter;
     end;
 
@@ -774,11 +786,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullPurchaseLineFilter()
     begin
-        TempQltyInTestGenerationRule."Source Table No." := Database::"Purchase Line";
-        TempQltyInTestGenerationRule."Condition Filter" := PurchaseLineRule;
+        TempQltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+        TempQltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
 
-        if TempQltyInTestGenerationRule.AssistEditConditionTableFilter() then begin
-            PurchaseLineRule := TempQltyInTestGenerationRule."Condition Filter";
+        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
+            PurchaseLineRule := TempQltyInspectionGenRule."Condition Filter";
 
             TempPurchaseLine.SetView(PurchaseLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -788,11 +800,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullSalesReturnLineFilter()
     begin
-        TempQltyInTestGenerationRule."Source Table No." := Database::"Sales Line";
-        TempQltyInTestGenerationRule."Condition Filter" := SalesReturnLineRule;
+        TempQltyInspectionGenRule."Source Table No." := Database::"Sales Line";
+        TempQltyInspectionGenRule."Condition Filter" := SalesReturnLineRule;
 
-        if TempQltyInTestGenerationRule.AssistEditConditionTableFilter() then begin
-            SalesReturnLineRule := TempQltyInTestGenerationRule."Condition Filter";
+        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
+            SalesReturnLineRule := TempQltyInspectionGenRule."Condition Filter";
 
             TempReturnSalesLine.SetView(SalesReturnLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -802,11 +814,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullTransferLineFilter()
     begin
-        TempQltyInTestGenerationRule."Source Table No." := Database::"Transfer Line";
-        TempQltyInTestGenerationRule."Condition Filter" := TransferLineRule;
+        TempQltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
+        TempQltyInspectionGenRule."Condition Filter" := TransferLineRule;
 
-        if TempQltyInTestGenerationRule.AssistEditConditionTableFilter() then begin
-            TransferLineRule := TempQltyInTestGenerationRule."Condition Filter";
+        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
+            TransferLineRule := TempQltyInspectionGenRule."Condition Filter";
 
             TempTransferLine.SetView(TransferLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -816,11 +828,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullWarehouseJournalLineFilter()
     begin
-        TempQltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        TempQltyInTestGenerationRule."Condition Filter" := WarehouseJournalLineRule;
+        TempQltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        TempQltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
 
-        if TempQltyInTestGenerationRule.AssistEditConditionTableFilter() then begin
-            WarehouseJournalLineRule := TempQltyInTestGenerationRule."Condition Filter";
+        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
+            WarehouseJournalLineRule := TempQltyInspectionGenRule."Condition Filter";
 
             TempWarehouseJournalLine.SetView(WarehouseJournalLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -830,9 +842,9 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullItemFilter()
     begin
-        TempQltyInTestGenerationRule."Item Filter" := ItemRule;
-        if TempQltyInTestGenerationRule.AssistEditConditionItemFilter() then begin
-            ItemRule := TempQltyInTestGenerationRule."Item Filter";
+        TempQltyInspectionGenRule."Item Filter" := ItemRule;
+        if TempQltyInspectionGenRule.AssistEditConditionItemFilter() then begin
+            ItemRule := TempQltyInspectionGenRule."Item Filter";
 
             TempItem.SetView(ItemRule);
             UpdateTableVariablesFromRecordFilters();
@@ -843,18 +855,18 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     local procedure CleanUpWhereClause()
     begin
         if IsPurchaseLine then
-            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause400(PurchaseLineRule);
+            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause2048(PurchaseLineRule);
 
         if IsReturnReceipt then
-            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause400(SalesReturnLineRule);
+            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause2048(SalesReturnLineRule);
 
         if IsTransferLine then
-            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause400(TransferLineRule);
+            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause2048(TransferLineRule);
 
         if IsWarehouseReceipt then
-            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause400(WarehouseJournalLineRule);
+            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause2048(WarehouseJournalLineRule);
 
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
     local procedure BackAction();
@@ -871,68 +883,68 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure FinishAction();
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ExistingQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if not QltyInTestGenerationRule.Get(TempQltyInTestGenerationRule.RecordId()) then begin
-            QltyInTestGenerationRule.Init();
-            QltyInTestGenerationRule.SetEntryNo();
-            QltyInTestGenerationRule.UpdateSortOrder();
-            QltyInTestGenerationRule."Source Table No." := 0;
-            QltyInTestGenerationRule.Insert(true);
+        if not QltyInspectionGenRule.Get(TempQltyInspectionGenRule.RecordId()) then begin
+            QltyInspectionGenRule.Init();
+            QltyInspectionGenRule.SetEntryNo();
+            QltyInspectionGenRule.UpdateSortOrder();
+            QltyInspectionGenRule."Source Table No." := 0;
+            QltyInspectionGenRule.Insert(true);
         end;
-        QltyInTestGenerationRule.Validate("Template Code", TemplateCode);
+        QltyInspectionGenRule.Validate("Template Code", TemplateCode);
 
         QltyManagementSetup.Get();
 
         case true of
             IsPurchaseLine:
                 begin
-                    QltyInTestGenerationRule."Source Table No." := Database::"Purchase Line";
-                    QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Purchase;
-                    QltyInTestGenerationRule."Condition Filter" := PurchaseLineRule;
-                    QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInTestGenerationRule."Purchase Trigger" := QltyPurchaseTrigger;
-                    QltyManagementSetup."Purchase Trigger" := QltyPurchaseTrigger;
+                    QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Purchase;
+                    QltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
+                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectionGenRule."Purchase Order Trigger" := QltyPurchaseTrigger;
+                    QltyManagementSetup."Purchase Order Trigger" := QltyPurchaseTrigger;
                 end;
             IsReturnReceipt:
                 begin
-                    QltyInTestGenerationRule."Source Table No." := Database::"Sales Line";
-                    QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::"Sales Return";
-                    QltyInTestGenerationRule."Condition Filter" := SalesReturnLineRule;
-                    QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInTestGenerationRule."Sales Return Trigger" := QltySalesReturnTrigger;
+                    QltyInspectionGenRule."Source Table No." := Database::"Sales Line";
+                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Sales Return";
+                    QltyInspectionGenRule."Condition Filter" := SalesReturnLineRule;
+                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectionGenRule."Sales Return Trigger" := QltySalesReturnTrigger;
                     QltyManagementSetup."Sales Return Trigger" := QltySalesReturnTrigger;
                 end;
             IsTransferLine:
                 begin
-                    QltyInTestGenerationRule."Source Table No." := Database::"Transfer Line";
-                    QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Transfer;
-                    QltyInTestGenerationRule."Condition Filter" := TransferLineRule;
-                    QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInTestGenerationRule."Transfer Trigger" := QltyTransferTrigger;
-                    QltyManagementSetup."Transfer Trigger" := QltyTransferTrigger;
+                    QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
+                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Transfer;
+                    QltyInspectionGenRule."Condition Filter" := TransferLineRule;
+                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectionGenRule."Transfer Order Trigger" := QltyTransferTrigger;
+                    QltyManagementSetup."Transfer Order Trigger" := QltyTransferTrigger;
                 end;
             IsWarehouseReceipt:
                 begin
-                    QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-                    QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::"Warehouse Receipt";
-                    QltyInTestGenerationRule."Condition Filter" := WarehouseJournalLineRule;
-                    QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
-                    QltyManagementSetup."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
+                    QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Receipt";
+                    QltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
+                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
+                    QltyManagementSetup."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
                 end;
         end;
 
-        if QltyManagementSetup.Modify(false) then;
-        QltyInTestGenerationRule."Item Filter" := ItemRule;
-        QltyInTestGenerationRule.Modify();
+        QltyManagementSetup.Modify(false);
+        QltyInspectionGenRule."Item Filter" := ItemRule;
+        QltyInspectionGenRule.Modify();
 
-        ExistingQltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
-        ExistingQltyInTestGenerationRule.SetRange("Source Table No.", QltyInTestGenerationRule."Source Table No.");
-        ExistingQltyInTestGenerationRule.SetRange("Condition Filter", QltyInTestGenerationRule."Condition Filter");
-        ExistingQltyInTestGenerationRule.SetRange("Item Filter", QltyInTestGenerationRule."Item Filter");
-        if ExistingQltyInTestGenerationRule.Count() > 1 then
+        ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
+        ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
+        ExistingQltyInspectionGenRule.SetRange("Condition Filter", QltyInspectionGenRule."Condition Filter");
+        ExistingQltyInspectionGenRule.SetRange("Item Filter", QltyInspectionGenRule."Item Filter");
+        if ExistingQltyInspectionGenRule.Count() > 1 then
             if not Confirm(AlreadyThereQst) then
                 Error('');
 
@@ -944,46 +956,46 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInTestGenerationRule"></param>
+    /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
-        TempQltyInTestGenerationRule := QltyInTestGenerationRule;
+        TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempPurchaseLine);
         Clear(TempItem);
 
-        if QltyInTestGenerationRule."Source Table No." = Database::"Purchase Line" then begin
-            TempPurchaseLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
+        if QltyInspectionGenRule."Source Table No." = Database::"Purchase Line" then begin
+            TempPurchaseLine.SetView(TempQltyInspectionGenRule."Condition Filter");
             IsPurchaseLine := true;
             IsReturnReceipt := false;
             IsTransferLine := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInTestGenerationRule."Source Table No." = Database::"Sales Line" then begin
-            TempReturnSalesLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
+        if QltyInspectionGenRule."Source Table No." = Database::"Sales Line" then begin
+            TempReturnSalesLine.SetView(TempQltyInspectionGenRule."Condition Filter");
             IsPurchaseLine := false;
             IsReturnReceipt := true;
             IsTransferLine := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInTestGenerationRule."Source Table No." = Database::"Transfer Line" then begin
-            TempTransferLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
+        if QltyInspectionGenRule."Source Table No." = Database::"Transfer Line" then begin
+            TempTransferLine.SetView(TempQltyInspectionGenRule."Condition Filter");
             IsTransferLine := true;
             IsPurchaseLine := false;
             IsReturnReceipt := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInTestGenerationRule."Source Table No." = Database::"Warehouse Journal Line" then begin
-            TempWarehouseJournalLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
+        if QltyInspectionGenRule."Source Table No." = Database::"Warehouse Journal Line" then begin
+            TempWarehouseJournalLine.SetView(TempQltyInspectionGenRule."Condition Filter");
             IsWarehouseReceipt := true;
             IsPurchaseLine := false;
             IsReturnReceipt := false;
             IsTransferLine := false;
         end;
-        TempItem.SetView(TempQltyInTestGenerationRule."Item Filter");
+        TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();
 
-        TemplateCode := QltyInTestGenerationRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
         UpdateFullTextRuleStringsFromFilters();
 
         exit(CurrPage.RunModal());
@@ -996,20 +1008,20 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempPurchaseLine.SetFilter("Location Code", LocationCodeFilter);
             TempPurchaseLine.SetFilter("Buy-from Vendor No.", VendorNoFilter);
             TempPurchaseLine.SetFilter("Purchasing Code", PurchasingCode);
-            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsReturnReceipt then begin
             TempReturnSalesLine.SetFilter("Location Code", LocationCodeFilter);
             TempReturnSalesLine.SetFilter("Return Reason Code", ReturnReasonCode);
             TempReturnSalesLine.SetFilter("Sell-to Customer No.", CustomerNoFilter);
-            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsTransferLine then begin
             TempTransferLine.SetFilter("Transfer-to Code", TransferToCode);
             TempTransferLine.SetFilter("Transfer-from Code", TransferFromCode);
-            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsWarehouseReceipt then begin
@@ -1017,28 +1029,28 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Item Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Item Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
     local procedure UpdateTableVariablesFromRecordFilters()

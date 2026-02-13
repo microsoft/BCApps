@@ -514,20 +514,5 @@
       }
     ]
   },
-  "objects": {
-    "outspacePane": [
-      {
-        "properties": {
-          "width": {
-            "expr": {
-              "Literal": {
-                "Value": "210L"
-              }
-            }
-          }
-        }
-      }
-    ]
-  },
   "visibility": "HiddenInViewMode"
 }

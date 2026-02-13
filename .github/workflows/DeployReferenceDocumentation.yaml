@@ -26,28 +26,28 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v8.2
         with:
           shell: powershell
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/ReadSettings@v8.2
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/DetermineArtifactUrl@v8.2
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/DetermineDeploymentEnvironments@v8.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -60,7 +60,7 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/BuildReferenceDocumentation@v8.2
         with:
           shell: powershell
           artifacts: 'latest'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v8.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

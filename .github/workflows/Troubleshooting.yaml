@@ -25,12 +25,12 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
 
       - name: Troubleshooting
-        uses: microsoft/AL-Go/Actions/Troubleshooting@284141de3c56d17551f000c6427c14c6f98c78f7
+        uses: microsoft/AL-Go-Actions/Troubleshooting@v8.2
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}

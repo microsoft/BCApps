@@ -5,36 +5,41 @@
 namespace Microsoft.QualityManagement.Permissions;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Workflow;
 
+/// <summary>
+/// Used for administering Quality Management and supervising Quality Inspections.
+/// </summary>
 permissionset 20405 "QltyMngmnt - Edit"
 {
-    Caption = 'Quality Management - Edit';
+    Caption = 'Quality Management - Full edit access';
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "QltyMngmnt - Read";
+    IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        tabledata "Qlty. In. Test Generation Rule" = IMD,
-        tabledata "Qlty. I. Grade Condition Conf." = IMD,
-        tabledata "Qlty. Inspection Grade" = IMD,
-        tabledata "Qlty. Lookup Code" = IMD,
-        tabledata "Qlty. Management Setup" = IMD,
-        tabledata "Qlty. Related Transfers Buffer" = IMD,
-        tabledata "Qlty. Mgmt. Role Center Cue" = IMD,
-        tabledata "Qlty. Inspect. Src. Fld. Conf." = IMD,
-        tabledata "Qlty. Inspect. Source Config." = IMD,
-        tabledata "Qlty. Inspection Template Line" = IMD,
-        tabledata "Qlty. Inspection Template Hdr." = IMD,
-        tabledata "Qlty. Inspection Test Line" = IMD,
-        tabledata "Qlty. Inspection Test Header" = IMD,
-        tabledata "Qlty. Field" = IMD;
+        tabledata "Qlty. Management Setup" = RIMD,
+        tabledata "Qlty. Mgmt. Role Center Cue" = RIMD,
+        tabledata "Qlty. Workflow Config. Value" = RIMD,
+        tabledata "Qlty. Inspection Gen. Rule" = RIMD,
+        tabledata "Qlty. I. Result Condit. Conf." = RIMD,
+        tabledata "Qlty. Inspect. Source Config." = RIMD,
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = RIMD,
+        tabledata "Qlty. Test Lookup Value" = RIMD,
+        tabledata "Qlty. Related Transfers Buffer" = RIMD,
+        tabledata "Qlty. Inspection Template Hdr." = RIMD,
+        tabledata "Qlty. Inspection Template Line" = RIMD,
+        tabledata "Qlty. Test" = RIMD,
+        tabledata "Qlty. Inspection Result" = RIMD,
+        tabledata "Qlty. Inspection Header" = RIMD,
+        tabledata "Qlty. Inspection Line" = RIMD;
 }

@@ -43,14 +43,14 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line Mapping" = X,
         table "E-Document Purchase Header" = X,
         table "E-Document Purchase Line" = X,
-        table "E-Documents Setup" = X,
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
-        #if not CLEAN28
-        #pragma warning disable AL0432
+        table "E-Doc Sample Purch. Inv File" = X,
+#if not CLEAN28
+#pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
-        #pragma warning restore AL0432
-        #endif
+#pragma warning restore AL0432
+#endif
         codeunit "E-Document Import Job" = X,
         codeunit "E-Doc. Integration Management" = X,
         codeunit "E-Doc. Mapping" = X,
@@ -114,6 +114,8 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Doc. PO Copilot Prop" = X,
         page "E-Doc. PO Match Prop. Sub" = X,
         page "E-Doc. Order Match Act." = X,
+        page "E-Doc. Select PO Lines" = X,
+        page "E-Doc. Select Receipt Lines" = X,
         page "Service Participants" = X,
         page "E-Doc. Create Purch Order Line" = X,
         page "E-Doc. Purchase Draft Subform" = X,

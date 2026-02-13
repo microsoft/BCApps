@@ -60,7 +60,7 @@
   </resheader>
   <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.caption" xml:space="preserve">
     <value>Dimension Sets</value>
-    <comment>table [Dimension Sets]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.509b5a55-d4c9-4990-86ff-4db4ddf6e70b.caption" xml:space="preserve">
     <value>Global Dimension 1</value>
@@ -96,7 +96,7 @@
   </data>
   <data name="408107af-c25d-4948-8717-8ea446127d2e.caption" xml:space="preserve">
     <value>Vendors</value>
-    <comment>table [Vendors]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="408107af-c25d-4948-8717-8ea446127d2e.column.8a57adc5-712a-4f45-8885-12dd7f24f447.caption" xml:space="preserve">
     <value>Vendor No.</value>
@@ -140,7 +140,7 @@
   </data>
   <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.caption" xml:space="preserve">
     <value>Customers</value>
-    <comment>table [Customers]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.885a8763-e16e-4cd6-bf80-97a1a3b238e5.caption" xml:space="preserve">
     <value>Customer No.</value>
@@ -192,7 +192,7 @@
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.caption" xml:space="preserve">
     <value>Date</value>
-    <comment>table [Date]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.87d986f6-8d0a-4af1-bf9d-2748b7ba57dc.caption" xml:space="preserve">
     <value>Week Day</value>
@@ -943,9 +943,49 @@
     <value>Avg. Mon. Churn Rate % by Year and Month</value>
     <comment>table [Localized Labels] measure [Avg. Mon. Churn Rate % by Year and Month]</comment>
   </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9.caption" xml:space="preserve">
+    <value>Total Contract Value by Package</value>
+    <comment>table [Localized Labels] measure [Total Contract Value by Package]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9c002ddd-002a-426e-a47d-d6351d291e93.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Package</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Package]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.79e806b1-5fe4-461f-9e2d-8d23af4d33ac.caption" xml:space="preserve">
+    <value>Churn by Customer</value>
+    <comment>table [Localized Labels] measure [Churn by Customer]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aef1f788-4dd3-4346-ba15-c7964929e203.caption" xml:space="preserve">
+    <value>Profitability by Item</value>
+    <comment>table [Localized Labels] measure [Profitability by Item]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.355d4e8c-e2b7-488d-8aae-610791396576.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Customer Location</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Customer Location]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10fb96a6-7639-4f61-b26c-4c8aeb15b721.caption" xml:space="preserve">
+    <value>Profitability by Salesperson</value>
+    <comment>table [Localized Labels] measure [Profitability by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1.caption" xml:space="preserve">
+    <value>Total Contract Value by Salesperson</value>
+    <comment>table [Localized Labels] measure [Total Contract Value by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.dc49dcdf-4074-4dde-845c-dd35d6864bbc.caption" xml:space="preserve">
+    <value>Customer Deferrals by Released Status</value>
+    <comment>table [Localized Labels] measure [Customer Deferrals by Released Status]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10e96e0c-8487-469d-97ea-94d49f78cdd5.caption" xml:space="preserve">
+    <value>Vendor Deferrals by Released Status</value>
+    <comment>table [Localized Labels] measure [Vendor Deferrals by Released Status]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.601a43e9-3983-471f-8187-a5cc4ee23dff.caption" xml:space="preserve">
+    <value>Billing Forecast by Billing Period, Vendor and Contract No.</value>
+    <comment>table [Localized Labels] measure [Billing Forecast by Billing Period, Vendor and Contract No.]</comment>
+  </data>
   <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.caption" xml:space="preserve">
     <value>Service Object</value>
-    <comment>table [Subscription]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.0c16a49c-64da-46b0-827c-577a26f0c6e5.caption" xml:space="preserve">
     <value>Service Object No.</value>
@@ -969,7 +1009,7 @@
   </data>
   <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.caption" xml:space="preserve">
     <value>Vendor Contract Deferrals</value>
-    <comment>table [Vendor Contract Deferrals]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.9759c5e8-c5d3-4116-bf44-5c0d8347748a.caption" xml:space="preserve">
     <value>Document Type</value>
@@ -1005,7 +1045,7 @@
   </data>
   <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.caption" xml:space="preserve">
     <value>Customer Contract Line</value>
-    <comment>table [Customer Contract Line]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.629ee0a1-242f-480c-8cad-1ee6b0564776.caption" xml:space="preserve">
     <value>Commitment Line No.</value>
@@ -1101,7 +1141,7 @@
   </data>
   <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.caption" xml:space="preserve">
     <value>Vendor Contract Line</value>
-    <comment>table [Vendor Contract Line]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.bce5266a-6ac8-4b71-9ffd-ef2b727e5670.caption" xml:space="preserve">
     <value>Commitment Line No.</value>
@@ -1193,7 +1233,7 @@
   </data>
   <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.caption" xml:space="preserve">
     <value>Customer Contract Deferrals</value>
-    <comment>table [Customer Contract Deferrals]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.e7a94cd6-62ae-4eeb-87d1-312c9e300d65.caption" xml:space="preserve">
     <value>Document Type</value>
@@ -1225,7 +1265,7 @@
   </data>
   <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.caption" xml:space="preserve">
     <value>Customer Contract</value>
-    <comment>table [Customer Contract]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.column.3e6ba627-9755-49e3-b41e-7b1a77dfdf37.caption" xml:space="preserve">
     <value>Customer Contract No.</value>
@@ -1245,7 +1285,7 @@
   </data>
   <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.caption" xml:space="preserve">
     <value>Vendor Contract</value>
-    <comment>table [Vendor Contract]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.column.c87b6b44-da26-4339-b91e-7d4611ea8ff5.caption" xml:space="preserve">
     <value>Vendor Contract No.</value>
@@ -1265,7 +1305,7 @@
   </data>
   <data name="37de7ae7-1930-41cc-980c-6505b3f128d8.caption" xml:space="preserve">
     <value>UBB handling</value>
-    <comment>table [UBB handling]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="37de7ae7-1930-41cc-980c-6505b3f128d8.column.0f4da653-1852-49cf-a232-9e265831323b.caption" xml:space="preserve">
     <value>Treat UBB as constant</value>
@@ -1273,11 +1313,15 @@
   </data>
   <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.caption" xml:space="preserve">
     <value>Is Released</value>
-    <comment>table [Is Released]</comment>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.column.924163c9-a51f-430e-89bf-b9cf3920703b.caption" xml:space="preserve">
+    <value>Is Released Value</value>
+    <comment>table [Is Released] column [Is Released Value]</comment>
   </data>
   <data name="e8181695-0d8d-46a4-a884-1119686c45c5.caption" xml:space="preserve">
     <value>Item</value>
-    <comment>table [Item]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.ec838ba3-3308-496f-b02f-82d63f822c1a.caption" xml:space="preserve">
     <value>Item No.</value>
@@ -1286,14 +1330,6 @@
   <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.554a518b-1a0e-4285-9fb7-ee9a8d627013.caption" xml:space="preserve">
     <value>Item Name</value>
     <comment>table [Item] column [Item Name]</comment>
-  </data>
-  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.9579f121-c85e-497b-a169-78aa8e482153.caption" xml:space="preserve">
-    <value>Item Category Code</value>
-    <comment>table [Item] column [Item Category Code]</comment>
-  </data>
-  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.956c91d4-c21c-49ab-964a-1cb86262eb1a.caption" xml:space="preserve">
-    <value>Item Category Description</value>
-    <comment>table [Item] column [Item Category Description]</comment>
   </data>
   <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.a818434f-0f24-4fff-8ecc-68316bc3d528.caption" xml:space="preserve">
     <value>Inventory Posting Group</value>
@@ -1309,7 +1345,7 @@
   </data>
   <data name="f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4.caption" xml:space="preserve">
     <value>Analysis Date</value>
-    <comment>table [Analysis Date]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4.column.65db46d3-d4ad-4dc4-ba3d-189bffc60012.caption" xml:space="preserve">
     <value>Is Initial Version</value>
@@ -1321,7 +1357,7 @@
   </data>
   <data name="472eaab7-d1a5-4024-a758-94a911af9808.caption" xml:space="preserve">
     <value>Calc. Group - Time Intelligence for Calendar (Fiscal)</value>
-    <comment>table [Calc. Group - Time Intelligence for Calendar (Fiscal)]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="472eaab7-d1a5-4024-a758-94a911af9808.column.eef633e2-ed98-4dbc-b435-63b87327198e.caption" xml:space="preserve">
     <value>Perspective</value>
@@ -1329,7 +1365,7 @@
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.caption" xml:space="preserve">
     <value>Subscription Billing KPIs</value>
-    <comment>table [Subscription Billing KPIs]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.efa16235-29ec-4359-b767-4a1a45c5f4e9.caption" xml:space="preserve">
     <value>MRR</value>
@@ -1503,9 +1539,53 @@
     <value>Mon. Recurring Revenue Downgrade</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade]</comment>
   </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.caption" xml:space="preserve">
+    <value>Churn</value>
+    <comment>table [Subscription Billing KPIs] measure [Churn (-)]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+    <comment>table [Subscription Billing KPIs] measure [Churn (-)]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.682b0afe-72bd-417b-81b6-b62616a1f9c0.caption" xml:space="preserve">
+    <value>Downgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Downgrade (-)]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1b353d3a-e1a9-4b93-ab99-0317060f1aab.caption" xml:space="preserve">
+    <value>Usage Based Billing Change</value>
+    <comment>table [Subscription Billing KPIs] measure [Usage Based Billing Change]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.04040d7e-b3a4-4069-92cb-e4fb9478ec9f.caption" xml:space="preserve">
+    <value>Upgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Upgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ca15d892-5102-4d5e-8467-41ef46bb0a4b.caption" xml:space="preserve">
+    <value>New</value>
+    <comment>table [Subscription Billing KPIs] measure [New]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.0fbe1130-cb6d-4208-93d3-8d15206728ab.caption" xml:space="preserve">
+    <value>Total Change</value>
+    <comment>table [Subscription Billing KPIs] measure [Total Change]</comment>
+  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1f3c3882-eb8b-45ff-9df5-a24d6d0bb80c.caption" xml:space="preserve">
     <value>Selected Date Range</value>
     <comment>table [Subscription Billing KPIs] measure [Selected Date Range]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.caption" xml:space="preserve">
+    <value>Churn</value>
+    <comment>table [Subscription Billing KPIs] measure [Churn]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+    <comment>table [Subscription Billing KPIs] measure [Churn]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe462ca3-cb8f-4aa2-8444-acfdd1e4755a.caption" xml:space="preserve">
+    <value>Downgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Downgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ac440820-dbc1-4014-9753-dcafa6618075.caption" xml:space="preserve">
+    <value>MRR End of Period</value>
+    <comment>table [Subscription Billing KPIs] measure [MRR End of Period]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.3180f6bf-8dd2-4555-aee9-0423d81808c1.caption" xml:space="preserve">
     <value>Avg. Mon. Churn Rate %</value>
@@ -1519,9 +1599,29 @@
     <value>Mon. Recurring Revenue Downgrade &amp; Churn</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade &amp; Churn]</comment>
   </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.caption" xml:space="preserve">
+    <value>Customer Deferrals Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fb40ded3-6eb4-4595-a359-ef320241ce65.caption" xml:space="preserve">
+    <value>Vendor Deferrals Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Deferrals Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe25274f-9ebf-477c-97a4-790b677123a4.caption" xml:space="preserve">
+    <value>Customer Contract Line Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Contract Line Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.39f6703a-1ae0-4b23-b3e6-88e885731623.caption" xml:space="preserve">
+    <value>Vendor Contract Line Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Contract Line Back Link]</comment>
+  </data>
   <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.caption" xml:space="preserve">
     <value>Salesperson</value>
-    <comment>table [Salesperson]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.column.98ede92e-d6e1-47a6-bf69-78f3137e0020.caption" xml:space="preserve">
     <value>Salesperson Code</value>
@@ -1533,7 +1633,7 @@
   </data>
   <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.caption" xml:space="preserve">
     <value>Customer Contract Changes</value>
-    <comment>table [Customer Contract Changes]</comment>
+    <comment>table [table.Name]</comment>
   </data>
   <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.43a7ecaa-2e0d-4ca9-ae48-1eb7691f259b.caption" xml:space="preserve">
     <value>Customer Contract Line Key</value>
@@ -1550,5 +1650,33 @@
   <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.d5ed6ba1-e2b1-4a38-bc21-a8953119f31c.caption" xml:space="preserve">
     <value>MRR Delta</value>
     <comment>table [Customer Contract Changes] column [MRR Delta]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.caption" xml:space="preserve">
+    <value>Item Category</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.112cfe30-01df-49e7-86d8-ba22a667e132.caption" xml:space="preserve">
+    <value>Item Category Code</value>
+    <comment>table [Item Category] column [Item Category Code]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.aa593ef2-fa6a-466d-b754-4164fba6d2f7.caption" xml:space="preserve">
+    <value>Item Category Description</value>
+    <comment>table [Item Category] column [Item Category Description]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.caption" xml:space="preserve">
+    <value>Item Category Code Hierarchy</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.54983986-fbad-431d-b1a9-1e300a5f1268" xml:space="preserve">
+    <value>Item Category Code Level 1</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.57909489-5b68-44a1-9c28-6fc6cb12c0c2" xml:space="preserve">
+    <value>Item Category Code Level 2</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.607f341e-c72e-4a1b-803e-3637de756fc4" xml:space="preserve">
+    <value>Item Category Code Level 3</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
   </data>
 </root>

@@ -541,6 +541,12 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether the posted sales invoices can be synchronized to Shopify.';
                 }
+                field("Currency Handling"; Rec."Currency Handling")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies which currency is used in Shopify orders processing. Using presentment currency may cause differences between amounts in LCY after posting documents.';
+                    Importance = Additional;
+                }
             }
             group(ReturnsAndRefunds)
             {
@@ -954,7 +960,6 @@ page 30101 "Shpfy Shop Card"
                         ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
                     end;
                 }
-
             }
             group(Sync)
             {

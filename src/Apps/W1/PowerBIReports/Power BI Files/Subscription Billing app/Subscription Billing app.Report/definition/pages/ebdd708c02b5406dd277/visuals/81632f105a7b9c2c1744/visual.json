@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "81632f105a7b9c2c1744",
   "position": {
-    "x": 25.81740976645435,
-    "y": 145,
+    "x": 443.10821669724993,
+    "y": 145.41023519111528,
     "z": 0,
-    "height": 547,
-    "width": 1227.0063694267515,
+    "height": 546.27088355581145,
+    "width": 809.58130944242555,
     "tabOrder": 0
   },
   "visual": {
@@ -46,6 +46,21 @@
               },
               "queryRef": "Customer Contract Changes.Change Type",
               "nativeQueryRef": "Change Type",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              },
+              "queryRef": "Customer Contract Line.Billing Rhythm",
+              "nativeQueryRef": "Billing Rhythm",
               "active": true
             },
             {
@@ -218,21 +233,6 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Customer Contract Line"
-                    }
-                  },
-                  "Property": "Initial Term"
-                }
-              },
-              "queryRef": "Customer Contract Line.Initial Term",
-              "nativeQueryRef": "Initial Term",
-              "active": false
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
                       "Entity": "Item"
                     }
                   },
@@ -308,21 +308,6 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Customer Contract Line"
-                    }
-                  },
-                  "Property": "Billing Rhythm"
-                }
-              },
-              "queryRef": "Customer Contract Line.Billing Rhythm",
-              "nativeQueryRef": "Billing Rhythm",
-              "active": false
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
                       "Entity": "Date"
                     }
                   },
@@ -362,6 +347,21 @@
               "queryRef": "Customer Contract.Customer Contract No. Desc.",
               "nativeQueryRef": "Customer Contract No. Desc.",
               "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Initial Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Initial Term",
+              "nativeQueryRef": "Initial Term",
+              "active": false
             }
           ]
         }
@@ -387,6 +387,25 @@
                     }
                   },
                   "Property": "Change Type"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Billing Rhythm"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
                 }
               }
             ],
@@ -473,12 +492,6 @@
           },
           {
             "queryRefs": [
-              "Customer Contract Line.Initial Term"
-            ],
-            "isCollapsed": true
-          },
-          {
-            "queryRefs": [
               "Item.Item No."
             ],
             "isCollapsed": true
@@ -521,24 +534,6 @@
           },
           {
             "queryRefs": [
-              "Customer Contract Line.Billing Rhythm"
-            ],
-            "isCollapsed": true,
-            "identityKeys": [
-              {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Customer Contract Line"
-                    }
-                  },
-                  "Property": "Billing Rhythm"
-                }
-              }
-            ]
-          },
-          {
-            "queryRefs": [
               "Date.Fiscal Month Year"
             ],
             "isCollapsed": true
@@ -566,6 +561,12 @@
                 }
               }
             ]
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Initial Term"
+            ],
+            "isCollapsed": true
           }
         ],
         "root": {
@@ -578,7 +579,19 @@
                   }
                 }
               ],
-              "isToggled": true
+              "isToggled": true,
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'1M'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
             }
           ]
         }
@@ -595,6 +608,45 @@
                 }
               }
             }
+          }
+        }
+      ],
+      "insights": [
+        {
+          "properties": {
+            "isAINode": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Customer Contract Changes"
+                          }
+                        },
+                        "Property": "Change Type"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Churn'"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       ]

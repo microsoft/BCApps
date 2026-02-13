@@ -14,46 +14,46 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
     {
         addafter(QtyAvailable)
         {
-            field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
+            field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
                 ApplicationArea = QualityManagement;
-                Caption = 'Quality Grade';
-                ToolTip = 'Specifies the most recent grade for this lot number.';
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+                Caption = 'Quality Result';
+                ToolTip = 'Specifies the most recent result for this lot number.';
                 Editable = false;
 
                 trigger OnDrillDown()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader.SetRange("Source Item No.", Rec."Item No.");
-                    QltyInspectionTestHeader.SetFilter("Source Variant Code", Rec."Variant Code Filter");
-                    QltyInspectionTestHeader.SetRange("Source Lot No.", Rec."Lot No.");
+                    QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
+                    QltyInspectionHeader.SetFilter("Source Variant Code", Rec."Variant Code Filter");
+                    QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
                     if Rec."Serial No." <> '' then
-                        QltyInspectionTestHeader.SetRange("Source Serial No.", Rec."Serial No.");
+                        QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
                     if Rec."Package No." <> '' then
-                        QltyInspectionTestHeader.SetRange("Source Package No.", Rec."Package No.");
-                    if QltyInspectionTestHeader.FindFirst() then;
-                    Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                        QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
+                    if QltyInspectionHeader.FindFirst() then;
+                    Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                 end;
             }
-            field("Qlty. Insp. Test for Lot Count"; Rec."Qlty. Insp. Test for Lot Count")
+            field("Qlty. Inspection for Lot Count"; Rec."Qlty. Inspection for Lot Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Editable = false;
             }
         }
     }
 
     var
-        MostRecentQltyGradeDescription: Text;
+        MostRecentQltyResultDescription: Text;
 
     trigger OnAfterGetRecord()
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        DummyGradeCode: Code[20];
+        DummyResultCode: Code[20];
     begin
-        QltyItemTracking.GetMostRecentGradeFor(Rec."Item No.", Rec."Variant Code Filter", Rec."Lot No.", Rec."Serial No.", Rec."Package No.", DummyGradeCode, MostRecentQltyGradeDescription);
+        QltyItemTracking.GetMostRecentResultFor(Rec."Item No.", Rec."Variant Code Filter", Rec."Lot No.", Rec."Serial No.", Rec."Package No.", DummyResultCode, MostRecentQltyResultDescription);
     end;
 }

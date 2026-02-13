@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
 /// <summary>
-/// Use this page to configure what will automatically populate from other tables into your quality test inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.
+/// Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.
 /// </summary>
 page 20410 "Qlty. Inspect. Source Config."
 {
@@ -20,7 +20,7 @@ page 20410 "Qlty. Inspect. Source Config."
     ModifyAllowed = false;
     DeleteAllowed = false;
     AboutTitle = 'Populating data from tables in Business Central.';
-    AboutText = 'Use this page to configure what will automatically populate from other tables into your quality test inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    AboutText = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
     ApplicationArea = QualityManagement;
 
     layout
@@ -52,7 +52,7 @@ page 20410 "Qlty. Inspect. Source Config."
                         CurrPage.Update(true);
                     end;
                 }
-                group(SettingsForFrom)
+                group(From)
                 {
                     Caption = 'From';
 
@@ -75,7 +75,7 @@ page 20410 "Qlty. Inspect. Source Config."
                         AboutText = 'Use this filter to define conditions for when to connect to a different table. This can be used when a source table could refer to multiple different tables.';
                     }
                 }
-                group(SettingsForTo)
+                group(To)
                 {
                     Caption = 'To';
 
@@ -87,7 +87,7 @@ page 20410 "Qlty. Inspect. Source Config."
                             CurrPage.Update();
                         end;
                     }
-                    group(SettingsForToTableVisibilityWrapper)
+                    group(ToTableVisibilityWrapper)
                     {
                         Caption = '';
                         ShowCaption = false;
@@ -147,7 +147,7 @@ page 20410 "Qlty. Inspect. Source Config."
 
     local procedure UpdateControls()
     begin
-        ShowToTable := Rec."To Type" <> Rec."To Type"::Test;
+        ShowToTable := Rec."To Type" <> Rec."To Type"::Inspection;
     end;
 
     local procedure GetDataCaptionExpression(): Text

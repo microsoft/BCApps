@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.Template;
 
-using Microsoft.QualityManagement.Configuration.Grade;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// This subform is used on the template card to help configure which fields should be defined on a template.
+/// This subform is used on the template card to help configure which tests should be defined on a template.
 /// </summary>
 page 20403 "Qlty. Inspection Template Subf"
 {
@@ -36,13 +35,13 @@ page 20403 "Qlty. Inspection Template Subf"
                     Editable = false;
                     Visible = false;
                 }
-                field("Field Code"; Rec."Field Code")
+                field("Test Code"; Rec."Test Code")
                 {
                     StyleExpr = RowStyleText;
 
                     trigger OnValidate()
                     begin
-                        Rec.EnsureGrades(Rec."Field Code" <> xRec."Field Code");
+                        Rec.EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
                         UpdateRowData();
                         CurrPage.Update(true);
                     end;
@@ -51,7 +50,7 @@ page 20403 "Qlty. Inspection Template Subf"
                 {
                     StyleExpr = RowStyleText;
                 }
-                field("Field Type"; Rec."Field Type")
+                field("Test Value Type"; Rec."Test Value Type")
                 {
                     Visible = false;
                     StyleExpr = RowStyleText;
@@ -72,8 +71,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
                     Editable = Visible1;
 
@@ -89,8 +88,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
                     Editable = Visible1;
 
@@ -106,8 +105,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                     Editable = Visible2;
 
@@ -123,8 +122,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                     Editable = Visible2;
 
@@ -140,8 +139,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                     Editable = Visible3;
 
@@ -157,8 +156,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                     Editable = Visible3;
 
@@ -174,8 +173,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
 
@@ -191,8 +190,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
 
@@ -208,8 +207,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
 
@@ -225,8 +224,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
 
@@ -242,8 +241,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
 
@@ -259,8 +258,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
 
@@ -276,8 +275,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
 
@@ -293,8 +292,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
 
@@ -310,8 +309,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
 
@@ -327,8 +326,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
 
@@ -344,8 +343,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
 
@@ -361,8 +360,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
 
@@ -378,8 +377,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
 
@@ -395,8 +394,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
-                    CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
 
@@ -414,52 +413,9 @@ page 20403 "Qlty. Inspection Template Subf"
         }
     }
 
-    actions
-    {
-        area(Processing)
-        {
-            action(tNewField)
-            {
-                Image = Default;
-                Caption = 'Add Field(s) To This Template';
-                ToolTip = 'Add a new Field or existing Field(s) to this template';
-                Scope = Repeater;
-
-                trigger OnAction()
-                begin
-                    AddFieldWizard();
-                end;
-            }
-            action(tEditField)
-            {
-                Image = Edit;
-                Caption = 'Edit Field';
-                ToolTip = 'This will edit your existing selected field.';
-                Scope = Repeater;
-
-                trigger OnAction()
-                var
-                    QltyField: Record "Qlty. Field";
-                    QltyFieldWizard: Page "Qlty. Field Wizard";
-                begin
-                    QltyField.Get(Rec."Field Code");
-                    if QltyFieldWizard.RunModalEditExistingField(QltyField) in [Action::OK, Action::LookupOK, Action::Yes] then begin
-                        QltyField.Get(QltyField.Code);
-                        Rec.Validate("Field Code", QltyField.Code);
-                        Rec.Description := QltyField.Description;
-                        Rec."Expression Formula" := QltyField."Expression Formula";
-                        Rec.EnsureGrades(true);
-                        CurrPage.Update(true);
-                    end else
-                        CurrPage.Update(false);
-                end;
-            }
-        }
-    }
-
     var
         CachedQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleText: Text;
@@ -477,6 +433,8 @@ page 20403 "Qlty. Inspection Template Subf"
         Visible8: Boolean;
         Visible9: Boolean;
         Visible10: Boolean;
+        DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
+        ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
@@ -485,7 +443,7 @@ page 20403 "Qlty. Inspection Template Subf"
             if Rec."Template Code" <> '' then
                 if CachedQltyInspectionTemplateHdr.Get(Rec."Template Code") then;
         end;
-        Rec.EnsureGrades(false);
+        Rec.EnsureResultsExist(false);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -496,14 +454,14 @@ page 20403 "Qlty. Inspection Template Subf"
 
     trigger OnAfterGetRecord()
     var
-        DuplicateFieldCheckQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        DuplicateTestCheckQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         UpdateRowData();
         RowStyle := RowStyle::None;
-        DuplicateFieldCheckQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-        DuplicateFieldCheckQltyInspectionTemplateLine.SetRange("Field Code", Rec."Field Code");
-        DuplicateFieldCheckQltyInspectionTemplateLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        if not DuplicateFieldCheckQltyInspectionTemplateLine.IsEmpty() then
+        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Test Code", Rec."Test Code");
+        DuplicateTestCheckQltyInspectionTemplateLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        if not DuplicateTestCheckQltyInspectionTemplateLine.IsEmpty() then
             RowStyle := RowStyle::Unfavorable;
 
         RowStyleText := Format(RowStyle);
@@ -516,12 +474,12 @@ page 20403 "Qlty. Inspection Template Subf"
 
     local procedure UpdateRowData()
     begin
-        Rec.CalcFields("Field Type");
+        Rec.CalcFields("Test Value Type");
 
         if (CachedQltyInspectionTemplateHdr.Code <> Rec."Template Code") and (Rec."Template Code" <> '') then
             if CachedQltyInspectionTemplateHdr.Get(Rec."Template Code") then;
 
-        QltyGradeConditionMgmt.GetPromotedGradesForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -536,103 +494,74 @@ page 20403 "Qlty. Inspection Template Subf"
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        OldQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        OldQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        OldQltyIGradeConditionConf := QltyIGradeConditionConf;
-        if StrLen(MatrixArrayConditionCellData[Matrix]) > MaxStrLen(QltyIGradeConditionConf.Condition) then
-            MatrixArrayConditionCellData[Matrix] := CopyStr(MatrixArrayConditionCellData[Matrix], 1, MaxStrLen(QltyIGradeConditionConf.Condition));
-        QltyIGradeConditionConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        if OldQltyIGradeConditionConf.Condition = OldQltyIGradeConditionConf."Condition Description" then begin
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        OldQltyIResultConditConf := QltyIResultConditConf;
+        if StrLen(MatrixArrayConditionCellData[Matrix]) > MaxStrLen(QltyIResultConditConf.Condition) then
+            MatrixArrayConditionCellData[Matrix] := CopyStr(MatrixArrayConditionCellData[Matrix], 1, MaxStrLen(QltyIResultConditConf.Condition));
+        QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
+        if OldQltyIResultConditConf.Condition = OldQltyIResultConditConf."Condition Description" then begin
             MatrixArrayConditionDescriptionCellData[Matrix] := MatrixArrayConditionCellData[Matrix];
 
-            if StrLen(MatrixArrayConditionDescriptionCellData[Matrix]) > MaxStrLen(QltyIGradeConditionConf."Condition Description") then
-                MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(MatrixArrayConditionDescriptionCellData[Matrix], 1, MaxStrLen(QltyIGradeConditionConf."Condition Description"));
+            if StrLen(MatrixArrayConditionDescriptionCellData[Matrix]) > MaxStrLen(QltyIResultConditConf."Condition Description") then
+                MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(MatrixArrayConditionDescriptionCellData[Matrix], 1, MaxStrLen(QltyIResultConditConf."Condition Description"));
 
-            QltyIGradeConditionConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
+            QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
         end;
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Modify(true);
         CurrPage.Update(true);
     end;
 
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        OldQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        OldQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        OldQltyIGradeConditionConf := QltyIGradeConditionConf;
-        if StrLen(MatrixArrayConditionDescriptionCellData[Matrix]) > MaxStrLen(QltyIGradeConditionConf."Condition Description") then
-            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(MatrixArrayConditionDescriptionCellData[Matrix], 1, MaxStrLen(QltyIGradeConditionConf."Condition Description"));
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        OldQltyIResultConditConf := QltyIResultConditConf;
+        if StrLen(MatrixArrayConditionDescriptionCellData[Matrix]) > MaxStrLen(QltyIResultConditConf."Condition Description") then
+            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(MatrixArrayConditionDescriptionCellData[Matrix], 1, MaxStrLen(QltyIResultConditConf."Condition Description"));
 
-        QltyIGradeConditionConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
+        QltyIResultConditConf.Modify(true);
         CurrPage.Update(false);
     end;
 
     /// <summary>
-    /// Starts the assist-edit dialog for the grade condition description.
+    /// Starts the assist-edit dialog for the result condition description.
     /// </summary>
     /// <param name="Matrix"></param>
     procedure AssistEditCondition(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
         Expression := MatrixArrayConditionCellData[Matrix];
-        QltyInspectionTemplateEdit.RestrictFieldsToThoseOnTemplate(Rec."Template Code");
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
+        QltyInspectionTemplateEdit.RestrictTestsToThoseOnTemplate(Rec."Template Code");
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+            MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataCondition(Matrix);
         end;
     end;
 
     /// <summary>
-    /// Starts the assist edit dialog for the grade condition description
+    /// Starts the assist edit dialog for the result condition description
     /// </summary>
     /// <param name="Matrix"></param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
         Expression := MatrixArrayConditionDescriptionCellData[Matrix];
-        QltyInspectionTemplateEdit.RestrictFieldsToThoseOnTemplate(Rec."Template Code");
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
+        QltyInspectionTemplateEdit.RestrictTestsToThoseOnTemplate(Rec."Template Code");
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new field to this template.
-    /// </summary>
-    procedure AddFieldWizard()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyFieldWizard: Page "Qlty. Field Wizard";
-        OfFieldsToAdd: list of [Code[20]];
-        TemplateCode: Code[20];
-        FieldCode: Code[20];
-        FilterGroupIterator: Integer;
-    begin
-        FilterGroupIterator := 4;
-        repeat
-            Rec.FilterGroup(FilterGroupIterator);
-            if Rec.GetFilter("Template Code") <> '' then
-                TemplateCode := Rec.GetRangeMin("Template Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (TemplateCode <> '');
-        QltyInspectionTemplateHdr.Get(TemplateCode);
-        Rec.FilterGroup(0);
-        QltyFieldWizard.RunModal();
-        if QltyFieldWizard.GetFieldsToAdd(OfFieldsToAdd) then
-            foreach FieldCode in OfFieldsToAdd do
-                QltyInspectionTemplateHdr.AddFieldToTemplate(FieldCode);
-        CurrPage.Update();
     end;
 }

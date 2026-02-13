@@ -178,7 +178,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="CurrentTable">Input/Output: Table reference as text; updated to Object Name if found</param>
     /// <returns>The table ID if found; 0 if table cannot be identified</returns>
-    procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
+    internal procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
     var
         TablesAllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -243,7 +243,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="CurrentTable">The table.</param>
     /// <param name="NumberOrNameOfField">Will be the field name as an output if found. If unfound will be left unaltered.</param>
     /// <returns></returns>
-    procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
+    internal procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
     var
         ToFindField: Record Field;
     begin
@@ -723,7 +723,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
+    internal procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
     var
         UnitOfMeasure: Record "Unit of Measure";
         UnitsOfMeasure: Page "Units of Measure";
@@ -744,12 +744,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure CleanUpWhereClause250(Input: Text) ResultText: Text[250]
-    begin
-        ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
-    end;
-
-    procedure CleanUpWhereClause400(Input: Text) ResultText: Text[400]
+    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
@@ -815,7 +810,7 @@ codeunit 20403 "Qlty. Filter Helpers"
             until TempFilterItemAttributesBuffer.Next() = 0;
     end;
 
-    internal procedure BuildItemAttributeFilter400(var ItemAttributeFilter: Text[400])
+    internal procedure BuildItemAttributeFilter2048(var ItemAttributeFilter: Text[2048])
     var
         FullItemAttributeFilter: Text;
     begin
@@ -854,94 +849,6 @@ codeunit 20403 "Qlty. Filter Helpers"
     end;
 
     /// <summary>
-    /// Gets the standard task code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetStandardTaskCodeFromRecordOrFilter(var StandardTaskQualityMeasure: Record "Standard Task Quality Measure") StandardTaskCode: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if StandardTaskQualityMeasure."Standard Task Code" <> '' then
-            exit(StandardTaskQualityMeasure."Standard Task Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            StandardTaskQualityMeasure.FilterGroup(FilterGroupIterator);
-            if StandardTaskQualityMeasure.GetFilter("Standard Task Code") <> '' then
-                StandardTaskCode := StandardTaskQualityMeasure.GetRangeMin("Standard Task Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (StandardTaskCode <> '');
-        StandardTaskQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the routing code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetRoutingCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingNo: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Routing No." <> '' then
-            exit(RoutingQualityMeasure."Routing No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Routing No.") <> '' then
-                RoutingNo := RoutingQualityMeasure.GetRangeMin("Routing No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the operation no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetOperationNoFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") OperationNo: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Operation No." <> '' then
-            exit(RoutingQualityMeasure."Operation No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Operation No.") <> '' then
-                OperationNo := RoutingQualityMeasure.GetRangeMin("Operation No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (OperationNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the version no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure VersionCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingVersionCode: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Version Code" <> '' then
-            exit(RoutingQualityMeasure."Version Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Version Code") <> '' then
-                RoutingVersionCode := RoutingQualityMeasure.GetRangeMin("Version Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingVersionCode <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
     /// Returns a true or false if the supplied field has a filter and it's set to the value.
     /// </summary>
     /// <param name="TableNo"></param>
@@ -949,7 +856,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="FieldNo"></param>
     /// <param name="ExpectedVariant"></param>
     /// <returns></returns>
-    procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
+    internal procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
     var
         RecordRef: RecordRef;
         FieldRef: FieldRef;

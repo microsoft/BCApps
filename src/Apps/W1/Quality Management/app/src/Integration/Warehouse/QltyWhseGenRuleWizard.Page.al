@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Setup;
@@ -15,7 +15,7 @@ using Microsoft.Warehouse.Structure;
 
 page 20460 "Qlty. Whse. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Warehouse Movement Quality Test Generation Rule Wizard';
+    Caption = 'Warehouse Movement Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = Warehouse;
@@ -25,19 +25,19 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     {
         area(Content)
         {
-            group(SettingsFor_iStepWhichTemplate)
+            group(StepWhichTemplate)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 Visible = (StepWhichTemplateCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepWhichTemplate_Instruction1)
+                group(StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Use this feature with lot warehouse tracked items or serial warehouse tracked items, allowing you to define a rule for lot or serial related tests when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Test Generation Rule will be made or updated.';
+                    InstructionalText = 'Use this feature with lot/serial/package warehouse tracked items, allowing you to define a rule for lot/serial/package related inspections when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Generation Rule will be made or updated.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepWhichTemplate_Instruction2)
+                group(StepWhichTemplate_Instruction2)
                 {
                     InstructionalText = 'Which Quality Inspection template do you want to use?';
                     Caption = ' ';
@@ -45,7 +45,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                 }
                 field(ChoosechooseTemplate; TemplateCode)
                 {
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 
@@ -55,11 +55,11 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichToBin)
+            group(StepWhichToBin)
             {
                 Caption = ' ';
                 ShowCaption = false;
-                InstructionalText = 'A test should be created when items are moved into which bin?';
+                InstructionalText = 'An inspection should be created when items are moved into which bin?';
                 Visible = (StepWhichToBinCounter = CurrentStepCounter);
 
                 field(ChoosechooseLocation; LocationCodeFilter)
@@ -74,6 +74,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(LocationFilterErr, GetLastErrorText());
                     end;
@@ -90,6 +91,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ToZoneFilterErr, GetLastErrorText());
                     end;
@@ -106,6 +108,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ToBinFilterErr, GetLastErrorText());
                     end;
@@ -120,7 +123,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                         UpdateFullTextRuleStringsFromFilters();
                     end;
                 }
-                field(Chooseadvanced; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -133,7 +136,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichItem)
+            group(StepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -153,6 +156,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemFilterErr, GetLastErrorText());
                     end;
@@ -170,6 +174,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(ItemCategoryFilterErr, GetLastErrorText());
                     end;
@@ -187,6 +192,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(InventoryPostingGroupFilterErr, GetLastErrorText());
                     end;
@@ -204,11 +210,12 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
                     trigger OnValidate()
                     begin
+                        ClearLastError();
                         if not UpdateFullTextRuleStringsFromFilters() then
                             Error(VendorFilterErr, GetLastErrorText());
                     end;
                 }
-                field(Chooseadvanced_item; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced_Item; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -221,20 +228,20 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepDone)
+            group(StepDone)
             {
                 Caption = ' ';
                 InstructionalText = '';
                 ShowCaption = false;
                 Visible = (StepDoneCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepDone_Instruction1)
+                group(StepDone_Instruction1)
                 {
                     Caption = ' ';
-                    InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
+                    InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepDone_Instruction2)
+                group(StepDone_Instruction2)
                 {
                     Caption = ' ';
                     InstructionalText = 'Please review and set any additional filters you may need, for example if you want to limit this to specific items.';
@@ -264,16 +271,16 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(bAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'Do you want to automatically create a test when product is moved to a bin? This setting affects the entire company, not just this rule.';
+                    InstructionalText = 'Do you want to automatically create an inspection when product is moved to a bin? This setting affects the entire company, not just this rule.';
 
-                    field(ChooseeMoveAutomaticallyCreateTest; QltyWarehouseTrigger)
+                    field(ChooseeMoveAutomaticallyCreateInspection; QltyWarehouseTrigger)
                     {
                         ApplicationArea = All;
-                        Caption = 'Automatically Create Test';
-                        ToolTip = 'Specifies whether to automatically create a test when product is moved to this bin.';
+                        Caption = 'Automatically Create Inspection';
+                        ToolTip = 'Specifies whether to automatically create an inspection when product is moved to this bin.';
                     }
                 }
             }
@@ -331,7 +338,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         WarehouseEmployee: Record "Warehouse Employee";
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         TempItem: Record "Item" temporary;
-        TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
+        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         Zone: Record Zone;
         Bin: Record Bin;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -345,8 +352,8 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         VendorNoFilter: Code[20];
         QltyWarehouseTrigger: Enum "Qlty. Warehouse Trigger";
-        WhseRule: Text[400];
-        ItemRule: Text[400];
+        WhseRule: Text[2048];
+        ItemRule: Text[2048];
         IsIsBackEnabledd: Boolean;
         IsIsNextEnabledd: Boolean;
         IsIsFinishEnabledd: Boolean;
@@ -579,11 +586,11 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     local procedure AssistEditFullWhseFilter()
 
     begin
-        TempQltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        TempQltyInTestGenerationRule."Condition Filter" := WhseRule;
+        TempQltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        TempQltyInspectionGenRule."Condition Filter" := WhseRule;
 
-        if TempQltyInTestGenerationRule.AssistEditConditionTableFilter() then begin
-            WhseRule := TempQltyInTestGenerationRule."Condition Filter";
+        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
+            WhseRule := TempQltyInspectionGenRule."Condition Filter";
 
             TempWarehouseJournalLine.SetView(WhseRule);
             UpdateTableVariablesFromRecordFilters();
@@ -593,9 +600,9 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
     local procedure AssistEditFullItemFilter()
     begin
-        TempQltyInTestGenerationRule."Item Filter" := ItemRule;
-        if TempQltyInTestGenerationRule.AssistEditConditionItemFilter() then begin
-            ItemRule := TempQltyInTestGenerationRule."Item Filter";
+        TempQltyInspectionGenRule."Item Filter" := ItemRule;
+        if TempQltyInspectionGenRule.AssistEditConditionItemFilter() then begin
+            ItemRule := TempQltyInspectionGenRule."Item Filter";
 
             TempItem.SetView(ItemRule);
             UpdateTableVariablesFromRecordFilters();
@@ -616,27 +623,27 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
         TempItem.SetFilter("Vendor No.", VendorNoFilter);
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInTestGenerationRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInTestGenerationRule."Item Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInTestGenerationRule."Item Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
     local procedure CleanUpWhereClause()
     begin
-        WhseRule := QltyFilterHelpers.CleanUpWhereClause400(WhseRule);
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        WhseRule := QltyFilterHelpers.CleanUpWhereClause2048(WhseRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
     local procedure BackAction();
@@ -653,33 +660,33 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
     local procedure FinishAction();
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ExistingQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if not QltyInTestGenerationRule.Get(TempQltyInTestGenerationRule.RecordId()) then begin
-            QltyInTestGenerationRule.Init();
-            QltyInTestGenerationRule.SetEntryNo();
-            QltyInTestGenerationRule.UpdateSortOrder();
-            QltyInTestGenerationRule."Source Table No." := 0;
-            QltyInTestGenerationRule.Insert();
+        if not QltyInspectionGenRule.Get(TempQltyInspectionGenRule.RecordId()) then begin
+            QltyInspectionGenRule.Init();
+            QltyInspectionGenRule.SetEntryNo();
+            QltyInspectionGenRule.UpdateSortOrder();
+            QltyInspectionGenRule."Source Table No." := 0;
+            QltyInspectionGenRule.Insert();
         end;
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::"Warehouse Movement";
-        QltyInTestGenerationRule.Validate("Template Code", TemplateCode);
-        QltyInTestGenerationRule."Condition Filter" := WhseRule;
-        QltyInTestGenerationRule."Item Filter" := ItemRule;
-        QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyWarehouseTrigger;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Movement";
+        QltyInspectionGenRule.Validate("Template Code", TemplateCode);
+        QltyInspectionGenRule."Condition Filter" := WhseRule;
+        QltyInspectionGenRule."Item Filter" := ItemRule;
+        QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyWarehouseTrigger;
+        QltyInspectionGenRule.Modify();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyWarehouseTrigger;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
 
-        ExistingQltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
-        ExistingQltyInTestGenerationRule.SetRange("Source Table No.", QltyInTestGenerationRule."Source Table No.");
-        ExistingQltyInTestGenerationRule.SetRange("Condition Filter", QltyInTestGenerationRule."Condition Filter");
-        ExistingQltyInTestGenerationRule.SetRange("Item Filter", QltyInTestGenerationRule."Item Filter");
-        if ExistingQltyInTestGenerationRule.Count() > 1 then
+        ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
+        ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
+        ExistingQltyInspectionGenRule.SetRange("Condition Filter", QltyInspectionGenRule."Condition Filter");
+        ExistingQltyInspectionGenRule.SetRange("Item Filter", QltyInspectionGenRule."Item Filter");
+        if ExistingQltyInspectionGenRule.Count() > 1 then
             if not Confirm(AlreadyThereQst) then
                 Error('');
 
@@ -691,18 +698,18 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInTestGenerationRule"></param>
+    /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
-        TempQltyInTestGenerationRule := QltyInTestGenerationRule;
+        TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempWarehouseJournalLine);
         Clear(TempItem);
-        TempWarehouseJournalLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
-        TempItem.SetView(TempQltyInTestGenerationRule."Item Filter");
+        TempWarehouseJournalLine.SetView(TempQltyInspectionGenRule."Condition Filter");
+        TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();
 
-        TemplateCode := QltyInTestGenerationRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
         UpdateFullTextRuleStringsFromFilters();
 
         exit(CurrPage.RunModal());

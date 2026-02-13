@@ -19,11 +19,11 @@ using System.Reflection;
 codeunit 20445 "Qlty. Inventory Availability"
 {
     var
-        ThereIsNoSourceItemErr: Label 'There is no item or insufficient tracking defined on the test %1. Unable to perform the inventory related transaction. Please update the test with the item details and then try again.', Locked = true;
-        SampleSizeZeroErr: Label 'Using the sample size for test %1 was requested, however the sample size for the test is zero. You can change this by using a different quantity instruction, or by navigating to the test and setting the sample size.', Comment = '%1=the test', Locked = true;
+        ThereIsNoSourceItemErr: Label 'There is no item or insufficient tracking defined on the inspection %1. Unable to perform the inventory related transaction. Please update the inspection with the item details and then try again.', Locked = true;
+        SampleSizeZeroErr: Label 'Using the sample size for inspection %1 was requested, however the sample size for the inspection is zero. You can change this by using a different quantity instruction, or by navigating to the inspection and setting the sample size.', Comment = '%1=the inspection', Locked = true;
         NoSamplesToMoveErr: Label 'No samples meet the condition specified.', Locked = true;
         SerialQuantityGreaterThanOneErr: Label '%1 (%2) cannot be greater than 1 when New Serial No. is requested.', Comment = '%1=quantity behavior, %2=quantity';
-        ZeroQuantityErr: Label 'Unable to use the disposition %1 on the test %2 for the item %3 because the quantity is zero.', Comment = '%1=the test, %2=the test, %3=the item';
+        ZeroQuantityErr: Label 'Unable to use the disposition %1 on the inspection %2 for the item %3 because the quantity is zero.', Comment = '%1=the inspection, %2=the inspection, %3=the item';
         SupplyFromLocationCodeNameLbl: Label 'Supply-from Location Code', Locked = true;
         FromLocationCodeNameLbl: Label 'From Location Code', Locked = true;
         LocationCodeNameLbl: Label 'Location Code', Locked = true;
@@ -39,44 +39,44 @@ codeunit 20445 "Qlty. Inventory Availability"
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
 
     /// <summary>
-    /// GetCurrentLocationOfTrackedInventory gets the current location of the item+lot defined on the test.
+    /// GetCurrentLocationOfTrackedInventory gets the current location of the Item+Item tracking defined on the inspection.
     /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
     /// <param name="TempBinContent">Temporary var Record "Bin Content".   Multiple bin locations could be available.</param>
     /// <returns>Return variable of type Boolean.</returns>
-    procedure GetCurrentLocationOfTrackedInventory(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
+    internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
     begin
-        if (QltyInspectionTestHeader."Source Lot No." = '') and (QltyInspectionTestHeader."Source Serial No." = '') and (QltyInspectionTestHeader."Source Package No." = '') then
+        if (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit(false);
 
-        if not TestHasSufficientItemDetails(QltyInspectionTestHeader, false, false, false, false) then
+        if not InspectionHasSufficientItemDetails(QltyInspectionHeader, false, false, false, false) then
             exit(false);
 
         Clear(TempBinContent);
         TempBinContent.DeleteAll();
 
-        ProcessBinMandatoryLocations(QltyInspectionTestHeader, TempBinContent);
+        ProcessBinMandatoryLocations(QltyInspectionHeader, TempBinContent);
 
-        ProcessNonBinMandatoryLocations(QltyInspectionTestHeader, TempBinContent);
+        ProcessNonBinMandatoryLocations(QltyInspectionHeader, TempBinContent);
 
         TempBinContent.Reset();
 
         exit(not TempBinContent.IsEmpty());
     end;
 
-    local procedure ProcessBinMandatoryLocations(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempBinContent: Record "Bin Content" temporary)
+    local procedure ProcessBinMandatoryLocations(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary)
     var
         BinContent: Record "Bin Content";
     begin
-        BinContent.SetRange("Item No.", QltyInspectionTestHeader."Source Item No.");
-        BinContent.SetRange("Variant Code", QltyInspectionTestHeader."Source Variant Code");
-        if QltyInspectionTestHeader."Source Lot No." <> '' then
-            BinContent.SetRange("Lot No. Filter", QltyInspectionTestHeader."Source Lot No.");
-        if QltyInspectionTestHeader."Source Serial No." <> '' then
-            BinContent.SetRange("Serial No. Filter", QltyInspectionTestHeader."Source Serial No.");
-        if QltyInspectionTestHeader."Source Package No." <> '' then
-            BinContent.SetRange("Package No. Filter", QltyInspectionTestHeader."Source Package No.");
+        BinContent.SetRange("Item No.", QltyInspectionHeader."Source Item No.");
+        BinContent.SetRange("Variant Code", QltyInspectionHeader."Source Variant Code");
+        if QltyInspectionHeader."Source Lot No." <> '' then
+            BinContent.SetRange("Lot No. Filter", QltyInspectionHeader."Source Lot No.");
+        if QltyInspectionHeader."Source Serial No." <> '' then
+            BinContent.SetRange("Serial No. Filter", QltyInspectionHeader."Source Serial No.");
+        if QltyInspectionHeader."Source Package No." <> '' then
+            BinContent.SetRange("Package No. Filter", QltyInspectionHeader."Source Package No.");
         BinContent.SetAutoCalcFields("Quantity (Base)");
         if BinContent.FindSet() then
             repeat
@@ -90,24 +90,24 @@ codeunit 20445 "Qlty. Inventory Availability"
             until BinContent.Next() = 0;
     end;
 
-    local procedure ProcessNonBinMandatoryLocations(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempBinContent: Record "Bin Content" temporary)
+    local procedure ProcessNonBinMandatoryLocations(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary)
     var
         QltyItemLedgerByLocationQuery: Query "Qlty. Item Ledger By Location";
     begin
-        if QltyInspectionTestHeader."Source Item No." = '' then
+        if QltyInspectionHeader."Source Item No." = '' then
             exit;
 
         QltyItemLedgerByLocationQuery.SetRange(Location_Bin_Mandatory, false);
 
-        QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Item_No, QltyInspectionTestHeader."Source Item No.");
-        if QltyInspectionTestHeader."Source Variant Code" <> '' then
-            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Variant_Code, QltyInspectionTestHeader."Source Variant Code");
-        if QltyInspectionTestHeader."Source Lot No." <> '' then
-            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Lot_No, QltyInspectionTestHeader."Source Lot No.");
-        if QltyInspectionTestHeader."Source Serial No." <> '' then
-            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Serial_No, QltyInspectionTestHeader."Source Serial No.");
-        if QltyInspectionTestHeader."Source Package No." <> '' then
-            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Package_No, QltyInspectionTestHeader."Source Package No.");
+        QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Item_No, QltyInspectionHeader."Source Item No.");
+        if QltyInspectionHeader."Source Variant Code" <> '' then
+            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Variant_Code, QltyInspectionHeader."Source Variant Code");
+        if QltyInspectionHeader."Source Lot No." <> '' then
+            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Lot_No, QltyInspectionHeader."Source Lot No.");
+        if QltyInspectionHeader."Source Serial No." <> '' then
+            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Serial_No, QltyInspectionHeader."Source Serial No.");
+        if QltyInspectionHeader."Source Package No." <> '' then
+            QltyItemLedgerByLocationQuery.SetFilter(Item_Ledger_Entry_Package_No, QltyInspectionHeader."Source Package No.");
 
         if QltyItemLedgerByLocationQuery.Open() then begin
             while QltyItemLedgerByLocationQuery.Read() do
@@ -126,7 +126,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    procedure GetFromDetailsFromTestSource(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
+    internal procedure GetFromDetailsFromInspectionSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
     var
         RecordRefToSearch: RecordRef;
         NullForComparison: RecordId;
@@ -139,27 +139,27 @@ codeunit 20445 "Qlty. Inventory Availability"
         LocationCode := '';
         BinCode := '';
 
-        if QltyInspectionTestHeader."Source RecordId" <> NullForComparison then
-            OfRecordIds.Add(QltyInspectionTestHeader."Source RecordId");
+        if QltyInspectionHeader."Source RecordId" <> NullForComparison then
+            OfRecordIds.Add(QltyInspectionHeader."Source RecordId");
 
-        if (QltyInspectionTestHeader."Source RecordId 2" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionTestHeader."Source RecordId 2")) then
-            OfRecordIds.Add(QltyInspectionTestHeader."Source RecordId 2");
+        if (QltyInspectionHeader."Source RecordId 2" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionHeader."Source RecordId 2")) then
+            OfRecordIds.Add(QltyInspectionHeader."Source RecordId 2");
 
-        if (QltyInspectionTestHeader."Source RecordId 3" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionTestHeader."Source RecordId 3")) then
-            OfRecordIds.Add(QltyInspectionTestHeader."Source RecordId 3");
+        if (QltyInspectionHeader."Source RecordId 3" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionHeader."Source RecordId 3")) then
+            OfRecordIds.Add(QltyInspectionHeader."Source RecordId 3");
 
-        if (QltyInspectionTestHeader."Trigger RecordId" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionTestHeader."Trigger RecordId")) then
-            OfRecordIds.Add(QltyInspectionTestHeader."Trigger RecordId");
+        if (QltyInspectionHeader."Trigger RecordId" <> NullForComparison) and (not OfRecordIds.Contains(QltyInspectionHeader."Trigger RecordId")) then
+            OfRecordIds.Add(QltyInspectionHeader."Trigger RecordId");
 
-        if QltyInspectionTestHeader."Source Quantity (Base)" <> 0 then
-            QuantityBaseValue := QltyInspectionTestHeader."Source Quantity (Base)";
+        if QltyInspectionHeader."Source Quantity (Base)" <> 0 then
+            QuantityBaseValue := QltyInspectionHeader."Source Quantity (Base)";
 
         foreach RecordIdentificationToUse in OfRecordIds do begin
             Clear(RecordRefToSearch);
             RecordRefToSearch := RecordIdentificationToUse.GetRecord();
             RecordRefToSearch.SetRecFilter();
             if RecordRefToSearch.FindFirst() then begin
-                LocationCode := QltyInspectionTestHeader."Location Code";
+                LocationCode := QltyInspectionHeader."Location Code";
                 GetFromLocationAndBinBasedOnNamingConventions(RecordRefToSearch, LocationCode, BinCode, QuantityBaseValue);
                 if LocationCode <> '' then begin
                     TempToMoveBinContent.Reset();
@@ -180,7 +180,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         TempToMoveBinContent.Reset();
         if TempToMoveBinContent.IsEmpty() then begin
             TempToMoveBinContent.Init();
-            TempToMoveBinContent."Location Code" := QltyInspectionTestHeader."Location Code";
+            TempToMoveBinContent."Location Code" := QltyInspectionHeader."Location Code";
             TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
             TempToMoveBinContent.Insert(false);
         end;
@@ -213,6 +213,7 @@ codeunit 20445 "Qlty. Inventory Availability"
                         if ItemLedgerEntry."Package No." <> '' then
                             if ItemTrackingCode."Package Warehouse Tracking" then
                                 WarehouseEntry.SetRange("Package No.", ItemLedgerEntry."Package No.");
+
                         WarehouseEntry.SetRange("Source No.", ItemLedgerEntry."Document No.");
                         WarehouseEntry.SetRange("Registering Date", ItemLedgerEntry."Posting Date");
                         WarehouseEntry.SetRange("Quantity", ItemLedgerEntry."Quantity");
@@ -311,25 +312,25 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    local procedure TestHasSufficientItemDetails(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; CurrentError: Boolean; CheckLot: Boolean; CheckSerial: Boolean; CheckPackage: Boolean): Boolean
+    local procedure InspectionHasSufficientItemDetails(QltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentError: Boolean; CheckLot: Boolean; CheckSerial: Boolean; CheckPackage: Boolean): Boolean
     begin
-        if (QltyInspectionTestHeader."Source Item No." = '') or
-           (CheckLot and (QltyInspectionTestHeader."Source Lot No." = '')) or
-           (CheckSerial and (QltyInspectionTestHeader."Source Serial No." = '')) or
-           (CheckPackage and (QltyInspectionTestHeader."Source Package No." = ''))
+        if (QltyInspectionHeader."Source Item No." = '') or
+           (CheckLot and (QltyInspectionHeader."Source Lot No." = '')) or
+           (CheckSerial and (QltyInspectionHeader."Source Serial No." = '')) or
+           (CheckPackage and (QltyInspectionHeader."Source Package No." = ''))
         then begin
             if CurrentError then
-                Error(ThereIsNoSourceItemErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+                Error(ThereIsNoSourceItemErr, QltyInspectionHeader.GetFriendlyIdentifier());
             exit(false);
         end;
 
         exit(true);
     end;
 
-    local procedure GetQuantityToHandleFromTest(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; TempExistingInventoryBinContent: Record "Bin Content" temporary) ResultQuantity: Decimal
+    local procedure GetQuantityToHandleFromInspection(QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; TempExistingInventoryBinContent: Record "Bin Content" temporary) ResultQuantity: Decimal
     begin
         if OptionalSpecificQuantity = 0 then
-            OptionalSpecificQuantity := QltyInspectionTestHeader."Source Quantity (Base)";
+            OptionalSpecificQuantity := QltyInspectionHeader."Source Quantity (Base)";
 
         if QltyQuantityBehavior = QltyQuantityBehavior::"Item Tracked Quantity" then
             ResultQuantity := TempExistingInventoryBinContent."Min. Qty.";
@@ -339,30 +340,30 @@ codeunit 20445 "Qlty. Inventory Availability"
         if QltyQuantityBehavior = QltyQuantityBehavior::"Specific Quantity" then
             ResultQuantity := OptionalSpecificQuantity;
         if QltyQuantityBehavior = QltyQuantityBehavior::"Sample Quantity" then begin
-            ResultQuantity := QltyInspectionTestHeader."Sample Size";
-            if QltyInspectionTestHeader."Sample Size" = 0 then
-                Error(SampleSizeZeroErr, QltyInspectionTestHeader."No.");
+            ResultQuantity := QltyInspectionHeader."Sample Size";
+            if QltyInspectionHeader."Sample Size" = 0 then
+                Error(SampleSizeZeroErr, QltyInspectionHeader."No.");
         end;
 
         if QltyQuantityBehavior in [QltyQuantityBehavior::"Failed Quantity", QltyQuantityBehavior::"Passed Quantity"] then
-            ResultQuantity := GetPassOrFailSamplesCount(QltyInspectionTestHeader, QltyQuantityBehavior);
+            ResultQuantity := GetPassOrFailSamplesCount(QltyInspectionHeader, QltyQuantityBehavior);
     end;
 
     /// <summary>
-    /// Looks at sampling fields to determine number of passed or failed samples. This can exceed the sample size to allow for oversampling.
-    /// Pass Conditions: the samples must have passed all sampling field measurements
-    /// Fail Conditions: One or more fail grades for a sample designates it as failed.
+    /// Looks at sampling tests to determine number of passed or failed samples. This can exceed the sample size to allow for oversampling.
+    /// Pass Conditions: the samples must have passed all sampling test measurements
+    /// Fail Conditions: One or more fail results for a sample designates it as failed.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="QuantityBehavior"></param>
     /// <returns>either the pass quantity or fail quantity.</returns>
-    procedure GetPassOrFailSamplesCount(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") PassOrFailQuantity: Decimal
+    internal procedure GetPassOrFailSamplesCount(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") PassOrFailQuantity: Decimal
     begin
         case QltyQuantityBehavior of
             QltyQuantityBehavior::"Passed Quantity":
-                PassOrFailQuantity := QltyInspectionTestHeader."Pass Quantity";
+                PassOrFailQuantity := QltyInspectionHeader."Pass Quantity";
             QltyQuantityBehavior::"Failed Quantity":
-                PassOrFailQuantity := QltyInspectionTestHeader."Fail Quantity";
+                PassOrFailQuantity := QltyInspectionHeader."Fail Quantity";
         end;
 
         if PassOrFailQuantity <= 0 then
@@ -372,31 +373,31 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <summary>
     /// Populates the quantity buffer in TempQuantityQltyDispositionBuffer.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="TempQuantityQltyDispositionBuffer">The result.</param>
     /// <returns></returns>
-    procedure PopulateQuantityBuffer(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
+    procedure PopulateQuantityBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
     var
         Location: Record Location;
         TempExistingInventoryCopyBinContent: Record "Bin Content" temporary;
         TempExistingInventoryBinContent: Record "Bin Content" temporary;
         MultipleBins: Boolean;
         SkipBinContent: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         BufferEntryCounter: Integer;
     begin
         TempQuantityQltyDispositionBuffer.Reset();
         TempQuantityQltyDispositionBuffer.DeleteAll();
 
-        OnBeforePopulateBinContentBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, Handled);
-        if Handled then
+        OnBeforePopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, IsHandled);
+        if IsHandled then
             exit;
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
-            GetCurrentLocationOfTrackedInventory(QltyInspectionTestHeader, TempExistingInventoryBinContent)
+            GetCurrentLocationOfTrackedInventory(QltyInspectionHeader, TempExistingInventoryBinContent)
         else
-            GetFromDetailsFromTestSource(QltyInspectionTestHeader, TempExistingInventoryBinContent);
+            GetFromDetailsFromInspectionSource(QltyInspectionHeader, TempExistingInventoryBinContent);
 
         TempExistingInventoryBinContent.Reset();
         if TempInstructionQltyDispositionBuffer."Location Filter" <> '' then
@@ -435,14 +436,14 @@ codeunit 20445 "Qlty. Inventory Availability"
                     TempQuantityQltyDispositionBuffer."Buffer Entry No." := BufferEntryCounter;
                     TempQuantityQltyDispositionBuffer."Location Filter" := TempExistingInventoryBinContent."Location Code";
                     TempQuantityQltyDispositionBuffer."Bin Filter" := TempExistingInventoryBinContent."Bin Code";
-                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromTest(
-                        QltyInspectionTestHeader,
+                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromInspection(
+                        QltyInspectionHeader,
                         TempInstructionQltyDispositionBuffer."Quantity Behavior",
                         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                         TempExistingInventoryBinContent);
 
                     if TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
-                        Error(ZeroQuantityErr, TempInstructionQltyDispositionBuffer."Disposition Action", QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Source Item No.");
+                        Error(ZeroQuantityErr, TempInstructionQltyDispositionBuffer."Disposition Action", QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.");
 
                     if (TempQuantityQltyDispositionBuffer."New Serial No." <> '') and (TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" > 1) then
                         Error(SerialQuantityGreaterThanOneErr, TempInstructionQltyDispositionBuffer."Entry Behavior", TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)");
@@ -452,16 +453,16 @@ codeunit 20445 "Qlty. Inventory Availability"
             until TempExistingInventoryBinContent.Next() = 0;
         end;
 
-        OnAfterPopulateBinContentBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent);
+        OnAfterPopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent);
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var Handled: Boolean)
+    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnAfterPopulateBinContentBuffer(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary)
+    procedure OnAfterPopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary)
     begin
     end;
 }

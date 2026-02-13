@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Warehouse.Ledger;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Warehouse.Ledger;
 
@@ -12,83 +11,64 @@ pageextension 20427 "Qlty. Warehouse Entries" extends "Warehouse Entries"
 {
     actions
     {
-        addafter("&Item Tracking")
+        addlast(Navigation)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = CreateForm;
-                    Caption = 'Create Quality Inspection Test';
-                    ToolTip = 'Creates a quality inspection test for this warehouse entry.';
-                    AboutTitle = 'Create Quality Inspection Test';
-                    AboutText = 'Create a quality inspection test for this warehouse entry.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Caption = 'Create Quality Inspection';
+                    ToolTip = 'Creates a quality inspection for this warehouse entry.';
+                    AboutTitle = 'Create Quality Inspection';
+                    AboutText = 'Create a quality inspection for this warehouse entry.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionTestCreate.CreateTestWithVariant(Rec, true);
+                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItemAndDocument)
+                action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item and Document';
-                    ToolTip = 'Shows quality inspection tests for this item and document.';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item and document.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item and Document';
+                    ToolTip = 'Shows quality inspections for this item and document.';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item and document.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item';
-                    ToolTip = 'Shows Quality Inspection Tests for Item';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item';
+                    ToolTip = 'Shows Quality Inspections for Item';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
         }
     }
-
-    var
-        QltyShowCreateTest: Boolean;
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
-            exit;
-
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
-    end;
 }

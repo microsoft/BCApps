@@ -5,66 +5,55 @@
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Document;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
 {
     actions
     {
-        addbefore("&Line")
+        addlast("F&unctions")
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
-                    Image = TaskQualityMeasure;
-                    Caption = 'Create Quality Inspection Test';
-                    ToolTip = 'Specifies to create a new quality inspection test.';
-                    Enabled = QltyShowCreateTest;
+                    Image = CreateForm;
+                    Caption = 'Create Quality Inspection';
+                    ToolTip = 'Specifies to create a new quality inspection.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionTestCreate.CreateTestWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests';
-                    ToolTip = 'Shows existing Quality Inspection Tests.';
-                    Enabled = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections';
+                    ToolTip = 'Shows existing Quality Inspections.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
             }
         }
     }
 
-    var
-        QltyShowCreateTest: Boolean;
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
+    local procedure CanBeProcessed(): Boolean
     begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
-            exit;
-
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        exit(not IsNullGuid(Rec.SystemId));
     end;
 }

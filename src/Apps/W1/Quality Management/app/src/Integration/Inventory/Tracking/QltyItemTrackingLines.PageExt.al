@@ -5,74 +5,55 @@
 namespace Microsoft.QualityManagement.Integration.Inventory.Tracking;
 
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
 {
     actions
     {
-        addafter(ButtonLineReclass)
+        addlast(navigation)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_CreateQualityInspections)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = CreateForm;
-                    Caption = 'Create Quality Inspection Tests';
-                    ToolTip = 'Creates multiple quality inspection tests for the selected item tracking lines.';
-                    AboutTitle = 'Create Quality Inspection Tests for selected lines';
-                    AboutText = 'Select multiple records, and then use this action to create multiple quality inspection tests for the selected item tracking lines.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Caption = 'Create Quality Inspections';
+                    ToolTip = 'Creates multiple quality inspections for the selected item tracking lines.';
+                    AboutTitle = 'Create Quality Inspections for selected lines';
+                    AboutText = 'Select multiple records, and then use this action to create multiple quality inspections for the selected item tracking lines.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        QltyInspectionTestCreate.CreateMultipleTestsForMarkedTrackingSpecification(Rec);
+                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec, true);
                         Rec.Reset();
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item with tracking specification';
-                    ToolTip = 'Shows Quality Inspection Tests for Item with tracking specification';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item with tracking specification.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
+                    Caption = 'Show Quality Inspections for Item with tracking specification';
+                    ToolTip = 'Shows Quality Inspections for Item with tracking specification';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item with tracking specification.';
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemTrackingFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemTrackingFilterWithRecord(Rec);
                     end;
                 }
             }
         }
     }
-
-    var
-        QltyReadTestResults: Boolean;
-        QltyShowCreateTest: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
-            exit;
-
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
-    end;
 }

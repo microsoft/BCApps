@@ -12,6 +12,7 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
@@ -300,6 +301,9 @@ table 30102 "Shpfy Shop"
 
             trigger OnValidate()
             begin
+                if "UoM as Variant" then
+                    VerifyNoItemAttributesAsOptions();
+
                 if "UoM as Variant" and ("Option Name for UoM" = '') then
                     "Option Name for UoM" := 'Unit of Measure';
             end;
@@ -767,6 +771,11 @@ table 30102 "Shpfy Shop"
             Caption = 'Company Tax Id Mapping';
             DataClassification = CustomerContent;
         }
+        field(135; "Currency Handling"; Enum "Shpfy Currency Handling")
+        {
+            Caption = 'Currency Handling';
+            InitValue = "Shop Currency";
+        }
         field(200; "Shop Id"; Integer)
         {
             DataClassification = SystemMetadata;
@@ -857,7 +866,7 @@ table 30102 "Shpfy Shop"
     begin
         Store := GetStoreName();
         if Store <> '' then
-            AuthenticationMgt.InstallShopifyApp(Store);
+            AuthenticationMgt.InstallShopifyApp(Store, Rec);
     end;
 
     internal procedure HasAccessToken(): Boolean
@@ -885,6 +894,11 @@ table 30102 "Shpfy Shop"
         if Store.Contains(':') then
             Store := Store.Split(':').Get(2);
         Store := Store.TrimStart('/').TrimEnd('/');
+    end;
+
+    internal procedure SetStoreName(Store: Text)
+    begin
+        Rec.Validate("Shopify URL", Store);
     end;
 
     /// <summary>
@@ -1085,4 +1099,14 @@ table 30102 "Shpfy Shop"
     end;
 #pragma warning restore AL0432
 #endif
+
+    local procedure VerifyNoItemAttributesAsOptions()
+    var
+        ItemAttribute: Record "Item Attribute";
+        UoMVariantUnavailableErr: Label 'You cannot enable this setting because one or more Item Attributes are configured with "Incl. in Product Sync" set to "As Option".';
+    begin
+        ItemAttribute.SetRange("Shpfy Incl. in Product Sync", "Shpfy Incl. in Product Sync"::"As Option");
+        if not ItemAttribute.IsEmpty() then
+            Error(UoMVariantUnavailableErr);
+    end;
 }
