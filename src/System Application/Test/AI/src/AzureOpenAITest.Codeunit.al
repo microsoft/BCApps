@@ -748,7 +748,7 @@ codeunit 132684 "Azure OpenAI Test"
 
 
     // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
-    procedure Call()
+    procedure OfflineChatCompletionWithFileContent()
     var
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -784,8 +784,8 @@ codeunit 132684 "Azure OpenAI Test"
         Result := '';
     end;
 
-    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
-    procedure Call2()
+    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing text messages.
+    procedure OfflineChatCompletionWithTextMessages()
     var
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -814,8 +814,8 @@ codeunit 132684 "Azure OpenAI Test"
         Result := '';
     end;
 
-    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
-    procedure Call3()
+    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages using GPT41MiniLatest.
+    procedure OfflineChatCompletionWithGPT41MiniLatest()
     var
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIDeployments: Codeunit "AOAI Deployments";
