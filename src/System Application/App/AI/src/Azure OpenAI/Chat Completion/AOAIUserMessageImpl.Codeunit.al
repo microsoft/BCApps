@@ -12,6 +12,7 @@ codeunit 7784 "AOAI User Message Impl"
 
     var
         ContentParts: JsonArray;
+        HasFileContent, HasTextContent : Boolean;
 
     procedure AddTextPart(TextContent: Text)
     var
@@ -20,6 +21,7 @@ codeunit 7784 "AOAI User Message Impl"
         TextPartObject.Add('type', 'text');
         TextPartObject.Add('text', TextContent);
         ContentParts.Add(TextPartObject);
+        HasTextContent := true;
     end;
 
     procedure AddFilePart(FileData: Text)
@@ -31,10 +33,21 @@ codeunit 7784 "AOAI User Message Impl"
         FilePartObject.Add('type', 'file');
         FilePartObject.Add('file', FileDataObject);
         ContentParts.Add(FilePartObject);
+        HasFileContent := true;
     end;
 
     procedure GetContentParts(): JsonArray
     begin
         exit(ContentParts);
+    end;
+
+    internal procedure HasFilePart(): Boolean
+    begin
+        exit(HasFileContent);
+    end;
+
+    internal procedure HasTextPart(): Boolean
+    begin
+        exit(HasTextContent);
     end;
 }

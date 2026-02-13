@@ -388,4 +388,15 @@ codeunit 7763 "AOAI Chat Messages"
     begin
         exit(AOAIToolsImpl.PrepareTools());
     end;
+
+    /// <summary>
+    /// Checks if the current chat messages history is compatible with the deployment model
+    /// </summary>
+    /// <returns>True if compatible, false otherwise.</returns>
+    [NonDebuggable]
+    internal procedure CheckCompatibilityWithModel(Deployment: SecretText)
+    begin
+        AOAIChatMessagesImpl.CheckCompatibilityWithModel(Deployment.Unwrap());
+    end;
+
 }

@@ -43,4 +43,30 @@ codeunit 7783 "AOAI User Message"
     begin
         exit(AOAIUserMessageImpl.GetContentParts());
     end;
+
+    /// <summary>
+    /// Get if the User Message has been set.
+    /// </summary>
+    internal procedure IsSet(): Boolean
+    begin
+        exit(AOAIUserMessageImpl.HasFilePart() or AOAIUserMessageImpl.HasTextPart());
+    end;
+
+    /// <summary>
+    /// Get if the user message contains file part. 
+    /// This is used to determine if the message is compatible with the deployment model, as some models do not support file content.
+    /// </summary>
+    internal procedure HasFilePart(): Boolean
+    begin
+        exit(AOAIUserMessageImpl.HasFilePart());
+    end;
+
+    /// <summary>
+    /// Get if the user message contains text part.
+    /// </summary>
+    internal procedure HasTextPart(): Boolean
+    begin
+        exit(not AOAIUserMessageImpl.HasFilePart());
+    end;
+
 }

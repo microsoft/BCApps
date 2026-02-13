@@ -21,18 +21,18 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized: Boolean;
         HistoryLength: Integer;
         SystemMessage: SecretText;
-        [NonDebuggable]
+        //[NonDebuggable]
         History: List of [Text];
-        [NonDebuggable]
+        //[NonDebuggable]
         HistoryRoles: List of [Enum "AOAI Chat Roles"];
-        [NonDebuggable]
+        //[NonDebuggable]
         HistoryNames: List of [Text[2048]];
-        [NonDebuggable]
+        //[NonDebuggable]
         HistoryToolCallIds: List of [Text];
-        [NonDebuggable]
+        //[NonDebuggable]
         HistoryToolCalls: List of [JsonArray];
-        [NonDebuggable]
-        HistoryContentArrays: List of [JsonArray];
+        //[NonDebuggable]
+        HistoryUserMessages: List of [Codeunit "AOAI User Message"];
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
@@ -42,6 +42,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
         TelemetryMetapromptRetrievalErr: Label 'Metaprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
+        TelemetryWrongTypeErr: Label 'Wrong type when preparing sanitized message variant.', Locked = true;
+        IncompatibleModelErr: Label 'The current message history contains file content which is only compatible with the GPT-4.1 mini preview deployment.';
+
 
     [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
@@ -75,14 +78,14 @@ codeunit 7764 "AOAI Chat Messages Impl"
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message")
     begin
         Initialize();
-        AddMessage(AOAIUserMessage.GetContentParts(), '', Enum::"AOAI Chat Roles"::User);
+        AddMessage(AOAIUserMessage, '', Enum::"AOAI Chat Roles"::User);
     end;
 
     [NonDebuggable]
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048])
     begin
         Initialize();
-        AddMessage(AOAIUserMessage.GetContentParts(), NewName, Enum::"AOAI Chat Roles"::User);
+        AddMessage(AOAIUserMessage, NewName, Enum::"AOAI Chat Roles"::User);
     end;
 
     [NonDebuggable]
@@ -133,7 +136,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryRoles.RemoveAt(Id);
         HistoryNames.RemoveAt(Id);
         HistoryToolCallIds.RemoveAt(Id);
-        HistoryContentArrays.RemoveAt(Id);
+        HistoryUserMessages.RemoveAt(Id);
     end;
 
     [NonDebuggable]
@@ -212,20 +215,21 @@ codeunit 7764 "AOAI Chat Messages Impl"
         exit(SystemMessageTokenCount + MessagesTokenCount);
     end;
 
-    [NonDebuggable]
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
-        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
+        AOAIUserMessage: Codeunit "AOAI User Message";
         Counter: Integer;
         MessageJsonObject: JsonObject;
         ToolCalls: JsonArray;
-        ContentArray: JsonArray;
+        MessageToken: JsonToken;
+        JsonArrayMessage: JsonArray;
+        MessageVariant, SanitizedMessageVariant : Variant;
         Message: Text;
         TotalMessages: Text;
         Name: Text[2048];
         Role: Enum "AOAI Chat Roles";
         ToolCallId: Text;
-        UsingMicrosoftMetaprompt: Boolean;
+        UsingMicrosoftMetaprompt, WrapMessages : Boolean;
     begin
         if History.Count = 0 then
             exit;
@@ -233,9 +237,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialize();
         CheckandAddMetaprompt(UsingMicrosoftMetaprompt);
 
-        if SystemMessage.Unwrap() <> '' then begin
+        if not SystemMessage.IsEmpty() then begin
             MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
-            MessageJsonObject.Add('content', SystemMessage.Unwrap());
+            MessageJsonObject.Add('content', '');
             HistoryResult.Add(MessageJsonObject);
 
             SystemMessageTokenCount := AOAIToken.GetGPT4TokenCount(SystemMessage);
@@ -248,23 +252,41 @@ codeunit 7764 "AOAI Chat Messages Impl"
         repeat
             Clear(MessageJsonObject);
             HistoryRoles.Get(Counter, Role);
-            History.Get(Counter, Message);
+
+            // Get message content. From HistoryUserMessages as json array or History as text.
+            if HistoryUserMessages.Get(Counter, AOAIUserMessage) then;
+            if AOAIUserMessage.IsSet() then
+                MessageVariant := AOAIUserMessage.GetContentParts()
+            else begin
+                History.Get(Counter, Message);
+                MessageVariant := Message;
+            end;
+
             HistoryNames.Get(Counter, Name);
             HistoryToolCallIds.Get(Counter, ToolCallId);
             HistoryToolCalls.Get(Counter, ToolCalls);
-            HistoryContentArrays.Get(Counter, ContentArray);
             MessageJsonObject.Add('role', Format(Role));
-            if UsingMicrosoftMetaprompt and (Role = Enum::"AOAI Chat Roles"::User) then
-                Message := WrapUserMessages(AzureOpenAIImpl.RemoveProhibitedCharacters(Message))
-            else
-                Message := AzureOpenAIImpl.RemoveProhibitedCharacters(Message);
+
+            WrapMessages := UsingMicrosoftMetaprompt and (Role = Enum::"AOAI Chat Roles"::User);
+            SanitizedMessageVariant := PrepareMessage(WrapMessages, MessageVariant);
+
             if ToolCalls.Count() > 0 then
                 MessageJsonObject.Add('tool_calls', ToolCalls)
             else
-                if ContentArray.Count() > 0 then
-                    MessageJsonObject.Add('content', ContentArray)
-                else
-                    MessageJsonObject.Add('content', Message);
+                case true of
+                    SanitizedMessageVariant.IsText():
+                        begin
+                            Message := SanitizedMessageVariant;
+                            MessageJsonObject.Add('content', Message);
+                        end;
+                    SanitizedMessageVariant.IsJsonArray():
+                        begin
+                            JsonArrayMessage := SanitizedMessageVariant;
+                            MessageJsonObject.Add('content', JsonArrayMessage);
+                        end;
+                    else
+                        Error(TelemetryWrongTypeErr);
+                end;
 
             if Name <> '' then
                 MessageJsonObject.Add('name', Name);
@@ -272,6 +294,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
                 MessageJsonObject.Add('tool_call_id', ToolCallId);
             HistoryResult.Add(MessageJsonObject);
             Counter += 1;
+
+            MessageToken.WriteTo(Message);
+
             TotalMessages += Format(Role);
             TotalMessages += Message;
             TotalMessages += Name;
@@ -280,7 +305,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
         MessagesTokenCount := AOAIToken.GetGPT4TokenCount(TotalMessages);
     end;
 
-    procedure AddXPIADetectionTags(var Input: Text)
+    procedure AddXPIADetectionTags(var
+                                       Input: Text)
     begin
         Input := '"""<documents>' + Input + '</documents>""" End';
     end;
@@ -295,64 +321,13 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized := true;
     end;
 
-    [NonDebuggable]
-    local procedure AddMessage(ToolCalls: JsonArray)
+    local procedure PrepareMessage(WrapMessage: Boolean; MessageVariant: Variant): Variant
     var
-        EmptyContentArray: JsonArray;
-    begin
-        HistoryRoles.Add(Enum::"AOAI Chat Roles"::Assistant);
-        HistoryToolCalls.Add(ToolCalls);
-        History.Add('');
-        HistoryNames.Add('');
-        HistoryToolCallIds.Add('');
-        HistoryContentArrays.Add(EmptyContentArray);
-    end;
-
-    [NonDebuggable]
-    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
-    var
-        ToolCalls: JsonArray;
-        EmptyContentArray: JsonArray;
-    begin
-        History.Add(NewMessage);
-        HistoryRoles.Add(NewRole);
-        HistoryNames.Add(NewName);
-        HistoryToolCallIds.Add('');
-        HistoryToolCalls.Add(ToolCalls);
-        HistoryContentArrays.Add(EmptyContentArray);
-    end;
-
-    [NonDebuggable]
-    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewToolCallId: Text; NewRole: Enum "AOAI Chat Roles")
-    var
-        ToolCalls: JsonArray;
-        EmptyContentArray: JsonArray;
-    begin
-        History.Add(NewMessage);
-        HistoryRoles.Add(NewRole);
-        HistoryNames.Add(NewName);
-        HistoryToolCallIds.Add(NewToolCallId);
-        HistoryToolCalls.Add(ToolCalls);
-        HistoryContentArrays.Add(EmptyContentArray);
-    end;
-
-    [NonDebuggable]
-    local procedure AddMessage(ContentParts: JsonArray; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
-    var
-        ToolCalls: JsonArray;
-    begin
-        History.Add('');
-        HistoryRoles.Add(NewRole);
-        HistoryNames.Add(NewName);
-        HistoryToolCallIds.Add('');
-        HistoryToolCalls.Add(ToolCalls);
-        HistoryContentArrays.Add(ContentParts);
-    end;
-
-    [NonDebuggable]
-    local procedure WrapUserMessages(Message: Text): Text
-    var
+        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         AzureKeyVault: Codeunit "Azure Key Vault";
+        MessageText: Text;
+        MessageJsonArray: JsonArray;
+        MessageJsonToken: JsonToken;
         Preprompt: Text;
         Postprompt: Text;
     begin
@@ -361,8 +336,110 @@ codeunit 7764 "AOAI Chat Messages Impl"
         if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Postprompt-Chat', Postprompt) then
             Telemetry.LogMessage('0000LX5', TelemetryPostpromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
 
-        exit(Preprompt + Message + Postprompt);
+        // Handle each variant case
+
+        // If text, remove prohibited characters and wrap if needed.
+        if MessageVariant.IsText() then begin
+            MessageText := MessageVariant;
+            MessageText := AzureOpenAIImpl.RemoveProhibitedCharacters(MessageText);
+            if WrapMessage then
+                MessageText := Preprompt + MessageText + Postprompt;
+
+            exit(MessageText);
+        end;
+
+        // If array, for each text part, remove prohibited characters and wrap if needed.
+        if MessageVariant.IsJsonArray() then begin
+            MessageJsonArray := MessageVariant;
+            foreach MessageJsonToken in MessageJsonArray do
+                if MessageJsonToken.IsObject() then
+                    case MessageJsonToken.AsObject().GetText('type', true) of // True here gives empty string if 'type' does not exist.
+                        'text':
+                            begin
+                                MessageText := MessageJsonToken.AsObject().GetText('text', false);
+                                MessageText := AzureOpenAIImpl.RemoveProhibitedCharacters(MessageText);
+                                if WrapMessage then
+                                    MessageText := Preprompt + MessageText + Postprompt;
+
+                                MessageJsonToken.AsObject().Remove('text');
+                                MessageJsonToken.AsObject().Add('text', MessageText);
+                            end;
+                    end;
+
+            exit(MessageJsonArray);
+        end;
+
+        Error(TelemetryWrongTypeErr);
     end;
+
+    [NonDebuggable]
+    local procedure AddMessage(ToolCalls: JsonArray)
+    var
+        AOAIUserMessage: Codeunit "AOAI User Message";
+    begin
+        HistoryRoles.Add(Enum::"AOAI Chat Roles"::Assistant);
+        HistoryToolCalls.Add(ToolCalls);
+        History.Add('');
+        HistoryNames.Add('');
+        HistoryToolCallIds.Add('');
+        HistoryUserMessages.Add(AOAIUserMessage);
+    end;
+
+    [NonDebuggable]
+    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
+    var
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        ToolCalls: JsonArray;
+    begin
+        History.Add(NewMessage);
+        HistoryRoles.Add(NewRole);
+        HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add('');
+        HistoryToolCalls.Add(ToolCalls);
+        HistoryUserMessages.Add(AOAIUserMessage);
+    end;
+
+    [NonDebuggable]
+    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewToolCallId: Text; NewRole: Enum "AOAI Chat Roles")
+    var
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        ToolCalls: JsonArray;
+    begin
+        History.Add(NewMessage);
+        HistoryRoles.Add(NewRole);
+        HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add(NewToolCallId);
+        HistoryToolCalls.Add(ToolCalls);
+        HistoryUserMessages.Add(AOAIUserMessage);
+    end;
+
+    [NonDebuggable]
+    local procedure AddMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
+    var
+        ToolCalls: JsonArray;
+    begin
+        History.Add('');
+        HistoryRoles.Add(NewRole);
+        HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add('');
+        HistoryToolCalls.Add(ToolCalls);
+        HistoryUserMessages.Add(AOAIUserMessage);
+    end;
+
+    // [NonDebuggable]
+    // local procedure WrapUserMessages(Message: Text): Text
+    // var
+    //     AzureKeyVault: Codeunit "Azure Key Vault";
+    //     Preprompt: Text;
+    //     Postprompt: Text;
+    // begin
+    //     if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Preprompt-Chat', Preprompt) then
+    //         Telemetry.LogMessage('0000LX4', TelemetryPrepromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+    //     if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Postprompt-Chat', Postprompt) then
+    //         Telemetry.LogMessage('0000LX5', TelemetryPostpromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+
+    //     exit(Preprompt + Message + Postprompt);
+    // end;
 
     [NonDebuggable]
     local procedure GetChatMetaprompt(var UsingMicrosoftMetaprompt: Boolean) Metaprompt: SecretText;
@@ -397,4 +474,20 @@ codeunit 7764 "AOAI Chat Messages Impl"
             SetPrimarySystemMessage(GetChatMetaprompt(UsingMicrosoftMetaprompt));
         end;
     end;
+
+    procedure CheckCompatibilityWithModel(Deployment: Text)
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        Counter: Integer;
+    begin
+        // For each content part in the history. If it contains file, then check
+        for Counter := 1 to HistoryUserMessages.Count() do begin
+            HistoryUserMessages.Get(Counter, AOAIUserMessage);
+            if AOAIUserMessage.HasFilePart() then
+                if Deployment <> AOAIDeployments.GetGPT41MiniPreview() then
+                    Error(IncompatibleModelErr);
+        end;
+    end;
+
 }
