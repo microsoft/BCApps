@@ -18,7 +18,6 @@ page 8704 "Indexes List Part"
     SourceTable = "Database Index";
     SourceTableTemporary = true;
     Editable = false;
-    // Added to remove the New and Delete on the action bar.
     InsertAllowed = false;
     DeleteAllowed = false;
     Permissions = tabledata "Key" = r,
@@ -122,9 +121,8 @@ page 8704 "Indexes List Part"
         KeyRec: Record "Key";
     begin
         // After calling a action this method gets called again, ensure we don't double insert records into the temporary table.
-        if Rec.Count() <> 0 then begin
+        if Rec.Count() <> 0 then
             exit(Rec.Find(Which));
-        end;
 
         PrevFilterGroup := Rec.FilterGroup;
         Rec.FilterGroup := 4; // Link group.
@@ -171,9 +169,9 @@ page 8704 "Indexes List Part"
         exit(Rec.Find(Which));
     end;
 
-    procedure SetCompanyFilter(PCompanyName: Text[30])
+    procedure SetCompanyFilter(NewCompanyName: Text[30])
     begin
-        SetCompanyName := PCompanyName;
+        SetCompanyName := NewCompanyName;
 
         // Clear the temporary table to make sure only indexes for the selected company is shown.
         Rec.DeleteAll();

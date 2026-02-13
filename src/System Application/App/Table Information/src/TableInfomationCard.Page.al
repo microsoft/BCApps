@@ -76,7 +76,7 @@ page 8705 "Table Information Card"
 
             part(IndexLines; "Indexes List Part")
             {
-                SubPageLink = TableId = FIELD(ID);
+                SubPageLink = TableId = field(ID);
             }
         }
     }
@@ -93,15 +93,15 @@ page 8705 "Table Information Card"
         TableMetadata: Record "Table Metadata";
         TableId: Integer;
     begin
-        if Rec.ID <> 0
-        then
+        if Rec.ID <> 0 then
             TableId := Rec.ID
-        else if (Evaluate(TableId, Rec.GetFilter("ID")) AND (TableId <> 0)) then
-            TableId := TableId
         else
-            exit;
+            if Evaluate(TableId, Rec.GetFilter("ID")) and (TableId <> 0) then
+                TableId := TableId
+            else
+                exit;
 
-        if (TableMetadata.Get(TableId) = false) then
+        if not TableMetadata.Get(TableId) then
             exit;
 
         // By-default show data for the current company.

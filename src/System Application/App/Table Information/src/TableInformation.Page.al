@@ -58,10 +58,10 @@ page 8700 "Table Information"
 
                     trigger OnDrillDown()
                     var
-                        tm: Record "Table Metadata";
+                        TableMetadata: Record "Table Metadata";
                     begin
-                        tm.SetRange(ID, rec."Table No.");
-                        Page.Run(Page::"Table Information Card", tm);
+                        TableMetadata.SetRange(ID, rec."Table No.");
+                        Page.Run(Page::"Table Information Card", TableMetadata);
                     end;
                 }
 
