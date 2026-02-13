@@ -1182,7 +1182,6 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ApprovalLibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically finish a quality inspection when a purchase approval workflow is completed
@@ -1199,8 +1198,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
 
         // [GIVEN] A purchase approval workflow configured to finish inspection after approval
         QltyManagementSetup.Get();
@@ -1241,7 +1239,6 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ApprovalLibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically reopen a finished quality inspection when a purchase approval workflow is completed
@@ -1258,8 +1255,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         QltyInspectionHeader.FinishInspection();
 
         // [GIVEN] A purchase approval workflow configured to reopen inspection after approval
