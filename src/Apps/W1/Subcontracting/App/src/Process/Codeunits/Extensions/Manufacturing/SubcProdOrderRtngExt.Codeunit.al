@@ -47,6 +47,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Route Management", OnCalculateOnBeforeProdOrderRtngLineLoopIteration, '', false, false)]
+    local procedure "Prod. Order Route Management_OnCalculateOnBeforeProdOrderRtngLineLoopIteration"(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+        ProdOrderRoutingLine.CheckForSubcontractingPurchaseLineTypeMismatch();
+    end;
+
     local procedure HandleRoutingLinkCodeValidation(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         ProdOrderRoutingLine2: Record "Prod. Order Routing Line";
@@ -81,9 +87,9 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         if RunTrigger then
             if ProdOrderRoutingLine.Status = ProdOrderRoutingLine.Status::Released then
                 if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
-                    WorkCenter.Get(ProdOrderRoutingLine."No.");
-                    if (ProdOrderRoutingLine."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
-                        SubcontractingManagement.DelLocationLinkedComponents(ProdOrderRoutingLine, false);
+                    if WorkCenter.Get(ProdOrderRoutingLine."No.") then
+                        if (ProdOrderRoutingLine."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
+                            SubcontractingManagement.DelLocationLinkedComponents(ProdOrderRoutingLine, false);
                 end;
     end;
 }
