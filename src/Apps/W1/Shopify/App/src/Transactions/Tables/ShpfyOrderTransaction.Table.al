@@ -271,6 +271,12 @@ table 30133 "Shpfy Order Transaction"
             Caption = 'Shop Code';
             TableRelation = "Shpfy Shop";
         }
+        field(100; "Auto-Post Enabled"; Boolean)
+        {
+            Caption = 'Auto-Post Enabled';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Shpfy Payment Method Mapping"."Post Automatically" where("Shop Code" = field("Shop"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
+        }
     }
 
     keys
