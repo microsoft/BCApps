@@ -91,7 +91,7 @@ report 20403 "Qlty. Non-Conformance"
 
                 column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
-                column(Numeric_Value; "Numeric Value") { }
+                column(Numeric_Value; "Derived Numeric Value") { }
                 column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }

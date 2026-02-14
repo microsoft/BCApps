@@ -91,7 +91,7 @@ query 20401 "Qlty. Inspection Values"
                     Caption = 'lineTestValueType', Locked = true;
                 }
                 column(lineResultCode; "Result Code") { }
-                column(lineNumericValue; "Numeric Value") { }
+                column(lineDerivedNumericValue; "Derived Numeric Value") { }
                 column(lineTestValue; "Test Value") { }
                 column(lineSystemModifiedBy; SystemModifiedBy) { }
                 column(lineSystemModifiedAt; SystemModifiedAt) { }

@@ -86,7 +86,7 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     Visible = false;
                 }
-                field("Numeric Value"; Rec."Numeric Value")
+                field("Derived Numeric Value"; Rec."Derived Numeric Value")
                 {
                 }
                 field(ChooseMeasurementNote; MeasurementNote)
