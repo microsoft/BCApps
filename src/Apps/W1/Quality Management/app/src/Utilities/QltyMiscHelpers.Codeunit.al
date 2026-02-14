@@ -39,7 +39,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the table field configuration</param>
     /// <returns>Comma-separated string of available lookup values</returns>
-    procedure GetRecordsForTableFieldAsCSV(var QltyInspectionLine: Record "Qlty. Inspection Line") CSVText: Text
+    internal procedure GetRecordsForTableFieldAsCSV(var QltyInspectionLine: Record "Qlty. Inspection Line") CSVText: Text
     var
         TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -65,7 +65,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the field code to look up</param>
     /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer filled with available lookup values and descriptions</param>
-    procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
+    internal procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyTest: Record "Qlty. Test";
@@ -139,7 +139,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="TableFilter">Optional filter to apply to the table (AL filter syntax)</param>
     /// <param name="MaxCountRecords">Maximum number of records to include in the CSV output</param>
     /// <returns>Comma-separated string of field values</returns>
-    procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxCountRecords: Integer) ResultText: Text
+    internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxCountRecords: Integer) ResultText: Text
     var
         TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
@@ -273,7 +273,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="Description">The field description text to analyze for type hints</param>
     /// <param name="OptionalValue">Optional sample value to analyze for type detection</param>
     /// <returns>The guessed field type enum value</returns>
-    procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyTestValueType: Enum "Qlty. Test Value Type"
+    internal procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyTestValueType: Enum "Qlty. Test Value Type"
     var
         QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         TestDateTime: Date;
@@ -340,7 +340,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="NumberOrNameOfFieldToSet">Field identifier (name or numeric ID as text)</param>
     /// <param name="ValueToSet">The text value to set (will be evaluated based on field type)</param>
     /// <param name="Validate">True to trigger field validation; False to skip validation</param>
-    procedure SetTableValue(TableName: Text; TableFilter: Text; NumberOrNameOfFieldToSet: Text; ValueToSet: Text; Validate: Boolean)
+    internal procedure SetTableValue(TableName: Text; TableFilter: Text; NumberOrNameOfFieldToSet: Text; ValueToSet: Text; Validate: Boolean)
     var
         ConfigValidateManagement: Codeunit "Config. Validate Management";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -387,7 +387,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="NumberOrNameOfFieldName">Field identifier (name or numeric ID as text)</param>
     /// <param name="FormatNumber">Format code per Business Central Format() method (0=default, 9=XML, etc.)</param>
     /// <returns>The field value as formatted text, or error marker if field/table invalid</returns>
-    procedure ReadFieldAsText(CurrentRecordVariant: Variant; NumberOrNameOfFieldName: Text; FormatNumber: Integer) ResultText: Text
+    internal procedure ReadFieldAsText(CurrentRecordVariant: Variant; NumberOrNameOfFieldName: Text; FormatNumber: Integer) ResultText: Text
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         RecordRefToRead: RecordRef;

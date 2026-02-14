@@ -30,7 +30,6 @@ using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Utilities;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Ledger;
@@ -584,7 +583,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         FirstSalespersonPurchaser: Record "Salesperson/Purchaser";
         SecondSalespersonPurchaser: Record "Salesperson/Purchaser";
         ThirdSalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
         OutputOne: Text;
         OutputTwo: Text;
@@ -602,7 +600,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetCSVOfValuesFromRecord is called without filter
         // [THEN] The function returns a comma-separated list of all codes
-        OutputOne := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '', 0);
+        OutputOne := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '', 0);
         OutputTwo := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), '');
         LibraryAssert.AreEqual(OutputOne, OutputTwo, 'different approaches should be identical');
 
@@ -622,7 +620,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         FirstSalespersonPurchaser: Record "Salesperson/Purchaser";
         SecondSalespersonPurchaser: Record "Salesperson/Purchaser";
         ThirdSalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
         Output1: Text;
         Output2: Text;
@@ -641,7 +638,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetCSVOfValuesFromRecord is called with a filter view
         // [THEN] The function returns only the single filtered code value
-        Output1 := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(true), 0);
+        Output1 := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(true), 0);
         Output2 := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FirstSalespersonPurchaser.GetView(false));
         LibraryAssert.AreEqual(Output1, Output2, 'different approaches should be identical');
 
@@ -663,7 +660,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         SecondSalespersonPurchaser: Record "Salesperson/Purchaser";
         ThirdSalespersonPurchaser: Record "Salesperson/Purchaser";
         FilteredSalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
         Output1: Text;
         Output2: Text;
@@ -697,8 +693,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetCSVOfValuesFromRecord is called with row limits
         // [THEN] The function returns only the specified number of records
-        Output1 := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FilteredSalespersonPurchaser.GetView(true), 1);
-        Output2 := QltyMiscHelpers.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FilteredSalespersonPurchaser.GetView(true), 2);
+        Output1 := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FilteredSalespersonPurchaser.GetView(true), 1);
+        Output2 := QltyInspectionUtility.GetCSVOfValuesFromRecord(Database::"Salesperson/Purchaser", FirstSalespersonPurchaser.FieldNo(Code), FilteredSalespersonPurchaser.GetView(true), 2);
 
         CountOfCommas := StrLen(Output1) - strlen(DelChr(Output1, '=', ','));
         LibraryAssert.AreEqual(0, CountOfCommas, 'should only be one record (no commas)');
@@ -794,7 +790,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
@@ -868,7 +863,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
+        QltyInspectionUtility.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns exactly one matching record
         LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
@@ -896,7 +891,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
@@ -982,7 +976,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableField is called
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
+        QltyInspectionUtility.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns all three matching records
         LibraryAssert.AreEqual(3, TempBufferQltyTestLookupValue.Count(), 'should have been 3 sales people with that email.');
@@ -1005,7 +999,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
@@ -1082,7 +1075,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyTest.Get(QltyInspectionLine."Test Code");
 
         // [WHEN] GetRecordsForTableField is called with different parameter combinations (field+header+line, field+header)
-        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyTestLookupValue);
+        QltyInspectionUtility.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyTestLookupValue);
 
         // [THEN] The function returns the correct record using all parameter overloads
         LibraryAssert.AreEqual(1, TempBufferQltyTestLookupValue.Count(), 'should have been 1 record.');
@@ -1116,7 +1109,6 @@ codeunit 139964 "Qlty. Tests - Misc."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryPermissions: Codeunit "Library - Permissions";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
@@ -1210,7 +1202,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Modify();
 
         // [WHEN] GetRecordsForTableFieldAsCSV is called
-        Output1 := QltyMiscHelpers.GetRecordsForTableFieldAsCSV(QltyInspectionLine);
+        Output1 := QltyInspectionUtility.GetRecordsForTableFieldAsCSV(QltyInspectionLine);
 
         // [THEN] The function returns a comma-separated list of all matching codes with correct count
         Count := FilterSalespersonPurchaser.Count();
@@ -1250,7 +1242,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure GuessDataTypeFromDescriptionAndValue_Description()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from description text
@@ -1260,25 +1251,24 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Various field descriptions with question words, keywords, or phrases
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with description (empty value)
         // [THEN] The function infers the correct data type from description patterns
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
     end;
 
     [Test]
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from actual values
@@ -1290,20 +1280,20 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] The function infers the correct data type from value patterns
         LibraryAssert.AreEqual('No', QltyInspectionUtility.GetTranslatedNo250(), 'locked no.');
 
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
 
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
 
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
-        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyInspectionUtility.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
     end;
 
     [Test]
@@ -1440,7 +1430,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure SetTableValue_Simple()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
     begin
         // [SCENARIO] Set table field values dynamically
@@ -1455,8 +1444,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         SalespersonPurchaser.SetRecFilter();
 
         // [WHEN] SetTableValue is called for decimal and text fields
-        QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Commission %"), format(1234.56), true);
-        QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Job Title"), 'manager', true);
+        QltyInspectionUtility.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Commission %"), format(1234.56), true);
+        QltyInspectionUtility.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Job Title"), 'manager', true);
 
         // [THEN] The field values are updated correctly
         SalespersonPurchaser.SetRecFilter();
@@ -1470,7 +1459,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure SetTableValue_Error()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
     begin
         // [SCENARIO] Set table value error when field does not exist
@@ -1485,7 +1473,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SalespersonPurchaser.SetRecFilter();
 
         // [WHEN] SetTableValue is called with a non-existent field name
-        asserterror QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), 'This field does not exist.', format(1234.56), true);
+        asserterror QltyInspectionUtility.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), 'This field does not exist.', format(1234.56), true);
 
         // [THEN] An error is raised indicating the field was not found
         LibraryAssert.ExpectedError(StrSubstNo(UnableToSetTableValueFieldNotFoundErr, 'This field does not exist.', SalespersonPurchaser.TableCaption()));
@@ -1496,7 +1484,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         InteractionLogEntry: Record "Interaction Log Entry";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibrarySales: Codeunit "Library - Sales";
         Format0: Text;
         Format9: Text;
@@ -1519,10 +1506,10 @@ codeunit 139964 "Qlty. Tests - Misc."
         InteractionLogEntry.InsertRecord();
 
         // [WHEN] ReadFieldAsText is called with format 0 (locale) and format 9 (ISO)
-        Format0 := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 0);
-        Format9 := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 9);
+        Format0 := QltyInspectionUtility.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 0);
+        Format9 := QltyInspectionUtility.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 9);
 
-        Format9NoOfInteractions := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("No. of Interactions"), 9);
+        Format9NoOfInteractions := QltyInspectionUtility.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("No. of Interactions"), 9);
 
         // [THEN] The field values are formatted correctly including flowfields
         SalespersonPurchaser.CalcFields("No. of Interactions");
