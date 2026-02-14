@@ -33,7 +33,6 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssert: Codeunit "Library Assert";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
@@ -1344,8 +1343,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1414,8 +1412,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1484,8 +1481,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1553,8 +1549,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1623,8 +1618,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1704,8 +1698,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1785,8 +1778,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1866,8 +1858,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -2152,8 +2143,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
@@ -2213,8 +2203,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
@@ -2274,8 +2263,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');

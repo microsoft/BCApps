@@ -19,8 +19,8 @@ enum 20400 "Qlty. Target Type"
     {
         Caption = 'Inspection';
     }
-    value(2; "Item Tracking only")
+    value(2; "Item Tracking")
     {
-        Caption = 'Item Tracking only';
+        Caption = 'Item Tracking';
     }
 }

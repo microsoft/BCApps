@@ -116,7 +116,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
     /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
+    internal procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
@@ -147,7 +147,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
     /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
+    internal procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;

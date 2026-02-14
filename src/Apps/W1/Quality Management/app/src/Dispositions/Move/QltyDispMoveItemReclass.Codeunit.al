@@ -19,7 +19,7 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
         DocumentTypeLbl: Label 'Item Reclassification';
 
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;

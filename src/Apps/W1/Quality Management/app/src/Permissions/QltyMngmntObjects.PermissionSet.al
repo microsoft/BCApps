@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.GuidedExperience;
 using Microsoft.QualityManagement.Installation;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
@@ -47,7 +48,7 @@ permissionset 20406 "QltyMngmnt - Objects"
 
     Permissions =
         // Codeunits
-        codeunit "Qlty. - Warehouse Integration" = X,
+        codeunit "Qlty. Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
         codeunit "Qlty. Inspection - Create" = X,
@@ -59,6 +60,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
+        codeunit "Qlty. Guided Experience" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
@@ -102,7 +104,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
-        page "Qlty. Lookup Code List" = X,
+        page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
         page "Qlty. Management Setup" = X,
@@ -144,11 +146,11 @@ permissionset 20406 "QltyMngmnt - Objects"
         report "Qlty. Create Transfer Order" = X,
 
         // Tables
-        table "Qlty. Express Config. Value" = X,
+        table "Qlty. Workflow Config. Value" = X,
         table "Qlty. Inspection Gen. Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,
-        table "Qlty. Lookup Code" = X,
+        table "Qlty. Test Lookup Value" = X,
         table "Qlty. Management Setup" = X,
         table "Qlty. Related Transfers Buffer" = X,
         table "Qlty. Mgmt. Role Center Cue" = X,
