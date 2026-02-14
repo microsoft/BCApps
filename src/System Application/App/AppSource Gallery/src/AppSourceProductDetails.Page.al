@@ -156,10 +156,10 @@ page 2516 "AppSource Product Details"
         {
             action(OpenInAppSource)
             {
-                Caption = 'View on AppSource';
+                Caption = 'View on Marketplace';
                 Scope = Page;
                 Image = Info;
-                ToolTip = 'Opens the app on AppSource.';
+                ToolTip = 'Opens the app on Marketplace.';
 
                 trigger OnAction()
                 begin
@@ -190,10 +190,10 @@ page 2516 "AppSource Product Details"
 
             action(InstallFromAppSource)
             {
-                Caption = 'Install from AppSource';
+                Caption = 'Install from Marketplace';
                 Scope = Page;
                 Image = Download;
-                ToolTip = 'Installs the app from Microsoft AppSource.';
+                ToolTip = 'Installs the app from Microsoft Marketplace.';
                 Enabled = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
                 Visible = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
 

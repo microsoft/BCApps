@@ -173,7 +173,7 @@ page 8886 "Email Account Wizard"
                 label(NoConnectorsAvailable2)
                 {
                     ApplicationArea = All;
-                    Caption = 'Email apps are available in Extension Management and AppSource.';
+                    Caption = 'Email apps are available in Extension Management and Marketplace.';
                 }
 
                 field(ExtensionManagement; ExtensionManagementTok)
@@ -197,7 +197,7 @@ page 8886 "Email Account Wizard"
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
                     Caption = ' ';
-                    ToolTip = 'Navigate to AppSource.';
+                    ToolTip = 'Go to Marketplace.';
 
                     trigger OnDrillDown()
                     begin
