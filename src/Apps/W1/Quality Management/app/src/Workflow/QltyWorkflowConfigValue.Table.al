@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Workflow;
 
-table 20435 "Qlty. Express Config. Value"
+table 20435 "Qlty. Workflow Config. Value"
 {
     DataClassification = CustomerContent;
-    Caption = 'Quality Express Configuration Value';
+    Caption = 'Quality Workflow Configuration Value';
 
     fields
     {

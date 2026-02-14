@@ -25,7 +25,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
     var
         QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
-        CondManagementQltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -181,7 +180,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Decimal");
         QltyTest.Insert(true);
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
 
         // [GIVEN] The test result condition has the default number condition
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
@@ -220,7 +219,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Decimal");
         QltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default number condition.');
@@ -259,7 +258,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text");
         QltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionTextTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default text condition.');
@@ -297,7 +296,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text");
         QltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionTextTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default text condition.');
@@ -336,7 +335,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Boolean");
         QltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionBooleanTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default boolean condition.');
@@ -374,7 +373,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
         QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Boolean");
         QltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(QltyTest.Code);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionBooleanTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default boolean condition.');
@@ -447,7 +446,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, ToLoadSecondQltyIResultConditConf.Condition, 'The template line result condition should match the default condition.');
 
         // [WHEN] Result conditions are copied from the first template line to the second template line
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateLineToTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, ConfigurationToLoadSecondQltyInspectionTemplateLine);
+        QltyInspectionUtility.CopyResultConditionsFromTemplateLineToTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, ConfigurationToLoadSecondQltyInspectionTemplateLine);
 
         // [THEN] The second template line now has the same result condition as the first template line
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
@@ -505,7 +504,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         LibraryAssert.AreEqual(InitialConditionTok, ToLoadQltyIResultConditConf.Condition, 'The template line result condition should match the new condition.');
 
         // [WHEN] Result conditions are copied from the first template line to the second template line
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateLineToTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, ConfigurationToLoadSecondQltyInspectionTemplateLine);
+        QltyInspectionUtility.CopyResultConditionsFromTemplateLineToTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, ConfigurationToLoadSecondQltyInspectionTemplateLine);
 
         // [THEN] The second template line receives the result condition configuration from the first template line
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
@@ -567,7 +566,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConditionalQltyInspectionResult.Insert(true);
 
         // [WHEN] We ask the system to copy the new grades to all templates
-        CondManagementQltyResultConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+        QltyInspectionUtility.CopyGradeConditionsFromDefaultToAllTemplates();
 
         // [THEN] The grade condition count should now be one higher.
         ConditionalQltyInspectionResult.SetRange("Copy Behavior", ConditionalQltyInspectionResult."Copy Behavior"::"Automatically copy the result");
@@ -615,7 +614,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
         ToLoadQltyTest.Insert();
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(ToLoadQltyTest.Code);
+        QltyInspectionUtility.CopyResultConditionsFromDefaultToTest(ToLoadQltyTest.Code);
 
         // [GIVEN] A template with a template line is created for the test
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -636,7 +635,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyInspectionUtility.CreateInspectionWithPreventDisplaying(RecordRef, true, false, QltyInspectionHeader);
 
         // [WHEN] Result conditions are copied from the template line to the inspection
-        CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);
+        QltyInspectionUtility.CopyResultConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);
 
         // [THEN] The inspection receives the result condition configuration with the default value
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Inspection, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
@@ -679,7 +678,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ToLoadQltyIResultConditConf.Modify();
 
         // [WHEN] Promoted results for the test are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForTest(ToLoadQltyTest, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForTest(ToLoadQltyTest, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information matches the test result condition
         LibraryAssert.AreEqual(ToLoadQltyIResultConditConf.Condition, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -717,7 +716,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ToLoadQltyTest.Insert();
 
         // [WHEN] Promoted results for the test are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForTest(ToLoadQltyTest, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForTest(ToLoadQltyTest, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information uses the default result condition
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -775,7 +774,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
 
         // [WHEN] Promoted results for the template line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information matches the template line result condition
         LibraryAssert.AreEqual(ToLoadQltyIResultConditConf.Condition, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -823,7 +822,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
 
         // [WHEN] Promoted results for the template line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information matches the default result condition
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -860,7 +859,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
 
         // [WHEN] Promoted results for the template line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForTemplateLine(ConfigurationToLoadQltyInspectionTemplateLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information uses default result conditions
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -938,7 +937,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Inspection, QltyInspectionHeader."No.", 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
 
@@ -1011,7 +1010,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned result information uses default result conditions
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, MatrixConditionCellData[1], 'Returned condition should match result condition.');
@@ -1080,7 +1079,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyInspectionLine.Insert();
 
         // [WHEN] Promoted results for the inspection line are retrieved
-        CondManagementQltyResultConditionMgmt.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        QltyInspectionUtility.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned arrays are empty and visibility is false
         LibraryAssert.IsTrue(MatrixSourceRecordId[1] = RecID, 'Should be no array elements.');

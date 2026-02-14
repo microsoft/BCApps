@@ -7,6 +7,7 @@ namespace Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
@@ -25,6 +26,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
+using Microsoft.QualityManagement.Dispositions.ItemTracking;
 using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
@@ -39,6 +41,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Tracking;
 using System.Automation;
 using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
@@ -935,6 +938,70 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, QltyTestValueType, Value, QltyCaseSensitivity));
     end;
 
+    /// <summary>
+    /// Wrapper for internal procedure ValidateAllowableValuesOnTest from Qlty. Result Evaluation codeunit.
+    /// 1-parameter overload.
+    /// </summary>
+    /// <param name="QltyTest">The test record to validate.</param>
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test")
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(QltyTest);
+    end;
+
+    /// <summary>
+    /// Wrapper for internal procedure ValidateAllowableValuesOnTest from Qlty. Result Evaluation codeunit.
+    /// 3-parameter overload with inspection header and line context.
+    /// </summary>
+    /// <param name="QltyTest">The test record to validate.</param>
+    /// <param name="QltyInspectionHeader">The inspection header context.</param>
+    /// <param name="QltyInspectionLine">The inspection line context.</param>
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line")
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(QltyTest, QltyInspectionHeader, QltyInspectionLine);
+    end;
+
+    /// <summary>
+    /// Wrapper for internal procedure ValidateInspectionLineWithAllowableValues from Qlty. Result Evaluation codeunit.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line to validate.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header.</param>
+    /// <param name="CheckForAllowableValues">Whether to check for allowable values.</param>
+    /// <param name="UpdateHeader">Whether to update the header.</param>
+    internal procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; UpdateHeader: Boolean)
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, CheckForAllowableValues, UpdateHeader);
+    end;
+
+    /// <summary>
+    /// Wrapper for internal procedure GetInspectionLineConfigFilters from Qlty. Result Evaluation codeunit.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line.</param>
+    /// <param name="TemplateLineQltyIResultConditConf">The result condition configuration record to set filters on.</param>
+    internal procedure GetInspectionLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        QltyResultEvaluation.GetInspectionLineConfigFilters(QltyInspectionLine, TemplateLineQltyIResultConditConf);
+    end;
+
+    /// <summary>
+    /// Wrapper for running Qlty. Result Evaluation codeunit OnRun trigger.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line to evaluate.</param>
+    /// <returns>True if the evaluation succeeded, false otherwise.</returns>
+    internal procedure RunResultEvaluation(var QltyInspectionLine: Record "Qlty. Inspection Line"): Boolean
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        exit(QltyResultEvaluation.Run(QltyInspectionLine));
+    end;
+
     #endregion Qlty. Result Evaluation Wrappers
 
     #region Qlty. Notification Mgmt. Wrappers
@@ -1072,7 +1139,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyInspectSourceConfig">The source configuration record to populate and insert (var parameter).</param>
     /// <param name="FromTableNo">The source table number.</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="ToTableNo">The target table number.</param>
     internal procedure CreateSourceConfig(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromTableNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer)
     var
@@ -1090,20 +1157,6 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Inspect. Source Config. Helpers
 
-    #region Qlty. Inspect. Source Config. Wrappers
-
-    /// <summary>
-    /// Wrapper for internal QltyInspectSourceConfig.DetectInterestingConfiguration.
-    /// Detects if the source configuration has interesting (potentially problematic) table configurations.
-    /// </summary>
-    /// <param name="QltyInspectSourceConfig">The source configuration record to check.</param>
-    internal procedure DetectInterestingConfiguration(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
-    begin
-        QltyInspectSourceConfig.DetectInterestingConfiguration();
-    end;
-
-    #endregion Qlty. Inspect. Source Config. Wrappers
-
     #region Qlty. Inspect. Src. Fld. Conf. Helpers
 
     /// <summary>
@@ -1114,7 +1167,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <param name="SourceConfigCode">The code of the parent source configuration.</param>
     /// <param name="FromTableNo">The source table number.</param>
     /// <param name="FromFieldNo">The source field number.</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="ToTableNo">The target table number.</param>
     /// <param name="ToFieldNo">The target field number.</param>
     internal procedure CreateSourceFieldConfig(SourceConfigCode: Code[20]; FromTableNo: Integer; FromFieldNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer;
@@ -1140,7 +1193,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="SourceConfigCode">The code of the parent source configuration.</param>
     /// <param name="TableNo">The table number for both source and target (used for field name resolution).</param>
-    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
+    /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking).</param>
     /// <param name="FieldName">The field name to resolve to a field number.</param>
     internal procedure CreateSourceFieldConfigByName(SourceConfigCode: Code[20]; TableNo: Integer; ToType: Enum "Qlty. Target Type"; FieldName: Text)
     var
@@ -1771,12 +1824,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyTest">The quality field configuration defining lookup table and filters.</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation.</param>
-    /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values.</param>
-    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">Output: Temporary buffer populated with lookup values.</param>
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
-        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempBufferQltyTestLookupValue);
     end;
 
     /// <summary>
@@ -2257,6 +2310,116 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyWorkflowSetup.GetWorkflowResponseMoveInventory());
     end;
 
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseFinishInspection
+    /// </summary>
+    internal procedure GetWorkflowResponseFinishInspection(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseFinishInspection());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseReopenInspection
+    /// </summary>
+    internal procedure GetWorkflowResponseReopenInspection(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseReopenInspection());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseCreateReinspection
+    /// </summary>
+    internal procedure GetWorkflowResponseCreateReinspection(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseCreateReinspection());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue
+    /// </summary>
+    internal procedure GetWorkflowResponseSetDatabaseValue(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking
+    /// </summary>
+    internal procedure GetWorkflowResponseChangeItemTracking(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseBlockLot
+    /// </summary>
+    internal procedure GetWorkflowResponseBlockLot(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseBlockLot());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseUnblockLot
+    /// </summary>
+    internal procedure GetWorkflowResponseUnblockLot(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseUnblockLot());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseBlockSerial
+    /// </summary>
+    internal procedure GetWorkflowResponseBlockSerial(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseBlockSerial());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseUnblockSerial
+    /// </summary>
+    internal procedure GetWorkflowResponseUnblockSerial(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseUnblockSerial());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseBlockPackage
+    /// </summary>
+    internal procedure GetWorkflowResponseBlockPackage(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseBlockPackage());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowSetup.GetWorkflowResponseUnblockPackage
+    /// </summary>
+    internal procedure GetWorkflowResponseUnblockPackage(): Text
+    var
+        QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+    begin
+        exit(QltyWorkflowSetup.GetWorkflowResponseUnblockPackage());
+    end;
+
     #endregion Qlty. Workflow Setup Wrappers
 
     #region Qlty. Workflow Response Wrappers
@@ -2421,7 +2584,127 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyWorkflowResponse.SetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument, CurrentKey, QltyItemAdjPostBehavior);
     end;
 
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.SetStepConfigurationValueAsDate
+    /// </summary>
+    internal procedure SetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; DateValue: Date)
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        QltyWorkflowResponse.SetStepConfigurationValueAsDate(WorkflowStepArgument, CurrentKey, DateValue);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetStepConfigurationValueAsQuantityBehaviorEnum
+    /// </summary>
+    internal procedure GetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Enum "Qlty. Quantity Behavior"
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, CurrentKey));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetStepConfigurationValueAsAdjPostingEnum
+    /// </summary>
+    internal procedure GetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Enum "Qlty. Item Adj. Post Behavior"
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument, CurrentKey));
+    end;
+
     #endregion Qlty. Workflow Response Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownSourceLocationFilter
+    /// </summary>
+    internal procedure GetWellKnownSourceLocationFilter(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownSourceLocationFilter());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownSourceBinFilter
+    /// </summary>
+    internal procedure GetWellKnownSourceBinFilter(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownSourceBinFilter());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownKeyField
+    /// </summary>
+    internal procedure GetWellKnownKeyField(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownKeyField());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownKeyValueExpression
+    /// </summary>
+    internal procedure GetWellKnownKeyValueExpression(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownKeyValueExpression());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownKeyDatabaseTable
+    /// </summary>
+    internal procedure GetWellKnownKeyDatabaseTable(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownKeyDatabaseTable());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownKeyDatabaseTableFilter
+    /// </summary>
+    internal procedure GetWellKnownKeyDatabaseTableFilter(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownKeyDatabaseTableFilter());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownUseMoveSheet
+    /// </summary>
+    internal procedure GetWellKnownUseMoveSheet(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownUseMoveSheet());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownNewLotNo
+    /// </summary>
+    internal procedure GetWellKnownNewLotNo(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownNewLotNo());
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownNewExpDate
+    /// </summary>
+    internal procedure GetWellKnownNewExpDate(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownNewExpDate());
+    end;
 
     #region Qlty. Result Condition Mgmt. Wrappers
 
@@ -2559,6 +2842,204 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyFilterHelpers.AssistEditZone(LocationFilter, ToZoneCodeFilter));
     end;
 
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditBin
+    /// Starts the assist edit dialog for choosing a bin.
+    /// </summary>
+    internal procedure AssistEditBin(LocationFilter: Code[20]; ToZoneFilter: Code[20]; var ToBinCodeFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditBin(LocationFilter, ToZoneFilter, ToBinCodeFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditItemNo
+    /// Starts the assist edit dialog for choosing an item.
+    /// </summary>
+    internal procedure AssistEditItemNo(var ItemNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditItemNo(ItemNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditItemCategory
+    /// Starts the assist edit dialog for choosing an item category.
+    /// </summary>
+    internal procedure AssistEditItemCategory(var ItemCategoryCodeFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditItemCategory(ItemCategoryCodeFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditInventoryPostingGroup
+    /// Starts the assist edit dialog for choosing an inventory posting group.
+    /// </summary>
+    internal procedure AssistEditInventoryPostingGroup(var InventoryPostingGroupCodeFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditInventoryPostingGroup(InventoryPostingGroupCodeFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditVendor
+    /// Starts the assist edit dialog for choosing a vendor.
+    /// </summary>
+    internal procedure AssistEditVendor(var VendorNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditVendor(VendorNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditCustomer
+    /// Starts the assist edit dialog for choosing a customer.
+    /// </summary>
+    internal procedure AssistEditCustomer(var CustomerNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditCustomer(CustomerNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditMachine
+    /// Starts the assist edit dialog for choosing a machine.
+    /// </summary>
+    internal procedure AssistEditMachine(var MachineNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditMachine(MachineNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditRouting
+    /// Starts the assist edit dialog for choosing a routing.
+    /// </summary>
+    internal procedure AssistEditRouting(var RoutingNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditRouting(RoutingNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditRoutingOperation
+    /// Starts the assist edit dialog for choosing a routing operation.
+    /// </summary>
+    internal procedure AssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditRoutingOperation(InRoutingNoFilter, OperationNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditWorkCenter
+    /// Starts the assist edit dialog for choosing a work center.
+    /// </summary>
+    internal procedure AssistEditWorkCenter(var WorkCenterNoFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditWorkCenter(WorkCenterNoFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditPurchasingCode
+    /// Starts the assist edit dialog for choosing a purchasing code.
+    /// </summary>
+    internal procedure AssistEditPurchasingCode(var PurchasingCode: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditPurchasingCode(PurchasingCode));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditReturnReasonCode
+    /// Starts the assist edit dialog for choosing a return reason code.
+    /// </summary>
+    internal procedure AssistEditReturnReasonCode(var ReturnReasonCode: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditReturnReasonCode(ReturnReasonCode));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditQltyInspectionTemplate
+    /// Starts the assist edit dialog for choosing a quality inspection template.
+    /// </summary>
+    internal procedure AssistEditQltyInspectionTemplate(var QltyInspectionTemplateCode: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditQltyInspectionTemplate(QltyInspectionTemplateCode));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.AssistEditLocation
+    /// Starts the assist edit dialog for choosing a location.
+    /// </summary>
+    internal procedure AssistEditLocation(var LocationCodeFilter: Code[20]): Boolean
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.AssistEditLocation(LocationCodeFilter));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.CleanUpWhereClause2048
+    /// Cleans up a WHERE clause and returns a Text[2048].
+    /// </summary>
+    internal procedure CleanUpWhereClause2048(Input: Text): Text[2048]
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.CleanUpWhereClause2048(Input));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.CleanUpWhereClause
+    /// Cleans up a WHERE clause and returns the result.
+    /// </summary>
+    internal procedure CleanUpWhereClause(Input: Text): Text
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.CleanUpWhereClause(Input));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer
+    /// De-serializes an existing attribute filter text into an attribute filter buffer.
+    /// </summary>
+    internal procedure DeserializeFilterIntoItemAttributesBuffer(AttributeFilter: Text; var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary)
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(AttributeFilter, TempFilterItemAttributesBuffer);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyFilterHelpers.SerializeItemAttributesBufferIntoText
+    /// Serializes an item attributes buffer into a filter text.
+    /// </summary>
+    internal procedure SerializeItemAttributesBufferIntoText(var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary): Text
+    var
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        exit(QltyFilterHelpers.SerializeItemAttributesBufferIntoText(TempFilterItemAttributesBuffer));
+    end;
+
     #endregion Qlty. Filter Helpers Wrappers
 
     #region Qlty. Expression Mgmt. Wrappers
@@ -2694,4 +3175,280 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Item Tracking Wrappers
+
+    #region Qlty. Disp. Neg. Adjust Inv. Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispNegAdjustInv.PerformDisposition
+    /// Creates a negative adjustment using the information from a given Quality Inspection.
+    /// </summary>
+    internal procedure PerformNegAdjustInvDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
+    begin
+        exit(QltyDispNegAdjustInv.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Neg. Adjust Inv. Wrappers
+
+    #region Qlty. Disp. Change Tracking Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispChangeTracking.PerformDisposition
+    /// Performs the change item tracking disposition.
+    /// </summary>
+    internal procedure PerformChangeTrackingDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
+    begin
+        exit(QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Change Tracking Wrappers
+
+    #region Qlty. Item Journal Management Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyItemJournalManagement.CreateWarehouseJournalLine
+    /// Creates a warehouse journal line.
+    /// </summary>
+    internal procedure CreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    var
+        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
+    begin
+        QltyItemJournalManagement.CreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine, WhseItemTrackingLine);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyItemJournalManagement.PostWarehouseJournal
+    /// Posts the supplied warehouse journal line.
+    /// </summary>
+    internal procedure PostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"): Boolean
+    var
+        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
+    begin
+        exit(QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyItemJournalManagement.CreateItemJournalLine
+    /// Creates an item journal line.
+    /// </summary>
+    internal procedure CreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    var
+        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
+    begin
+        QltyItemJournalManagement.CreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyItemJournalManagement.PostItemJournal
+    /// Posts the supplied item journal line.
+    /// </summary>
+    internal procedure PostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"): Boolean
+    var
+        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
+    begin
+        exit(QltyItemJournalManagement.PostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine));
+    end;
+
+    #endregion Qlty. Item Journal Management Wrappers
+
+    #region Qlty. Disp. Move Whse.Reclass. Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispMoveWhseReclass.PerformDisposition
+    /// Performs warehouse reclassification disposition.
+    /// </summary>
+    internal procedure PerformMoveWhseReclassDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
+    begin
+        exit(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Move Whse.Reclass. Wrappers
+
+    #region Qlty. Disp. Move Item Reclass. Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispMoveItemReclass.PerformDisposition
+    /// Performs item reclassification disposition.
+    /// </summary>
+    internal procedure PerformMoveItemReclassDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
+    begin
+        exit(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Move Item Reclass. Wrappers
+
+    #region Qlty. Disp. Move Worksheet Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispMoveWorksheet.PerformDisposition
+    /// Performs movement worksheet disposition.
+    /// </summary>
+    internal procedure PerformMoveWorksheetDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispMoveWorksheet: Codeunit "Qlty. Disp. Move Worksheet";
+    begin
+        exit(QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Move Worksheet Wrappers
+
+    #region Qlty. Disp. Internal Move Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispInternalMove.PerformDisposition
+    /// Performs internal move disposition.
+    /// </summary>
+    internal procedure PerformInternalMoveDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispInternalMove: Codeunit "Qlty. Disp. Internal Move";
+    begin
+        exit(QltyDispInternalMove.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Internal Move Wrappers
+
+    #region Qlty. Disp. Transfer Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyDispTransfer.PerformDisposition
+    /// Performs transfer order disposition.
+    /// </summary>
+    internal procedure PerformTransferDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Boolean
+    var
+        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
+    begin
+        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
+    end;
+
+    #endregion Qlty. Disp. Transfer Wrappers
+
+    #region Qlty. Inventory Availability Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyInventoryAvailability.PopulateQuantityBuffer
+    /// Populates the quantity buffer.
+    /// </summary>
+    internal procedure PopulateQuantityBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
+    var
+        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
+    begin
+        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer);
+    end;
+
+    #endregion Qlty. Inventory Availability Wrappers
+
+    #region Qlty. Item Tracking Mgmt. Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyItemTrackingMgmt.CreateItemJournalLineReservationEntry
+    /// Creates an item journal line reservation entry for the supplyed journal line.
+    /// Set the tracking on the line (no modify needed) to give the tracking instruction.
+    /// </summary>
+    internal procedure CreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry")
+    var
+        QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
+    begin
+        QltyItemTrackingMgmt.CreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyItemTrackingMgmt.GetIsWarehouseTracked
+    /// Returns true if the item is lot warehouse, or serial warehouse, or package warehouse tracked.
+    /// </summary>
+    internal procedure GetIsWarehouseTracked(ItemNo: Code[20]): Boolean
+    var
+        QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
+    begin
+        exit(QltyItemTrackingMgmt.GetIsWarehouseTracked(ItemNo));
+    end;
+
+    #endregion Qlty. Item Tracking Mgmt. Wrappers
+
+    #region Qlty. Misc Helpers Wrappers
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.GetRecordsForTableFieldAsCSV
+    /// Retrieves available record values for a table lookup field configured on an inspection line, returned as CSV.
+    /// </summary>
+    internal procedure GetRecordsForTableFieldAsCSV(var QltyInspectionLine: Record "Qlty. Inspection Line") CSVText: Text
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        exit(QltyMiscHelpers.GetRecordsForTableFieldAsCSV(QltyInspectionLine));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.GetRecordsForTableField (2-param)
+    /// Retrieves available records for a table lookup field configured on an inspection line.
+    /// </summary>
+    internal procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyTestLookupValue);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.GetRecordsForTableField (4-param)
+    /// Retrieves lookup values for a quality field with context-sensitive filtering.
+    /// </summary>
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyTestLookupValue);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.GetCSVOfValuesFromRecord (4-param)
+    /// Generates a CSV string of values for a specific field from a table with optional filtering.
+    /// </summary>
+    internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxCountRecords: Integer): Text
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        exit(QltyMiscHelpers.GetCSVOfValuesFromRecord(CurrentTable, ChoiceField, TableFilter, MaxCountRecords));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue
+    /// Analyzes field description and sample value to infer the appropriate data type.
+    /// </summary>
+    internal procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text): Enum "Qlty. Test Value Type"
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        exit(QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue(Description, OptionalValue));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.SetTableValue
+    /// Sets a field value on a record identified by table name and filter.
+    /// </summary>
+    internal procedure SetTableValue(TableName: Text; TableFilter: Text; NumberOrNameOfFieldToSet: Text; ValueToSet: Text; Validate: Boolean)
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        QltyMiscHelpers.SetTableValue(TableName, TableFilter, NumberOrNameOfFieldToSet, ValueToSet, Validate);
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyMiscHelpers.ReadFieldAsText
+    /// Reads a field value from any record variant and returns it as formatted text.
+    /// </summary>
+    internal procedure ReadFieldAsText(CurrentRecordVariant: Variant; NumberOrNameOfFieldName: Text; FormatNumber: Integer): Text
+    var
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+    begin
+        exit(QltyMiscHelpers.ReadFieldAsText(CurrentRecordVariant, NumberOrNameOfFieldName, FormatNumber));
+    end;
+
+    #endregion Qlty. Misc Helpers Wrappers
 }

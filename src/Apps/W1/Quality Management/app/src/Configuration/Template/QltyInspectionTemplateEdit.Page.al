@@ -31,7 +31,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 Caption = ' ';
                 Visible = not IsHTMLFormatted;
 
-                field(htmlContent; HtmlContentText)
+                field(HtmlContent; HtmlContentText)
                 {
                     Caption = 'Text';
                     ShowCaption = false;

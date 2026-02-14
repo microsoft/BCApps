@@ -6,7 +6,7 @@ namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool.Helpers;
 
-codeunit 5594 "Create Quality Lookup Code"
+codeunit 5594 "Create Quality Lookup Value"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -15,37 +15,37 @@ codeunit 5594 "Create Quality Lookup Code"
     var
         ContosoQualityManagement: Codeunit "Contoso Quality Management";
     begin
-        ContosoQualityManagement.InsertQualityLookupCode(EcoliPresent(), Absent(), NoEColiDetectedLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(EcoliPresent(), Present(), AnyEColiDetectedLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(EcoliPresent(), Absent(), NoEColiDetectedLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(EcoliPresent(), Present(), AnyEColiDetectedLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(NcrClassification(), Major(), MajorLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(NcrClassification(), Minor(), MinorLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(NcrClassification(), Major(), MajorLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(NcrClassification(), Minor(), MinorLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(Odor(), BadOdor(), BadOdorDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(Odor(), MildOdor(), MildOdorDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(Odor(), NoOdor(), NoOdorDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(Odor(), BadOdor(), BadOdorDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(Odor(), MildOdor(), MildOdorDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(Odor(), NoOdor(), NoOdorDescLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(PackagingVisual(), Heavy(), HeavyDamageDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(PackagingVisual(), Light(), LightDamageDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(PackagingVisual(), Undamaged(), UndamagedPackagingDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(PackagingVisual(), Heavy(), HeavyDamageDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(PackagingVisual(), Light(), LightDamageDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(PackagingVisual(), Undamaged(), UndamagedPackagingDescLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(ShippingLabel(), BadPosition(), IncorrectPositionOfLabelLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(ShippingLabel(), Blurred(), LabelIsBlurredLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(ShippingLabel(), Damage(), LabelIsDamagedLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(ShippingLabel(), Good(), LabelIsGoodLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(ShippingLabel(), BadPosition(), IncorrectPositionOfLabelLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(ShippingLabel(), Blurred(), LabelIsBlurredLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(ShippingLabel(), Damage(), LabelIsDamagedLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(ShippingLabel(), Good(), LabelIsGoodLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(TypeOfCar(), ACar(), AuditLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(TypeOfCar(), ICar(), InternalOrVendorLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(TypeOfCar(), SCar(), CustomerLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(TypeOfCar(), ACar(), AuditLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(TypeOfCar(), ICar(), InternalOrVendorLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(TypeOfCar(), SCar(), CustomerLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeDefect(), CoffeeDefectColor(), CoffeeDefectColorDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeDefect(), CoffeeDefectForeign(), CoffeeDefectForeignDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeDefect(), CoffeeDefectInsect(), CoffeeDefectInsectDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeDefect(), CoffeeDefectOdor(), CoffeeDefectOdorDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectColor(), CoffeeDefectColorDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectForeign(), CoffeeDefectForeignDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectInsect(), CoffeeDefectInsectDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectOdor(), CoffeeDefectOdorDescLbl);
 
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeUniformity(), CoffeeUniformityIrregular(), CoffeeUniformityIrregularDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeUniformity(), CoffeeUniformityMixed(), CoffeeUniformityMixedDescLbl);
-        ContosoQualityManagement.InsertQualityLookupCode(CoffeeUniformity(), CoffeeUniformityUniform(), CoffeeUniformityUniformDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeUniformity(), CoffeeUniformityIrregular(), CoffeeUniformityIrregularDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeUniformity(), CoffeeUniformityMixed(), CoffeeUniformityMixedDescLbl);
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeUniformity(), CoffeeUniformityUniform(), CoffeeUniformityUniformDescLbl);
     end;
 
     procedure EcoliPresent(): Code[20]

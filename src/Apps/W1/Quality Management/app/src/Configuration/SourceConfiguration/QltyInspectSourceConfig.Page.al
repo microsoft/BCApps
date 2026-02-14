@@ -9,19 +9,16 @@ namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 /// </summary>
 page 20410 "Qlty. Inspect. Source Config."
 {
-    UsageCategory = None;
     Caption = 'Quality Inspection Source Configuration';
     DataCaptionExpression = GetDataCaptionExpression();
     PageType = ListPlus;
-    RefreshOnActivate = true;
     SourceTable = "Qlty. Inspect. Source Config.";
+    RefreshOnActivate = true;
     Editable = false;
-    InsertAllowed = false;
-    ModifyAllowed = false;
-    DeleteAllowed = false;
-    AboutTitle = 'Populating data from tables in Business Central.';
-    AboutText = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    UsageCategory = None;
     ApplicationArea = QualityManagement;
+    AboutTitle = 'Populating data from tables in Business Central';
+    AboutText = 'This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
 
     layout
     {
@@ -52,14 +49,21 @@ page 20410 "Qlty. Inspect. Source Config."
                         CurrPage.Update(true);
                     end;
                 }
+            }
+            group(Configuration)
+            {
+                Caption = 'Configuration';
+
                 group(From)
                 {
                     Caption = 'From';
 
+                    field(BlankLinePlaceHolder; BlankLineText)
+                    {
+                        ShowCaption = false;
+                    }
                     field("From Table No."; Rec."From Table No.")
                     {
-                        Importance = Additional;
-
                         trigger OnValidate()
                         begin
                             CurrPage.Update(true);
@@ -67,7 +71,6 @@ page 20410 "Qlty. Inspect. Source Config."
                     }
                     field("From Table Name"; Rec."From Table Caption")
                     {
-                        Importance = Additional;
                     }
                     field("From Table Filter"; Rec."From Table Filter")
                     {
@@ -95,8 +98,6 @@ page 20410 "Qlty. Inspect. Source Config."
 
                         field("To Table No."; Rec."To Table No.")
                         {
-                            Importance = Additional;
-
                             trigger OnValidate()
                             begin
                                 CurrPage.Update(true);
@@ -104,14 +105,13 @@ page 20410 "Qlty. Inspect. Source Config."
                         }
                         field("To Table Name"; Rec."To Table Caption")
                         {
-                            Importance = Additional;
                         }
                     }
                 }
             }
-            part(Lines; "Qlty. Source Config Line Part")
+            part(Fields; "Qlty. Source Config Line Part")
             {
-                Caption = 'Lines';
+                Caption = 'Fields';
                 SubPageLink = Code = field(Code);
                 SubPageView = sorting(Code, "Line No.");
             }
@@ -133,6 +133,7 @@ page 20410 "Qlty. Inspect. Source Config."
 
     var
         ShowToTable: Boolean;
+        BlankLineText: Text;
         DataCaptionExprLbl: Label '%1 - %2 - %3', Locked = true, Comment = '%1=the code for this configuration, %2=The table to connect from, %3=the Table to connect to.';
 
     trigger OnOpenPage()

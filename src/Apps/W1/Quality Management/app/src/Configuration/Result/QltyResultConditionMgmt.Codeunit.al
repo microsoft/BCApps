@@ -154,7 +154,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// </summary>
     /// <param name="FromQltyInspectionTemplateLine"></param>
     /// <param name="TargetQltyInspectionTemplateLine"></param>
-    procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    internal procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     var
         FromQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -193,7 +193,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
     /// <param name="QltyInspectionLine"></param>
-    procedure CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
+    internal procedure CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         FromTemplateQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToCheckQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -243,7 +243,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// This leverages how CopyGradeConditionsFromFieldToTemplateLine will already update fields via CopyGradeConditionsFromDefaultToField 
     /// when a specific grade is supplied.
     /// </summary>
-    procedure CopyGradeConditionsFromDefaultToAllTemplates()
+    internal procedure CopyGradeConditionsFromDefaultToAllTemplates()
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -264,7 +264,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// Copies the default result conditions into the specified test.
     /// </summary>
     /// <param name="TestCode"></param>
-    procedure CopyResultConditionsFromDefaultToTest(TestCode: Code[20])
+    internal procedure CopyResultConditionsFromDefaultToTest(TestCode: Code[20])
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -366,7 +366,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="MatrixArrayToSetConditionCellData"></param>
     /// <param name="MatrixArrayToSetCaptionSet"></param>
     /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetPromotedResultsForTest(QltyTest: Record "Qlty. Test";
+    internal procedure GetPromotedResultsForTest(QltyTest: Record "Qlty. Test";
         var MatrixSourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;
         var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text;
@@ -394,7 +394,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
     /// <param name="MatrixArrayToSetCaptionSet"></param>
     /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetPromotedResultsForTemplateLine(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    internal procedure GetPromotedResultsForTemplateLine(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         var MatrixArraySourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;
         var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text;
@@ -481,7 +481,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         end;
     end;
 
-    procedure GetPromotedResultsForInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
+    internal procedure GetPromotedResultsForInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyTest: Record "Qlty. Test";
