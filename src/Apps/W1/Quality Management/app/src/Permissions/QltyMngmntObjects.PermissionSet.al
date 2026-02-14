@@ -98,7 +98,6 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Inspection Template Edit" = X,
-        page "Qlty. Manager RC" = X,
         page "Qlty. Test Card" = X,
         page "Qlty. Test Lookup" = X,
         page "Qlty. Tests" = X,
