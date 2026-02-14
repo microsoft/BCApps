@@ -8,6 +8,7 @@ query 37013 "Close Income Source - PBI API"
 {
     Caption = 'Power BI Close Income Statement Source Code';
     QueryType = API;
+    AboutText = 'Provides access to source codes used for closing income statement entries. Enables Power BI reports to identify and filter year-end closing transactions, ensuring accurate income statement reporting by excluding or separately analyzing fiscal year close entries.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

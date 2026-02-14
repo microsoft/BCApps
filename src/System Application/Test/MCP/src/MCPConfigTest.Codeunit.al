@@ -22,6 +22,8 @@ codeunit 130130 "MCP Config Test"
         MCPConfig: Codeunit "MCP Config";
         MCPConfigTestLibrary: Codeunit "MCP Config Test Library";
 
+    #region Configurations
+
     [Test]
     procedure TestCreateConfiguration()
     var
@@ -207,6 +209,10 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
     end;
 
+    #endregion
+
+    #region Tools
+
     [Test]
     procedure TestCreateAPITool()
     var
@@ -275,7 +281,7 @@ codeunit 130130 "MCP Config Test"
         PageMetadata.Get(Page::"Mock API");
 
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
 
         // [THEN] The single version is returned
         Assert.AreEqual('v0.1', HighestVersion, 'Should return the single version');
@@ -291,7 +297,7 @@ codeunit 130130 "MCP Config Test"
         PageMetadata.Get(Page::"Mock API Multi Version");
 
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
 
         // [THEN] The highest version is returned
         Assert.AreEqual('v2.0', HighestVersion, 'Should return v2.0 as highest version');
@@ -384,7 +390,7 @@ codeunit 130130 "MCP Config Test"
 
     [Test]
     [HandlerFunctions('LookupAPIToolsOKHandler')]
-    procedure TestLookupAPITools()
+    procedure TestLookupAPIPageTools()
     var
         PageMetadata: Record "Page Metadata";
         Result: Boolean;
@@ -392,12 +398,30 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] No preselected page
 
         // [WHEN] Lookup API tools is called and a page is selected
-        Result := MCPConfigTestLibrary.LookupAPITools(PageMetadata);
+        Result := MCPConfigTestLibrary.LookupAPIPageTools(PageMetadata);
 
         // [THEN] Correct page is selected
         Assert.IsTrue(Result, 'Result is not true');
         PageMetadata.FindFirst();
         Assert.AreEqual(Page::"Mock API", PageMetadata.ID, 'PageId mismatch');
+    end;
+
+    [Test]
+    [HandlerFunctions('LookupAPIQueryToolsOKHandler')]
+    procedure TestLookupAPIQueryTools()
+    var
+        QueryMetadata: Record "Query Metadata";
+        Result: Boolean;
+    begin
+        // [GIVEN] No preselected query
+
+        // [WHEN] Lookup API query tools is called and a query is selected
+        Result := MCPConfigTestLibrary.LookupAPIQueryTools(QueryMetadata);
+
+        // [THEN] Correct query is selected
+        Assert.IsTrue(Result, 'Result is not true');
+        QueryMetadata.FindFirst();
+        Assert.AreEqual(Query::"Mock API Query", QueryMetadata.ID, 'QueryId mismatch');
     end;
 
     [Test]
@@ -630,6 +654,157 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestCreateQueryAPITool()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, true, false);
+
+        // [WHEN] Create query API tool is called
+        ToolId := MCPConfig.CreateQueryAPITool(ConfigId, Query::"Mock API Query");
+
+        // [THEN] Query API tool is created with correct defaults
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.AreEqual(ConfigId, MCPConfigurationTool.ID, 'ConfigId mismatch');
+        Assert.AreEqual(Query::"Mock API Query", MCPConfigurationTool."Object Id", 'QueryId mismatch');
+        Assert.AreEqual(MCPConfigurationTool."Object Type"::Query, MCPConfigurationTool."Object Type", 'Object Type mismatch');
+        Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read should be true');
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create should be false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify should be false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete should be false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should be false');
+        Assert.AreEqual('v1.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    procedure TestCreateInvalidQueryAPITool()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        // [WHEN] Create query API tool is called with a non-existent query
+        asserterror MCPConfig.CreateQueryAPITool(ConfigId, -1);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Query not found.');
+    end;
+
+    [Test]
+    procedure TestQueryToolDoesNotAllowCreate()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowCreate is called on a query tool
+        MCPConfig.AllowCreate(ToolId, true);
+
+        // [THEN] Allow Create remains false (not applicable for query tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestQueryToolDoesNotAllowModify()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowModify is called on a query tool
+        MCPConfig.AllowModify(ToolId, true);
+
+        // [THEN] Allow Modify remains false (not applicable for query tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestQueryToolDoesNotAllowDelete()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowDelete is called on a query tool
+        MCPConfig.AllowDelete(ToolId, true);
+
+        // [THEN] Allow Delete remains false (not applicable for query tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestQueryToolDoesNotAllowBoundActions()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowBoundActions is called on a query tool
+        MCPConfig.AllowBoundActions(ToolId, true);
+
+        // [THEN] Allow Bound Actions remains false (not applicable for query tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestFindMissingObjectWarningsForQueryTool()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] Warning is created for the query tool with non-existing object
+#pragma warning disable AA0210
+        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+#pragma warning restore AA0210
+        MCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(MCPConfigWarning, 1);
+    end;
+
+    #endregion
+
+    #region Warnings
+
+    [Test]
     procedure TestFindMissingObjectWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -811,6 +986,10 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordIsEmpty(MCPConfigWarning);
     end;
 
+    #endregion
+
+    #region Export/Import
+
     [Test]
     procedure TestExportConfiguration()
     var
@@ -888,6 +1067,10 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordCount(MCPConfigurationTool, 2);
     end;
 
+    #endregion
+
+    #region Helpers
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -918,11 +1101,38 @@ codeunit 130130 "MCP Config Test"
         exit(MCPConfigurationTool.SystemId);
     end;
 
+    local procedure CreateMCPQueryConfigTool(ConfigId: Guid): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Id" := Any.IntegerInRange(1, 100);
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
+        MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."Allow Create" := false;
+        MCPConfigurationTool."Allow Modify" := false;
+        MCPConfigurationTool."Allow Delete" := false;
+        MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
+    end;
+
+    #endregion
+
+    #region Handlers
+
     [ModalPageHandler]
     procedure LookupAPIToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")
     begin
         MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
         MCPAPIConfigToolLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure LookupAPIQueryToolsOKHandler(var MCPQueryConfigToolLookup: TestPage "MCP Query Config Tool Lookup")
+    begin
+        MCPQueryConfigToolLookup.GoToKey(Query::"Mock API Query");
+        MCPQueryConfigToolLookup.OK().Invoke();
     end;
 
     [ModalPageHandler]
@@ -939,4 +1149,6 @@ codeunit 130130 "MCP Config Test"
         MCPToolsByAPIGroup.APIGroup.SetValue('mcp');
         MCPToolsByAPIGroup.OK().Invoke();
     end;
+
+    #endregion
 }

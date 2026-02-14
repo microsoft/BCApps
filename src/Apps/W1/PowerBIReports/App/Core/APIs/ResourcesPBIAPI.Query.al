@@ -11,6 +11,7 @@ query 37070 "Resources - PBI API"
     Access = Internal;
     Caption = 'Power BI Resources';
     QueryType = API;
+    AboutText = 'Provides access to resource master data including names, base units of measure, unit costs, and unit prices. Enables Power BI reports to analyze resource utilization, capacity planning, and project cost structures for service and project management analytics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

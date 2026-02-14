@@ -15,6 +15,7 @@ query 36990 "Prod. Order Routing Lines"
     Access = Internal;
     Caption = 'Power BI Production Order Routing Lines';
     QueryType = API;
+    AboutText = 'Provides access to production order routing line data including capacity needs, operation costs, setup/run/wait/move times, and scheduling dates. Enables Power BI reports to analyze routing efficiency, operation costs, and production scheduling performance.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

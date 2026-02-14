@@ -15,6 +15,7 @@ query 36986 "Item Ledger Entries - Prod."
     Access = Internal;
     Caption = 'Power BI Prod. Item Ledger Entries';
     QueryType = API;
+    AboutText = 'Provides access to item ledger entries for production orders including consumption and output entries, quantities, costs, and locations. Enables Power BI reports to analyze production material consumption, output tracking, and manufacturing inventory movements.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

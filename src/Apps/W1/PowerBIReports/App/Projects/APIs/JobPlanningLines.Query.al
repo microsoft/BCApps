@@ -10,6 +10,7 @@ query 36993 "Job Planning Lines"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project planning line data including planned quantities, costs, prices, line types, and planning dates. Enables Power BI reports to analyze project budgets, resource planning, and schedule forecasts by task and line type.';
     Caption = 'Power BI Project Planning Line';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

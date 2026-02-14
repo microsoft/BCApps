@@ -5,6 +5,7 @@ using Microsoft.Sales.Receivables;
 query 30301 "API Fin - Dtld Cust Ledg Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to detailed customer ledger entries including entry types, amounts, currency codes, and dimension information. Enables external systems to retrieve granular receivables transaction data for payment analysis, customer account reconciliation, and detailed accounts receivable reporting.';
     EntityCaption = 'Detailed Customer Ledger Entry';
     EntityName = 'detailedCustomerLedgerEntry';
     EntitySetName = 'detailedCustomerLedgerEntries';

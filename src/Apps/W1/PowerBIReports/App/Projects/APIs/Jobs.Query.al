@@ -10,6 +10,7 @@ query 36995 Jobs
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project header master data including status, dates, customer billing information, project manager, and completion status. Enables Power BI reports to list and filter projects by various attributes and analyze project lifecycle metrics.';
     Caption = 'Power BI Project';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

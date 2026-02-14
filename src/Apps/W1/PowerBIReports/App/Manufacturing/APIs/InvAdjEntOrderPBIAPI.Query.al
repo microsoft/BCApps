@@ -14,6 +14,7 @@ query 37020 "Inv. Adj. Ent Order - PBI API"
     Access = Internal;
     Caption = 'Power BI Inventory Adjustment Entry Order';
     QueryType = API;
+    AboutText = 'Provides access to inventory adjustment entries for production orders including single-level cost breakdowns for materials, capacity, subcontracting, and overhead. Enables Power BI reports to analyze production order costing, cost component analysis, and manufacturing variance reporting.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

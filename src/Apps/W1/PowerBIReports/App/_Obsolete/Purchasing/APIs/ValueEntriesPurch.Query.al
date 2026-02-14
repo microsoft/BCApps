@@ -11,6 +11,7 @@ query 37000 "Value Entries - Purch."
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to purchase value entries for item purchases including cost amounts, invoiced quantities, and dimension data. This API has been replaced by query 37023 Purch. Value Entries - PBI API.';
     Caption = 'Power BI Purchase Value Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

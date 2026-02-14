@@ -11,6 +11,7 @@ query 36970 "Planning Components"
     Access = Internal;
     Caption = 'Power BI Planning Component Lines';
     QueryType = API;
+    AboutText = 'Provides access to planning component data including item numbers, expected quantities, due dates, and locations. Enables Power BI reports to analyze material planning requirements and forecast component demand from planning worksheets.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

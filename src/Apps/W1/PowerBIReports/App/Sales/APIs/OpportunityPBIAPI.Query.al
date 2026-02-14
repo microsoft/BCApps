@@ -10,6 +10,7 @@ query 37017 "Opportunity - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to CRM opportunity master data including status, sales cycle, priority, campaign, and linked sales documents. Enables Power BI reports to analyze opportunity inventory, conversion success, and campaign effectiveness.';
     Caption = 'Power BI Opportunity';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

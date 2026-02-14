@@ -11,6 +11,7 @@ query 37071 "Sales Cr Project Ledger Entry"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project ledger entries linked to sales credit memos including item sales returns with prices, costs, and dimension data. Enables Power BI reports to analyze project-related sales returns and credit adjustments.';
     Caption = 'Power BI Sales Cr. Project Ledger Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

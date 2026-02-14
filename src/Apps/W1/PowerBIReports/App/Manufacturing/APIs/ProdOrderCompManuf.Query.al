@@ -15,6 +15,7 @@ query 36988 "Prod. Order Comp. - Manuf."
     Access = Internal;
     Caption = 'Power BI Production Order Components';
     QueryType = API;
+    AboutText = 'Provides access to production order component data including expected and remaining quantities, costs, routing links, and due dates. Enables Power BI reports to analyze material requirements, component availability, and flushing method effectiveness for production planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

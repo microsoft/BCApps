@@ -11,6 +11,7 @@ query 36979 "Warehouse Entries"
     Access = Internal;
     Caption = 'Power BI Warehouse Entries';
     QueryType = API;
+    AboutText = 'Provides access to warehouse entry data including item quantities by bin, zone, location, and lot/serial numbers. Enables Power BI reports to analyze bin-level inventory, warehouse stock distribution, and detailed storage location utilization.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

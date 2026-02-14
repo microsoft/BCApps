@@ -11,6 +11,7 @@ query 37014 "G/L Income Statement - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger entries for income statement accounts including revenues and expenses. Enables Power BI reports to analyze profitability, track revenue and cost trends over time, and build income statement reports with dimensional breakdowns for management reporting.';
     Caption = 'Power BI G/L Entries Income Statement';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
