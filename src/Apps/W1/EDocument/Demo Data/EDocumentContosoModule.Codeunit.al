@@ -49,6 +49,6 @@ codeunit 5373 "E-Document Contoso Module" implements "Contoso Demo Data Module"
 
     procedure CreateHistoricalData()
     begin
-
+        Codeunit.Run(Codeunit::"Create E-Doc. Sample Invoices");
     end;
 }

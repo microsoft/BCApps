@@ -32,6 +32,14 @@ page 5377 "E-Document Module Setup"
                 {
                     ToolTip = 'Specifies vendor 3 number to use for the scenarios.';
                 }
+                field("Recurring Expense G/L Acc. No"; Rec."Recurring Expense G/L Acc. No")
+                {
+                    ToolTip = 'Specifies the recurring expense G/L account number to use for the scenarios.';
+                }
+                field("Delivery Expense G/L Acc. No"; Rec."Delivery Expense G/L Acc. No")
+                {
+                    ToolTip = 'Specifies the delivery expense G/L account number to use for the scenarios.';
+                }
             }
         }
     }
