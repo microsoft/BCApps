@@ -31,10 +31,21 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
             FieldClass = FlowField;
             CalcFormula = exist("Billing Line" where("Document Type" = filter(Invoice), "Document No." = field("Document No."), "Document Line No." = field("Line No.")));
         }
+        modify("Deferral Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                if Rec."Deferral Code" <> '' then
+                    if Rec.IsLineAttachedToBillingLine() then
+                        if Rec.CreateContractDeferrals() then
+                            Error(DeferralCodeCannotBeUsedWithContractDeferralsErr);
+            end;
+        }
     }
 
     var
         DimMgt: Codeunit DimensionManagement;
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.';
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
     var
