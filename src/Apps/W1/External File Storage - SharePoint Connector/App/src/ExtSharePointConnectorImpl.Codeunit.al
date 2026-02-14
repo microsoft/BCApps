@@ -5,10 +5,8 @@
 
 namespace System.ExternalFileStorage;
 
-using System.DataAdministration;
-using System.Integration.Sharepoint;
 using System.Text;
-using System.Utilities;
+using System.DataAdministration;
 
 codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage Connector"
 {
@@ -18,8 +16,12 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     Permissions = tabledata "Ext. SharePoint Account" = rimd;
 
     var
+        RestHelper: Codeunit "Ext. SharePoint REST Helper";
+        GraphHelper: Codeunit "Ext. SharePoint Graph Helper";
         ConnectorDescriptionTxt: Label 'Use SharePoint to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+
+    #region File Operations
 
     /// <summary>
     /// Gets a List of Files stored on the provided account.
@@ -30,28 +32,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        SharePointFile: Record "SharePoint File";
-        SharePointClient: Codeunit "SharePoint Client";
-        OrginalPath: Text;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        OrginalPath := Path;
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, SharePointFile) then
-            ShowError(SharePointClient);
-
-        FilePaginationData.SetEndOfListing(true);
-
-        if not SharePointFile.FindSet() then
-            exit;
-
-        repeat
-            TempFileAccountContent.Init();
-            TempFileAccountContent.Name := SharePointFile.Name;
-            TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
-            TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
-            TempFileAccountContent.Insert();
-        until SharePointFile.Next() = 0;
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
+        else
+            RestHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
@@ -62,19 +49,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Stream">The Stream were the file is read to.</param>
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream)
     var
-        SharePointClient: Codeunit "SharePoint Client";
-        Content: HttpContent;
-        TempBlobStream: InStream;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-
-        if not SharePointClient.DownloadFileContentByServerRelativeUrl(Path, TempBlobStream) then
-            ShowError(SharePointClient);
-
-        // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
-        Content.WriteFrom(TempBlobStream);
-        Content.ReadAs(Stream);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.GetFile(SharePointAccount, Path, Stream)
+        else
+            RestHelper.GetFile(SharePointAccount, Path, Stream);
     end;
 
     /// <summary>
@@ -85,17 +66,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Stream">The Stream were the file is read from.</param>
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
     var
-        SharePointFile: Record "SharePoint File";
-        SharePointClient: Codeunit "SharePoint Client";
-        ParentPath, FileName : Text;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        SplitPath(Path, ParentPath, FileName);
-        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, SharePointFile, false) then
-            exit;
-
-        ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.CreateFile(SharePointAccount, Path, Stream)
+        else
+            RestHelper.CreateFile(SharePointAccount, Path, Stream);
     end;
 
     /// <summary>
@@ -106,13 +83,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="TargetPath">The target file path.</param>
     procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
     var
-        TempBlob: Codeunit "Temp Blob";
-        Stream: InStream;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        TempBlob.CreateInStream(Stream);
-
-        GetFile(AccountId, SourcePath, Stream);
-        CreateFile(AccountId, TargetPath, Stream);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.CopyFile(SharePointAccount, SourcePath, TargetPath)
+        else
+            RestHelper.CopyFile(SharePointAccount, SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -123,11 +100,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="TargetPath">The target file path.</param>
     procedure MoveFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
     var
-        Stream: InStream;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        GetFile(AccountId, SourcePath, Stream);
-        CreateFile(AccountId, TargetPath, Stream);
-        DeleteFile(AccountId, SourcePath);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.MoveFile(SharePointAccount, SourcePath, TargetPath)
+        else
+            RestHelper.MoveFile(SharePointAccount, SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -138,16 +117,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <returns>Returns true if the file exists</returns>
     procedure FileExists(AccountId: Guid; Path: Text): Boolean
     var
-        SharePointFile: Record "SharePoint File";
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), SharePointFile) then
-            ShowError(SharePointClient);
-
-        SharePointFile.SetRange(Name, GetFileName(Path));
-        exit(not SharePointFile.IsEmpty());
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            exit(GraphHelper.FileExists(SharePointAccount, Path))
+        else
+            exit(RestHelper.FileExists(SharePointAccount, Path));
     end;
 
     /// <summary>
@@ -157,14 +133,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Path">The file path inside the file account.</param>
     procedure DeleteFile(AccountId: Guid; Path: Text)
     var
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.DeleteFileByServerRelativeUrl(Path) then
-            exit;
-
-        ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.DeleteFile(SharePointAccount, Path)
+        else
+            RestHelper.DeleteFile(SharePointAccount, Path);
     end;
 
     /// <summary>
@@ -176,28 +151,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        SharePointFolder: Record "SharePoint Folder";
-        SharePointClient: Codeunit "SharePoint Client";
-        OrginalPath: Text;
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        OrginalPath := Path;
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, SharePointFolder) then
-            ShowError(SharePointClient);
-
-        FilePaginationData.SetEndOfListing(true);
-
-        if not SharePointFolder.FindSet() then
-            exit;
-
-        repeat
-            TempFileAccountContent.Init();
-            TempFileAccountContent.Name := SharePointFolder.Name;
-            TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
-            TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
-            TempFileAccountContent.Insert();
-        until SharePointFolder.Next() = 0;
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
+        else
+            RestHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
@@ -207,15 +167,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Path">The directory path inside the file account.</param>
     procedure CreateDirectory(AccountId: Guid; Path: Text)
     var
-        SharePointFolder: Record "SharePoint Folder";
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.CreateFolder(Path, SharePointFolder) then
-            exit;
-
-        ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.CreateDirectory(SharePointAccount, Path)
+        else
+            RestHelper.CreateDirectory(SharePointAccount, Path);
     end;
 
     /// <summary>
@@ -226,15 +184,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <returns>Returns true if the directory exists</returns>
     procedure DirectoryExists(AccountId: Guid; Path: Text) Result: Boolean
     var
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-
-        Result := SharePointClient.FolderExistsByServerRelativeUrl(Path);
-
-        if not SharePointClient.GetDiagnostics().IsSuccessStatusCode() then
-            ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            exit(GraphHelper.DirectoryExists(SharePointAccount, Path))
+        else
+            exit(RestHelper.DirectoryExists(SharePointAccount, Path));
     end;
 
     /// <summary>
@@ -244,15 +200,16 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Path">The directory path inside the file account.</param>
     procedure DeleteDirectory(AccountId: Guid; Path: Text)
     var
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.DeleteFolderByServerRelativeUrl(Path) then
-            exit;
-
-        ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        if SharePointAccount."Use Graph API" then
+            GraphHelper.DeleteDirectory(SharePointAccount, Path)
+        else
+            RestHelper.DeleteDirectory(SharePointAccount, Path);
     end;
+
+    #endregion
 
     /// <summary>
     /// Gets the registered accounts for the SharePoint connector.
