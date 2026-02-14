@@ -36,9 +36,12 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
         MatchedCount: Integer;
         TelemetryDimensions: Dictionary of [Text, Text];
         ActivityLogTitleTxt: Label 'Deferral template %1', Comment = '%1 = Deferral template Code';
+        NoDeferralTemplatesTxt: Label 'No Deferral Templates found in the system, skipping AI matching', Locked = true;
     begin
-        if DeferralTemplate.IsEmpty() then
+        if DeferralTemplate.IsEmpty() then begin
+            Session.LogMessage('', NoDeferralTemplatesTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
             exit;
+        end;
 
         if EDocumentAIProcessor.Setup(this) then
             if not EDocumentAIProcessor.Process(CreateUserMessage(Rec), Response) then
