@@ -268,7 +268,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     ///    - Starts with yes/no keywords → Field Type Boolean
     /// 3. Default fallback → Field Type Text
     /// 
-    /// Common usage: Auto-configuration of fields during template import or field creation wizards.
+    /// Common usage: Auto-configuration of fields during template import or field creation setup guides.
     /// </summary>
     /// <param name="Description">The field description text to analyze for type hints</param>
     /// <param name="OptionalValue">Optional sample value to analyze for type detection</param>

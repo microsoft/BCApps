@@ -13,7 +13,7 @@ using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 
-page 20460 "Qlty. Whse. Gen. Rule Wizard"
+page 20460 "Qlty. Whse. Gen. Rule S. Guide"
 {
     Caption = 'Warehouse Movement Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
@@ -694,7 +694,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     end;
 
     /// <summary>
-    /// Start the wizard using this generation rule as a pre-requisite.
+    /// Start the setup guide using this generation rule as a pre-requisite.
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
