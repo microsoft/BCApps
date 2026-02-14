@@ -197,6 +197,9 @@ table 20411 "Qlty. Inspection Result"
         key(Key2; "Evaluation Sequence")
         {
         }
+        key(Key3; "Result Visibility", "Evaluation Sequence")
+        {
+        }
     }
 
     fieldgroups
