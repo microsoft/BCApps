@@ -86,11 +86,11 @@ page 8705 "Table Information Card"
         SetBasedOnCompanyName(Rec.CurrentCompany());
     end;
 
-    local procedure SetBasedOnCompanyName(cn: Text[30])
+    local procedure SetBasedOnCompanyName(cn: Text)
     var
-        Recref: RecordRef;
         DatabaseIndex: Record "Database Index";
         TableMetadata: Record "Table Metadata";
+        Recref: RecordRef;
         TableId: Integer;
     begin
         if Rec.ID <> 0 then
@@ -132,7 +132,7 @@ page 8705 "Table Information Card"
     var
         IndexSizeKB: BigInteger;
         RowCount: Integer;
-        SetCompanyName: Text[30];
+        SetCompanyName: Text;
         SqlServerRestartTime: DateTime;
         PerCompany: Boolean;
 }

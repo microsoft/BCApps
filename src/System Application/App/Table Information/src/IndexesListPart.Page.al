@@ -54,6 +54,8 @@ page 8704 "Indexes List Part"
                 {
                     Caption = 'Fragmentation (%)';
                     ToolTip = 'Specifies the percentage of fragmentation in the index.';
+                    AutoFormatType = 0;
+                    DecimalPlaces = 0;
                 }
                 field("Index size in KB"; Rec."Index Size (KB)")
                 {
@@ -115,10 +117,10 @@ page 8704 "Indexes List Part"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
+        DatabaseIndex: Record "Database Index";
+        KeyRec: Record "Key";
         LinkTableId: Integer;
         PrevFilterGroup: Integer;
-        TempDatabaseIndex: Record "Database Index";
-        KeyRec: Record "Key";
     begin
         // After calling a action this method gets called again, ensure we don't double insert records into the temporary table.
         if Rec.Count() <> 0 then
@@ -134,19 +136,18 @@ page 8704 "Indexes List Part"
         // Combines the indexes from "Database Index" and "Key" virtual tables. "Database Index" contains all indexes currently in the database,
         // including those automatically created by the database engine, while "Key" contains all metadata defined keys.
 
-        TempDatabaseIndex.SetRange(TempDatabaseIndex.TableId, LinkTableId);
-        TempDatabaseIndex.SetRange(TempDatabaseIndex."Company Name", SetCompanyName);
+        DatabaseIndex.SetRange(DatabaseIndex.TableId, LinkTableId);
+        DatabaseIndex.SetRange(DatabaseIndex."Company Name", SetCompanyName);
 
-        if TempDatabaseIndex.FindSet() then begin
+        if DatabaseIndex.FindSet() then
             repeat
-                Rec.TransferFields(TempDatabaseIndex);
+                Rec.TransferFields(DatabaseIndex);
                 Rec.Insert();
-            until TempDatabaseIndex.Next() = 0;
-        end;
+            until DatabaseIndex.Next() = 0;
 
         KeyRec.SetRange(KeyRec.TableNo, LinkTableId);
         KeyRec.SetRange(KeyRec.SQLIndex);
-        if KeyRec.FindSet() then begin
+        if KeyRec.FindSet() then
             repeat
                 if Rec.Get(LinkTableId, KeyRec."Key name", SetCompanyName, KeyRec."Source App ID") then
                     continue;
@@ -155,7 +156,7 @@ page 8704 "Indexes List Part"
 
                 Rec.TableId := KeyRec.TableNo;
                 Rec."Column Names" := KeyRec."Key";
-                Rec."Company Name" := SetCompanyName;
+                Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
                 Rec.Unique := KeyRec.Unique;
                 Rec.Enabled := false;
                 Rec."Metadata Defined" := true;
@@ -164,12 +165,12 @@ page 8704 "Indexes List Part"
 
                 Rec.Insert();
             until KeyRec.Next() = 0;
-        end;
+
 
         exit(Rec.Find(Which));
     end;
 
-    procedure SetCompanyFilter(NewCompanyName: Text[30])
+    procedure SetCompanyFilter(NewCompanyName: Text)
     begin
         SetCompanyName := NewCompanyName;
 
@@ -178,5 +179,5 @@ page 8704 "Indexes List Part"
     end;
 
     var
-        SetCompanyName: Text[30];
+        SetCompanyName: Text;
 }
