@@ -50,6 +50,17 @@ codeunit 20419 "Qlty. Guided Experience"
         MicrosoftLearnDescriptionTxt: Label 'Discover what else you can do in your role. Explore Business Central''s quality capabilities to reach your needs, from manual or automated inspections on Microsoft Learn.';
         MicrosoftLearnLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2198403', Locked = true;
 
+
+    [EventSubscriber(ObjectType::Page, Page::"Qlty. Manager Role Center", 'OnOpenPageEvent', '', false, false)]
+    local procedure InitChecklistOnRoleCenterOpen()
+    var
+        Checklist: Codeunit Checklist;
+    begin
+        Checklist.InitializeGuidedExperienceItems();
+        InitializeChecklistForNonEvaluationCompanies();
+    end;
+
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterGuidedExperienceItem', '', false, false)]
     local procedure OnRegisterGuidedExperienceItem()
     var
@@ -83,7 +94,6 @@ codeunit 20419 "Qlty. Guided Experience"
     var
         Company: Record Company;
         Checklist: Codeunit Checklist;
-        SystemInitialization: Codeunit "System Initialization";
     begin
         if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit;
@@ -95,9 +105,6 @@ codeunit 20419 "Qlty. Guided Experience"
             exit;
 
         Checklist.InitializeGuidedExperienceItems();
-
-        if not SystemInitialization.ShouldCheckSignupContext() then
-            exit;
 
         if not Company."Evaluation Company" then
             InitializeChecklistForNonEvaluationCompanies();
