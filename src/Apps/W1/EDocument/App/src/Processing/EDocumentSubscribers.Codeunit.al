@@ -405,6 +405,7 @@ codeunit 6103 "E-Document Subscribers"
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Service Data Exch. Def.");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Documents Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Data Storage");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Integration Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Log");
