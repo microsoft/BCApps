@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Foundation.Attachment;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 
@@ -70,6 +69,7 @@ page 20404 "Qlty. Inspection Template List"
             action(CreateInspection)
             {
                 Scope = Repeater;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;
@@ -77,7 +77,6 @@ page 20404 "Qlty. Inspection Template List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -139,14 +138,4 @@ page 20404 "Qlty. Inspection Template List"
             }
         }
     }
-
-    var
-        CanCreateInspection: Boolean;
-
-    trigger OnOpenPage()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-    end;
 }

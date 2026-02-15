@@ -30,7 +30,6 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
@@ -67,7 +66,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspection is called with AlwaysCreate set to true
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, CreatedQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
         // [THEN] The function claims an inspection was found or created
@@ -82,7 +81,6 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection has the correct template code
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             CreatedQltyInspectionHeader."Template Code",
@@ -122,8 +120,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(CreatedFirstQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, CreatedFirstQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Always create new inspection"
         QltyManagementSetup.Get();
@@ -138,8 +135,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(CreatedSecondQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, CreatedSecondQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -182,8 +178,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Always create re-inspection"
         QltyManagementSetup.Get();
@@ -196,8 +191,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -240,8 +234,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Create re-inspection if matching inspection is finished"
         QltyManagementSetup.Get();
@@ -253,8 +246,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line when the first inspection is not finished
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -297,8 +289,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Create re-inspection if matching inspection is finished"
         QltyManagementSetup.Get();
@@ -314,8 +305,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line with the first inspection finished
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -358,8 +348,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available"
         QltyManagementSetup.Get();
@@ -375,8 +364,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line with the first inspection finished
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -418,8 +406,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created and left open
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available"
         QltyManagementSetup.Get();
@@ -431,8 +418,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line with the first inspection still open
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -474,8 +460,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, FirstCreatedQltyInspectionHeader);
 
         // [GIVEN] The Inspection Creation Option is set to "Use any existing inspection if available"
         QltyManagementSetup.Get();
@@ -491,8 +476,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(SecondCreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, SecondCreatedQltyInspectionHeader);
 
         QltyManagementSetup."Inspection Creation Option" := PreviousQltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -541,7 +525,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspection is called when no existing inspection exists
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
 
         QltyManagementSetup."Inspection Creation Option" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -584,7 +568,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspectionWithVariant is called with AlwaysCreate set to true
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, false);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, false, CreatedQltyInspectionHeader);
 
         // [THEN] An inspection is claimed to be created
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'An inspection should have been claimed to be created.');
@@ -598,7 +582,6 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection has the correct template code
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
@@ -643,7 +626,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspectionWithVariantAndTemplate is called with specific template code
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [THEN] An inspection is claimed to be created
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'An inspection should have been claimed to be created');
@@ -657,7 +640,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection uses the specified template code
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionHeader.FindFirst();
 
         QltyInspectionGenRule.Delete();
 
@@ -720,8 +703,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with the production output
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '', CreatedQltyInspectionHeader);
 
         QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyInspectionGenRule.Delete();
@@ -792,8 +774,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 2nd variant (ProdOrderRoutingLine) provided
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, '', CreatedQltyInspectionHeader);
         QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
@@ -863,8 +844,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 3rd variant (ProdOrderRoutingLine) provided
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, ProdOrderRoutingLine, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, ProdOrderRoutingLine, ProdOrderLine, false, '', CreatedQltyInspectionHeader);
 
         QltyManagementSetup."Production Order Trigger" := QltyProductionTrigger;
         QltyManagementSetup.Modify();
@@ -938,8 +918,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 4th variant (ProdOrderRoutingLine) provided
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, UnusedVariant3, ProdOrderRoutingLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, UnusedVariant3, ProdOrderRoutingLine, false, '', CreatedQltyInspectionHeader);
 
         QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
@@ -1015,7 +994,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
@@ -1033,7 +1012,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection uses the specified template code
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionHeader.FindFirst();
 
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
@@ -1098,7 +1077,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code (no generation rule scenario)
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
@@ -1115,7 +1094,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection uses the specified template code even without a generation rule
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             QltyInspectionHeader."Template Code",
@@ -1158,7 +1137,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [WHEN] CreateInspectionWithSpecificTemplate is called with the template code
         // [WHEN] CreateInspectionWithSpecificTemplate is called with the template code
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
@@ -1176,7 +1155,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         // [THEN] The created inspection uses the specified template code
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             QltyInspectionHeader."Template Code",
@@ -1198,6 +1177,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdProductionOrder: Record "Production Order";
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         BlankTemplateTok: Label '', Locked = true;
     begin
@@ -1213,7 +1193,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspectionWithSpecificTemplate is called with a non-existent template code
-        asserterror QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, BlankTemplateTok);
+        asserterror QltyInspectionUtility.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, BlankTemplateTok, QltyInspectionHeader);
 
         // [THEN] An error is raised indicating the template cannot be found
         LibraryAssert.ExpectedError(StrSubstNo(CannotFindTemplateErr, Format(ProdOrderRoutingLineRecordRefRecordRef.RecordId())));
@@ -1248,7 +1228,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] FindExistingInspectionWithVariant is called with FindAll=true when no inspections exist
-        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
+        FoundInspection := QltyInspectionUtility.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
 
         QltyInspectionGenRule.Delete();
 
@@ -1283,15 +1263,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created with a re-inspection
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
+        QltyInspectionUtility.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         Clear(FoundQltyInspectionHeader);
 
         // [WHEN] FindExistingInspectionWithVariant is called with FindAll=true
-        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
+        FoundInspection := QltyInspectionUtility.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
         QltyInspectionGenRule.Delete();
 
         // [THEN] Both inspections are found
@@ -1324,7 +1303,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] FindExistingInspectionWithVariant is called with FindAll=false when no inspection exist
-        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
+        FoundInspection := QltyInspectionUtility.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count is zero
@@ -1358,13 +1337,12 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created with a re-inspection
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
+        QltyInspectionUtility.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [WHEN] FindExistingInspectionWithVariant is called with FindAll=false
-        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
+        FoundInspection := QltyInspectionUtility.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
         // [THEN] Only the last created inspection (the re-inspection) is found
@@ -1391,7 +1369,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [WHEN] FindExistingInspectionWithVariant is called when no inspections exist
-        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
+        FoundInspection := QltyInspectionUtility.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count matches the total inspection count
@@ -1419,11 +1397,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created for the production order routing line
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [WHEN] FindExistingInspectionWithVariant is called with the routing line
-        QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
+        QltyInspectionUtility.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
         // [THEN] Exactly one inspection is found with the correct inspection number
@@ -1450,7 +1427,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule.DeleteAll();
 
         // [WHEN] FindExistingInspectionWithVariant is called with ThrowError=true
-        asserterror QltyInspectionCreate.FindExistingInspectionWithVariant(true, ProdOrderRoutingLine, FoundQltyInspectionHeader);
+        asserterror QltyInspectionUtility.FindExistingInspectionWithVariant(true, ProdOrderRoutingLine, FoundQltyInspectionHeader);
 
         // [THEN] An error is raised indicating the template cannot be found
         LibraryAssert.ExpectedError(StrSubstNo(CannotFindTemplateErr, ProdOrderRoutingLine.RecordId()));
@@ -1552,8 +1529,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [GIVEN] An inspection is created with multiple variants from the production output
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '', CreatedQltyInspectionHeader);
 
         // [WHEN] FindExistingInspectionWithMultipleVariants is called with the same variants
         FoundInspection := QltyInspectionUtility.FindExistingInspectionWithMultipleVariants(false, ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, FoundQltyInspectionHeader);
@@ -2053,14 +2029,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created from the production order routing line
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, QltyInspectionHeader);
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'An inspection should have been created');
 
-        // [GIVEN] The created inspection is retrieved
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-
         // [WHEN] CreateReinspection is called with the existing inspection
-        QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
+        QltyInspectionUtility.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
@@ -2084,7 +2057,6 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         ClaimedInspectionWasFoundOrCreated: Boolean;
-        InspectionStillExists: Boolean;
     begin
         // [SCENARIO] Retrieve the most recently created quality inspection
 
@@ -2094,19 +2066,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created from the production order routing line
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false, CreatedQltyInspectionHeader);
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'An inspection should have been created');
 
         // [GIVEN] The last created inspection is found in the database
         QltyInspectionHeader.FindLast();
 
-        // [WHEN] GetCreatedInspection is called to retrieve the most recently created inspection
-        InspectionStillExists := QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
-
         QltyInspectionGenRule.Delete();
 
-        // [THEN] The inspection is confirmed to exist
-        LibraryAssert.IsTrue(InspectionStillExists, 'Inspection should be said to exist.');
         // [THEN] The retrieved inspection has the same inspection number as the last created inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", CreatedQltyInspectionHeader."No.", 'Should get the last created inspection.');
         // [THEN] The retrieved inspection has the same re-inspection number as the last created inspection
@@ -2520,14 +2487,12 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
     local procedure CreateInspectionWithTracking(var PurOrdPurchaseLine: Record "Purchase Line"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
-        QltyInspectionCreate2: Codeunit "Qlty. Inspection - Create";
         PurchaseLineRecordRef: RecordRef;
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate2.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionCreate2.GetCreatedInspection(OutQltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '', OutQltyInspectionHeader);
     end;
 
     local procedure SetupCreateInspectionPurchaseOrder(var OutPurchaseLine: Record "Purchase Line"; var TempOutSpecTrackingSpecification: Record "Tracking Specification" temporary)
