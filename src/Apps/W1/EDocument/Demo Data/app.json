@@ -100,6 +100,11 @@
       "id": "fbc0608c-1393-4e61-8f0a-632e16071cf7",
       "name": "E-Document Core Demo Data FI",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "d3863f87-c213-4b0a-9ee9-e7363215b5e3",
+      "name": "E-Document Core Demo Data AT",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
