@@ -654,7 +654,8 @@ page 20479 "Qlty. Test Card"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction in [Action::OK, Action::LookupOK] then
-            Rec.TestField(Description);
+            if Rec.Code <> '' then
+                Rec.TestField(Description);
         exit(true);
     end;
 
