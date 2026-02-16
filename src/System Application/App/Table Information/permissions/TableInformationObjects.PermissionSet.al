@@ -13,5 +13,7 @@ permissionset 8702 "Table Information - Objects"
     Permissions = codeunit "Table Information Cache" = X,
                   page "Company Size Cache Part" = X,
                   page "Table Information Cache Part" = X,
+                  page "Table Information Card" = X,
+                  page "Indexes List Part" = X,
                   page "Table Information" = X;
 }
