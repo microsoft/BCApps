@@ -218,10 +218,10 @@ report 20401 "Qlty. Certificate of Analysis"
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
                     InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
                     FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
@@ -281,7 +281,7 @@ report 20401 "Qlty. Certificate of Analysis"
                 end;
 
                 FinishedByUserName := CurrentInspection."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -317,6 +317,7 @@ report 20401 "Qlty. Certificate of Analysis"
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

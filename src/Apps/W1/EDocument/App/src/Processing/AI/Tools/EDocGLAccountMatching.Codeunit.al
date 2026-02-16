@@ -112,6 +112,7 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
         UserMessage: JsonArray;
         UserMessageTxt: Text;
     begin
+        if EDocumentPurchaseLine.FindFirst() then;
         EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocumentPurchaseLine."E-Document Entry No.");
         if EDocumentPurchaseHeader.FindFirst() then
             if Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then;

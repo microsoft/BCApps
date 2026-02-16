@@ -9,7 +9,6 @@ using Microsoft.QualityManagement.Setup.ApplicationAreas;
 /// <summary>
 /// Install codeunit.
 /// </summary>
-
 codeunit 20421 "Qlty. Install"
 {
     Subtype = Install;

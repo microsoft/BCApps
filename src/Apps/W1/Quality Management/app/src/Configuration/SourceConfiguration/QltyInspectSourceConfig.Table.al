@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
-using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.Document;
 using System.Reflection;
 
@@ -13,14 +12,14 @@ using System.Reflection;
 /// Multiple tables can be defined because there are conditional filters that make this applicable.
 /// For example, you could have a conditional filter on a warehouse pick line based on the source type or source document type.
 /// When the to type is an inspection, the to table number is automatically associated with an inspection document.
-/// When the to type is a chaintable, that allows chaining multiple tables together.
+/// When the to type is a chained table, that allows linking multiple tables together.
 /// How you can use chained tables:
-///     - grab additional fields for related records:
-///         - example 1 : grab the item no. from the prod order line even though the inspection might be against a prod order routing line.)
+///     - take additional fields for related records:
+///         - example 1 : take the item no. from the prod order line even though the inspection might be against a prod order routing line.)
 ///             (use case being: visibility into seeing the item no., without having to add a flowfield to fetch the item no.)
-///         - example 2 : grab the item category or item attribute from the item card or item attribute card.
+///         - example 2 : take the item category or item attribute from the item card or item attribute card.
 ///             (use case being: we only want to create an inspection when the item attributes or item category is xyz.)
-///         - example 3 : grab the customer card, for customer specific filters.
+///         - example 3 : take the customer card, for customer specific filters.
 ///             (Use case being: we only want this inspection for items made or shipped to a specific customer)
 /// </summary>
 table 20407 "Qlty. Inspect. Source Config."
@@ -29,7 +28,7 @@ table 20407 "Qlty. Inspect. Source Config."
     DrillDownPageId = "Qlty. Ins. Source Config. List";
     LookupPageId = "Qlty. Ins. Source Config. List";
     DataClassification = CustomerContent;
-    Description = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    Description = 'Use this page to configure what will automatically populate from other tables into quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
 
     fields
     {
@@ -153,8 +152,6 @@ table 20407 "Qlty. Inspect. Source Config."
         TheFromAndToCannotBeTheSameErr: Label 'The From Table and To Table cannot refer to the same table.';
         CannotHaveATemplateWithReversedFromAndToErr: Label 'There is another template ''%1'' that reverses the from table and to table. You cannot have this combination to prevent recursive logic. Please change either this source configuration, or please change ''%1''', Comment = '%1=The other template code with conflicting configuration';
         ExistingLinesQst: Label 'There are existing lines that refer to a different table. These lines will need to be reconfigured. Do you want to proceed?';
-        InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
-        BufferTok: Label 'buffer', Locked = true;
 
     trigger OnInsert()
     begin
@@ -222,19 +219,5 @@ table 20407 "Qlty. Inspect. Source Config."
 
         QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         QltyInspectSrcFldConf.ModifyAll("To Table No.", Rec."To Table No.");
-    end;
-
-    internal procedure DetectInterestingConfiguration()
-    begin
-        if Rec."From Table No." <> 0 then begin
-            Rec.CalcFields("From Table Caption");
-            if (Rec."From Table No." in [Database::"Reservation Entry", Database::"Tracking Specification"]) or (Rec."From Table Caption".Contains(BufferTok)) then
-                Error(InterestingDetectionErr);
-        end;
-        if Rec."To Table No." <> 0 then begin
-            Rec.CalcFields("To Table Caption");
-            if (Rec."To Table No." in [Database::"Reservation Entry", Database::"Tracking Specification"]) or (Rec."To Table Caption".Contains(BufferTok)) then
-                Error(InterestingDetectionErr);
-        end;
     end;
 }

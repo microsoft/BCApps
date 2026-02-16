@@ -34,7 +34,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
