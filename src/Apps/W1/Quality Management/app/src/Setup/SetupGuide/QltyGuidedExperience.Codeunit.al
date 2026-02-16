@@ -15,7 +15,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 
-
 codeunit 20419 "Qlty. Guided Experience"
 {
     Access = Internal;
@@ -142,5 +141,4 @@ codeunit 20419 "Qlty. Guided Experience"
             TempAllProfile.Insert();
         end;
     end;
-
 }
