@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument;
 codeunit 139897 "E-Doc. Description Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;
