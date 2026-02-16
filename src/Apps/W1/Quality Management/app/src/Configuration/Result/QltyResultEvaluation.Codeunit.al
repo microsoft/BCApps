@@ -441,9 +441,9 @@ codeunit 20410 "Qlty. Result Evaluation"
         if (ValueToCheck = '') and not (AcceptableValue in ['', '=''''', '<>0']) then
             exit(false);
 
-        TempNumericalQltyInspectionLine."Numeric Value" := ValueAsDecimal;
+        TempNumericalQltyInspectionLine."Derived Numeric Value" := ValueAsDecimal;
         if TempNumericalQltyInspectionLine.Insert(false) then;
-        TempNumericalQltyInspectionLine.SetFilter("Numeric Value", AcceptableValue);
+        TempNumericalQltyInspectionLine.SetFilter("Derived Numeric Value", AcceptableValue);
         exit(not TempNumericalQltyInspectionLine.IsEmpty());
     end;
 
