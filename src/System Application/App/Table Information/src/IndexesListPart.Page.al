@@ -65,25 +65,25 @@ page 8704 "Indexes List Part"
                 field("User seeks"; Rec."User seeks")
                 {
                     Width = 10;
-                    Caption = 'User Seeks';
+                    Caption = 'Seeks';
                     ToolTip = 'Specifies the number of user seeks on this index since the database was last started.';
                 }
                 field("User scans"; Rec."User scans")
                 {
                     Width = 10;
-                    Caption = 'User Scans';
+                    Caption = 'Scans';
                     ToolTip = 'Specifies the number of user scans on this index since the database was last started.';
                 }
                 field("User lookups"; Rec."User lookups")
                 {
                     Width = 10;
-                    Caption = 'User Lookups';
+                    Caption = 'Lookups';
                     ToolTip = 'Specifies the number of user lookups on this index since the database was last started.';
                 }
                 field("User updates"; Rec."User updates")
                 {
                     Width = 10;
-                    Caption = 'User Updates';
+                    Caption = 'Updates';
                     ToolTip = 'Specifies the number of user updates on this index since the database was last started.';
                 }
                 field("Last seek"; Rec."Last seek")
@@ -106,7 +106,7 @@ page 8704 "Indexes List Part"
                     Caption = 'Last Update';
                     ToolTip = 'Specifies the timestamp of the last user update on this index since the database was last started.';
                 }
-                field("Stat updated at"; rec."Statistics rebuild at")
+                field("Stat updated at"; Rec."Statistics rebuild at")
                 {
                     Caption = 'Statistics updated at';
                     ToolTip = 'Specifies the last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
@@ -128,8 +128,10 @@ page 8704 "Indexes List Part"
 
         PrevFilterGroup := Rec.FilterGroup;
         Rec.FilterGroup := 4; // Link group.
-        if not Evaluate(LinkTableId, Rec.GetFilter("TableId")) then
+        if not Evaluate(LinkTableId, Rec.GetFilter("TableId")) then begin
+            Rec.FilterGroup := PrevFilterGroup;
             exit(false);
+        end;
 
         Rec.FilterGroup := PrevFilterGroup;
 

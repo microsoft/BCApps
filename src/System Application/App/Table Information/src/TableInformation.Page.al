@@ -60,7 +60,7 @@ page 8700 "Table Information"
                     var
                         TableMetadata: Record "Table Metadata";
                     begin
-                        TableMetadata.SetRange(ID, rec."Table No.");
+                        TableMetadata.SetRange(ID, Rec."Table No.");
                         Page.Run(Page::"Table Information Card", TableMetadata);
                     end;
                 }

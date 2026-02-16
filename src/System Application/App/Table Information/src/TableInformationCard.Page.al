@@ -18,7 +18,7 @@ page 8705 "Table Information Card"
     AdditionalSearchTerms = 'Database,Size,Storage';
     SourceTable = "Table Metadata";
     Caption = 'Table Data Management - Card';
-    DataCaptionExpression = StrSubstNo('%1 - %2', rec.Name, rec.ID);
+    DataCaptionExpression = StrSubstNo('%1 - %2', Rec.Name, Rec.ID);
     Permissions = tabledata "Table Metadata" = r,
                   tabledata "Database Index" = r;
 
@@ -86,7 +86,7 @@ page 8705 "Table Information Card"
         SetBasedOnCompanyName(Rec.CurrentCompany());
     end;
 
-    local procedure SetBasedOnCompanyName(cn: Text)
+    local procedure SetBasedOnCompanyName(NewCompanyName: Text)
     var
         DatabaseIndex: Record "Database Index";
         TableMetadata: Record "Table Metadata";
@@ -105,8 +105,8 @@ page 8705 "Table Information Card"
             exit;
 
         // By-default show data for the current company.
-        if (TableMetadata.DataPerCompany and (cn <> '')) then begin
-            SetCompanyName := cn;
+        if TableMetadata.DataPerCompany and (NewCompanyName <> '') then begin
+            SetCompanyName := NewCompanyName;
             PerCompany := true;
 
             DatabaseIndex.SetRange(DatabaseIndex."Company Name", SetCompanyName);
