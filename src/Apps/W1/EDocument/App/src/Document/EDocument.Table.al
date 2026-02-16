@@ -297,6 +297,12 @@ table 6121 "E-Document"
             DataClassification = SystemMetadata;
         }
         #endregion
+
+        field(62; Description; Text[250])
+        {
+            Caption = 'Description';
+            ToolTip = 'Specifies a description of the E-Document.';
+        }
     }
     keys
     {
