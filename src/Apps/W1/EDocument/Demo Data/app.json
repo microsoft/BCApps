@@ -95,6 +95,16 @@
       "id": "d0e5f9a1-7b89-5d45-0e0f-6a0a8c4f2e5f",
       "name": "E-Document Core Demo Data (NO)",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "fbc0608c-1393-4e61-8f0a-632e16071cf7",
+      "name": "E-Document Core Demo Data FI",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d3863f87-c213-4b0a-9ee9-e7363215b5e3",
+      "name": "E-Document Core Demo Data AT",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
@@ -122,7 +132,7 @@
     },
     {
       "from": 5428,
-      "to": 5429
+      "to": 5430
     }
   ],
   "resourceExposurePolicy": {
