@@ -4,22 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
@@ -28,7 +21,7 @@ using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 
-codeunit 140007 "Subc. Whse Location Config"
+codeunit 149907 "Subc. Whse Location Config"
 {
     // [FEATURE] Subcontracting - Location Configuration Tests
     Subtype = Test;

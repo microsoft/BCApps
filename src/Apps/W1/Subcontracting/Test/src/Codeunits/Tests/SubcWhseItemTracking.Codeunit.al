@@ -5,20 +5,13 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -26,9 +19,8 @@ using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Setup;
-using Microsoft.Warehouse.Structure;
 
-codeunit 140005 "Subc. Whse Item Tracking"
+codeunit 149905 "Subc. Whse Item Tracking"
 {
     // [FEATURE] Subcontracting Item Tracking Integration Tests
     Subtype = Test;
@@ -563,50 +555,6 @@ codeunit 140005 "Subc. Whse Item Tracking"
         ItemLedgerEntry.FindFirst();
         Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Item Ledger Entry Quantity should match for non-last operation');
         Assert.AreEqual(LotNo, ItemLedgerEntry."Lot No.", 'Item Ledger Entry Lot No. should match for non-last operation');
-    end;
-
-    local procedure VerifyPostedWhseReceiptQuantity(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; ItemNo: Code[20]; ExpectedQuantity: Decimal)
-    var
-        PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
-    begin
-        PostedWhseReceiptLine.SetRange("No.", PostedWhseReceiptHeader."No.");
-        PostedWhseReceiptLine.SetRange("Item No.", ItemNo);
-        Assert.RecordIsNotEmpty(PostedWhseReceiptLine);
-
-        PostedWhseReceiptLine.FindFirst();
-        Assert.AreEqual(ExpectedQuantity, PostedWhseReceiptLine.Quantity,
-            'Posted warehouse receipt line should have correct quantity');
-    end;
-
-    local procedure VerifyItemLedgerEntryForLot(ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal; LocationCode: Code[10])
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-    begin
-        ItemLedgerEntry.SetRange("Item No.", ItemNo);
-        ItemLedgerEntry.SetRange("Lot No.", LotNo);
-        ItemLedgerEntry.SetRange("Location Code", LocationCode);
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        Assert.RecordIsNotEmpty(ItemLedgerEntry);
-
-        ItemLedgerEntry.CalcSums(Quantity);
-        Assert.AreEqual(ExpectedQuantity, ItemLedgerEntry.Quantity,
-            'Item Ledger Entry should have correct quantity for lot ' + LotNo);
-    end;
-
-    local procedure VerifyBinContentsForLot(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal)
-    var
-        BinContent: Record "Bin Content";
-    begin
-        BinContent.SetRange("Location Code", LocationCode);
-        BinContent.SetRange("Bin Code", BinCode);
-        BinContent.SetRange("Item No.", ItemNo);
-        BinContent.SetRange("Lot No. Filter", LotNo);
-        Assert.RecordIsNotEmpty(BinContent);
-
-        BinContent.FindFirst();
-        BinContent.CalcFields(Quantity);
-        Assert.AreEqual(ExpectedQuantity, BinContent.Quantity,
-            'Bin contents should show correct quantity for lot ' + LotNo + ' after put-away posting');
     end;
 
     [ModalPageHandler]

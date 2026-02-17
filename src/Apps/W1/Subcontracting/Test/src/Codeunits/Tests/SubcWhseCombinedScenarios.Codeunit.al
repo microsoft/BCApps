@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -24,7 +23,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 
-codeunit 140006 "Subc. Whse Combined Scenarios"
+codeunit 149906 "Subc. Whse Combined Scenarios"
 {
     // [FEATURE] Subcontracting Warehouse Combined Scenarios Tests
     Subtype = Test;
@@ -172,7 +171,9 @@ codeunit 140006 "Subc. Whse Combined Scenarios"
         Assert.RecordCount(WarehouseReceiptLine, 2);
 
         // [THEN] Verify Data Consistency: Identify intermediate and last operation lines
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", WarehouseReceiptLine."Subc. Purchase Line Type"::NotLastOperation);
+#pragma warning restore AA0210
         Assert.RecordCount(WarehouseReceiptLine, 1);
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual(Item."No.", WarehouseReceiptLine."Item No.", 'Intermediate operation line should have correct item');
@@ -181,7 +182,9 @@ codeunit 140006 "Subc. Whse Combined Scenarios"
         Assert.AreEqual(0, WarehouseReceiptLine."Qty. (Base)", 'NotLastOperation should have zero Qty. (Base)');
         Assert.AreEqual(0, WarehouseReceiptLine."Qty. per Unit of Measure", 'NotLastOperation should have zero Qty. per UoM');
 
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
+#pragma warning restore AA0210
         Assert.RecordCount(WarehouseReceiptLine, 1);
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual(Item."No.", WarehouseReceiptLine."Item No.", 'Last operation line should have correct item');
@@ -482,18 +485,6 @@ codeunit 140006 "Subc. Whse Combined Scenarios"
         VerifyLedgerEntriesForGetSourceDocuments(Item."No.", Location.Code);
     end;
 
-    local procedure VerifyPurchaseLineQuantityBase(PurchaseLine: Record "Purchase Line")
-    begin
-        //Check real quantity base
-        if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::LastOperation then begin
-            Assert.IsTrue(PurchaseLine."Quantity (Base)" > 0, 'LastOperation Purchase Line should have Quantity (Base) > 0');
-            Assert.IsTrue(PurchaseLine."Qty. per Unit of Measure" > 0, 'LastOperation Purchase Line should have Qty. per UoM > 0');
-        end else begin
-            Assert.AreEqual(0, PurchaseLine."Quantity (Base)", 'NotLastOperation Purchase Line should have zero Quantity (Base)');
-            Assert.AreEqual(0, PurchaseLine."Qty. per Unit of Measure", 'NotLastOperation Purchase Line should have zero Qty. per UoM');
-        end;
-    end;
-
     local procedure VerifyWarehouseReceiptLineDetails(WarehouseReceiptLine: Record "Warehouse Receipt Line"; Item: Record Item; PurchaseHeaderNo: Code[20])
     begin
         Assert.AreEqual(Item."No.", WarehouseReceiptLine."Item No.", 'Warehouse Receipt Line should have correct item');
@@ -574,50 +565,6 @@ codeunit 140006 "Subc. Whse Combined Scenarios"
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.SetRange("Location Code", LocationCode);
         Assert.RecordIsNotEmpty(ItemLedgerEntry);
-    end;
-
-    local procedure VerifyPostedWhseReceiptQuantity(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; ItemNo: Code[20]; ExpectedQuantity: Decimal)
-    var
-        PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
-    begin
-        PostedWhseReceiptLine.SetRange("No.", PostedWhseReceiptHeader."No.");
-        PostedWhseReceiptLine.SetRange("Item No.", ItemNo);
-        Assert.RecordIsNotEmpty(PostedWhseReceiptLine);
-
-        PostedWhseReceiptLine.FindFirst();
-        Assert.AreEqual(ExpectedQuantity, PostedWhseReceiptLine.Quantity,
-            'Posted warehouse receipt line should have correct quantity');
-    end;
-
-    local procedure VerifyItemLedgerEntryForLot(ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal; LocationCode: Code[10])
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-    begin
-        ItemLedgerEntry.SetRange("Item No.", ItemNo);
-        ItemLedgerEntry.SetRange("Lot No.", LotNo);
-        ItemLedgerEntry.SetRange("Location Code", LocationCode);
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        Assert.RecordIsNotEmpty(ItemLedgerEntry);
-
-        ItemLedgerEntry.CalcSums(Quantity);
-        Assert.AreEqual(ExpectedQuantity, ItemLedgerEntry.Quantity,
-            'Item Ledger Entry should have correct quantity for lot ' + LotNo);
-    end;
-
-    local procedure VerifyBinContentsForLot(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal)
-    var
-        BinContent: Record "Bin Content";
-    begin
-        BinContent.SetRange("Location Code", LocationCode);
-        BinContent.SetRange("Bin Code", BinCode);
-        BinContent.SetRange("Item No.", ItemNo);
-        BinContent.SetRange("Lot No. Filter", LotNo);
-        Assert.RecordIsNotEmpty(BinContent);
-
-        BinContent.FindFirst();
-        BinContent.CalcFields(Quantity);
-        Assert.AreEqual(ExpectedQuantity, BinContent.Quantity,
-            'Bin contents should show correct quantity for lot ' + LotNo + ' after put-away posting');
     end;
 
     [ModalPageHandler]

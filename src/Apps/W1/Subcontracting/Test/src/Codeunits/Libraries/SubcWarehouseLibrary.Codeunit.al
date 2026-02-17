@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -30,7 +28,7 @@ using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
 
-codeunit 140008 "Subc. Warehouse Library"
+codeunit 149908 "Subc. Warehouse Library"
 {
     // [FEATURE] Subcontracting Warehouse Test Library
     // Consolidated data creation functions for warehouse tests to avoid code duplication
@@ -55,14 +53,10 @@ codeunit 140008 "Subc. Warehouse Library"
         Location: Record Location;
         Vendor1: Record Vendor;
         Vendor2: Record Vendor;
-        ShopCalendarCode: Code[10];
-        MachineCenterNo: Code[20];
-        MachineCenterNo2: Code[20];
         WorkCenterNo: Code[20];
-        WorkCenterNo2: Code[20];
     begin
         LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+        LibraryManufacturing.UpdateShopCalendarWorkingDays();
 
         if Subcontracting then begin
             LibraryPurchase.CreateSubcontractor(Vendor1);
@@ -85,15 +79,12 @@ codeunit 140008 "Subc. Warehouse Library"
         // Create machine centers
         LibraryManufacturing.CreateMachineCenterWithCalendar(
             MachineCenter[1], WorkCenterNo, LibraryRandom.RandDec(10, 1));
-        MachineCenterNo := MachineCenter[1]."No.";
 
         LibraryManufacturing.CreateMachineCenterWithCalendar(
             MachineCenter[2], WorkCenterNo, LibraryRandom.RandDec(10, 1));
-        MachineCenterNo2 := MachineCenter[2]."No.";
 
         // Create second work center
         SubcLibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter[2], LibraryRandom.RandDec(10, 2));
-        WorkCenterNo2 := WorkCenter[2]."No.";
 
         if Subcontracting then begin
             WorkCenter[2]."Subcontractor No." := Vendor2."No.";
@@ -105,14 +96,10 @@ codeunit 140008 "Subc. Warehouse Library"
     var
         CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         Vendor: Record Vendor;
-        ShopCalendarCode: Code[10];
-        MachineCenterNo: Code[20];
-        MachineCenterNo2: Code[20];
         WorkCenterNo: Code[20];
-        WorkCenterNo2: Code[20];
     begin
         LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+        LibraryManufacturing.UpdateShopCalendarWorkingDays();
 
         // Create single vendor for both work centers
         if Subcontracting then
@@ -130,15 +117,12 @@ codeunit 140008 "Subc. Warehouse Library"
         // Create machine centers for first work center
         LibraryManufacturing.CreateMachineCenterWithCalendar(
             MachineCenter[1], WorkCenterNo, LibraryRandom.RandDec(10, 1));
-        MachineCenterNo := MachineCenter[1]."No.";
 
         LibraryManufacturing.CreateMachineCenterWithCalendar(
             MachineCenter[2], WorkCenterNo, LibraryRandom.RandDec(10, 1));
-        MachineCenterNo2 := MachineCenter[2]."No.";
 
         // Create second work center with same vendor
         SubcLibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter[2], LibraryRandom.RandDec(10, 2));
-        WorkCenterNo2 := WorkCenter[2]."No.";
 
         if Subcontracting then begin
             WorkCenter[2]."Subcontractor No." := Vendor."No.";
@@ -531,8 +515,6 @@ codeunit 140008 "Subc. Warehouse Library"
     end;
 
     local procedure EnsurePutAwayWorksheetTemplate(var WhseWorksheetTemplate: Record "Whse. Worksheet Template")
-    var
-        LibraryUtility: Codeunit "Library - Utility";
     begin
         // Try to find existing put-away template
         WhseWorksheetTemplate.SetRange(Type, WhseWorksheetTemplate.Type::"Put-away");
@@ -553,14 +535,10 @@ codeunit 140008 "Subc. Warehouse Library"
     procedure GetWarehouseDocumentsForPutAwayWorksheet(WhseWorksheetTemplateName: Code[10]; WhseWorksheetName: Record "Whse. Worksheet Name"; LocationCode: Code[10])
     var
         WhsePutAwayRequest: Record "Whse. Put-away Request";
-        WhseWorksheetLine: Record "Whse. Worksheet Line";
     begin
         WhsePutAwayRequest.SetRange("Completely Put Away", false);
         WhsePutAwayRequest.SetRange("Location Code", LocationCode);
         LibraryWarehouse.GetInboundSourceDocuments(WhsePutAwayRequest, WhseWorksheetName, LocationCode);
-        WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetTemplateName);
-        WhseWorksheetLine.SetRange(Name, WhseWorksheetName.Name);
-        WhseWorksheetLine.FindFirst();
     end;
 
     procedure CreatePutAwayFromWorksheet(WhseWorksheetName: Record "Whse. Worksheet Name"; var WarehouseActivityHeader: Record "Warehouse Activity Header")

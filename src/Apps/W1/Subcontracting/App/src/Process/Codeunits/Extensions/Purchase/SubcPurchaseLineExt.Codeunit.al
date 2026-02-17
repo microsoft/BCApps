@@ -7,8 +7,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Utilities;
 using Microsoft.Purchases.Document;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 
 codeunit 99001534 "Subc. Purchase Line Ext"
@@ -97,7 +97,8 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure CheckOverDeliveryQty(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line")
     var
         QtyMismatchTitleLbl: Label 'Quantity Mismatch';
-        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the specified quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %2 to at least match the quantity on %4. You can adjust the quantity from %5 to %6 by using the action below.';
+        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the specified quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %2 to at least match the quantity on %4. You can adjust the quantity from %5 to %6 by using the action below.',
+        Comment = '%1 = PurchaseLine Outstanding Qty, %2 = Tablecaption PurchaseLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Qty, %6 = New PurchaseLine Qty';
         ShowProductionOrderActionLbl: Label 'Show Prod. Order';
         AdjustQtyActionLbl: Label 'Adjust Quantity';
         OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
@@ -164,7 +165,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
         PageManagement: Codeunit "Page Management";
-        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.';
+        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
     begin
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.");

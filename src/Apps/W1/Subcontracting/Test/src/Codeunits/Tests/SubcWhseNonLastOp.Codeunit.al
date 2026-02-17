@@ -4,9 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -14,9 +12,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -24,12 +19,11 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
-using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
 
-codeunit 140003 "Subc. Whse Non-Last Op."
+codeunit 149903 "Subc. Whse Non-Last Op."
 {
     // [FEATURE] Subcontracting Warehouse Non-Last Operation Tests
     Subtype = Test;
@@ -407,6 +401,7 @@ codeunit 140003 "Subc. Whse Non-Last Op."
             WhseWorksheetTemplate.Name, WhseWorksheetName, Location.Code);
 
         // [THEN] Verify put-away creation is prevented (worksheet method) - either errors or no lines created
+        Assert.IsTrue(WorksheetPutAwayPrevented, 'Put-away should not be created for non-last operation via Put-away Worksheet');
         WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetName."Worksheet Template Name");
         WhseWorksheetLine.SetRange(Name, WhseWorksheetName.Name);
         WhseWorksheetLine.SetRange("Location Code", Location.Code);

@@ -61,7 +61,6 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     var
         OutstandingQtyBase: Decimal;
         WhseOutstandingQtyBase: Decimal;
-        QtyPerUoM: Decimal;
     begin
         case PurchaseLine."Subc. Purchase Line Type" of
             "Subc. Purchase Line Type"::None:
@@ -155,7 +154,8 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
         QtyMismatchTitleLbl: Label 'Quantity Mismatch';
-        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.';
+        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.',
+        Comment = '%1 = Warehouse Receipt Line Quantity, %2 = Tablecaption WarehouseReceiptLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Quantity, %6 = WarehouseReceiptLine Quantity';
         ShowProductionOrderActionLbl: Label 'Show Prod. Order';
         AdjustQtyActionLbl: Label 'Adjust Quantity';
         OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
@@ -199,7 +199,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
         PageManagement: Codeunit "Page Management";
-        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.';
+        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
     begin
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.");

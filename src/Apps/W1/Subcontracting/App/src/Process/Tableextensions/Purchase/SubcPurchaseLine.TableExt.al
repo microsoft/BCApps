@@ -120,7 +120,6 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         Item: Record Item;
         UOMMgt: Codeunit "Unit of Measure Management";
         QtyPerUoM: Decimal;
-        QtyToCompare: Decimal;
     begin
         Testfield(Type, "Purchase Line Type"::Item);
         Item.Get(Rec."No.");

@@ -7,26 +7,19 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
-using Microsoft.Warehouse.InternalDocument;
-using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
 
-codeunit 140004 "Subc. Whse Put-Away Worksheet"
+codeunit 149904 "Subc. Whse Put-Away Worksheet"
 {
     // [FEATURE] Subcontracting Warehouse Put-away Worksheet Tests
     Subtype = Test;

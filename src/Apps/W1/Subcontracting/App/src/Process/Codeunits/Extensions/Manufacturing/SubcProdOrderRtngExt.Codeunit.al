@@ -86,10 +86,9 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     begin
         if RunTrigger then
             if ProdOrderRoutingLine.Status = ProdOrderRoutingLine.Status::Released then
-                if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
+                if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
                     if WorkCenter.Get(ProdOrderRoutingLine."No.") then
                         if (ProdOrderRoutingLine."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
                             SubcontractingManagement.DelLocationLinkedComponents(ProdOrderRoutingLine, false);
-                end;
     end;
 }

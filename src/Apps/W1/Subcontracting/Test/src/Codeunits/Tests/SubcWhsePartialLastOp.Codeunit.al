@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
@@ -14,10 +13,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -27,7 +22,7 @@ using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 
-codeunit 140002 "Subc. Whse Partial Last Op"
+codeunit 149902 "Subc. Whse Partial Last Op"
 {
     // [FEATURE] Subcontracting Warehouse Partial Posting - Last Operation Tests
     Subtype = Test;
@@ -285,8 +280,6 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         FirstReceiptQty: Decimal;
         SecondPutAwayQty: Decimal;
         SecondReceiptQty: Decimal;
-        ThirdPutAwayQty: Decimal;
-        ThirdReceiptQty: Decimal;
         TotalQuantity: Decimal;
     begin
         // [SCENARIO] Post single order in multiple partial steps until full quantity processed for Last Operation
@@ -297,11 +290,9 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         TotalQuantity := LibraryRandom.RandIntInRange(30, 60);
         FirstReceiptQty := Round(TotalQuantity * 0.3, 1);
         SecondReceiptQty := Round(TotalQuantity * 0.4, 1);
-        ThirdReceiptQty := TotalQuantity - FirstReceiptQty - SecondReceiptQty;
 
         FirstPutAwayQty := Round(FirstReceiptQty * 0.5, 1);
         SecondPutAwayQty := FirstReceiptQty - FirstPutAwayQty;
-        ThirdPutAwayQty := SecondReceiptQty;
 
         // [GIVEN] Create Work Centers and Machine Centers with Subcontracting
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
@@ -416,7 +407,6 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         LotNo2: Code[50];
         PartialQtyLot1: Decimal;
         PartialQtyLot2: Decimal;
-        PartialQtyToReceive: Decimal;
         TotalQuantity: Decimal;
         WarehouseReceiptPage: TestPage "Warehouse Receipt";
     begin
@@ -428,7 +418,6 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         TotalQuantity := LibraryRandom.RandIntInRange(30, 60);
         PartialQtyLot1 := Round(TotalQuantity * 0.3, 1);
         PartialQtyLot2 := Round(TotalQuantity * 0.3, 1);
-        PartialQtyToReceive := Round(TotalQuantity * 0.4, 1);
 
         // [GIVEN] Create Work Centers and Machine Centers with Subcontracting
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
@@ -528,7 +517,7 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         VerifyWarehouseActivityLineForLot(WarehouseActivityHeader, LotNo2, PartialQtyLot2);
 
         // [THEN] Verify: Remaining quantity on Warehouse Receipt is correct
-        WarehouseReceiptHeader.Find();
+        WarehouseReceiptHeader.Get(WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual(TotalQuantity - PartialQtyLot1 - PartialQtyLot2, WarehouseReceiptLine."Qty. Outstanding",
@@ -613,20 +602,6 @@ codeunit 140002 "Subc. Whse Partial Last Op"
             'Warehouse Activity Line should have correct quantity for lot ' + LotNo);
     end;
 
-    local procedure VerifyReservationEntryQuantityForLot(ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal)
-    var
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        ReservationEntry.SetRange("Item No.", ItemNo);
-        ReservationEntry.SetRange("Lot No.", LotNo);
-        ReservationEntry.SetFilter("Quantity (Base)", '<>0');
-        Assert.RecordIsNotEmpty(ReservationEntry);
-
-        ReservationEntry.CalcSums("Quantity (Base)");
-        Assert.AreEqual(ExpectedQuantity, Abs(ReservationEntry."Quantity (Base)"),
-            'Reservation Entry should have correct quantity for lot ' + LotNo);
-    end;
-
     local procedure VerifyPostedWhseReceiptQuantity(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; ItemNo: Code[20]; ExpectedQuantity: Decimal)
     var
         PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
@@ -640,21 +615,6 @@ codeunit 140002 "Subc. Whse Partial Last Op"
             'Posted warehouse receipt line should have correct quantity');
     end;
 
-    local procedure VerifyItemLedgerEntryForLot(ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal; LocationCode: Code[10])
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-    begin
-        ItemLedgerEntry.SetRange("Item No.", ItemNo);
-        ItemLedgerEntry.SetRange("Lot No.", LotNo);
-        ItemLedgerEntry.SetRange("Location Code", LocationCode);
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        Assert.RecordIsNotEmpty(ItemLedgerEntry);
-
-        ItemLedgerEntry.CalcSums(Quantity);
-        Assert.AreEqual(ExpectedQuantity, ItemLedgerEntry.Quantity,
-            'Item Ledger Entry should have correct quantity for lot ' + LotNo);
-    end;
-
     local procedure VerifyBinContentsForLot(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQuantity: Decimal)
     var
         BinContent: Record "Bin Content";
@@ -662,7 +622,9 @@ codeunit 140002 "Subc. Whse Partial Last Op"
         BinContent.SetRange("Location Code", LocationCode);
         BinContent.SetRange("Bin Code", BinCode);
         BinContent.SetRange("Item No.", ItemNo);
+#pragma warning disable AA0210
         BinContent.SetRange("Lot No. Filter", LotNo);
+#pragma warning restore AA0210
         Assert.RecordIsNotEmpty(BinContent);
 
         BinContent.FindFirst();
