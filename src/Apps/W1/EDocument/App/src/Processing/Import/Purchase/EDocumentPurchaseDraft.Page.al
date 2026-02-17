@@ -272,7 +272,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(ErrorMessagesFactBox; "Error Messages Part")
             {
-                Visible = false;
+                Visible = HasErrorsOrWarnings;
                 ShowFilter = false;
                 UpdatePropagation = Both;
             }
@@ -521,7 +521,7 @@ page 6181 "E-Document Purchase Draft"
         SetPageCaption();
 
         Rec.CalcFields("Import Processing Status");
-        ShowFinalizeDraftAction := Rec."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Draft Ready";
+        ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);
