@@ -1723,5 +1723,15 @@
     "codeunitId": 134922,
     "codeunitName": "ERM Budget",
     "method": "GLBudgetEntriesLookupBudgetDimension4"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T021_SalesPriceListCopyLinesAsNewToWorksheet"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T022_SalesPriceListCopyLinesAsNewToWorksheetForceDefaults"
   }
 ]

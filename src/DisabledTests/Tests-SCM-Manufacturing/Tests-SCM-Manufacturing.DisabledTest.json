@@ -1338,5 +1338,10 @@
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
     "method": "WhsePickRequestUpdatedOnUpdatingProdOrderCompLine"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "CalculateWaitingTimeIncludingWeekendWithMultipleCalendars"
   }
 ]

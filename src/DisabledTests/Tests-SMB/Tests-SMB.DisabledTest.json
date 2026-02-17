@@ -183,5 +183,10 @@
     "codeunitId": 139126,
     "codeunitName": "O365 Activites Tests",
     "method": "DrillDownSalesThisMonth"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestSuccessfulInvoicePremappingWithVendorDataFromIncomingDocument"
   }
 ]

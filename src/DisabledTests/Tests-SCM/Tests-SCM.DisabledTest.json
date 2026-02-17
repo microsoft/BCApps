@@ -3763,5 +3763,130 @@
     "codeunitId": 137075,
     "method": "CheckLotForLotItemPlanningWorksheetAction",
     "codeunitName": "SCM Planning Order Tracking"
+  },
+  {
+    "codeunitId": 134783,
+    "codeunitName": "Test Whse. Rcpt. Post Prev.",
+    "method": "CheckTransferOrderPostingWithLotItemAndUpdatingExpirationDate"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveOnTransferOrderFromProdOrderComponentAvailableLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveOnTransferOrderFromProdOrderComponentAvailableSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveLotNoOnTransferOrderFromConsumption"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveSerialNoOnTransferOrderFromConsumption"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "DemandSupplyOnMultipleLocationsWithPlanningForProductionLocation"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "DemandFourSuppliesWithMaxOrderQtyFirstTwoSameDueDateLastTwoLessDueDateAndLastLessQty"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMaxOrderQtyFirstSameDueDateLastTwoLessDueDate"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMaxOrderQtyFirstSameDueDateLastTwoLessDueDateAndLessQty"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMinMaxOrderQtyLotAccumPeriodSetLessQtyFirstSameDueDate"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMinMaxOrderQtyLotAccumPeriodNotSetLessQtyFirstSameDueLessQty"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMaxOrderQtyLotAccumPeriodSetSameQtySameDueDate"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "ThreeDemandsThreeSuppliesWithMaxOrderQtyLotAccumPeriodNotSetSameQtySameDueDate"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnReleasedProdOrderWithRequisitionLine"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithVariant"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithoutVariant"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnPurchaseWithLocation"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithLocation"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnSalesWithVariant"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithLocationAndWithoutVariant"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithVariantAndLocation"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnProdOrderComponentWithUpdatedVariant"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnFirmPlannedProdOrder"
+  },
+  {
+    "codeunitId": 137066,
+    "codeunitName": "SCM Order Tracking",
+    "method": "OrderTrackingOnReleasedProdOrderForFirmPlannedProdOrder"
+  },
+  {
+    "codeunitId": 137152,
+    "codeunitName": "SCM Warehouse - Receiving",
+    "method": "CreateMovementFromMovementWorksheetWithExpirationDateOfFEFOItem"
   }
 ]
