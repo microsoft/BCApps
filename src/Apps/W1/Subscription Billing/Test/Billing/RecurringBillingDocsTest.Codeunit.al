@@ -1359,6 +1359,41 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure TestBillingDocumentWithZeroQuantity()
+    begin
+        // [SCENARIO] Billing documents are created with quantity 0 and amount 0 when subscription quantity is 0
+        Initialize();
+
+        // [GIVEN] Create customer contract with subscription and set quantity to 0
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [WHEN] Create billing proposal and billing documents
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.SetRange("Document No.", '');
+        if not BillingLine.IsEmpty() then begin
+            CreateBillingDocuments(false);
+
+            // [THEN] Sales line is created with quantity 0
+            BillingLine.SetFilter("Document No.", '<>%1', '');
+            if BillingLine.FindFirst() then begin
+                SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.");
+                SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+                SalesLine.SetRange("Document No.", SalesHeader."No.");
+                SalesLine.FindFirst();
+                Assert.AreEqual(0, SalesLine.Quantity, 'Sales Line quantity should be 0.');
+                Assert.AreEqual(0, SalesLine."Line Amount", 'Sales Line amount should be 0.');
+            end;
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,CreateBillingDocumentPageHandler')]
     procedure TestBillingLineOnCreateSinglePurchaseDocument()
     var
