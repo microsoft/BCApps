@@ -311,7 +311,6 @@ page 6121 "E-Document"
                     Caption = 'View file';
                     ToolTip = 'View the source file.';
                     Image = ViewDetails;
-                    Visible = NewEDocumentExperienceActive;
 
                     trigger OnAction()
                     begin
@@ -501,14 +500,11 @@ page 6121 "E-Document"
     }
 
     trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
     begin
         ShowMapToOrder := false;
         HasErrorsOrWarnings := false;
         HasErrors := false;
         IsProcessed := false;
-        NewEDocumentExperienceActive := EDocumentsSetup.IsNewEDocumentExperienceActive();
 
         if Rec."Entry No" <> 0 then
             Rec.SetRecFilter(); // Filter the record to only this instance to avoid navigation 
@@ -639,7 +635,6 @@ page 6121 "E-Document"
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentHelper: Codeunit "E-Document Processing";
         ErrorsAndWarningsNotification: Notification;
-        NewEDocumentExperienceActive: Boolean;
         ShowClearanceInfo: Boolean;
         RecordLinkTxt, StyleStatusTxt : Text;
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;
