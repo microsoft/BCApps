@@ -380,16 +380,16 @@ codeunit 149908 "Subc. Warehouse Library"
     var
         PurchaseLine: Record "Purchase Line";
         RequisitionLine: Record "Requisition Line";
-        SubMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         CalculateSubContract: Report "Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
     begin
         // Get worksheet template and batch from setup
-        SubMgmtSetup.Get();
+        ManufacturingSetup.Get();
 
         // Initialize requisition line for the Calculate Subcontracts report
-        RequisitionLine."Worksheet Template Name" := SubMgmtSetup."Subcontracting Template Name";
-        RequisitionLine."Journal Batch Name" := SubMgmtSetup."Subcontracting Batch Name";
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
 
         // Calculate subcontracting lines to fill the worksheet
         CalculateSubContract.SetWkShLine(RequisitionLine);
@@ -397,8 +397,8 @@ codeunit 149908 "Subc. Warehouse Library"
         CalculateSubContract.RunModal();
 
         // Find requisition lines for the production order
-        RequisitionLine.SetRange("Worksheet Template Name", SubMgmtSetup."Subcontracting Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", SubMgmtSetup."Subcontracting Batch Name");
+        RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", ManufacturingSetup."Subcontracting Batch Name");
 #pragma warning disable AA0210
         RequisitionLine.SetRange("Prod. Order No.", ProductionOrderNo);
 #pragma warning restore AA0210

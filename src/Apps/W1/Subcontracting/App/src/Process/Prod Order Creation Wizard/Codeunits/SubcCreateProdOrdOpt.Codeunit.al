@@ -632,17 +632,17 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
     begin
-        GetSubManagementSetupCached();
-        SubcManagementSetup.TestField("Rtng. Link Code Purch. Prov.");
-        SubcManagementSetup.TestField("Component at Location");
-        SubcManagementSetup.TestField("Preset Component Item No.");
-        SubcManagementSetup.TestField("Common Work Center No.");
-
         ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Rtng. Link Code Purch. Prov.");
+        ManufacturingSetup.TestField("Subc. Comp. at Location");
+
         ManufacturingSetup.TestField("Released Order Nos.");
-        ManufacturingSetup.TestField("Planned Order Nos.");
         ManufacturingSetup.TestField("Production BOM Nos.");
         ManufacturingSetup.TestField("Routing Nos.");
+
+        GetSubManagementSetupCached();
+        SubcManagementSetup.TestField("Preset Component Item No.");
+        SubcManagementSetup.TestField("Common Work Center No.");
 
         Vendor.Get(PurchaseLine."Buy-from Vendor No.");
         Vendor.TestField("Subcontr. Location Code");

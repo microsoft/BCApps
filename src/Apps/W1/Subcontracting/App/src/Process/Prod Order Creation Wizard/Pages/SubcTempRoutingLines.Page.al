@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 
 page 99001507 "Subc. Temp Routing Lines"
 {
@@ -79,15 +80,26 @@ page 99001507 "Subc. Temp Routing Lines"
     begin
         Rec."Routing No." := xRec."Routing No.";
         Rec."Version Code" := xRec."Version Code";
+        GetManufacturingSetup();
         if Rec."Version Code" = '' then
-            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+            Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
     end;
+
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ManufacturingSetupRead: Boolean;
 
     procedure SetTemporaryRecords(var TempRoutingLine: Record "Routing Line" temporary)
     begin
         Rec.Copy(TempRoutingLine, true);
     end;
 
-    var
-        SubcManagementSetup: Record "Subc. Management Setup";
+    local procedure GetManufacturingSetup()
+    begin
+        if not ManufacturingSetupRead then begin
+            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.Get();
+            ManufacturingSetupRead := true;
+        end;
+    end;
 }
