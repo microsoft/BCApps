@@ -48,17 +48,17 @@ codeunit 149909 "Subc. Whse Data Integrity"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Data Integrity");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Data Integrity");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

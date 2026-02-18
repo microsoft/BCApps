@@ -62,17 +62,18 @@ codeunit 149902 "Subc. Whse Partial Last Op"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Partial Last Op");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Partial Last Op");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
+
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

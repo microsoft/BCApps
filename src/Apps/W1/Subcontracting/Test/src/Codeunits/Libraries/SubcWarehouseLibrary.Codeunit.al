@@ -34,6 +34,7 @@ codeunit 149908 "Subc. Warehouse Library"
     // Consolidated data creation functions for warehouse tests to avoid code duplication
 
     var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
@@ -286,6 +287,7 @@ codeunit 149908 "Subc. Warehouse Library"
         Location."Require Receive" := true;
         Location."Require Put-away" := true;
         Location.Modify(true);
+        LibraryERMCountryData.UpdateInventoryPostingSetup();
     end;
 
     procedure CreateLocationWithRequireReceiveOnly(var Location: Record Location)
@@ -294,6 +296,7 @@ codeunit 149908 "Subc. Warehouse Library"
         Location."Require Receive" := true;
         Location."Require Put-away" := false;
         Location.Modify(true);
+        LibraryERMCountryData.UpdateInventoryPostingSetup();
     end;
 
     procedure CreateLocationWithBinMandatoryOnly(var Location: Record Location)
@@ -302,6 +305,7 @@ codeunit 149908 "Subc. Warehouse Library"
         Location."Require Receive" := false;
         Location."Require Put-away" := false;
         Location.Modify(true);
+        LibraryERMCountryData.UpdateInventoryPostingSetup();
     end;
 
     procedure CreateLocationWithWarehouseHandlingAndBinMandatory(var Location: Record Location)
@@ -312,6 +316,7 @@ codeunit 149908 "Subc. Warehouse Library"
         Location."Require Receive" := true;
         Location."Require Put-away" := true;
         Location.Modify(true);
+        LibraryERMCountryData.UpdateInventoryPostingSetup();
     end;
 
     procedure CreateLocationWithWarehouseHandlingAndBins(var Location: Record Location; var ReceiveBin: Record Bin; var PutAwayBin: Record Bin)

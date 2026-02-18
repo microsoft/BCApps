@@ -49,17 +49,18 @@ codeunit 149904 "Subc. Whse Put-Away Worksheet"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Put-Away Worksheet");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Put-Away Worksheet");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
+
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

@@ -63,17 +63,18 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Combined Scenarios");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Combined Scenarios");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
+
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

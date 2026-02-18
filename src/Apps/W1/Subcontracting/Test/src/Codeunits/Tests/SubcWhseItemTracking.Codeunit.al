@@ -61,17 +61,18 @@ codeunit 149905 "Subc. Whse Item Tracking"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Item Tracking");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Item Tracking");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
+
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

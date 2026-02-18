@@ -52,17 +52,18 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Whse Receipt Last Op.");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        SubcLibraryMfgManagement.Initialize();
-        SubSetupLibrary.InitSetupFields();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Whse Receipt Last Op.");
 
+        SubcontractingMgmtLibrary.Initialize();
+        SubcLibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
+
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;
@@ -352,10 +353,6 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
         PurchaseLine.Modify(true);
-
-        // [THEN] Step 1: Verify Purchase Line has correct base quantity
-        // Assert.AreEqual(QtyPerUoM, PurchaseLine."Qty. per Unit of Measure",
-        //     'Purchase Line Qty. per Unit of Measure should match alternative UoM');
 
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
 
