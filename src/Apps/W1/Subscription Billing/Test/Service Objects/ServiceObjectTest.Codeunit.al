@@ -350,6 +350,57 @@ codeunit 148157 "Service Object Test"
     end;
 
     [Test]
+    procedure CheckSubscriptionLinesAreDeletedWhenSubscriptionHeaderIsDeleted()
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+        SubscriptionHeader: Record "Subscription Header";
+    begin
+        // [SCENARIO] When deleting a subscription header, all unassigned subscription lines should be deleted
+        Initialize();
+
+        // [GIVEN] A subscription header with subscription lines not assigned to contracts
+        SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
+
+        // Verify Subscription Lines exist
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        Assert.RecordIsNotEmpty(SubscriptionLine);
+
+        // [WHEN] The subscription header is deleted
+        SubscriptionHeader.Delete(true);
+
+        // [THEN] The subscription lines are deleted
+        SubscriptionLine.Reset();
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        Assert.RecordIsEmpty(SubscriptionLine);
+    end;
+
+    [Test]
+    procedure ExpectErrorWhenDeletingSubscriptionHeaderWithAssignedSubscriptionLines()
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+        SubscriptionHeader: Record "Subscription Header";
+        CannotDeleteBecauseServiceCommitmentExistsErr: Label 'Cannot delete %1 while %2 connected to a contract exists.', Comment = '%1 = No., %2 = TableCaption', Locked = true;
+    begin
+        // [SCENARIO] When trying to delete a subscription header with subscription lines assigned to a contract, an error should be thrown
+        Initialize();
+
+        // [GIVEN] A subscription header with subscription lines
+        SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
+
+        // [GIVEN] Subscription lines are assigned to a contract
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.ModifyAll("Subscription Contract No.", LibraryRandom.RandText(20));
+
+        // [WHEN] Attempting to delete the subscription header
+        asserterror SubscriptionHeader.Delete(true);
+
+        // [THEN] An error is thrown preventing the deletion
+        Assert.ExpectedError(StrSubstNo(CannotDeleteBecauseServiceCommitmentExistsErr, SubscriptionHeader."No.", SubscriptionLine.TableCaption));
+    end;
+
+    [Test]
     [HandlerFunctions('AssignServiceCommitmentsModalPageHandler')]
 
     procedure CheckInvoicingItemNoInServiceObjectWithServiceCommitmentItem()
