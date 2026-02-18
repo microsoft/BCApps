@@ -45,6 +45,9 @@ codeunit 8351 "MCP Config Implementation"
         MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
         MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
         MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
+        MCPPrefixOnPremLbl: Label 'businesscentral-onprem', Locked = true;
+        MCPOnPremSuffixLbl: Label '/mcp', Locked = true;
+        ApiSuffixLbl: Label '/api', Locked = true;
         VSCodeAppNameLbl: Label 'VS Code', Locked = true;
         VSCodeAppDescriptionLbl: Label 'Visual Studio Code', Locked = true;
         VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
@@ -766,17 +769,34 @@ codeunit 8351 "MCP Config Implementation"
         TenantId: Text;
         EnvironmentName: Text;
         Company: Text;
+        IsSaaS: Boolean;
     begin
-        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix);
-        TenantId := AzureADTenant.GetAadTenantId();
-        EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        IsSaaS := EnvironmentInformation.IsSaaS();
         Company := CompanyName();
 
-        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName));
+        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix, IsSaaS);
+
+        if IsSaaS then begin
+            TenantId := AzureADTenant.GetAadTenantId();
+            EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        end;
+
+        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName, IsSaaS));
     end;
 
-    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text)
+    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text; IsSaaS: Boolean)
+    var
+        BaseUrl: Text;
     begin
+        if not IsSaaS then begin
+            BaseUrl := GetUrl(ClientType::Api).TrimEnd('/');
+            if BaseUrl.EndsWith(ApiSuffixLbl) then
+                BaseUrl := BaseUrl.Substring(1, StrLen(BaseUrl) - StrLen(ApiSuffixLbl));
+            MCPUrl := BaseUrl + MCPOnPremSuffixLbl;
+            MCPPrefix := MCPPrefixOnPremLbl;
+            exit;
+        end;
+
         if IsTIEEnvironment() then begin
             MCPUrl := MCPUrlTIELbl;
             MCPPrefix := MCPPrefixTIELbl;
@@ -793,7 +813,7 @@ codeunit 8351 "MCP Config Implementation"
         exit(Uri.AreURIsHaveSameHost(GetUrl(ClientType::Web), 'https://businesscentral.dynamics-tie.com'));
     end;
 
-    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]): Text
+    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]; IsSaaS: Boolean): Text
     var
         JsonBuilder: TextBuilder;
     begin
@@ -801,8 +821,10 @@ codeunit 8351 "MCP Config Implementation"
         JsonBuilder.AppendLine('  "url": "' + MCPUrl + '",');
         JsonBuilder.AppendLine('  "type": "http",');
         JsonBuilder.AppendLine('  "headers": {');
-        JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
-        JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
+        if IsSaaS then begin
+            JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
+            JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
+        end;
         JsonBuilder.AppendLine('    "Company": "' + Company + '",');
         JsonBuilder.AppendLine('    "ConfigurationName": "' + ConfigurationName + '"');
         JsonBuilder.AppendLine('  }');
