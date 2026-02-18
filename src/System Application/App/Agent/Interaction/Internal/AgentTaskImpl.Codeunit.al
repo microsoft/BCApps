@@ -82,15 +82,6 @@ codeunit 4300 "Agent Task Impl."
         exit(AgentTaskMessage);
     end;
 
-    procedure GetUserInterventionRequestDetails(UserInterventionRequestEntry: Record "Agent Task Log Entry"; var UserInterventionRequest: DotNet "AgentTaskUserInterventionRequest")
-    var
-        AgentTask: Record "Agent Task";
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        AgentTask.Get(UserInterventionRequestEntry."Task ID");
-        UserInterventionRequest := AgentALFunctions.GetAgentTaskUserInterventionRequest(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID);
-    end;
-
     procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
     begin
         if ((AgentTask.Status = AgentTaskStatus) and (AgentTask."Needs Attention" = false)) then
