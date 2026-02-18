@@ -501,7 +501,7 @@ table 8061 "Billing Line"
     begin
     end;
 
-    internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line")
+    internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
     begin
         exit(ServiceCommitment.Get("Subscription Line Entry No."));
     end;
