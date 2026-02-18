@@ -139,7 +139,7 @@ codeunit 20419 "Qlty. Guided Experience"
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Gen. Rules", 5000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection List", 6000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 7000, TempAllProfileQualityManager, true);
-        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnTitleTxt, 8000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnLinkTxt, 8000, TempAllProfileQualityManager, true);
     end;
 
     local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
