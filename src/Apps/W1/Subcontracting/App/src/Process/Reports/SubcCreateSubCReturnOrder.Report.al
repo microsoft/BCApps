@@ -66,7 +66,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
     end;
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -83,8 +83,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
         SubcontractingManagement: Codeunit "Subcontracting Management";
         TransferFromLocationCode, TransferToLocationCode : Code[10];
     begin
-        if not SubcManagementSetup.Get() then
-            Clear(SubcManagementSetup);
+        if not ManufacturingSetup.Get() then
+            Clear(ManufacturingSetup);
 
         GetTransferFromLocationCode(TransferFromLocationCode);
         GetTransferToLocationCode(TransferToLocationCode, SubcontractingType);
@@ -105,7 +105,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
             TransferHeader.Validate("Transfer-from Code", TransferFromLocationCode);
             TransferHeader.Validate("Transfer-to Code", OrigCompLineLocation);
 
-            if SubcManagementSetup."Direct Transfer" then begin
+            if ManufacturingSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Post. Type"::"Direct Transfer");
             end;
@@ -272,8 +272,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
         if SubcontractingType = "Subcontracting Type"::Purchase then
             TransferFromLocationCode := "Purchase Line"."Location Code"
         else begin
-            SubcManagementSetup.TestField("Component at Location");
-            case SubcManagementSetup."Component at Location" of
+            ManufacturingSetup.Get();
+            ManufacturingSetup.TestField("Subc. Comp. at Location");
+            case ManufacturingSetup."Subc. Comp. at Location" of
                 "Components at Location"::Purchase:
                     begin
                         "Purchase Line".TestField("Location Code");
@@ -287,7 +288,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
                     end;
                 "Components at Location"::Manufacturing:
                     begin
-                        ManufacturingSetup.Get();
                         ManufacturingSetup.TestField("Components at Location");
                         TransferFromLocationCode := ManufacturingSetup."Components at Location";
                     end;

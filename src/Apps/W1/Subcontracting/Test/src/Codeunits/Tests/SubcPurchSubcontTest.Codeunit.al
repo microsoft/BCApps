@@ -334,13 +334,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Purch. Subcont. Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
 
+        SubcontractingMgmtLibrary.Initialize();
+        LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
         SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
         LibraryERMCountryData.CreateVATData();
@@ -354,19 +353,19 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     local procedure UpdateSubMgmtCommonWorkCenter(WorkCenterNo: Code[20])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        SubManagementSetup: Record "Subc. Management Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Common Work Center No." := WorkCenterNo;
-        EsMgmtSetup.Modify();
+        SubManagementSetup.Get();
+        SubManagementSetup."Common Work Center No." := WorkCenterNo;
+        SubManagementSetup.Modify();
     end;
 
     local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Rtng. Link Code Purch. Prov." := RtngLink;
-        EsMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup.Modify();
     end;
 }

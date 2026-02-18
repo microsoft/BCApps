@@ -9,6 +9,7 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -62,7 +63,7 @@ report 99001501 "Subc. Create Transf. Order"
     end;
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -78,8 +79,8 @@ report 99001501 "Subc. Create Transf. Order"
         SubcontractingManagement: Codeunit "Subcontracting Management";
         TransferToLocationCode: Code[10];
     begin
-        if not SubcManagementSetup.Get() then
-            Clear(SubcManagementSetup);
+        if not ManufacturingSetup.Get() then
+            ManufacturingSetup.Init();
 
         GetTransferToLocationCode(TransferToLocationCode);
 
@@ -97,7 +98,7 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", CompLineLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if SubcManagementSetup."Direct Transfer" then begin
+            if ManufacturingSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Post. Type"::"Direct Transfer");
             end;

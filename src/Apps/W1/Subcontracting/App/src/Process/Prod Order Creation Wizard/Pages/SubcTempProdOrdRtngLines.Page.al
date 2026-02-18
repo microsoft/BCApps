@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 
 page 99001509 "Subc. TempProdOrdRtngLines"
 {
@@ -98,8 +99,9 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         Rec."Vendor No. Subc. Price" := xRec."Vendor No. Subc. Price";
 
         if PresetSubValues then begin
+            GetManufacturingSetup();
             GetSubManagementSetup();
-            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+            Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
             Rec."Flushing Method" := SubcManagementSetup."Def. provision flushing method";
         end;
     end;
@@ -108,8 +110,10 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         LinesChanged: Boolean;
 
     var
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubcManagementSetup: Record "Subc. Management Setup";
         PresetSubValues: Boolean;
+        ManufacturingSetupRead: Boolean;
         SubManagementSetupRead: Boolean;
 
     trigger OnModifyRecord(): Boolean
@@ -148,10 +152,19 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         PresetSubValues := Preset;
     end;
 
+    local procedure GetManufacturingSetup()
+    begin
+        if not ManufacturingSetupRead then begin
+            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.Get();
+            ManufacturingSetupRead := true;
+        end;
+    end;
+
     local procedure GetSubManagementSetup()
     begin
         if not SubManagementSetupRead then begin
-            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
+            SubcManagementSetup.SetLoadFields("Def. provision flushing method");
             SubcManagementSetup.Get();
             SubManagementSetupRead := true;
         end;

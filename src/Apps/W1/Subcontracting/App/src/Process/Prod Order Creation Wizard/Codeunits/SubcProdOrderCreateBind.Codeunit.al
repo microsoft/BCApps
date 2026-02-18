@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -41,13 +42,13 @@ codeunit 99001555 "Subc. ProdOrderCreateBind"
 
     local procedure TransferSubcontractingFieldsBOMComponentForPurchaseProvision(var ProdOrderComponent: Record "Prod. Order Component")
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubcontractingManagement: Codeunit "Subcontracting Management";
         ComponentsLocationCode: Code[10];
     begin
-        SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
-        SubcManagementSetup.Get();
-        if (ProdOrderComponent."Routing Link Code" <> SubcManagementSetup."Rtng. Link Code Purch. Prov.") or
+        ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+        ManufacturingSetup.Get();
+        if (ProdOrderComponent."Routing Link Code" <> ManufacturingSetup."Rtng. Link Code Purch. Prov.") or
            (ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer) then
             exit;
 

@@ -45,6 +45,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         SubcontractingManagementSetup: Record "Subc. Management Setup";
         Work_Center: Record "Work Center";
         WorkCenter: array[2] of Record "Work Center";
+        ManufacturingSetup: Record "Manufacturing Setup";
         CalculateSubcontracts: Report "Calculate Subcontracts";
         ReqJnlManagement: Codeunit ReqJnlManagement;
         SubTestManSubscription: Codeunit "Subc. Test Man. Subscription";
@@ -90,11 +91,12 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ProductionBOMLine.FindFirst();
 #pragma warning restore
 
-        RequisitionLine."Worksheet Template Name" := SubcontractingManagementSetup."Subcontracting Template Name";
-        RequisitionLine."Journal Batch Name" := SubcontractingManagementSetup."Subcontracting Batch Name";
+        ManufacturingSetup.Get();
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
 
         RequisitionLine.FilterGroup := 2;
-        RequisitionLine.SetRange("Worksheet Template Name", SubcontractingManagementSetup."Subcontracting Template Name");
+        RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
         RequisitionLine.FilterGroup := 0;
         ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
 
@@ -199,20 +201,20 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
     local procedure UpdateSubMgmtCommonWorkCenter(WorkCenterNo: Code[20])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        SubManagementSetup: Record "Subc. Management Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Common Work Center No." := WorkCenterNo;
-        EsMgmtSetup.Modify();
+        SubManagementSetup.Get();
+        SubManagementSetup."Common Work Center No." := WorkCenterNo;
+        SubManagementSetup.Modify();
     end;
 
     local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Rtng. Link Code Purch. Prov." := RtngLink;
-        EsMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup.Modify();
     end;
 
     local procedure MakeSubconPurchOrder(ProductionOrderNo: Code[20]; WorkCenterNo: Code[20])
@@ -435,11 +437,11 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
     local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Component at Location" := CompAtLocation;
-        EsMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subc. Comp. at Location" := CompAtLocation;
+        ManufacturingSetup.Modify();
     end;
 
     local procedure CreateSubcontractingOrderFromProdOrderRtngPage(RoutingNo: Code[20]; WorkCenterNo: Code[20])
