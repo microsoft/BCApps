@@ -14,6 +14,7 @@ using System.Reflection;
 /// </summary>
 page 8704 "Indexes List Part"
 {
+    Caption = 'Indexes';
     PageType = ListPart;
     AdditionalSearchTerms = 'Database,Size,Storage';
     ApplicationArea = All;
@@ -121,24 +122,24 @@ page 8704 "Indexes List Part"
     {
         area(Processing)
         {
-            action(DisableIndex)
+            action(TurnOffIndex)
             {
-                Caption = 'Disable index';
+                Caption = 'Turn Index Off';
                 Enabled = Rec.Enabled and not Rec.Unique;
-                ToolTip = 'Deletes the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+                ToolTip = 'Turns off the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
                 var
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                 begin
-                    if (not Rec."Metadata Defined") then
-                        if not Dialog.Confirm(DisableIndexWarning) then
+                    if not Rec."Metadata Defined" then
+                        if not Dialog.Confirm(TurnOffIndexWarning) then
                             exit;
 
                     IndexManagement.DisableIndex(Rec);
 
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Saving the current position to be able to return to it after refreshing the data.
+                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
 
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
@@ -147,11 +148,11 @@ page 8704 "Indexes List Part"
                     CurrPage.Update(false);
                 end;
             }
-            action(DisableInAllCompanies)
+            action(TurnOffInAllCompanies)
             {
-                Caption = 'Disable index in all companies';
+                Caption = 'Turn Index Off (All Companies)';
                 Enabled = Rec.Enabled and not Rec.Unique;
-                ToolTip = 'Deletes the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+                ToolTip = 'Turns off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
                 var
@@ -161,10 +162,10 @@ page 8704 "Indexes List Part"
                     RecordIDOfCurrentPosition: RecordId;
                 begin
                     if not Rec."Metadata Defined" then
-                        if not Dialog.Confirm(DisableIndexWarning) then
+                        if not Dialog.Confirm(TurnOffIndexWarning) then
                             exit;
 
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Saving the current position to be able to return to it after refreshing the data.
+                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
 
                     if Company.FindSet() then
                         repeat
@@ -175,13 +176,15 @@ page 8704 "Indexes List Part"
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
                     Rec.Get(RecordIDOfCurrentPosition); // Return to the same position in the list after refreshing the data.
+
+                    CurrPage.Update(false);
                 end;
             }
-            action(QueueIndexEnable)
+            action(TurnOnIndex)
             {
-                Caption = 'Enable index (queued)';
+                Caption = 'Turn Index On';
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
-                ToolTip = 'Enqueues the index to be enabled in the subsequent maintenance window.';
+                ToolTip = 'Enqueues the index to be turned on in the subsequent maintenance window.';
 
                 trigger OnAction()
                 var
@@ -191,14 +194,14 @@ page 8704 "Indexes List Part"
                     if FindKeyFromDatabaseIndex(Rec, KeyRec) then
                         IndexManagement.EnableKey(KeyRec, Rec."Company Name");
 
-                    Message(enableIndexQueueInfo);
+                    Message(TurnOnIndexQueueInfo);
                 end;
             }
-            action(QueueIndexEnableAllCompanies)
+            action(TurnOnIndexAllCompanies)
             {
-                Caption = 'Enable index (queued) in all companies';
+                Caption = 'Turn Index On (All Companies)';
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
-                ToolTip = 'Enqueues the index to be enabled for all companies in the subsequent maintenance window.';
+                ToolTip = 'Enqueues the index to be turned on for all companies in the subsequent maintenance window.';
 
                 trigger OnAction()
                 var
@@ -214,7 +217,7 @@ page 8704 "Indexes List Part"
                             IndexManagement.EnableKey(KeyRec, Company.Name);
                         until Company.Next() = 0;
 
-                    Message(enableIndexQueueInfo);
+                    Message(TurnOnIndexQueueInfo);
                 end;
             }
         }
@@ -283,7 +286,6 @@ page 8704 "Indexes List Part"
             until KeyRec.Next() = 0;
     end;
 
-
     procedure SetCompanyFilter(NewCompanyName: Text)
     begin
         SetCompanyName := NewCompanyName;
@@ -296,14 +298,11 @@ page 8704 "Indexes List Part"
     begin
         KeyRec.SetRange(KeyRec.TableNo, DatabaseIndex.TableId);
         KeyRec.SetRange(KeyRec."Key name", DatabaseIndex."Index Name");
-        if KeyRec.FindFirst() then
-            exit(true);
-
-        exit(false);
+        exit(KeyRec.FindFirst());
     end;
 
     var
         SetCompanyName: Text;
-        DisableIndexWarning: Label 'Disabling a non-AL defined index cannot be undone. Please confirm.', Comment = 'Used in the confirmation dialog when disabling an index that is not defined in AL.';
-        EnableIndexQueueInfo: Label 'The index has been enqueued to be enabled, it will attempted during the subsequent maintenance window (over the night local time).', Comment = 'Used to inform the user the index is not enabled immediately but is queued to be enabled in the next maintenance window.';
+        TurnOffIndexWarning: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
+        TurnOnIndexQueueInfo: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
 }
