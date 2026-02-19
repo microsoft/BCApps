@@ -216,7 +216,7 @@ page 20414 "Qlty. Inspections API"
         }
     }
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         CannotConvertDateErr: Label 'Could not convert date %1. Use ISO 8601 (YYYY-MM-DD) date format.', Comment = '%1=date';
 
 
@@ -380,7 +380,7 @@ page 20414 "Qlty. Inspections API"
         binCode := DelChr(binCode, '<>', ' ');
         optionalDestinationLocation := DelChr(optionalDestinationLocation, '<>', ' ');
 
-        if QltyMiscHelpers.GetBooleanFor(moveEntireLot) then
+        if QltyBooleanParsing.GetBooleanFor(moveEntireLot) then
             TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
 
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Internal Movement";
@@ -440,7 +440,7 @@ page 20414 "Qlty. Inspections API"
         if optionalSpecificQuantity <> '' then
             Evaluate(OverrideQuantity, optionalSpecificQuantity);
 
-        ShouldReleaseImmediately := QltyMiscHelpers.GetBooleanFor(releaseImmediately);
+        ShouldReleaseImmediately := QltyBooleanParsing.GetBooleanFor(releaseImmediately);
         QuantityBehavior := ConvertTextToQuantityBehaviorEnum(moveBehavior);
 
         if QltyDispInternalPutAway.PerformDisposition(
@@ -541,7 +541,7 @@ page 20414 "Qlty. Inspections API"
 
         TempInstructionQltyDispositionBuffer."Location Filter" := CopyStr(optionalSourceLocationFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Location Filter"));
         TempInstructionQltyDispositionBuffer."Bin Filter" := CopyStr(optionalSourceBinFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Bin Filter"));
-        if QltyMiscHelpers.GetBooleanFor(postImmediately) then
+        if QltyBooleanParsing.GetBooleanFor(postImmediately) then
             TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         TempInstructionQltyDispositionBuffer."New Location Code" := CopyStr(optionalDestinationLocation, 1, 10);
@@ -641,7 +641,7 @@ page 20414 "Qlty. Inspections API"
             Evaluate(SpecificQuantity, optionalSpecificQuantity);
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := SpecificQuantity;
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := ConvertTextToQuantityBehaviorEnum(quantityChoice);
-        if QltyMiscHelpers.GetBooleanFor(postImmediately) then
+        if QltyBooleanParsing.GetBooleanFor(postImmediately) then
             TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         TempInstructionQltyDispositionBuffer."New Lot No." := CopyStr(DelChr(newLotNo, '<>', ' '), 1, MaxStrLen(TempInstructionQltyDispositionBuffer."New Lot No."));
@@ -687,7 +687,7 @@ page 20414 "Qlty. Inspections API"
         if optionalSpecificQuantity <> '' then
             Evaluate(SpecificQuantity, optionalSpecificQuantity);
         QuantityBehavior := ConvertTextToQuantityBehaviorEnum(quantityChoice);
-        IsDirectTransfer := QltyMiscHelpers.GetBooleanFor(directTransfer);
+        IsDirectTransfer := QltyBooleanParsing.GetBooleanFor(directTransfer);
         DestinationLocationCode := CopyStr(destinationLocation, 1, MaxStrLen(DestinationLocationCode));
         InTransitLocationCode := CopyStr(inTransitLocation, 1, MaxStrLen(InTransitLocationCode));
         if IsDirectTransfer then
