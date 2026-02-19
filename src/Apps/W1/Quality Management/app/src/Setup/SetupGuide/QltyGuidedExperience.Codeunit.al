@@ -87,15 +87,33 @@ codeunit 20419 "Qlty. Guided Experience"
         end;
     end;
 
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Checklist Banner", 'OnBeforeUpdateBannerLabels', '', false, false)]
-    local procedure TrackingSpecificationClearTracking(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text)
+    local procedure OnBeforeUpdateBannerLabels(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text)
     begin
-        IsHandled := true;
+        if not IsQualityManagerRoleCenter() then
+            exit;
 
+        IsHandled := true;
         TitleTxt := NewTitleTxt;
         HeaderTxt := NewHeaderTxt;
         DescriptionTxt := NewDescriptionTxt;
+    end;
+
+    local procedure IsQualityManagerRoleCenter(): Boolean
+    var
+        UserPersonalization: Record "User Personalization";
+        AllProfile: Record "All Profile";
+    begin
+        if not UserPersonalization.Get(UserSecurityId()) then
+            exit(false);
+
+        AllProfile.SetRange("Profile ID", UserPersonalization."Profile ID");
+        AllProfile.SetRange("App ID", UserPersonalization."App ID");
+        AllProfile.SetRange(Scope, UserPersonalization.Scope);
+        if not AllProfile.FindFirst() then
+            exit(false);
+
+        exit(AllProfile."Role Center ID" = Page::"Qlty. Manager Role Center");
     end;
 
     local procedure RegisterGuidedExperienceItems()
@@ -139,7 +157,7 @@ codeunit 20419 "Qlty. Guided Experience"
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Gen. Rules", 5000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection List", 6000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 7000, TempAllProfileQualityManager, true);
-        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnTitleTxt, 8000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnLinkTxt, 8000, TempAllProfileQualityManager, true);
     end;
 
     local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
