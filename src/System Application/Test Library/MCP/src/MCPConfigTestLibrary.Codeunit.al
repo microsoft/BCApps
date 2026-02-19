@@ -13,9 +13,9 @@ codeunit 130131 "MCP Config Test Library"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
+    procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
     begin
-        exit(MCPConfigImplementation.LookupAPITools(PageMetadata));
+        exit(MCPConfigImplementation.LookupAPIPageTools(PageMetadata));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -26,6 +26,11 @@ codeunit 130131 "MCP Config Test Library"
     procedure AddStandardAPITools(ConfigId: Guid)
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
+    end;
+
+    procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
+    begin
+        exit(MCPConfigImplementation.LookupAPIQueryTools(QueryMetadata));
     end;
 
     procedure LookupAPIPublisher(var APIPublisher: Text; var APIGroup: Text)
@@ -44,8 +49,8 @@ codeunit 130131 "MCP Config Test Library"
         MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 
-    procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
     begin
-        exit(MCPConfigImplementation.GetHighestAPIVersion(PageMetadata));
+        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata));
     end;
 }

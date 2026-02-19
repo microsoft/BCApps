@@ -10,6 +10,7 @@ query 37025 "Sales Value Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sales value entries including actual sales amounts, cost amounts, invoiced quantities, and linked item ledger entries. Enables Power BI reports to analyze sales profitability, cost components, and margin analysis at the transaction level.';
     Caption = 'Power BI Sales Value Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

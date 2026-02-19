@@ -14,6 +14,7 @@ query 36972 "Prod. Order Lines - Invt."
     Access = Internal;
     Caption = 'Power BI Qty. on Production Orders';
     QueryType = API;
+    AboutText = 'Provides access to production order line data including item numbers, remaining quantities, due dates, and starting dates for planned to released orders. Enables Power BI reports to analyze production output schedules and forecast inventory receipts from manufacturing.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

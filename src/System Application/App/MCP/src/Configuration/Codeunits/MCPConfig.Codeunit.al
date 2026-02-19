@@ -126,7 +126,7 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, true));
+        exit(MCPConfigImplementation.CreateAPIPageTool(ConfigId, APIPageId, true));
     end;
 
     /// <summary>
@@ -138,19 +138,47 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, ValidateAPIPublisher));
+        exit(MCPConfigImplementation.CreateAPIPageTool(ConfigId, APIPageId, ValidateAPIPublisher));
     end;
 
     /// <summary>
-    /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page
+    /// Creates a new API tool for the specified configuration and query.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="QueryId">The ID of the query.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateQueryAPITool(ConfigId: Guid; QueryId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPIQueryTool(ConfigId, QueryId));
+    end;
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="ObjectId">The ID of the API page or query.</param>
+    /// <param name="ObjectType">The object type (Page or Query).</param>
+    /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
+    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Guid
+    begin
+        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
+    end;
+
+#if not CLEAN28
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="APIPageId">The ID of the API page.</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
+    [Obsolete('Use GetAPIToolId with ObjectType parameter instead.', '28.0')]
     procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, APIPageId));
+        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, APIPageId, MCPConfigurationTool."Object Type"::Page));
     end;
+#endif
 
     /// <summary>
     /// Deletes the specified tool from the configuration.

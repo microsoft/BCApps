@@ -10,6 +10,7 @@ query 36996 "Purch. Lines - Job Outstanding"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to outstanding purchase order lines linked to projects including quantities not yet received and outstanding amounts. Enables Power BI reports to analyze committed project costs and track purchase order delivery expectations.';
     Caption = 'Power BI Outstanding PO Line';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

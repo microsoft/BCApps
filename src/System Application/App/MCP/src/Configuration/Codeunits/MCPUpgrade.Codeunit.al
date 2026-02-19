@@ -38,7 +38,7 @@ codeunit 8356 "MCP Upgrade"
                 if PageMetadata.PageType <> PageMetadata.PageType::API then
                     continue;
 
-                MCPConfigurationTool."API Version" := MCPConfigImplementation.GetHighestAPIVersion(PageMetadata);
+                MCPConfigurationTool."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata);
                 MCPConfigurationTool.Modify();
             until MCPConfigurationTool.Next() = 0;
 

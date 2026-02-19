@@ -10,6 +10,7 @@ query 37074 "Sales Invoice Lines - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to posted sales invoice lines for G/L account and resource types including amounts, quantities, unit costs, and dimension data. Enables Power BI reports to analyze non-item sales revenue by account and resource category.';
     Caption = 'Power BI Sales Invoice Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -11,6 +11,7 @@ query 36969 "Job Planning Lines - Item"
     Access = Internal;
     Caption = 'Power BI Project Planning Lines';
     QueryType = API;
+    AboutText = 'Provides access to project planning lines for items with order status, including remaining quantities, planning dates, and locations. Enables Power BI reports to analyze project material requirements and forecast inventory demand from project activities.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

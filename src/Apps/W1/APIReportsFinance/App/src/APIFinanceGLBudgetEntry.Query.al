@@ -5,6 +5,7 @@ using Microsoft.Finance.GeneralLedger.Budget;
 query 30305 "API Finance - GL Budget Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to general ledger budget entries including budget names, amounts, dates, account numbers, and dimension codes. Enables external reporting and analytics tools to retrieve budget data for variance analysis, financial planning, and budget-to-actual comparisons.';
     EntityCaption = 'General Budget Entry';
     EntityName = 'generalLedgerBudgetEntry';
     EntitySetName = 'generalLedgerBudgetEntries';
