@@ -34,7 +34,6 @@ codeunit 149908 "Subc. Warehouse Library"
     // Consolidated data creation functions for warehouse tests to avoid code duplication
 
     var
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";

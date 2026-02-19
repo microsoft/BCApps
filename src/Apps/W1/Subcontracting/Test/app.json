@@ -32,8 +32,12 @@
     "idRanges": [
         {
             "from": 139980,
-            "to": 149999
-        }  
+            "to": 140009
+        },
+        {
+            "from": 149900,
+            "to": 149930
+        }
     ],
     "features": [
         "TranslationFile",
