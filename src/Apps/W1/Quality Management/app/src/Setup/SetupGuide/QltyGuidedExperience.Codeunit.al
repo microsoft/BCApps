@@ -48,7 +48,7 @@ codeunit 20419 "Qlty. Guided Experience"
         MicrosoftLearnTitleTxt: Label 'Discover more capabilities';
         MicrosoftLearnDescriptionTxt: Label 'Discover what else you can do in your role. Explore Business Central''s quality capabilities to reach your needs, from manual or automated inspections on Microsoft Learn.';
         MicrosoftLearnLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2338953', Locked = true;
-        NewHeaderTxt: Label 'Try out Quality Management!';
+        NewHeaderTxt: Label 'Explore Quality Management!';
         NewTitleTxt: Label 'Get started';
         NewDescriptionTxt: Label 'We''ve prepared a short list of guided tours to help you discover key pages and default setup steps.';
         InProgressHeaderTxt: Label 'Here are a few things you can try out';
