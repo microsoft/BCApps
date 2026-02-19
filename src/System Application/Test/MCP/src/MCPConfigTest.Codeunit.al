@@ -888,6 +888,30 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordCount(MCPConfigurationTool, 2);
     end;
 
+    [Test]
+    procedure TestConnectionStringOnPremDoesNotContainTenantIdOrEnvironmentName()
+    var
+        ConfigName: Text[100];
+        ConnectionString: Text;
+    begin
+        // [GIVEN] A configuration name (test environment runs as on-prem)
+        ConfigName := CopyStr(Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] Connection string contains the configuration name and company
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ConfigurationName not found in connection string');
+        Assert.IsTrue(ConnectionString.Contains('"Company": "' + CompanyName() + '"'), 'Company not found in connection string');
+
+        // [THEN] Connection string does not contain TenantId or EnvironmentName headers
+        Assert.IsFalse(ConnectionString.Contains('"TenantId"'), 'TenantId should not be present in on-prem connection string');
+        Assert.IsFalse(ConnectionString.Contains('"EnvironmentName"'), 'EnvironmentName should not be present in on-prem connection string');
+
+        // [THEN] Connection string URL contains /mcp suffix
+        Assert.IsTrue(ConnectionString.Contains('/mcp'), 'On-prem URL should contain /mcp suffix');
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
