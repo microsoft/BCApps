@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.DataAdministration;
 
-using System.Diagnostics;
 using System.Database;
+using System.Diagnostics;
 using System.Environment;
 using System.Reflection;
 
@@ -122,10 +122,11 @@ page 8704 "Indexes List Part"
     {
         area(Processing)
         {
-            action(TurnOffIndex)
+            action(TurnIndexOff)
             {
-                Caption = 'Turn Index Off';
+                Caption = 'Turn index off';
                 Enabled = Rec.Enabled and not Rec.Unique;
+                Image = Delete;
                 ToolTip = 'Turns off the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
@@ -134,7 +135,7 @@ page 8704 "Indexes List Part"
                     RecordIDOfCurrentPosition: RecordId;
                 begin
                     if not Rec."Metadata Defined" then
-                        if not Dialog.Confirm(TurnOffIndexWarning) then
+                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
                     IndexManagement.DisableIndex(Rec);
@@ -148,10 +149,11 @@ page 8704 "Indexes List Part"
                     CurrPage.Update(false);
                 end;
             }
-            action(TurnOffInAllCompanies)
+            action(TurnIndexOffInAllCompanies)
             {
-                Caption = 'Turn Index Off (All Companies)';
+                Caption = 'Turn index off (All Companies)';
                 Enabled = Rec.Enabled and not Rec.Unique;
+                Image = Delete;
                 ToolTip = 'Turns off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
@@ -162,7 +164,7 @@ page 8704 "Indexes List Part"
                     RecordIDOfCurrentPosition: RecordId;
                 begin
                     if not Rec."Metadata Defined" then
-                        if not Dialog.Confirm(TurnOffIndexWarning) then
+                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
                     RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
@@ -182,8 +184,9 @@ page 8704 "Indexes List Part"
             }
             action(TurnOnIndex)
             {
-                Caption = 'Turn Index On';
+                Caption = 'Turn index on';
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
+                Image = Add;
                 ToolTip = 'Enqueues the index to be turned on in the subsequent maintenance window.';
 
                 trigger OnAction()
@@ -194,13 +197,14 @@ page 8704 "Indexes List Part"
                     if FindKeyFromDatabaseIndex(Rec, KeyRec) then
                         IndexManagement.EnableKey(KeyRec, Rec."Company Name");
 
-                    Message(TurnOnIndexQueueInfo);
+                    Message(TurnOnIndexQueueInfoMsg);
                 end;
             }
             action(TurnOnIndexAllCompanies)
             {
-                Caption = 'Turn Index On (All Companies)';
+                Caption = 'Turn index on (All Companies)';
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
+                Image = Add;
                 ToolTip = 'Enqueues the index to be turned on for all companies in the subsequent maintenance window.';
 
                 trigger OnAction()
@@ -217,7 +221,7 @@ page 8704 "Indexes List Part"
                             IndexManagement.EnableKey(KeyRec, Company.Name);
                         until Company.Next() = 0;
 
-                    Message(TurnOnIndexQueueInfo);
+                    Message(TurnOnIndexQueueInfoMsg);
                 end;
             }
         }
@@ -225,7 +229,6 @@ page 8704 "Indexes List Part"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
-        DatabaseIndex: Record "Database Index";
         LinkTableId: Integer;
         PrevFilterGroup: Integer;
     begin
@@ -303,6 +306,6 @@ page 8704 "Indexes List Part"
 
     var
         SetCompanyName: Text;
-        TurnOffIndexWarning: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
-        TurnOnIndexQueueInfo: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
+        TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
+        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
 }
