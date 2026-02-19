@@ -22,7 +22,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
             {
                 Image = TaskQualityMeasure;
                 Caption = 'Quality Management';
-                ToolTip = 'Create Quality Inspections.';
+                ToolTip = 'Work with Quality Inspections.';
 
                 action(Qlty_ShowQualityInspections)
                 {
@@ -72,7 +72,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Inspection Templates';
-                        Image = Database;
+                        Image = BreakpointsList;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
                         ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
@@ -81,7 +81,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Inspection Generation Rules';
-                        Image = MapDimensions;
+                        Image = FilterLines;
                         RunObject = Page "Qlty. Inspection Gen. Rules";
                         RunPageMode = Edit;
                         ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
@@ -90,7 +90,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Tests';
-                        Image = MapDimensions;
+                        Image = Task;
                         RunObject = Page "Qlty. Tests";
                         RunPageMode = Edit;
                         ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';

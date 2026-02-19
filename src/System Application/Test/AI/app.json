@@ -46,6 +46,12 @@
       "name": "Environment Information Test Library",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
+    },
+    {
+      "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
+      "name": "Base64 Convert",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
     }
   ],
   "screenshots": [],

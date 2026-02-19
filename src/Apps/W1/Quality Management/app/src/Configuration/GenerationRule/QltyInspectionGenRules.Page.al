@@ -182,54 +182,54 @@ page 20405 "Qlty. Inspection Gen. Rules"
     {
         area(Promoted)
         {
-            actionref(CreateNewGenerationRuleForRecWizard_Promoted; CreateNewGenerationRuleForRecWizard)
+            actionref(CreateNewGenerationRuleForRecSetupGuide_Promoted; CreateNewGenerationRuleForRecSetupGuide)
             {
             }
-            actionref(CreateNewGenerationRuleForWhseWizard_Promoted; CreateNewGenerationRuleForWhseWizard)
+            actionref(CreateNewGenerationRuleForWhseSGuide_Promoted; CreateNewGenerationRuleForWhseSGuide)
             {
             }
-            actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
+            actionref(CreateNewGenerationRuleForProdSGuide_Promoted; CreateNewGenerationRuleForProdSGuide)
             {
             }
-            actionref(CreateNewGenerationRuleForAsmWizard_Promoted; CreateNewGenerationRuleForAsmWizard)
+            actionref(CreateNewGenerationRuleForAsmSGuide_Promoted; CreateNewGenerationRuleForAsmSGuide)
             {
             }
         }
         area(Processing)
         {
-            action(CreateNewGenerationRuleForAsmWizard)
+            action(CreateNewGenerationRuleForAsmSGuide)
             {
                 Caption = 'Create Assembly Rule';
                 ToolTip = 'Specifies to create a rule for assembly.';
-                Image = Receipt;
+                Image = AssemblyBOM;
                 ApplicationArea = Assembly;
 
                 trigger OnAction()
                 var
                     NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-                    RecQltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                    RecQltyAsmGenRuleSGuide: Page "Qlty. Asm. Gen. Rule S. Guide";
                 begin
                     NewQltyInspectionGenRule.CopyFilters(Rec);
-                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    RecQltyAsmGenRuleSGuide.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
-            action(EditGenerationRuleForAsmWizard)
+            action(EditGenerationRuleForAsmSGuide)
             {
                 ApplicationArea = Assembly;
                 Caption = 'Edit Assembly Rule';
                 ToolTip = 'Edit a Rule for assembly.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
-                Visible = ShowEditWizardAssemblyRule;
+                Visible = ShowEditAssemblyRuleSetupGuide;
 
                 trigger OnAction()
                 var
-                    QltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                    QltyAsmGenRuleSGuide: Page "Qlty. Asm. Gen. Rule S. Guide";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    QltyAsmGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    QltyAsmGenRuleSGuide.RunModalWithGenerationRule(Rec);
 
                     CurrPage.Update(false);
                     Rec.Reset();
@@ -238,39 +238,39 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Rec.SetRange("Entry No.");
                 end;
             }
-            action(CreateNewGenerationRuleForProdWizard)
+            action(CreateNewGenerationRuleForProdSGuide)
             {
                 Caption = 'Create Production Rule';
                 ToolTip = 'Specifies to create a rule for production.';
-                Image = Receipt;
+                Image = Production;
                 ApplicationArea = Manufacturing;
 
                 trigger OnAction()
                 var
                     NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-                    RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
+                    RecQltyProdGenRuleSGuide: Page "Qlty. Prod. Gen. Rule S. Guide";
                 begin
                     NewQltyInspectionGenRule.CopyFilters(Rec);
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    RecQltyProdGenRuleSGuide.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
-            action(EditGenerationRuleForProdWizard)
+            action(EditGenerationRuleForProdSGuide)
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Edit Production Rule';
                 ToolTip = 'Edit a Rule for production.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
-                Visible = ShowEditWizardProductionRule;
+                Visible = ShowEditProductionRuleSetupGuide;
 
                 trigger OnAction()
                 var
-                    QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
+                    QltyProdGenRuleSGuide: Page "Qlty. Prod. Gen. Rule S. Guide";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    QltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    QltyProdGenRuleSGuide.RunModalWithGenerationRule(Rec);
 
                     CurrPage.Update(false);
                     Rec.Reset();
@@ -279,7 +279,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Rec.SetRange("Entry No.");
                 end;
             }
-            action(CreateNewGenerationRuleForRecWizard)
+            action(CreateNewGenerationRuleForRecSetupGuide)
             {
                 Caption = 'Create Receiving Rule';
                 ToolTip = 'Specifies to create a rule for receiving.';
@@ -289,29 +289,29 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 trigger OnAction()
                 var
                     NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-                    QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
+                    QltyRecGenRuleSGuide: Page "Qlty. Rec. Gen. Rule S. Guide";
                 begin
                     NewQltyInspectionGenRule.CopyFilters(Rec);
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    QltyRecGenRuleSGuide.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
-            action(EditGenerationRuleForRecWizard)
+            action(EditGenerationRuleForRecSetupGuide)
             {
                 ApplicationArea = All;
                 Caption = 'Edit Receiving Rule';
                 ToolTip = 'Edit a Rule for receiving.';
-                Image = Receipt;
+                Image = EditLines;
                 Scope = Repeater;
-                Visible = ShowEditWizardReceivingRule;
+                Visible = ShowEditReceivingRuleSetupGuide;
 
                 trigger OnAction()
                 var
-                    QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
+                    QltyRecGenRuleSGuide: Page "Qlty. Rec. Gen. Rule S. Guide";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    QltyRecGenRuleSGuide.RunModalWithGenerationRule(Rec);
 
                     CurrPage.Update(false);
                     Rec.Reset();
@@ -320,39 +320,39 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Rec.SetRange("Entry No.");
                 end;
             }
-            action(CreateNewGenerationRuleForWhseWizard)
+            action(CreateNewGenerationRuleForWhseSGuide)
             {
                 Caption = 'Create Bin Movement Rule';
                 ToolTip = 'Specifies to create a rule for a bin movement.';
-                Image = CreatePutawayPick;
+                Image = CreateMovement;
                 ApplicationArea = Warehouse;
 
                 trigger OnAction()
                 var
                     NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-                    QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
+                    QltyWhseGenRuleSGuide: Page "Qlty. Whse. Gen. Rule S. Guide";
                 begin
                     NewQltyInspectionGenRule.CopyFilters(Rec);
-                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    QltyWhseGenRuleSGuide.RunModalWithGenerationRule(NewQltyInspectionGenRule);
                     CurrPage.Update(false);
                 end;
             }
-            action(EditGenerationRuleForWhseWizard)
+            action(EditGenerationRuleForWhseSGuide)
             {
                 ApplicationArea = Warehouse;
                 Caption = 'Edit Bin Movement Rule';
                 ToolTip = 'Edit a rule for a bin movement.';
-                Image = InventoryPick;
+                Image = EditAdjustments;
                 Scope = Repeater;
-                Visible = ShowEditWizardMovementRule;
+                Visible = ShowEditMovementRuleSetupGuide;
 
                 trigger OnAction()
                 var
-                    QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
+                    QltyWhseGenRuleSGuide: Page "Qlty. Whse. Gen. Rule S. Guide";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    QltyWhseGenRuleSGuide.RunModalWithGenerationRule(Rec);
 
                     CurrPage.Update(false);
                     Rec.Reset();
@@ -366,7 +366,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = All;
                 Caption = 'Job Queue Entries';
                 ToolTip = 'Display related job queue entries.';
-                Image = Timeline;
+                Image = EntriesList;
                 Scope = Repeater;
                 Visible = ShowJobQueueEntries;
 
@@ -382,7 +382,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 ApplicationArea = All;
                 Caption = 'Create a Job Queue Entry';
                 ToolTip = 'Creates another job queue entry.';
-                Image = Timeline;
+                Image = SelectEntries;
                 Scope = Repeater;
                 Visible = ShowJobQueueEntries;
 
@@ -412,10 +412,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     var
         ShowSortAndTemplate: Boolean;
-        ShowEditWizardMovementRule: Boolean;
-        ShowEditWizardReceivingRule: Boolean;
-        ShowEditWizardProductionRule: Boolean;
-        ShowEditWizardAssemblyRule: Boolean;
+        ShowEditMovementRuleSetupGuide: Boolean;
+        ShowEditReceivingRuleSetupGuide: Boolean;
+        ShowEditProductionRuleSetupGuide: Boolean;
+        ShowEditAssemblyRuleSetupGuide: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
         ShowProductionTrigger: Boolean;
@@ -507,10 +507,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
             Rec.InferGenerationRuleIntent(KnownOrInferredIntent, Certainty);
 
             if Certainty = Certainty::Maybe then begin
-                ShowEditWizardProductionRule := true;
-                ShowEditWizardReceivingRule := true;
-                ShowEditWizardMovementRule := true;
-                ShowEditWizardAssemblyRule := true;
+                ShowEditProductionRuleSetupGuide := true;
+                ShowEditReceivingRuleSetupGuide := true;
+                ShowEditMovementRuleSetupGuide := true;
+                ShowEditAssemblyRuleSetupGuide := true;
                 EditAssemblyTrigger := true;
                 EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
@@ -532,43 +532,43 @@ page 20405 "Qlty. Inspection Gen. Rules"
         case KnownOrInferredIntent of
             Rec.Intent::Assembly:
                 begin
-                    ShowEditWizardAssemblyRule := true;
+                    ShowEditAssemblyRuleSetupGuide := true;
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::Production:
                 begin
-                    ShowEditWizardProductionRule := true;
+                    ShowEditProductionRuleSetupGuide := true;
                     EditProductionTrigger := true;
                     ProductionStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::Purchase:
                 begin
-                    ShowEditWizardReceivingRule := true;
+                    ShowEditReceivingRuleSetupGuide := true;
                     EditPurchaseTrigger := true;
                     PurchaseStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::"Sales Return":
                 begin
-                    ShowEditWizardReceivingRule := true;
+                    ShowEditReceivingRuleSetupGuide := true;
                     EditSalesReturnTrigger := true;
                     SalesReturnStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::Transfer:
                 begin
-                    ShowEditWizardReceivingRule := true;
+                    ShowEditReceivingRuleSetupGuide := true;
                     EditTransferTrigger := true;
                     TransferStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::"Warehouse Receipt":
                 begin
-                    ShowEditWizardReceivingRule := true;
+                    ShowEditReceivingRuleSetupGuide := true;
                     EditWarehouseReceiveTrigger := true;
                     WhseReceiveStyle := Format(RowStyle::Standard);
                 end;
             Rec.Intent::"Warehouse Movement":
                 begin
-                    ShowEditWizardMovementRule := true;
+                    ShowEditMovementRuleSetupGuide := true;
                     EditWarehouseMovementTrigger := true;
                     WhseMovementStyle := Format(RowStyle::Standard);
                 end;
@@ -577,10 +577,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
-        ShowEditWizardReceivingRule := false;
-        ShowEditWizardProductionRule := false;
-        ShowEditWizardAssemblyRule := false;
-        ShowEditWizardMovementRule := false;
+        ShowEditReceivingRuleSetupGuide := false;
+        ShowEditProductionRuleSetupGuide := false;
+        ShowEditAssemblyRuleSetupGuide := false;
+        ShowEditMovementRuleSetupGuide := false;
         EditProductionTrigger := false;
         EditAssemblyTrigger := false;
         EditPurchaseTrigger := false;
