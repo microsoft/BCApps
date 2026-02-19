@@ -127,7 +127,7 @@ page 8704 "Indexes List Part"
                 Caption = 'Turn index off';
                 Enabled = Rec.Enabled and not Rec.Unique;
                 Image = Delete;
-                ToolTip = 'Turns off the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+                ToolTip = 'Turn off the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
                 var
@@ -154,7 +154,7 @@ page 8704 "Indexes List Part"
                 Caption = 'Turn index off (all companies)';
                 Enabled = Rec.Enabled and not Rec.Unique;
                 Image = Delete;
-                ToolTip = 'Turns off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+                ToolTip = 'Turn off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
 
                 trigger OnAction()
                 var
