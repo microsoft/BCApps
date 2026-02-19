@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Document;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
@@ -195,7 +196,8 @@ report 20400 "Qlty. Create Inspection"
                     Error(NotAValidQltyInspectionTemplateErr, QltInspectionTemplateToCreate);
 
                 if (NullCheckRecordId = Target) or (Target.TableNo = 0) then
-                    Error(PleaseChooseARecordFirstErr);
+                    if QltyInspectSourceConfig."From Table No." <> Database::"Item Ledger Entry" then
+                        Error(PleaseChooseARecordFirstErr);
             end;
         end;
     }
@@ -296,7 +298,8 @@ report 20400 "Qlty. Create Inspection"
         Dummy4Variant: Variant;
     begin
         if ((NullCheckRecordId = Target) or (Target.TableNo = 0)) then
-            Error(PleaseChooseARecordFirstErr);
+            if QltyInspectSourceConfig."From Table No." <> Database::"Item Ledger Entry" then
+                Error(PleaseChooseARecordFirstErr);
 
         TargetRecordRef := Target.GetRecord();
 
