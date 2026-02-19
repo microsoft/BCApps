@@ -26,7 +26,7 @@ codeunit 20419 "Qlty. Guided Experience"
         DemoDataShortTitleTxt: Label 'Demo data';
         DemoDataTitleTxt: Label 'Explore with demo data';
         DemoDataDescriptionTxt: Label 'Use Contoso demo data to explore Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
-        QualityResultsShortTitleTxt: Label 'Configure results';
+        QualityResultsShortTitleTxt: Label 'Inspection results';
         QualityResultsTitleTxt: Label 'Set up quality inspection results';
         QualityResultsDescriptionTxt: Label 'Define possible outcomes for quality inspections, like Pass, Fail, or In Progress. Create custom results and set priorities to match your organization''s standards. These results control how inspections are evaluated and how items are blocked or released.';
         QualityTestsShortTitleTxt: Label 'Quality tests';
@@ -38,19 +38,22 @@ codeunit 20419 "Qlty. Guided Experience"
         GenerationRulesShortTitleTxt: Label 'Generation rules';
         GenerationRulesTitleTxt: Label 'Set up inspection generation rules';
         GenerationRulesDescriptionTxt: Label 'Inspection generation rules define when quality inspections are created automatically, such as during receiving, production, or assembly.';
-        QualityInspectionsShortTitleTxt: Label 'Quality Inspections';
-        QualityInspectionsTitleTxt: Label 'Track inspections';
-        QualityInspectionsDescriptionTxt: Label 'Browse the Quality Inspections list to see inspections created by rules or manually, and follow their status as they move through the inspection process.';
+        QualityInspectionsShortTitleTxt: Label 'Quality inspections';
+        QualityInspectionsTitleTxt: Label 'Track and create inspections';
+        QualityInspectionsDescriptionTxt: Label 'Browse the Quality Inspections list to see inspections created by rules or manually. Process items that fail inspection by relocating, quarantining, or returning them to suppliers.';
         DefaultSetupShortTitleTxt: Label 'Default setup';
-        DefaultSetupTitleTxt: Label 'Quality Management setup page';
-        DefaultSetupDescriptionTxt: Label 'Define the behavior of how and when inspections are created. Manage when to show inspections, set up test generation rules, such as for production scenarios or inventory and warehouse inspections.';
+        DefaultSetupTitleTxt: Label 'Quality management default settings';
+        DefaultSetupDescriptionTxt: Label 'Manage default settings for when inspections are created. Set up test generation rule triggers for production, inventory, and warehouse scenarios.';
         MicrosoftLearnShortTitleTxt: Label 'Microsoft Learn';
         MicrosoftLearnTitleTxt: Label 'Discover more capabilities';
         MicrosoftLearnDescriptionTxt: Label 'Discover what else you can do in your role. Explore Business Central''s quality capabilities to reach your needs, from manual or automated inspections on Microsoft Learn.';
-        MicrosoftLearnLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2198403', Locked = true;
+        MicrosoftLearnLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2338953', Locked = true;
         NewHeaderTxt: Label 'Try out Quality Management!';
         NewTitleTxt: Label 'Get started';
         NewDescriptionTxt: Label 'We''ve prepared a short list of guided tours to help you discover key pages and default setup steps.';
+        InProgressHeaderTxt: Label 'Here are a few things you can try out';
+        InProgressTitleTxt: Label 'Get started';
+        InProgressDescriptionTxt: Label 'The Contoso demo data is for demonstration, evaluation, and training purposes only.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterGuidedExperienceItem', '', false, false)]
     local procedure OnRegisterGuidedExperienceItem()
@@ -63,13 +66,16 @@ codeunit 20419 "Qlty. Guided Experience"
     var
         Company: Record Company;
         QltyManagementSetup: Record "Qlty. Management Setup";
+        SetupExists: Boolean;
     begin
         if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit;
 
         if not Company.Get(CompanyName()) then
             exit;
-        if not QltyManagementSetup.Get() then
+
+        SetupExists := QltyManagementSetup.Get();
+        if not SetupExists then
             QltyManagementSetup.Insert();
 
         // Register guided experience items only once
@@ -81,22 +87,30 @@ codeunit 20419 "Qlty. Guided Experience"
 
         // Register checklist items only once
         if not QltyManagementSetup."Checklist Items Registered" then begin
-            InitializeChecklist();
+            InitializeChecklist(SetupExists);
             QltyManagementSetup."Checklist Items Registered" := true;
             QltyManagementSetup.Modify();
         end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Checklist Banner", 'OnBeforeUpdateBannerLabels', '', false, false)]
-    local procedure OnBeforeUpdateBannerLabels(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text)
+    local procedure OnBeforeUpdateBannerLabels(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
+
     begin
         if not IsQualityManagerRoleCenter() then
             exit;
 
         IsHandled := true;
-        TitleTxt := NewTitleTxt;
-        HeaderTxt := NewHeaderTxt;
-        DescriptionTxt := NewDescriptionTxt;
+
+        if IsSetupStarted then begin
+            TitleTxt := InProgressTitleTxt;
+            HeaderTxt := InProgressHeaderTxt;
+            DescriptionTxt := InProgressDescriptionTxt;
+        end else begin
+            TitleTxt := NewTitleTxt;
+            HeaderTxt := NewHeaderTxt;
+            DescriptionTxt := NewDescriptionTxt;
+        end;
     end;
 
     local procedure IsQualityManagerRoleCenter(): Boolean
@@ -143,21 +157,24 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertLearnLink(MicrosoftLearnTitleTxt, MicrosoftLearnShortTitleTxt, MicrosoftLearnDescriptionTxt, 5, MicrosoftLearnLinkTxt);
     end;
 
-    local procedure InitializeChecklist()
+    local procedure InitializeChecklist(SetupExists: Boolean)
     var
         TempAllProfileQualityManager: Record "All Profile" temporary;
         Checklist: Codeunit Checklist;
     begin
         GetQualityManagerRole(TempAllProfileQualityManager);
 
-        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Demo Data Launcher", 1000, TempAllProfileQualityManager, true);
+        if SetupExists then
+            Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Demo Data Launcher", 1000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 2000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 3000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Template List", 4000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Gen. Rules", 5000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection List", 6000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 7000, TempAllProfileQualityManager, true);
-        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnTitleTxt, 8000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::Learn, MicrosoftLearnLinkTxt, 8000, TempAllProfileQualityManager, true);
+
+        Checklist.MarkChecklistSetupAsDone();
     end;
 
     local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
