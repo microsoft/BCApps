@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.API;
-using Microsoft.Utilities;
-using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Utilities;
+using Microsoft.Utilities;
 
 /// <summary>
 /// Power automate friendly web service for quality inspections.
@@ -15,7 +15,7 @@ page 20415 "Qlty. Create Inspection API"
 {
     APIVersion = 'v2.0';
     APIGroup = 'qualityinspection';
-    APIPublisher = 'insightworks';
+    APIPublisher = 'microsoft';
     Caption = 'qltyCreateInspection', Locked = true;
     DelayedInsert = true;
     DeleteAllowed = false;

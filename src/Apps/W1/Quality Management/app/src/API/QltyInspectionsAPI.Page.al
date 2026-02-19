@@ -3,15 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.API;
-using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Utilities;
-using Microsoft.QualityManagement.Dispositions.ItemTracking;
-using Microsoft.QualityManagement.Dispositions.Transfer;
+using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
+using Microsoft.QualityManagement.Dispositions.ItemTracking;
 using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.PutAway;
+using Microsoft.QualityManagement.Dispositions.Transfer;
+using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Dispositions;
+using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
 /// Power automate friendly web service for quality inspections.
