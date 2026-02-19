@@ -28,11 +28,6 @@ page 8351 "MCP Config Card"
                 {
                     Editable = not IsDefault and not Rec.Active;
                 }
-                field(Description; Rec.Description)
-                {
-                    Editable = not IsDefault and not Rec.Active;
-                    MultiLine = true;
-                }
                 field(Active; Rec.Active)
                 {
                     Editable = not IsDefault;
@@ -59,6 +54,11 @@ page 8351 "MCP Config Card"
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
                     Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
+                }
+                field(Description; Rec.Description)
+                {
+                    Editable = not IsDefault and not Rec.Active;
+                    MultiLine = true;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
