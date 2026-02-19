@@ -151,7 +151,7 @@ page 8704 "Indexes List Part"
             }
             action(TurnIndexOffInAllCompanies)
             {
-                Caption = 'Turn index off (All Companies)';
+                Caption = 'Turn index off (all companies)';
                 Enabled = Rec.Enabled and not Rec.Unique;
                 Image = Delete;
                 ToolTip = 'Turns off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
@@ -202,7 +202,7 @@ page 8704 "Indexes List Part"
             }
             action(TurnOnIndexAllCompanies)
             {
-                Caption = 'Turn index on (All Companies)';
+                Caption = 'Turn index on (all companies)';
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
                 Image = Add;
                 ToolTip = 'Enqueues the index to be turned on for all companies in the subsequent maintenance window.';
