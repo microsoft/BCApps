@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Integration.Shopify;
+namespace Microsoft.Integration.Shopify; 
 
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
