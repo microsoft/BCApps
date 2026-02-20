@@ -43,6 +43,7 @@ permissionset 6102 "E-Doc. Core - Edit"
         tabledata "E-Document Line Mapping" = IMD,
         tabledata "E-Document Purchase Header" = IMD,
         tabledata "E-Document Purchase Line" = IMD,
-        tabledata "E-Doc Sample Purch. Inv File" = IMD;
+        tabledata "E-Doc Sample Purch. Inv File" = IMD,
+        tabledata "E-Doc. MLLM Extraction Schema" = IMD;
 }
 #endif
