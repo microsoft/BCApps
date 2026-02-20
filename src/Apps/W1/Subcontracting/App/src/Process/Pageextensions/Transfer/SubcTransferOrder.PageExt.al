@@ -10,6 +10,10 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
 {
     layout
     {
+        modify("Direct Transfer")
+        {
+            Enabled = EsEnableTransferFields;
+        }
         addlast(General)
         {
             field(SourceType; Rec."Source Type")
