@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 table 6373 "Avalara Company"
 {
+    Caption = 'Avalara Company';
     DataClassification = CustomerContent;
     TableType = Temporary;
 
@@ -14,6 +15,7 @@ table 6373 "Avalara Company"
         field(1; Id; Integer)
         {
             AutoIncrement = true;
+            Caption = 'Id';
         }
         field(2; "Company Name"; Text[250])
         {

@@ -20,11 +20,11 @@ using System.Utilities;
 codeunit 148191 "Integration Tests"
 {
 
-    Subtype = Test;
-    TestType = Uncategorized;
     Permissions = tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
+    Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    TestType = Uncategorized;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]
@@ -438,9 +438,9 @@ codeunit 148191 "Integration Tests"
     [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitGetDocuments()
     var
+        Currency: Record Currency;
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        Currency: Record Currency;
         EDocServicePage: TestPage "E-Document Service";
     begin
         Initialize();
@@ -532,8 +532,8 @@ codeunit 148191 "Integration Tests"
 
     local procedure Initialize()
     var
-        ConnectionSetup: Record "Connection Setup";
         CompanyInformation: Record "Company Information";
+        ConnectionSetup: Record "Connection Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
         AvalaraAuth: Codeunit Authenticator;
         KeyGuid: Guid;
@@ -627,11 +627,11 @@ codeunit 148191 "Integration Tests"
     internal procedure HttpSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
+        CompaniesFileTok: Label 'Companies.txt', Locked = true;
         ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
         DownloadDocumentFileTok: Label 'DownloadDocument.txt', Locked = true;
-        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
         GetDocumentsFileTok: Label 'GetDocuments.txt', Locked = true;
-        CompaniesFileTok: Label 'Companies.txt', Locked = true;
+        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -698,8 +698,8 @@ codeunit 148191 "Integration Tests"
     local procedure GetStatusResponse(var Response: TestHttpResponseMessage)
     var
         GetResponseCompleteFileTok: Label 'GetResponseComplete.txt', Locked = true;
-        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
         GetResponseErrorFileTok: Label 'GetResponseError.txt', Locked = true;
+        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
     begin
         case DocumentStatus of
             DocumentStatus::Completed:
