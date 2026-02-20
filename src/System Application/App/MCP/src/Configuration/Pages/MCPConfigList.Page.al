@@ -32,11 +32,26 @@ page 8350 "MCP Config List"
         {
             repeater(Control1)
             {
-                field(Name; Rec.Name) { }
-                field(Description; Rec.Description) { }
-                field(Active; Rec.Active) { }
-                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode) { }
-                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects) { }
+                field(Name; Rec.Name)
+                {
+                    ToolTip = 'Specifies the name of the MCP configuration.';
+                }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies the description of the MCP configuration.';
+                }
+                field(Active; Rec.Active)
+                {
+                    ToolTip = 'Specifies whether the MCP configuration is active.';
+                }
+                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
+                {
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
+                }
+                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
+                {
+                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
+                }
             }
         }
     }

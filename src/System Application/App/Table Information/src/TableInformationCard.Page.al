@@ -56,7 +56,7 @@ page 8705 "Table Information Card"
                 }
                 field(IndexSize; IndexSizeKB)
                 {
-                    Caption = 'Combined Index Size (KB)';
+                    Caption = 'Combined Index Size (kB)';
                     Editable = false;
                     ToolTip = 'Specifies the combined size of all indexes on the table for this company, presented in kilobytes.';
                 }

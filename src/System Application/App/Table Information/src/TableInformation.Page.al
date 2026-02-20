@@ -16,7 +16,7 @@ using System.Security.User;
 page 8700 "Table Information"
 {
     Caption = 'Table Information';
-    AdditionalSearchTerms = 'Database,Size,Storage';
+    AdditionalSearchTerms = 'Database,Size,Storage,Index';
     PageType = List;
     ApplicationArea = All;
     Extensible = true;
