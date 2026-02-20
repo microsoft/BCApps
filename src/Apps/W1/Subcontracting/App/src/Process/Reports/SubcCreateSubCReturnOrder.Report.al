@@ -107,7 +107,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
             if SubcManagementSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
-                TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Post. Type"::"Direct Transfer");
+                TransferHeader.Validate("Direct Transfer", true);
             end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
