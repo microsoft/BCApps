@@ -13,24 +13,20 @@ using Microsoft.Utilities;
 /// </summary>
 page 20415 "Qlty. Create Inspection API"
 {
-    APIVersion = 'v2.0';
-    APIGroup = 'qualityinspection';
+    APIVersion = 'v1.0';
+    APIGroup = 'qualityManagement';
     APIPublisher = 'microsoft';
-    Caption = 'qltyCreateInspection', Locked = true;
     DelayedInsert = true;
-    DeleteAllowed = false;
     Editable = false;
-    EntityName = 'qltyCreateInspectionOnRecord';
-    EntitySetName = 'qltyCreateInspectionOnRecords';
-    EntityCaption = 'Any Record in Business Central';
-    EntitySetCaption = 'Records';
-    InsertAllowed = false;
-    ModifyAllowed = false;
+    EntityName = 'createQualityInspection';
+    EntitySetName = 'createQualityInspections';
+    EntityCaption = 'Create Quality Inspection';
+    EntitySetCaption = 'Create Quality Inspections';
     PageType = API;
-    RefreshOnActivate = true;
     SourceTable = "Name/Value Buffer";
     SourceTableTemporary = true;
     ODataKeyFields = SystemId;
+
     layout
     {
         area(Content)
@@ -38,21 +34,21 @@ page 20415 "Qlty. Create Inspection API"
             repeater(rptTests)
             {
                 ShowCaption = false;
+
                 field(qltySystemIDOfAnyRecord; Rec.SystemId)
                 {
-                    Caption = 'qltySystemIDOfAnyRecord', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the system id of the record to create a test for.';
+                    Caption = 'System ID of any record';
+                    ToolTip = 'Specifies the System ID of the record to create a test for.';
                 }
             }
         }
     }
 
     var
-        systemRecord: Guid;
-        currentTable: Integer;
-        NoSystemIDRecordErr: Label 'Business Central cannot find a record for the system id of %1', Locked = true;
-        OnlyOneRecordForTableAndFilterErr: Label 'Please check your PowerAutomate configuration. 1 record should have been found, but %1 records were found for table %2 and filter %3.', Comment = '%1=the count, %2=the table, %3=the filter';
+        SystemRecord: Guid;
+        CurrentTable: Integer;
+        NoSystemIDRecordErr: Label 'Business Central cannot find a record for the System ID of %1', Comment = '%1=the system ID that was not found';
+        OnlyOneRecordForTableAndFilterErr: Label 'Exactly one record must match the filter, but %1 were found for table %2 with filter %3.', Comment = '%1=count, %2=table, %3=filter';
 
     trigger OnFindRecord(Which: Text): Boolean
     var
@@ -62,24 +58,22 @@ page 20415 "Qlty. Create Inspection API"
         repeat
             Rec.FilterGroup(FilterGroupIterator);
             if Rec.GetFilter(SystemId) <> '' then
-                systemRecord := Rec.GetRangeMin(SystemId);
-
+                SystemRecord := Rec.GetRangeMin(SystemId);
             if Rec.GetFilter(ID) <> '' then
-                currentTable := Rec.GetRangeMin(ID);
+                CurrentTable := Rec.GetRangeMin(ID);
 
             FilterGroupIterator -= 1;
         until (FilterGroupIterator < 0);
         Rec.FilterGroup(0);
-        Rec.ID := currentTable;
-        Rec.SystemId := systemRecord;
-        if Rec.Insert() then; // this is to work around BC needing the system id on any page action when used as a webservice.        
+
+        Rec.ID := CurrentTable;
+        Rec.SystemId := SystemRecord;
+        if Rec.Insert(false, true) then;
         exit(Rec.Find(Which));
     end;
 
-    // Min of BC 16 for the system ID and GetBySystemId
     /// <summary>
-    /// Minimum of BC 16 is needed.
-    /// Create a test from a known table.
+    /// Creates a test from a known table.
     /// </summary>
     /// <param name="tableName">The table ID or table name to create a test</param>
     /// <param name="ActionContext"></param>
@@ -104,9 +98,10 @@ page 20415 "Qlty. Create Inspection API"
             ActionContext.SetObjectId(Database::"Name/Value Buffer");
             ActionContext.AddEntityKey(CreatedInspection.FieldNo(SystemId), CreatedInspection.SystemId);
             ActionContext.SetResultCode(WebServiceActionResultCode::Created);
-            if Rec.IsTemporary then Rec.DeleteAll();
+            if Rec.IsTemporary() then
+                Rec.DeleteAll();
             Rec.SystemId := CreatedInspection.SystemId;
-            if Rec.Insert() then;
+            if Rec.Insert(false, true) then;
         end else
             ActionContext.SetResultCode(WebServiceActionResultCode::None);
     end;
@@ -140,9 +135,10 @@ page 20415 "Qlty. Create Inspection API"
             ActionContext.SetObjectId(Database::"Name/Value Buffer");
             ActionContext.AddEntityKey(CreatedInspection.FieldNo(SystemId), CreatedInspection.SystemId);
             ActionContext.SetResultCode(WebServiceActionResultCode::Created);
-            if Rec.IsTemporary then Rec.DeleteAll();
+            if Rec.IsTemporary() then
+                Rec.DeleteAll();
             Rec.SystemId := CreatedInspection.SystemId;
-            if Rec.Insert() then;
+            if Rec.Insert(false, true) then;
         end else
             ActionContext.SetResultCode(WebServiceActionResultCode::None);
     end;

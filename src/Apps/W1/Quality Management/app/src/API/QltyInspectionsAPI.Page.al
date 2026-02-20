@@ -18,23 +18,17 @@ using Microsoft.QualityManagement.Utilities;
 /// </summary>
 page 20414 "Qlty. Inspections API"
 {
-    APIVersion = 'v2.0';
-    APIGroup = 'qualityinspection';
+    APIVersion = 'v1.0';
+    APIGroup = 'qualityManagement';
     APIPublisher = 'microsoft';
-    Caption = 'qltyInspections', Locked = true;
     DelayedInsert = true;
-    DeleteAllowed = false;
     Editable = false;
-    EntityName = 'qltyInspection';
-    EntitySetName = 'qltyInspections';
+    EntityName = 'qualityInspection';
+    EntitySetName = 'qualityInspections';
     EntityCaption = 'Quality Inspection';
     EntitySetCaption = 'Quality Inspections';
-    InsertAllowed = false;
-    ModifyAllowed = false;
     PageType = API;
-    RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Header";
-
     ODataKeyFields = SystemId;
 
     layout
@@ -46,182 +40,147 @@ page 20414 "Qlty. Inspections API"
                 ShowCaption = false;
                 field(qltySystemIDOfTest; Rec.SystemId)
                 {
-                    Caption = 'qltySystemIDOfTest', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the system id of the record this test refers to. The Quality inspection document no.';
+                    Caption = 'System ID of test';
+                    ToolTip = 'Specifies the System ID of the record this test refers to. The quality inspection document No.';
                 }
                 field(qltyTestNo; Rec."No.")
                 {
-                    Caption = 'qltyTestNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the quality inspection document no.';
+                    Caption = 'Test No.';
+                    ToolTip = 'Specifies the quality inspection document No.';
                 }
                 field(qltyTestRetestNo; Rec."Re-inspection No.")
                 {
-                    Caption = 'qltyTestRetestNo', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Test retest No.';
                     ToolTip = 'Specifies which retest this is for.';
                 }
                 field(qltyTemplate; Rec."Template Code")
                 {
-                    Caption = 'qltyTemplate', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Template';
                     ToolTip = 'Specifies which template this test was created from.';
                 }
                 field(qltyDescription; Rec.Description)
                 {
-                    Caption = 'qltyDescription', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Description';
                     ToolTip = 'Specifies a description of the test itself.';
                 }
                 field(qltyInspectionStatus; Rec.Status)
                 {
-                    Caption = 'qltyInspectionStatus', Locked = true;
-                    ApplicationArea = All;
-
-                    ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished Quality Inspection.';
+                    Caption = 'Inspection status';
+                    ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished quality inspection.';
                 }
 
                 field(qltyResultCode; Rec."Result Code")
                 {
-                    Caption = 'qltyResultCode', Locked = true;
-                    ApplicationArea = All;
-
+                    Caption = 'Result code';
                     ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
                 }
                 field(qltyResultDescription; Rec."Result Description")
                 {
-                    Caption = 'qltyResultDescription', Locked = true;
-                    ApplicationArea = All;
-
+                    Caption = 'Result description';
                     ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
                 }
                 field(qltyFinishedDate; Rec."Finished Date")
                 {
-                    Caption = 'qltyFinishedDate', Locked = true;
-                    ApplicationArea = All;
-
+                    Caption = 'Finished date';
                     ToolTip = 'Specifies the date that the test was finished.';
                 }
                 field(qltyResultPriority; Rec."Evaluation Sequence")
                 {
-                    Caption = 'qltyResultPriority', Locked = true;
-                    ApplicationArea = All;
-
+                    Caption = 'Result priority';
                     ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
                 }
                 field(qltySourceTableNo; Rec."Source Table No.")
                 {
-                    Caption = 'qltySourceTableNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
-
+                    Caption = 'Source table No.';
+                    ToolTip = 'Specifies a reference to the table that the quality inspection is for.';
                 }
                 field(qltySourceDocumentNo; Rec."Source Document No.")
                 {
-                    Caption = 'qltySourceDocumentNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies a reference to the source that this Quality Inspection is referring to. This typically refers to a production order document number.';
-
+                    Caption = 'Source document No.';
+                    ToolTip = 'Specifies a reference to the source that this quality inspection is referring to. This typically refers to a production order document number.';
                 }
                 field(qltySourceDocumentLineNo; Rec."Source Document Line No.")
                 {
-                    Caption = 'qltySourceDocumentLineNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies a reference to the source line no. that this Quality Inspection is referring to. This typically refers to a production order line no.';
-
+                    Caption = 'Source document line No.';
+                    ToolTip = 'Specifies a reference to the source line No. that this quality inspection is referring to. This typically refers to a production order line No.';
                 }
 
                 field(qltySourceItemNo; Rec."Source Item No.")
                 {
-                    Caption = 'qltySourceItemNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the item that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
+                    Caption = 'Source item No.';
+                    ToolTip = 'Specifies the item that the quality inspection is for. When used with production orders this typically refers to the item being produced.';
                 }
                 field(qltySourceVariantCode; Rec."Source Variant Code")
                 {
-                    Caption = 'qltySourceVariantCode', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the item variant that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
+                    Caption = 'Source variant code';
+                    ToolTip = 'Specifies the item variant that the quality inspection is for. When used with production orders this typically refers to the item being produced.';
                 }
 
                 field(qltySourceSerialNo; Rec."Source Serial No.")
                 {
-                    Caption = 'qltySourceSerialNo', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Source serial No.';
                     ToolTip = 'Specifies the serial number that the quality inspection is for. This is only used for serial tracked items.';
                 }
                 field(qltySourceLotNo; Rec."Source Lot No.")
                 {
-                    Caption = 'qltySourceLotNo', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Source lot No.';
                     ToolTip = 'Specifies the lot number that the quality inspection is for. This is only used for lot tracked items.';
                 }
                 field(qltySourcePackageNo; Rec."Source Package No.")
                 {
-                    Caption = 'qltySourcePackageNo', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Source package No.';
                     ToolTip = 'Specifies the package number that the quality inspection is for. This is only used for package tracked items.';
                 }
                 field(qltySourceQuantity; Rec."Source Quantity (Base)")
                 {
-                    Caption = 'qltySourceQuantity', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Source Quantity when configured.';
-
+                    Caption = 'Source quantity';
+                    ToolTip = 'Specifies the source quantity when configured.';
                 }
                 field(qltySourceRecordID; Rec."Source RecordId")
                 {
-                    Caption = 'qltySourceRecordID', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Source record ID.';
+                    Caption = 'Source record ID';
+                    ToolTip = 'Specifies the source record ID.';
                 }
                 field(qltySourceRecordTableNo; Rec."Source Record Table No.")
                 {
-                    Caption = 'qltySourceRecordTableNo', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Source record Table No.';
+                    Caption = 'Source record table No.';
+                    ToolTip = 'Specifies the source record table No.';
                 }
                 field(qltyAssignedUserID; Rec."Assigned User ID")
                 {
-                    Caption = 'qltyAssignedUserID', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'Assigned user ID';
                     ToolTip = 'Specifies the user this test is assigned to.';
                 }
                 field(qltySystemCreatedAt; Rec.SystemCreatedAt)
                 {
-                    Caption = 'qltySystemCreatedAt', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'System created at';
                     ToolTip = 'Specifies the date the test was created.';
                 }
                 field(qltySystemCreatedBy; Rec.SystemCreatedBy)
                 {
-                    Caption = 'qltySystemCreatedBy', Locked = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies which User ID made the test.';
+                    Caption = 'System created by';
+                    ToolTip = 'Specifies which user ID made the test.';
                 }
                 field(qltySystemModifiedAt; Rec.SystemModifiedAt)
                 {
-                    Caption = 'qltySystemModifiedAt', Locked = true;
-                    ApplicationArea = All;
+                    Caption = 'System modified at';
                     ToolTip = 'Specifies the last modified date of the test.';
                 }
                 field(qltySystemModifiedBy; Rec.SystemModifiedBy)
                 {
-                    Caption = 'qltySystemModifiedBy';
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the last Modified By User ID';
+                    Caption = 'System modified by';
+                    ToolTip = 'Specifies the last modified by user ID.';
                 }
             }
         }
     }
     var
         QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
-        CannotConvertDateErr: Label 'Could not convert date %1. Use ISO 8601 (YYYY-MM-DD) date format.', Comment = '%1=date';
+        CannotConvertDateErr: Label 'Could not convert date %1. Use the YYYY-MM-DD date format.', Comment = '%1=date';
 
 
     /// <summary>
-    /// Use with web services and power automate to Finish the Inspection
+    /// Finishes the inspection.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -232,7 +191,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Creates a Reinspection.
+    /// Creates a reinspection.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -243,7 +202,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Reopens an inspection
+    /// Reopens an inspection.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -254,7 +213,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Sets a test value
+    /// Sets a test value.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="testCode">Text. The field code to set.</param>
@@ -267,7 +226,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Assigns the test.
+    /// Assigns the test to a user.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="assignToUser">Text. The user id to assign the test to.</param>
@@ -280,7 +239,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Blocks the lot
+    /// Blocks the lot.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -293,7 +252,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Un-Blocks the lot
+    /// Unblocks the lot.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -307,7 +266,7 @@ page 20414 "Qlty. Inspections API"
 
 
     /// <summary>
-    /// Blocks the serial
+    /// Blocks the serial number.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -320,7 +279,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Un-Blocks the serial
+    /// Unblocks the serial number.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -333,7 +292,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Blocks the serial
+    /// Blocks the package.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -346,7 +305,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Un-Blocks the serial
+    /// Unblocks the package.
     /// </summary>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
@@ -359,7 +318,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Uses an inventory movement to move inventory
+    /// Moves inventory with an Inventory Movement.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="optionalDestinationLocation"></param>
@@ -374,7 +333,6 @@ page 20414 "Qlty. Inspections API"
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyDispInternalMove: Codeunit "Qlty. Disp. Internal Move";
     begin
-
         optionalSourceLocationFilter := DelChr(optionalSourceLocationFilter, '<>', ' ');
         optionalSourceBinFilter := DelChr(optionalSourceBinFilter, '<>', ' ');
         binCode := DelChr(binCode, '<>', ' ');
@@ -560,7 +518,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Uses the information from a Quality Inspection to process a negative adjustment for the tested item.
+    /// Creates a negative inventory adjustment.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>
@@ -611,7 +569,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Uses the information from a Quality Inspection to update item tracking information for the tested item.
+    /// Updates item tracking information.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>
@@ -660,7 +618,7 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Uses the information from a Quality Inspection to create a transfer order for the tested item.
+    /// Creates a transfer order to move the inventory.
     /// </summary>
     /// <param name="ActionContext"></param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>

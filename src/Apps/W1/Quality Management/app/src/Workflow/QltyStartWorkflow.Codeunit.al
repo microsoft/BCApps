@@ -139,8 +139,8 @@ codeunit 20426 "Qlty. Start Workflow"
     /// <param name="sourceLotNo">The source lot number.</param>
     /// <param name="sourceSerialNo">The source serial number.</param>
     /// <param name="resultCode">The current grade of the test</param>
-    [ExternalBusinessEvent('QltyOnInspectionCreated', 'Quality Inspection Created', 'This action will occur when a new Quality Inspection has been created.', EventCategory::QltyEventCategory)]
-    procedure OnInspectionCreated(inspectionIdentifier: guid; inspectionNo: code[20]; sourceRecordIdentifier: Guid; sourceDocumentNo: code[20]; sourceItemNo: Code[20]; sourceVariantCode: code[10]; sourceLotNo: Code[50]; sourceSerialNo: Code[50]; resultCode: Code[20])
+    [ExternalBusinessEvent('QualityInspectionCreated', 'Quality Inspection Created', 'This action will occur when a new Quality Inspection has been created.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionCreated(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
     begin
     end;
 
@@ -157,8 +157,8 @@ codeunit 20426 "Qlty. Start Workflow"
     /// <param name="sourceLotNo">The lot number associated with the test</param>
     /// <param name="sourceSerialNo">The serial number associated with the test</param>
     /// <param name="resultCode">The current grade of the test</param>
-    [ExternalBusinessEvent('QltyOnInspectionFinished', 'Quality Inspection Finished', 'This action will occur when a Quality Inspection has changed to the finished state.', EventCategory::QltyEventCategory)]
-    procedure OnInspectionFinished(inspectionIdentifier: guid; inspectionNo: code[20]; sourceRecordIdentifier: Guid; sourceDocumentNo: code[20]; sourceItemNo: Code[20]; sourceVariantCode: code[10]; sourceLotNo: Code[50]; sourceSerialNo: Code[50]; resultCode: Code[20])
+    [ExternalBusinessEvent('QualityInspectionFinished', 'Quality Inspection Finished', 'This action will occur when a Quality Inspection has changed to the finished state.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionFinished(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
     begin
     end;
 
@@ -175,8 +175,8 @@ codeunit 20426 "Qlty. Start Workflow"
     /// <param name="sourceLotNo">The lot number associated with the test</param>
     /// <param name="sourceSerialNo">The serial number associated with the test</param>
     /// <param name="resultCode">The current grade of the test</param>
-    [ExternalBusinessEvent('QltyOnInspectionReOpened', 'Quality Inspection Re-Opened', 'This action will occur when a Quality Inspection has been re-opened.', EventCategory::QltyEventCategory)]
-    procedure OnInspectionReOpened(inspectionIdentifier: guid; inspectionNo: code[20]; sourceRecordIdentifier: Guid; sourceDocumentNo: code[20]; sourceItemNo: Code[20]; sourceVariantCode: code[10]; sourceLotNo: Code[50]; sourceSerialNo: Code[50]; resultCode: Code[20])
+    [ExternalBusinessEvent('QualityInspectionReOpened', 'Quality Inspection Re-Opened', 'This action will occur when a Quality Inspection has been re-opened.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionReOpened(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
     begin
     end;
 
@@ -193,8 +193,8 @@ codeunit 20426 "Qlty. Start Workflow"
     /// <param name="sourceLotNo">The lot number associated with the test</param>
     /// <param name="sourceSerialNo">The serial number associated with the test</param>
     /// <param name="resultCode">The current grade of the test</param>
-    [ExternalBusinessEvent('QltyOnTestChanged', 'Quality Inspection Changed', 'This action will occur when a Quality Inspection has changed.', EventCategory::QltyEventCategory)]
-    procedure OnInspectionChanged(inspectionIdentifier: guid; inspectionNo: code[20]; sourceRecordIdentifier: Guid; sourceDocumentNo: code[20]; sourceItemNo: Code[20]; sourceVariantCode: code[10]; sourceLotNo: Code[50]; sourceSerialNo: Code[50]; resultCode: Code[20])
+    [ExternalBusinessEvent('QualityInspectionChanged', 'Quality Inspection Changed', 'This action will occur when a Quality Inspection has changed.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionChanged(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
     begin
     end;
 }
