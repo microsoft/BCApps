@@ -14,7 +14,7 @@ page 4300 "Agent Task List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent Task";
-    Caption = 'Agent Tasks', Comment = 'Agent in this page should be translated as Tasks that AI agents were assigned.';
+    Caption = 'Agent Tasks', Comment = 'Agent Tasks in this page should be translated as Tasks that AI agents were assigned.';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
