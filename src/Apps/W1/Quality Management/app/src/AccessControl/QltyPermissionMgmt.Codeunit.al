@@ -15,6 +15,7 @@ using System.Security.User;
 codeunit 20406 "Qlty. Permission Mgmt."
 {
     InherentPermissions = X;
+    Access = Internal;
 
     var
         ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
