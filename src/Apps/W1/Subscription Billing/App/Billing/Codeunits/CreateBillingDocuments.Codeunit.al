@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
@@ -225,8 +226,9 @@ codeunit 8060 "Create Billing Documents"
         BillingLine: Record "Billing Line";
         CustomerContractLine: Record "Cust. Sub. Contract Line";
         UsageDataBilling: Record "Usage Data Billing";
-        UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
+        TransferExtendedText: Codeunit "Transfer Extended Text";
+        UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -271,6 +273,9 @@ codeunit 8060 "Create Billing Documents"
         SetInvoicePriceFromUsageDataBilling(SalesLine, TempBillingLine);
         OnBeforeInsertSalesLineFromContractLine(SalesLine, TempBillingLine);
         SalesLine.Insert(false);
+
+        if TransferExtendedText.SalesCheckIfAnyExtText(SalesLine, false) then
+            TransferExtendedText.InsertSalesExtText(SalesLine);
 
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         CreateAdditionalInvoiceLine(ServiceContractSetup.FieldNo("Contract Invoice Add. Line 1"), SalesHeader, SalesLine, ServiceObject, ServiceCommitment);
