@@ -5,7 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.AI;
+// using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
@@ -74,7 +74,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
                 until EDocumentPurchaseLine.Next() = 0;
 
             // Apply all Copilot-powered matching techniques to the lines
-            CopilotLineMatching(EDocument."Entry No");
+            // CopilotLineMatching(EDocument."Entry No");
         end;
 
         // Log telemetry and activity sessions
@@ -112,43 +112,43 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
             ActivityLog.Log();
     end;
 
-    local procedure CopilotLineMatching(EDocumentEntryNo: Integer)
-    var
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-    begin
-        EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code");
-        EDocumentPurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted);
+    // local procedure CopilotLineMatching(EDocumentEntryNo: Integer)
+    // var
+    //     EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    // begin
+    //     EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code");
+    //     EDocumentPurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted);
 
-        // Step 1: Apply historical pattern matching
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
-        EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
+    //     // Step 1: Apply historical pattern matching
+    //     EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+    //     EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
+    //     EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
 
-        if not EDocumentPurchaseLine.IsEmpty() then begin
-            Commit();
-            Codeunit.Run(Codeunit::"E-Doc. Historical Matching", EDocumentPurchaseLine);
-        end;
+    //     if not EDocumentPurchaseLine.IsEmpty() then begin
+    //         Commit();
+    //         Codeunit.Run(Codeunit::"E-Doc. Historical Matching", EDocumentPurchaseLine);
+    //     end;
 
-        // Step 2: Apply line-to-account matching for remaining lines with no purchase type
-        Clear(EDocumentPurchaseLine);
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
-        EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
-        if not EDocumentPurchaseLine.IsEmpty() then begin
-            Commit();
-            Codeunit.Run(Codeunit::"E-Doc. GL Account Matching", EDocumentPurchaseLine);
-        end;
+    //     // Step 2: Apply line-to-account matching for remaining lines with no purchase type
+    //     Clear(EDocumentPurchaseLine);
+    //     EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+    //     EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
+    //     EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
+    //     if not EDocumentPurchaseLine.IsEmpty() then begin
+    //         Commit();
+    //         Codeunit.Run(Codeunit::"E-Doc. GL Account Matching", EDocumentPurchaseLine);
+    //     end;
 
-        // Step 3: Apply deferral matching for lines with a purchase type but no deferral code
-        Clear(EDocumentPurchaseLine);
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentPurchaseLine.SetRange("[BC] Deferral Code", '');
-        EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
-        if not EDocumentPurchaseLine.IsEmpty() then begin
-            Commit();
-            if Codeunit.Run(Codeunit::"E-Doc. Deferral Matching", EDocumentPurchaseLine) then;
-        end;
-    end;
+    //     // Step 3: Apply deferral matching for lines with a purchase type but no deferral code
+    //     Clear(EDocumentPurchaseLine);
+    //     EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+    //     EDocumentPurchaseLine.SetRange("[BC] Deferral Code", '');
+    //     EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
+    //     if not EDocumentPurchaseLine.IsEmpty() then begin
+    //         Commit();
+    //         if Codeunit.Run(Codeunit::"E-Doc. Deferral Matching", EDocumentPurchaseLine) then;
+    //     end;
+    // end;
 
     procedure OpenDraftPage(var EDocument: Record "E-Document")
     var
