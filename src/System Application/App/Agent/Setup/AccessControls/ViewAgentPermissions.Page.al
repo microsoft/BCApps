@@ -20,6 +20,7 @@ page 4334 "View Agent Permissions"
     ModifyAllowed = false;
     InherentPermissions = X;
     InherentEntitlements = X;
+    Permissions = tabledata Agent = M;
 
     layout
     {
