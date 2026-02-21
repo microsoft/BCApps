@@ -237,8 +237,6 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
                 Image = FilterLines;
-                AboutTitle = 'Quality Inspection Generation Rule';
-                AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
                 RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
             }
@@ -248,8 +246,6 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Results';
                 ToolTip = 'View the Quality Inspection Results. Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 Image = ViewRegisteredOrder;
-                AboutTitle = 'Results';
-                AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 RunObject = Page "Qlty. Inspection Result List";
                 RunPageMode = Edit;
             }
@@ -259,8 +255,6 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Tests';
                 ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
                 Image = Task;
-                AboutTitle = 'Tests';
-                AboutText = 'Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
                 RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
             }
