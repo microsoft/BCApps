@@ -36,5 +36,6 @@
   "features": [
     "TranslationFile",
     "NoImplicitWith"
-  ]
+  ],
+  "resourceFolders": [".resources"]
 }

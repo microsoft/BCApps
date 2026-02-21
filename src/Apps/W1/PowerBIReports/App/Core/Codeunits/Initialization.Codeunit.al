@@ -25,9 +25,11 @@ codeunit 36951 Initialization
         DimensionSetEntriesJobQueueDescriptionLbl: Label 'Update Power BI Dimension Set Entries';
 
     procedure SetupDefaultsForPowerBIReportsIfNotInitialized()
+    var
+        PBISetup: Record "PowerBI Reports Setup";
     begin
         InsertGuidedExperience();
-        InitializePBISetup();
+        PBISetup.GetOrCreate();
         InitializePBIWorkingDays();
         InitializeStartingEndingDates();
         InitializeDimensionSetEntryCollectionJobQueueEntry();
@@ -57,16 +59,6 @@ codeunit 36951 Initialization
         FinanceInstallationHandler: Codeunit "Finance Installation Handler";
     begin
         FinanceInstallationHandler.SetupDefaultsForPowerBIReportsIfNotInitialized();
-    end;
-
-    local procedure InitializePBISetup()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-    begin
-        if not PBISetup.Get() then begin
-            PBISetup.Init();
-            PBISetup.Insert();
-        end;
     end;
 
     local procedure InitializeStartingEndingDates()

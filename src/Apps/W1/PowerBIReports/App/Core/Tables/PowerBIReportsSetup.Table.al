@@ -147,6 +147,13 @@ table 36951 "PowerBI Reports Setup"
         }
     }
 
+    procedure GetOrCreate()
+    begin
+        if Rec.Get() then
+            exit;
+        Rec.Init();
+        Rec.Insert();
+    end;
 
     procedure GetTimeZoneDisplayName(): Text[250]
     var
