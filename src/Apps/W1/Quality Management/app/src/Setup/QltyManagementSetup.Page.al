@@ -21,8 +21,8 @@ page 20400 "Qlty. Management Setup"
     SourceTable = "Qlty. Management Setup";
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
-    AboutTitle = 'Setup';
-    AboutText = 'This setup page will let you define the behavior of how and when inspections are created.';
+    AboutTitle = 'About Quality Management Setup';
+    AboutText = 'Manage default settings for when and how inspections are created. Set up test generation rule triggers for production, inventory, and warehouse scenarios.';
 
     layout
     {
@@ -39,8 +39,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'No. Series';
-                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
                 group(Inspections)
@@ -51,16 +49,14 @@ page 20400 "Qlty. Management Setup"
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Inspection Creation Option';
-                        AboutText = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+                        AboutTitle = 'Inspection creation option';
+                        AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
 
                     }
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Inspection Search Criteria';
-                        AboutText = 'Specifies the criteria the system uses to search for existing inspections.';
                     }
                 }
                 group(Miscellaneous)
@@ -70,25 +66,18 @@ page 20400 "Qlty. Management Setup"
                     field("CoA Contact No."; Rec."Certificate Contact No.")
                     {
                         ApplicationArea = All;
-                        AboutTitle = 'Certificate of Analysis Contact';
-                        AboutText = 'When supplied, these contact details will appear on the Certificate of Analysis report.';
                     }
                     field("Max Rows Field Lookups"; Rec."Max Rows Field Lookups")
                     {
                         Importance = Additional;
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Maximum Rows To Fetch In Lookups';
-                        AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
-
                     }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
                         Caption = 'Additional Picture Handling';
                         ShowCaption = true;
-                        AboutTitle = 'Additional Picture Handling';
-                        AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
                     }
                 }
             }
@@ -100,7 +89,7 @@ page 20400 "Qlty. Management Setup"
                 group(ReceiveAutomation)
                 {
                     Caption = 'Receiving';
-                    AboutTitle = 'Receiving Related Automation Settings';
+                    AboutTitle = 'Receiving automation settings';
                     AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
                     field("Warehouse Receipt Trigger"; Rec."Warehouse Receipt Trigger")
@@ -127,7 +116,7 @@ page 20400 "Qlty. Management Setup"
                 group(ProductionAutomation)
                 {
                     Caption = 'Production';
-                    AboutTitle = 'Production Related Automation Settings';
+                    AboutTitle = 'Production automation settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
                     field("Production Order Trigger"; Rec."Production Order Trigger")
@@ -135,24 +124,18 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Production Order Trigger';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Production Order related trigger';
-                        AboutText = 'Optionally choose a production order related trigger to try and create an inspection.';
                     }
                     field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {
                         Caption = 'Prod. trigger output condition';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Prod. trigger output condition';
-                        AboutText = 'Provides granular options for when an inspection should be created automatically during the production process.';
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
                         Caption = 'Assembly Trigger';
                         ApplicationArea = Assembly;
                         ShowCaption = true;
-                        AboutTitle = 'Assembly related trigger';
-                        AboutText = 'Optionally choose an assembly-related trigger to try and create an inspection.';
                     }
                     field("Production Update Control"; Rec."Production Update Control")
                     {
@@ -161,14 +144,12 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Control Source';
                         Importance = Additional;
                         Visible = false;
-                        AboutTitle = 'When to update on production related changes.';
-                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
                 group(WarehouseAutomation)
                 {
                     Caption = 'Inventory and Warehousing';
-                    AboutTitle = 'Warehousing Related Automation Settings';
+                    AboutTitle = 'Warehouse automation settings';
                     AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create an inspection when a lot is moved to a specific bin.';
 
                     field("Warehouse Trigger"; Rec."Warehouse Trigger")
@@ -176,8 +157,6 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Warehouse Movement Trigger';
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Warehouse related trigger';
-                        AboutText = 'Optionally choose a warehousing related trigger to try and create an inspection.';
                     }
                 }
             }
@@ -190,22 +169,16 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Item Reclass. Batch Name';
-                    AboutTitle = 'Item Reclass. Batch Name (Non-Directed Pick and Put-away location)';
-                    AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
                 }
                 field("Whse. Reclass. Batch Name"; Rec."Whse. Reclass. Batch Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Whse. Batch Name';
-                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                    AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
                 }
                 field("Movement Worksheet Name"; Rec."Movement Worksheet Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Whse. Worksheet Name';
-                    AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
-                    AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
                 }
             }
             group(Adjustments)
@@ -217,15 +190,11 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Batch Name';
-                    AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
-                    AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
                 }
                 field("Whse. Item Journal Batch Name"; Rec."Whse. Item Journal Batch Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Whse. Batch Name';
-                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                    AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
                 }
             }
 
@@ -237,15 +206,13 @@ page 20400 "Qlty. Management Setup"
                 field("Tracking Before Finishing"; Rec."Item Tracking Before Finishing")
                 {
                     ApplicationArea = All;
-                    AboutTitle = 'Item Tracking';
-                    AboutText = 'Will your item tracking numbers always be posted when performing quality inspections?';
                 }
                 field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
                     ShowCaption = true;
-                    AboutTitle = 'Which inspections to inspect when analyzing document specific item tracking blocking.';
-                    AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
+                    AboutTitle = 'Inspections for document-specific blocking';
+                    AboutText = 'Define how to select the quality inspections the system uses to decide whether a document transaction should be blocked for a lot or serial number.';
                 }
             }
         }
@@ -261,8 +228,6 @@ page 20400 "Qlty. Management Setup"
                 Caption = 'Inspection Templates';
                 ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 Image = BreakpointsList;
-                AboutTitle = 'Quality Inspection Template';
-                AboutText = 'A Quality Inspection Template is a set of questions and data points that you want to collect.';
                 RunObject = Page "Qlty. Inspection Template List";
                 RunPageMode = Edit;
             }

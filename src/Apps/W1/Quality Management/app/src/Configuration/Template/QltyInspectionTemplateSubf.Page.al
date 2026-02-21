@@ -38,6 +38,8 @@ page 20403 "Qlty. Inspection Template Subf"
                 field("Test Code"; Rec."Test Code")
                 {
                     StyleExpr = RowStyleText;
+                    AboutTitle = 'Test Code';
+                    AboutText = 'Here you can add tests that should be performed during inspections.';
 
                     trigger OnValidate()
                     begin
@@ -66,8 +68,6 @@ page 20403 "Qlty. Inspection Template Subf"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     StyleExpr = RowStyleText;
-                    AboutTitle = 'Unit of Measure Code';
-                    AboutText = 'The unit of measure for the measurement.';
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
