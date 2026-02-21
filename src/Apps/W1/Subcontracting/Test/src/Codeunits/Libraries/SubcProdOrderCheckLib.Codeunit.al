@@ -18,6 +18,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
 {
     var
         Assert: Codeunit Assert;
+        ProdOrderRefreshed: Boolean;
         DescriptionMismatchOnOperationLbl: Label 'Description mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         DirectUnitCostMismatchOnOperationLbl: Label 'Direct Unit Cost mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         DueDateMismatchOnLineLbl: Label 'Due Date mismatch on Line %1. Expected: %2, Actual: %3', Locked = true;
@@ -41,12 +42,11 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         UnitCostCalculationMismatchOnOperationLbl: Label 'Unit Cost Calculation mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         WorkCenterGroupCodeMismatchOnOperationLbl: Label 'Work Center Group Code mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         WorkCenterNoMismatchOnOperationLbl: Label 'Work Center No. mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
-        ProdOrderRefreshed: Boolean;
 
     procedure CreateTempProdOrderComponentFromSetup(var TempProdOrderComponent: Record "Prod. Order Component" temporary; PurchLine: Record "Purchase Line")
     var
-        SubManagementSetup: Record "Subc. Management Setup";
         TempProdOrderComponent2: Record "Prod. Order Component" temporary;
+        SubManagementSetup: Record "Subc. Management Setup";
         LineNo: Integer;
     begin
         // Fill temporary Production Order Component from setup configuration
@@ -288,8 +288,8 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
 
     procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
     var
-        SubManagementSetup: Record "Subc. Management Setup";
         ProductionBOMLine: Record "Production BOM Line";
+        SubManagementSetup: Record "Subc. Management Setup";
         LineNo: Integer;
     begin
         // Create temporary Production Order Components based on BOM lines

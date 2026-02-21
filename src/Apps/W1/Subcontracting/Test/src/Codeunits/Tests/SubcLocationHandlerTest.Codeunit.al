@@ -29,18 +29,18 @@ codeunit 139981 "Subc. Location Handler Test"
 
     var
         Assert: Codeunit Assert;
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
         WizardFinishedSuccessfully: Boolean;
 
@@ -68,10 +68,10 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Purchase()
     var
-        PurchaseLine: Record "Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        SubManagementSetup: Record "Subc. Management Setup";
         Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubManagementSetup: Record "Subc. Management Setup";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -98,9 +98,9 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Company()
     var
+        Location: Record Location;
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Subc. Management Setup";
-        Location: Record Location;
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -124,9 +124,9 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Manufacturing()
     var
+        Location: Record Location;
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Subc. Management Setup";
-        Location: Record Location;
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -154,17 +154,17 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandleTransferOrder')]
     procedure TestTransferOrderCreation_SameLocation()
     var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        Vendor: Record Vendor;
-        LocationSub: Record Location;
-        LocationOrig: Record Location;
-        Item: Record Item;
         TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
     begin
         // [SCENARIO] Transfer Order creation uses Origin Location if Component Location equals Subcontractor Location
@@ -197,23 +197,23 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandleTransferOrder')]
     procedure TestTransferOrderCreation_PostAndRecreate()
     var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        Vendor: Record Vendor;
-        LocationSub: Record Location;
-        LocationOrig: Record Location;
-        Item: Record Item;
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ItemJournalLine: Record "Item Journal Line";
+        Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
-        QtyTotal: Decimal;
         QtyFirstTransfer: Decimal;
         QtyRemaining: Decimal;
+        QtyTotal: Decimal;
     begin
         // [SCENARIO] Create Transfer Order, reduce quantity, post, and create new Transfer Order for remaining
         Initialize();
@@ -280,12 +280,12 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandlePurchProvisionWizard')]
     procedure TestProdOrderLocationFromMfgSetup_PurchaseLocationMustBeDifferent()
     var
-        PurchLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        SubManagementSetup: Record "Subc. Management Setup";
-        ManufacturingSetup: Record "Manufacturing Setup";
         LocationMfg: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrder: Record "Production Order";
+        PurchLine: Record "Purchase Line";
+        SubManagementSetup: Record "Subc. Management Setup";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         ItemNo: Code[20];
     begin
@@ -452,5 +452,4 @@ codeunit 139981 "Subc. Location Handler Test"
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
     end;
-
 }

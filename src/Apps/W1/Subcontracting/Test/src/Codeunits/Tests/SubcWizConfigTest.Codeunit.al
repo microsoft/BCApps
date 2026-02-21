@@ -21,13 +21,13 @@ codeunit 139994 "Subc. Wiz. Config Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
         WizardFinishedSuccessfully: Boolean;
         WizardWasOpened: Boolean;
