@@ -15,8 +15,8 @@ page 20401 "Qlty. Tests"
 {
     Caption = 'Quality Tests';
     AdditionalSearchTerms = 'Quality measurement';
-    AboutTitle = 'Configure Available Tests';
-    AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+    AboutTitle = 'About Quality Tests';
+    AboutText = 'Create and manage tests for quality inspections, including data points, questions, and measurements. Use these tests in templates to standardize quality checks.';
     CardPageId = "Qlty. Test Card";
     Editable = false;
     InsertAllowed = false;
@@ -38,43 +38,29 @@ page 20401 "Qlty. Tests"
 
                 field("Code"; Rec.Code)
                 {
-                    AboutTitle = 'Code';
-                    AboutText = 'The short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
                 }
                 field(Description; Rec.Description)
                 {
-                    AboutTitle = 'Description';
-                    AboutText = 'The friendly description for the Test. You can enter a maximum of 100 characters, both numbers and letters.';
+                    AboutTitle = 'Describe your test';
+                    AboutText = 'This description will be visible when recording inspections and will show up on the Certificate of Analysis and other reports.';
                 }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
-                    AboutTitle = 'Field Type';
-                    AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
                 }
                 field("Allowable Values"; Rec."Allowable Values")
                 {
-                    AboutTitle = 'Allowable Values';
-                    AboutText = 'What the staff inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
                 }
                 field("Default Value"; Rec."Default Value")
                 {
-                    AboutTitle = 'Default Value';
-                    AboutText = 'A default value to set on the test.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
-                    AboutTitle = 'Unit of Measure Code';
-                    AboutText = 'The unit of measure for the measurement.';
                 }
                 field("Expression Formula"; Rec."Expression Formula")
                 {
-                    AboutTitle = 'Expression Formula';
-                    AboutText = 'Used with expression field types, this contains the formula for the expression content.';
                 }
                 field("Case Sensitive"; Rec."Case Sensitive")
                 {
-                    AboutTitle = 'Case Sensitivity';
-                    AboutText = 'Choose if case sensitivity will be enabled for text based fields.';
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
@@ -88,8 +74,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible1;
                 }
                 field(Field2; MatrixArrayConditionCellData[2])
@@ -104,8 +88,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible2;
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
@@ -120,8 +102,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible3;
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
