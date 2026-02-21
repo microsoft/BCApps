@@ -921,7 +921,6 @@ table 8057 "Subscription Header"
             Caption = 'Vendor No.';
             TableRelation = Vendor;
             ToolTip = 'Specifies the no. of the default vendor of this item.';
-            Editable = true;
 
             trigger OnValidate()
             begin
@@ -932,9 +931,7 @@ table 8057 "Subscription Header"
         field(8001; "Vendor Name"; Text[100])
         {
             Caption = 'Vendor Name';
-            FieldClass = Normal;
             ToolTip = 'Specifies the name of the default vendor of this item.';
-            Editable = true;
             TableRelation = Vendor.Name;
             ValidateTableRelation = false;
 
@@ -958,13 +955,11 @@ table 8057 "Subscription Header"
         field(8002; "Vendor Name 2"; Text[50])
         {
             Caption = 'Vendor Name 2';
-            FieldClass = Normal;
             ToolTip = 'Specifies an additional part of the name of the default vendor of this item.';
         }
         field(8003; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
-            FieldClass = Normal;
             Editable = false;
             ToolTip = 'Specifies the default vendor''s item no.';
         }
@@ -973,7 +968,6 @@ table 8057 "Subscription Header"
             Caption = 'Manufacturer Code';
             TableRelation = Manufacturer;
             ToolTip = 'Specifies the code of the manufacturer of this item.';
-            Editable = true;
 
             trigger OnValidate()
             begin
@@ -984,9 +978,7 @@ table 8057 "Subscription Header"
         field(8011; "Manufacturer Name"; Text[50])
         {
             Caption = 'Manufacturer Name';
-            FieldClass = Normal;
             ToolTip = 'Specifies the name of the manufacturer of this item.';
-            Editable = true;
             TableRelation = Manufacturer.Name;
             ValidateTableRelation = false;
 
@@ -1015,7 +1007,6 @@ table 8057 "Subscription Header"
             Caption = 'Salesperson Code';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
             ToolTip = 'Specifies the salesperson who is assigned to the customer.';
-            Editable = true;
 
             trigger OnValidate()
             begin
@@ -2439,10 +2430,12 @@ table 8057 "Subscription Header"
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
     begin
-        if "Salesperson Code" <> '' then
-            if SalespersonPurchaser.Get("Salesperson Code") then
-                if SalespersonPurchaser.VerifySalesPersonPurchaserPrivacyBlocked(SalespersonPurchaser) then
-                    Error(SalespersonPurchaser.GetPrivacyBlockedGenericText(SalespersonPurchaser, true));
+        if "Salesperson Code" = '' then
+            exit;
+        if not SalespersonPurchaser.Get("Salesperson Code") then
+            exit;
+        if SalespersonPurchaser.VerifySalesPersonPurchaserPrivacyBlocked(SalespersonPurchaser) then
+            Error(SalespersonPurchaser.GetPrivacyBlockedGenericText(SalespersonPurchaser, true));
     end;
 
     local procedure ShouldSearchForVendorByName(VendorNo: Code[20]): Boolean
