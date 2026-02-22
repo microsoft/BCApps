@@ -16,7 +16,7 @@ page 20416 "Qlty. Inspection Result List"
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Inspection Results';
-    AboutText = 'Inspection results show the outcome of an inspection, such as In progress, Fail, or Pass. You can set up custom grades to match your process.';
+    AboutText = 'Inspection results show the outcome of an inspection, such as *In progress, Fail*, or *Pass*. You can set up custom grades to match your process.';
 
     layout
     {

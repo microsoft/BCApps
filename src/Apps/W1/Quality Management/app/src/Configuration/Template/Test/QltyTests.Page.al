@@ -66,8 +66,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible1;
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
@@ -80,8 +78,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible2;
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
@@ -94,8 +90,6 @@ page 20401 "Qlty. Tests"
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible3;
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
@@ -191,32 +185,22 @@ page 20401 "Qlty. Tests"
                 field("Lookup Table No."; Rec."Lookup Table No.")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'When using a table lookup as a data type then this defines which table you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
                 }
                 field("Lookup Table Name"; Rec."Lookup Table Caption")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'The name of the lookup table. When using a table lookup as a data type then this is the name of the table that you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
                 }
                 field("Lookup Field No."; Rec."Lookup Field No.")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Field No.';
-                    AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
                 }
                 field("Lookup Field Name"; Rec."Lookup Field Caption")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Field Name';
-                    AboutText = 'This is the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
                 }
                 field("Lookup Table Filter"; Rec."Lookup Table Filter")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table Filter';
-                    AboutText = 'This allows you to restrict which data are available from the Lookup Table by using a standard Business Central filter expression. For example if you were using table 231 "Reason Code" as your lookup table and wanted to restrict the options to codes that started with "R" then you could enter: where("Code"=filter(R*))';
                 }
             }
         }

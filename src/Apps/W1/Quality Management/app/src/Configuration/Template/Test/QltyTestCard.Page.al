@@ -36,8 +36,6 @@ page 20479 "Qlty. Test Card"
                 }
                 field(Description; Rec.Description)
                 {
-                    AboutTitle = 'Description';
-                    AboutText = 'The friendly description for the test. You can enter a maximum of 100 characters, both numbers and letters.';
                     ShowMandatory = true;
                 }
                 field("Test Value Type"; Rec."Test Value Type")
@@ -52,8 +50,6 @@ page 20479 "Qlty. Test Card"
                 }
                 field("Expression Formula"; Rec."Expression Formula")
                 {
-                    AboutTitle = 'Expression Formula';
-                    AboutText = 'Used with expression test value types, this contains the formula for the expression content.';
                     MultiLine = true;
                     Editable = IsExpressionFormulaEditable;
 
@@ -99,7 +95,7 @@ page 20479 "Qlty. Test Card"
             {
                 Caption = 'Result Conditions';
                 AboutTitle = 'Result conditions';
-                AboutText = 'Define how the quality results will be evaluated and described for this test. The fields shown here depend on the **Result Visibility** setting on the Quality Inspection Results page. Use conditions to specify whether a result applies, and add clear descriptions.';
+                AboutText = 'Define how the quality results will be evaluated and described for this test. The fields shown here depend on the **Result Visibility** setting on the **Quality Inspection Results** page. Use conditions to specify whether a result applies, and add clear descriptions.';
 
                 group(ResultGroup1)
                 {
@@ -126,8 +122,6 @@ page 20479 "Qlty. Test Card"
                     {
                         CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                         ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                        AboutTitle = 'Result Condition Description';
-                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                         Visible = Visible1;
                         Editable = EditableResult;
 
@@ -167,8 +161,6 @@ page 20479 "Qlty. Test Card"
                     {
                         CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                         ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                        AboutTitle = 'Result Condition Description';
-                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                         Visible = Visible2;
                         Editable = EditableResult;
 
@@ -209,8 +201,6 @@ page 20479 "Qlty. Test Card"
                         CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                         Editable = EditableResult;
                         ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                        AboutTitle = 'Result Condition Description';
-                        AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                         Visible = Visible3;
 
                         trigger OnValidate()

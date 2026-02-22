@@ -268,8 +268,6 @@ page 20400 "Qlty. Management Setup"
                     Caption = 'Source Configurations';
                     ToolTip = 'View the Quality Inspection Source Configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
                     Image = Relationship;
-                    AboutTitle = 'Source Configurations';
-                    AboutText = 'Quality inspection source configurations define how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
                     RunObject = Page "Qlty. Ins. Source Config. List";
                     RunPageMode = View;
                 }

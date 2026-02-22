@@ -21,7 +21,7 @@ page 20402 "Qlty. Inspection Template"
     RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Template Hdr.";
     AboutTitle = 'About Quality Inspection Template details';
-    AboutText = 'A Quality Inspection Template is an inspection plan containing a tests to perform, rules defining how template impacts processes like purchase or production.';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a tests to perform, rules defining how the template impacts processes like purchase or production.';
     PromotedActionCategories = 'New,Process,Report';
     ApplicationArea = QualityManagement;
 
