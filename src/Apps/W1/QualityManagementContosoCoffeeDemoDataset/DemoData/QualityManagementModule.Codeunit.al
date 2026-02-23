@@ -25,9 +25,6 @@ codeunit 5592 "Quality Management Module" implements "Contoso Demo Data Module"
 
     procedure CreateSetupData()
     begin
-        // Results, No. Series, and Source Configurations are created by the main QM app on install
-        // via Qlty. Auto Configure.EnsureBasicSetupExists().
-        exit;
     end;
 
     procedure CreateMasterData()
