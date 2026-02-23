@@ -13,7 +13,7 @@ page 4316 "Agent List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent";
-    Caption = 'Agents';
+    Caption = 'Agents', Comment = 'Agents in this page should be translated as AI agents. It is listing the AI agents that users have setup to help with automating tasks.';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;

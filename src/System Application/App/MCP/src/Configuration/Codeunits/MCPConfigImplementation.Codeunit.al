@@ -929,6 +929,7 @@ codeunit 8351 "MCP Config Implementation"
                 Clear(ToolJson);
                 ToolJson.Add('objectType', Format(MCPConfigurationTool."Object Type"));
                 ToolJson.Add('objectId', MCPConfigurationTool."Object ID");
+                ToolJson.Add('apiVersion', MCPConfigurationTool."API Version");
                 ToolJson.Add('allowRead', MCPConfigurationTool."Allow Read");
                 ToolJson.Add('allowCreate', MCPConfigurationTool."Allow Create");
                 ToolJson.Add('allowModify', MCPConfigurationTool."Allow Modify");
@@ -1016,6 +1017,9 @@ codeunit 8351 "MCP Config Implementation"
 
         if ToolJson.Contains('objectId') then
             MCPConfigurationTool."Object ID" := ToolJson.GetInteger('objectId');
+
+        if ToolJson.Contains('apiVersion') then
+            MCPConfigurationTool."API Version" := CopyStr(ToolJson.GetText('apiVersion'), 1, MaxStrLen(MCPConfigurationTool."API Version"));
 
         if ToolJson.Contains('allowRead') then
             MCPConfigurationTool."Allow Read" := ToolJson.GetBoolean('allowRead');
