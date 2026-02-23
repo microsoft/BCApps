@@ -3,6 +3,20 @@ Param(
 )
 
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
+
+# Load country-specific app names from generated list - skip running tests in these
+$countryAppsFile = Join-Path $PSScriptRoot "CountrySpecificApps.txt"
+$countrySpecificApps = @()
+if (Test-Path $countryAppsFile) {
+    $countrySpecificApps = Get-Content $countryAppsFile | Where-Object { $_.Trim() -ne "" }
+}
+
+# Skip country-specific test apps - they depend on localized BaseApp and can't run in W1 context
+if ($parameters.appName -in $countrySpecificApps) {
+    Write-Host "Skipping tests in app $($parameters.appName) - it is a country-specific app"
+    return $true
+}
+
 $testType = Get-ALGoSetting -Key "testType"
 $testConfiguration = (Get-Content (Join-Path $PSScriptRoot "TestConfiguration.json" -Resolve) | ConvertFrom-Json)
 

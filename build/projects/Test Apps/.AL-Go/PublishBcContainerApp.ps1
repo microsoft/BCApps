@@ -1,5 +1,30 @@
 Param([Hashtable]$parameters)
 
+# Load country-specific app names from generated list
+$countryAppsFile = Join-Path $PSScriptRoot "CountrySpecificApps.txt"
+$countrySpecificApps = @()
+if (Test-Path $countryAppsFile) {
+    $countrySpecificApps = Get-Content $countryAppsFile | Where-Object { $_.Trim() -ne "" }
+    Write-Host "Loaded $($countrySpecificApps.Count) country-specific app names from exclusion list"
+} else {
+    Write-Warning "Country-specific apps list not found at: $countryAppsFile"
+    Write-Warning "Run build/scripts/GenerateCountryAppsList.ps1 to generate the list"
+}
+
+function IsCountrySpecificApp {
+    param([string]$appName)
+    
+    foreach ($countryApp in $countrySpecificApps) {
+        # App file names are like: Microsoft_<AppName>_<Version>.app
+        if ($appName -like "Microsoft_${countryApp}_*") {
+            Write-Host "  Matched country-specific app: $countryApp"
+            return $true
+        }
+    }
+    
+    return $false
+}
+
 function PublishApp() {
     param(
         [string]$appFile
@@ -13,6 +38,12 @@ function PublishApp() {
     Write-Host "Processing app file: $appFile"
     $appName = (Get-Item $appFile).BaseName
     Write-Host "App BaseName: '$appName'"
+    
+    # Check if this is a country-specific app (should not be installed in W1 unit tests)
+    if (IsCountrySpecificApp -appName $appName) {
+        Write-Host "Skipping publishing of app $appName as it is a country-specific app."
+        return $false
+    }
     
     $matchedApp = $listOfAppsNotToPublish | Where-Object { 
         $pattern = "Microsoft_$($_)_*"
