@@ -13,6 +13,7 @@ page 20416 "Qlty. Inspection Result List"
     SourceTable = "Qlty. Inspection Result";
     SourceTableView = sorting("Evaluation Sequence");
     PageType = List;
+    DelayedInsert = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Inspection Results';
@@ -26,9 +27,11 @@ page 20416 "Qlty. Inspection Result List"
             {
                 field(Code; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
                 field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {

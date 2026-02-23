@@ -233,6 +233,8 @@ table 20411 "Qlty. Inspection Result"
 
         if Rec.Code = DefaultResultInProgressCodeLbl then
             Rec."Finish Allowed" := Rec."Finish Allowed"::"Do Not Allow Finish";
+
+        TestField("Description");
     end;
 
     trigger OnModify()
