@@ -3,7 +3,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 table 6379 "Message Response Header"
 {
     Caption = 'Message Response Header';
-    DataClassification = ToBeClassified;
+    DataClassification = OrganizationIdentifiableInformation;
 
     fields
     {

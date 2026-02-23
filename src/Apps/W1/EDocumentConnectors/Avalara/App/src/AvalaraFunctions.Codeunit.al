@@ -36,7 +36,7 @@ codeunit 6800 "Avalara Functions"
         JobQueueCreatedMsg: Label 'Job Queue Entry %1 created and set to Ready to run Codeunit %2 every %3 minutes.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID, %3 = Frequency in minutes';
         JobQueueExistsMsg: Label 'Job Queue Entry %1 already exists for Codeunit %2.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID';
         JsonFieldAcceptedValuesTok: Label 'acceptedValues', Locked = true;
-        JsonFieldDocumentTypeTok: Label 'documentType', Locked = true;
+        // JsonFieldDocumentTypeTok: Label 'documentType', Locked = true;
         JsonFieldFieldIdTok: Label 'fieldId', Locked = true;
         JsonFieldGetInvoiceMediaTypeTok: Label 'getInvoiceAvailableMediaType', Locked = true;
         JsonFieldNamespaceTok: Label 'namespace', Locked = true;
@@ -138,7 +138,7 @@ codeunit 6800 "Avalara Functions"
             until DocumentAttachment.Next() = 0;
     end;
 
-    procedure LoadFieldsFromJson(FieldsArray: JsonArray; Mandate: Text[40]; DocumentType: Text; DocumentVersion: Text)
+    procedure LoadFieldsFromJson(FieldsArray: JsonArray; MandateInput: Text[40]; DocumentTypeInput: Text; DocumentVersionInput: Text)
     var
         AvalaraInputField: Record "Avalara Input Field";
         i: Integer;
@@ -146,12 +146,12 @@ codeunit 6800 "Avalara Functions"
         ItemToken: JsonToken;
     begin
 
-        AvalaraInputField.SetRange(Mandate, Mandate);
-        AvalaraInputField.SetRange(DocumentType, DocumentType);
-        AvalaraInputField.SetRange(DocumentVersion, DocumentVersion);
+        AvalaraInputField.SetRange(Mandate, MandateInput);
+        AvalaraInputField.SetRange(DocumentType, DocumentTypeInput);
+        AvalaraInputField.SetRange(DocumentVersion, DocumentVersionInput);
 
         if not AvalaraInputField.IsEmpty() then
-            if Confirm(StrSubstNo(ConfirmOverwriteFieldsQst, Mandate), true) then
+            if Confirm(StrSubstNo(ConfirmOverwriteFieldsQst, MandateInput), true) then
                 AvalaraInputField.DeleteAll()
             else
                 exit;
@@ -175,7 +175,7 @@ codeunit 6800 "Avalara Functions"
             SetTextField(
                 AvalaraInputField,
                 AvalaraInputField.FieldNo(DocumentType),
-                GetText(ItemObj, JsonFieldDocumentTypeTok));
+                DocumentTypeInput);
 
             SetTextField(
                 AvalaraInputField,
@@ -239,12 +239,12 @@ codeunit 6800 "Avalara Functions"
             SetTextField(
                 AvalaraInputField,
                 AvalaraInputField.FieldNo(Mandate),
-                Mandate);
+                MandateInput);
 
             AvalaraInputField.Insert();
         end;
 
-        Session.LogMessage('0000AVL', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('0000AVL', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), MandateInput), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
     end;
 
     /// <summary>

@@ -72,6 +72,7 @@ page 6378 "Activation List"
 
             {
                 ApplicationArea = All;
+                Caption = 'Refresh Data';
                 Image = Refresh;
                 ToolTip = 'Executes the Refresh Data action.';
                 trigger OnAction()
@@ -84,6 +85,7 @@ page 6378 "Activation List"
             action("View Details")
             {
                 ApplicationArea = All;
+                Caption = 'View Details';
                 Image = ViewDetails;
                 ToolTip = 'Executes the View Details action.';
                 trigger OnAction()
@@ -91,10 +93,10 @@ page 6378 "Activation List"
                     ActivationMandate: Record "Activation Mandate";
                 begin
                     ActivationMandate.SetRange("Activation ID", Rec.ID);
-                    if ActivationMandate.FindFirst() then
+                    if ActivationMandate.IsEmpty then
                         Error('No Mandate found!');
 
-                    Page.RunModal(Page::"Activation Card", ActivationMandate);
+                    Page.RunModal(Page::"Activation Card", Rec);
                 end;
             }
         }

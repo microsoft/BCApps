@@ -13,6 +13,8 @@ table 6371 Mandate
     Caption = 'Mandate';
 
     DataClassification = SystemMetadata;
+    DrillDownPageId = "Mandate List";
+    Extensible = true;
     TableType = Temporary;
 
     fields
@@ -20,6 +22,7 @@ table 6371 Mandate
         field(1; "Country Mandate"; Code[50])
         {
             Caption = 'Country Mandate';
+            NotBlank = true;
         }
         field(2; "Country Code"; Code[20])
         {
@@ -60,6 +63,16 @@ table 6371 Mandate
         key(Key1; "Country Mandate")
         {
             Clustered = true;
+        }
+    }
+
+    fieldgroups
+    {
+        fieldgroup(Brick; "Country Mandate", "Country Code", Description)
+        {
+        }
+        fieldgroup(Drilldown; "Country Mandate", "Country Code", Description)
+        {
         }
     }
 }

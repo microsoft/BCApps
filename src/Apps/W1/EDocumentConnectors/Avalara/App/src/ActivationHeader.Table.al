@@ -70,6 +70,16 @@ table 6376 "Activation Header"
         key(PK; ID) { Clustered = true; }
     }
 
+    fieldgroups
+    {
+        fieldgroup(Brick; ID, "Registration Type")
+        {
+        }
+        fieldgroup(Dropdown; ID, "Registration Type")
+        {
+        }
+    }
+
     trigger OnDelete()
     var
         ConfirmLbl: Label 'There are %1 related records. Do you really want to delete this record?', Comment = '%1 = Record Count';

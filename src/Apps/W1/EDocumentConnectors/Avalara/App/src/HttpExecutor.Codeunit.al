@@ -100,7 +100,7 @@ codeunit 6377 "Http Executor"
     [TryFunction]
     local procedure GetContent(HttpResponseMsg: HttpResponseMessage; var Response: Text)
     begin
-        HttpResponseMsg.Content.ReadAs(Response);
+        HttpResponseMsg.Content().ReadAs(Response);
     end;
 
     var
