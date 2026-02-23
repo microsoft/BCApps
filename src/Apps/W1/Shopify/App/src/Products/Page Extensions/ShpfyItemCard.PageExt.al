@@ -48,10 +48,16 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
                     trigger OnAction()
                     var
                         Shop: Record "Shpfy Shop";
+                        ProductExport: Codeunit "Shpfy Product Export";
                         SyncProducts: Codeunit "Shpfy Sync Products";
                     begin
                         if SyncProducts.ConfirmAddItemToShopify(Rec, Shop) then begin
+                            ProductExport.SetShop(Shop);
+                            if not ProductExport.CheckItemAttributesCompatibleForProductOptions(Rec) then
+                                exit;
+
                             SyncProducts.AddItemToShopify(Rec, Shop);
+
                             if Confirm(ViewInShopifyLbl) then
                                 Hyperlink(SyncProducts.GetProductUrl(Rec, Shop.Code));
                             CurrPage.Update(false);

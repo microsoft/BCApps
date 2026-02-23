@@ -196,6 +196,18 @@ cultureInfo en-US
 					caption: Quantity by Item
 				measure 'Quantity by Item Ledger Entry Type'
 					caption: Quantity by Item Ledger Entry Type
+				measure 'ABC Analysis'
+					caption: ABC Analysis
+				measure 'Sales Amount by Class'
+					caption: Sales Amount by Class
+				measure 'Sales Amount by Item Category'
+					caption: Sales Amount by Item Category
+				measure 'ABC Class Details'
+					caption: ABC Class Details
+				measure 'Sales Amount by Item'
+					caption: Sales Amount by Item
+				measure 'Sales Amount by Item Details'
+					caption: Sales Amount by Item Details
 
 	linguisticMetadata =
 			{
@@ -62914,6 +62926,15 @@ cultureInfo en-US
 			        "Binding": {
 			          "ConceptualEntity": "Fiscal Calendar Time Intelligence",
 			          "ConceptualProperty": "Sales Amount (Forecasting)"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "abc_classification.abc_no__of_products": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "ABC Classification",
+			          "ConceptualProperty": "No. of Items in Class"
 			        }
 			      },
 			      "State": "Generated"
