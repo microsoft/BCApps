@@ -1,0 +1,226 @@
+Advance Payments Localization for Czech
+Advance Payments Localization for Czech Demo Data
+Advance Payments Localization for Czech Tests
+Advanced Localization Pack for Czech
+Advanced Localization Pack for Czech Tests
+Banking Documents Localization for Czech
+Banking Documents Localization for Czech Demo Data
+Banking Documents Localization for Czech Tests
+Business Central Cloud Migration - Previous Release (AT)
+Business Central Cloud Migration - Previous Release (AU)
+Business Central Cloud Migration - Previous Release (BE)
+Business Central Cloud Migration - Previous Release (CA)
+Business Central Cloud Migration - Previous Release (CH)
+Business Central Cloud Migration - Previous Release (CZ)
+Business Central Cloud Migration - Previous Release (DE)
+Business Central Cloud Migration - Previous Release (ES)
+Business Central Cloud Migration - Previous Release (FR)
+Business Central Cloud Migration - Previous Release (IT)
+Business Central Cloud Migration - Previous Release (MX)
+Business Central Cloud Migration - Previous Release (NZ)
+Business Central Cloud Migration - Previous Release (US)
+C5 2012 Data Migration
+C5 2012 Data Migration Tests
+Cash Desk Localization for Czech
+Cash Desk Localization for Czech Demo Data
+Cash Desk Localization for Czech Tests
+Ceridian Payroll
+Charge Group Base
+Charge On Purchase
+ChargeOnSales
+Compensation Localization for Czech
+Compensation Localization for Czech Demo Data
+Compensation Localization for Czech Tests
+Contoso Coffee Demo Dataset (AT)
+Contoso Coffee Demo Dataset (AU)
+Contoso Coffee Demo Dataset (BE)
+Contoso Coffee Demo Dataset (CA)
+Contoso Coffee Demo Dataset (CH)
+Contoso Coffee Demo Dataset (CZ)
+Contoso Coffee Demo Dataset (DE)
+Contoso Coffee Demo Dataset (DK)
+Contoso Coffee Demo Dataset (ES)
+Contoso Coffee Demo Dataset (FI)
+Contoso Coffee Demo Dataset (FR)
+Contoso Coffee Demo Dataset (GB)
+Contoso Coffee Demo Dataset (IN)
+Contoso Coffee Demo Dataset (IS)
+Contoso Coffee Demo Dataset (IT)
+Contoso Coffee Demo Dataset (MX)
+Contoso Coffee Demo Dataset (NL)
+Contoso Coffee Demo Dataset (NO)
+Contoso Coffee Demo Dataset (NZ)
+Contoso Coffee Demo Dataset (SE)
+Contoso Coffee Demo Dataset (US)
+Core Localization Pack for Czech
+Core Localization Pack for Czech Tests
+Digital Tax Declaration for the Netherlands
+Digital Tax Declaration for the Netherlands Tests
+DIOT - Localization for Mexico
+DK Core
+DK Core Tests
+Document Registration in Spain
+Document Registration in Spain Tests
+Dynamics GP Intelligent Cloud - US
+Dynamics GP Intelligent Cloud - US Tests
+E-Document Core Demo Data (AU)
+E-Document Core Demo Data (CA)
+E-Document Core Demo Data (DE)
+E-Document Core Demo Data (DK)
+E-Document Core Demo Data (ES)
+E-Document Core Demo Data (FR)
+E-Document Core Demo Data (GB)
+E-Document Core Demo Data (NZ)
+E-Document Core Demo Data (US)
+E-Document Core Demo Data IT
+E-Document for Germany
+E-Document for Germany Tests
+E-Document Format for Factura-E
+E-Document Format for Factura-E Tests
+E-Document format for OIOUBL
+Electronic VAT Declaration for Denmark
+Electronic VAT Declaration for Denmark Tests
+Electronic VAT submission for Norway
+Electronic VAT submission for Norway Tests
+ELSTER VAT Localization for Germany
+ELSTER VAT Localization for Germany Tests
+Enforced Digital Vouchers (DK)
+Enforced Digital Vouchers Tests (DK)
+Envestnet Yodlee Bank Feeds
+Envestnet Yodlee Bank Feeds Tests
+Extended Bank Deposit NA
+FA Reports FR
+FA Reports FR Tests
+FEC Audit File
+FEC Audit File Tests
+FI Core
+FI Core Tests
+Fixed Asset Depreciation for India
+Fixed Asset Depreciation Tests
+Fixed Asset Localization for Czech
+Fixed Asset Localization for Czech Demo Data
+Fixed Asset Localization for Czech Tests
+GetAddress.io UK Postcodes
+GetAddress.io UK Postcodes Tests
+GovTalk
+GovTalk Demo Data
+GovTalk Tests
+GST Application
+GST Base
+GST Base Tests
+GST Distribution
+GST on Payments
+GST On Payments Tests
+GST Purchase
+GST Purchase Automation
+GST Reconcilation
+GST Return and Settlement
+GST Sales
+GST Sales Automation
+GST Service
+GST Service Transfer
+GST Stock Transfer
+GST Subcontracting Automation
+GSTSubcontracting
+India Charge Group
+India Charge Group Tests
+India Data Migration
+India Gate Entry
+India Gate Entry Tests
+India GST
+India GST Tests
+India Reports
+India Reports Tests
+India Tax Base
+India Tax Base Tests
+India TCS
+India TCS Tests
+India TDS
+India TDS Tests
+India Voucher Interface
+India Voucher Interface Tests
+Intrastat AT
+Intrastat BE
+Intrastat CZ
+Intrastat CZ Demo Data
+Intrastat CZ Tests
+Intrastat DE
+Intrastat ES
+Intrastat FI
+Intrastat FR
+Intrastat FR Tests
+Intrastat GB
+Intrastat GB Tests
+Intrastat IT
+Intrastat IT Tests
+Intrastat NL
+Intrastat SE
+IRS 1096
+IRS 1096 Tests
+IRS Forms
+IRS Forms Test Library
+IRS Forms Tests
+IS Core
+IS Core Tests
+Making Tax Digital Localization for United Kingdom
+Making Tax Digital Localization for United Kingdom Tests
+Nemhandel Notification in Denmark
+Nemhandel Notification Tests
+OIOUBL
+OIOUBL Tests
+OnPrem Permissions (AU)
+OnPrem Permissions (CZ)
+OnPrem Permissions (ES)
+OnPrem Permissions (FR)
+OnPrem Permissions (NA)
+Payment and Reconciliation Formats (DK)
+Payment and Reconciliation Formats (DK) Tests
+Payroll Data Import Definition (NO)
+Payroll Data Import Definition (NO) Tests
+Payroll Data Import Definitions (DK)
+Payroll Data Import Definitions (DK) Tests
+Posting Date Check On Posting
+Posting Date Check On Posting Tests
+QR Generator
+QR-Bill Management for Switzerland
+QR-Bill Management for Switzerland Tests
+Reports GB
+Reports GB Tests
+Reverse Charge VAT GB
+Reverse Charge VAT GB Tests
+SAF-T Modification DK
+SAF-T Modification DK Tests
+SE Core
+SE Core Tests
+Service Declaration FR
+Service Declaration FR Tests
+Service Declaration IT
+Service Declaration IT Tests
+SIE Tests
+Standard Audit File - Tax Localization for Norway
+Standard Audit File - Tax Localization for Norway Tests
+Standard Import Export (SIE)
+Sustainability Contoso Coffee Demo Dataset (NO)
+Tax File Formats (DK)
+Tax File Formats (DK) Tests
+TCS Base
+TCS Base Test Automation
+TCS on Receipt
+TCS On Receipt Automation
+TCS on Sales
+TCS on Sales Test Automation
+TCS Return and Settlement
+TCS Return and Settlement Automation
+TDS Base
+TDS Base Tests
+TDS For Customer
+TDS On Customer Tests
+TDS on Payments
+TDS on Payments Tests
+TDS on Purchase
+TDS on Purchase Tests
+TDS Return and Settlement
+TDS Return and Settlement Tests
+Tests for MX DIOT Extension
+VAT Audit Reports GB
+VAT Audit Reports GB Tests
