@@ -12,7 +12,7 @@ report 20412 "Qlty. Schedule Inspection"
 {
     Caption = 'Quality Management - Schedule Inspection';
     AdditionalSearchTerms = 'Periodic inspections';
-    ToolTip = 'This report is intended to be scheduled in the job queue to allow the ability to schedule inspections.';
+    ToolTip = 'Run this report to bulk create inspections based on generation rules for the selected template, or schedule it in the job queue for periodic inspection creation.';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
