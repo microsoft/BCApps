@@ -20,6 +20,7 @@ using System.Reflection;
 codeunit 20408 "Qlty. Traversal"
 {
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ControlInfoToVisibility: Dictionary of [Text, Boolean];
         ControlInfoToCaptionClass: Dictionary of [Text, Text];
@@ -54,7 +55,7 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSrcFldConf.SetRange(Code, TempFromQltyInspectSourceConfig.Code);
         if AllowTrackingMapping then
-            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking only")
+            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking")
         else
             QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         if QltyInspectSrcFldConf.FindSet() then begin
@@ -94,7 +95,7 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSrcFldConf.SetRange(Code, TempQltyInspectSourceConfig.Code);
         if AllowTrackingMapping then
-            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking only")
+            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking")
         else
             QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         if QltyInspectSrcFldConf.FindSet() then begin
@@ -122,7 +123,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if at least one possible target configuration was found; False otherwise</returns>
     internal procedure FindPossibleTargetsBasedOnConfigRecursive(InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary): Boolean
     begin
-        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyMiscHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
+        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
     end;
 
     local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
@@ -215,7 +216,7 @@ codeunit 20408 "Qlty. Traversal"
         if TemporaryInspectionMatchRecordRef.Insert(false) then;
         QltyInspectionHeader.SetIsCreating(true);
         CouldApply := ApplySourceRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
             TemporaryInspectionMatchRecordRef,
             TempAvailableQltyInspectSourceConfig,
             QltyInspectionHeader,
@@ -476,7 +477,7 @@ codeunit 20408 "Qlty. Traversal"
             OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId 4".TableNo());
 
         foreach FromTableIterator in OFFromTableIds do begin
-            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyMiscHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
+            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
             if TestText <> '' then
                 break;
         end;

@@ -1,0 +1,9 @@
+
+[
+  {
+    "bug": "619916",
+    "codeunitId": 148157,
+    "codeunitName": "Service Object Test",
+    "method": "CheckSubscriptionLineRecalculatesTerminationDatesOnStartDateChange"
+  }
+]
