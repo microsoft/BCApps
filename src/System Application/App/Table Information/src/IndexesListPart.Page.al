@@ -146,7 +146,7 @@ page 8704 "Indexes List Part"
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
 
                     if Rec."Metadata Defined" then
-                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position in the list after refreshing the data.
+                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position, not possible for non-AL defined indexes as they are removed from the underlying table.
 
                     CurrPage.Update(false);
                 end;
@@ -180,7 +180,7 @@ page 8704 "Indexes List Part"
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
                     if Rec."Metadata Defined" then
-                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position in the list after refreshing the data.
+                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position, not possible for non-AL defined indexes as they are removed from the underlying table.
 
                     CurrPage.Update(false);
                 end;
