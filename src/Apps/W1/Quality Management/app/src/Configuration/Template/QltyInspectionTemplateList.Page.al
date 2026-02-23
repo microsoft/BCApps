@@ -22,8 +22,8 @@ page 20404 "Qlty. Inspection Template List"
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AdditionalSearchTerms = 'Standard operating procedures';
-    AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+    AboutTitle = 'About Quality Inspection Templates';
+    AboutText = 'Quality Inspection Templates are inspection plans containing a set of tests that represent questions and data points that you want to collect.';
 
     layout
     {
@@ -72,6 +72,8 @@ page 20404 "Qlty. Inspection Template List"
                 AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
+                AboutTitle = 'More ways to create inspections';
+                AboutText = 'Use this action to create a manual inspection from the selected template. You can also create inspections directly from other pages, such as output journals, production order routing lines, consumption journals, purchase orders, sales returns, and item tracking lines.';
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -112,8 +114,6 @@ page 20404 "Qlty. Inspection Template List"
                 Scope = Repeater;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 Image = FilterLines;
                 Promoted = true;
                 PromotedCategory = Process;

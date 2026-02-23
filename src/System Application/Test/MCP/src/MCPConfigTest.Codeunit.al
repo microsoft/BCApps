@@ -883,9 +883,11 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
 
-        // [THEN] Tools are imported
+        // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
         Assert.RecordCount(MCPConfigurationTool, 2);
+        MCPConfigurationTool.FindFirst();
+        Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
     end;
 
     [Test]
@@ -938,6 +940,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationTool."Allow Modify" := false;
         MCPConfigurationTool."Allow Delete" := false;
         MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool."API Version" := 'v2.0';
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
