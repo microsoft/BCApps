@@ -152,7 +152,7 @@ page 9451 "File Account Wizard"
                 }
                 label(NoConnectorsAvailable2)
                 {
-                    Caption = 'File apps are available in Extension Management and AppSource.';
+                    Caption = 'File apps are available in Extension Management and Marketplace.';
                 }
                 field(ExtensionManagement; ExtensionManagementTok)
                 {
@@ -172,7 +172,7 @@ page 9451 "File Account Wizard"
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
                     Caption = ' ';
-                    ToolTip = 'Navigate to AppSource.';
+                    ToolTip = 'Go to Marketplace.';
 
                     trigger OnDrillDown()
                     begin

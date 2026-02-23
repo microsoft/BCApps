@@ -263,7 +263,7 @@ page 2510 "Marketplace Extn Deployment"
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
         ImportantInfoLbl: Label 'Important';
-        ImportantDisclaimerLbl: Label 'When installing an AppSource app, it may require additional apps to be installed as dependencies. Make sure to review the provider''s terms of use and privacy policy review before proceeding. For more information on installing and uninstalling apps, see the link below.';
+        ImportantDisclaimerLbl: Label 'When installing an Marketplace app, it may require additional apps to be installed as dependencies. Make sure to review the provider''s terms of use and privacy policy review before proceeding. For more information on installing and uninstalling apps, see the link below.';
         RefreshInfoLbl: Label 'After installation, your session will refresh, and you can set up your extension.';
         PreviewInfoLbl: Label 'Note: A preview key was provided for the installation. A preview version of the extension is about to be installed. If a higher public version exists for your environment, it will be installed instead of the preview version.';
         DisclaimerLbl: Label 'This extension/app is provided to you by a third-party publisher and not Microsoft. The extension/app may require additional apps to be installed as dependencies. Please review the providers'' terms and privacy policy before proceeding and note that the third-party publisher may not meet the same compliance and security standards as Dynamics 365 Business Central.';
