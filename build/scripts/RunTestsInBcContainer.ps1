@@ -45,7 +45,7 @@ function Invoke-TestsWithReruns {
         
         # Run tests and catch any exceptions to prevent the script from terminating
         try {
-            $testsSucceeded = Invoke-TestsWithCodeCoverage -parameters $parameters
+            $testsSucceeded = Invoke-TestsWithCodeCoverage -parameters $parameters -attempt ($attempt + 1)
         }
         catch {
             $testsSucceeded = $false
@@ -59,6 +59,8 @@ function Invoke-TestsWithReruns {
         }
         else {
             $attempt++
+            # TODO: ReRun is not yet supported in Run-AlTests (no ReRun/StabilityRun mapping).
+            # Currently retries re-run the full test suite. Map to StabilityRun when supported.
             $parameters["ReRun"] = $true
             if ($attempt -ge $maxReruns) {
                 Write-Host "Tests failed after $maxReruns attempts."
@@ -73,7 +75,8 @@ function Invoke-TestsWithReruns {
 
 function Invoke-TestsWithCodeCoverage {
     param(
-        [Hashtable]$parameters
+        [Hashtable]$parameters,
+        [int]$attempt = 1
     )
     
     # Check if Run-AlTests is available (imported by AL-Go RunPipeline.ps1)
@@ -149,7 +152,7 @@ function Invoke-TestsWithCodeCoverage {
     $testRunParams = @{
         ServiceUrl               = $serviceUrl
         Credential               = $credential
-        AutorizationType         = 'NavUserPassword'
+        AutorizationType         = 'NavUserPassword' # Hardcoded for now; extend if AAD auth is needed
         TestSuite                = if ($parameters["testSuite"]) { $parameters["testSuite"] } else { 'DEFAULT' }
         TestIsolation            = $testIsolation
         Detailed                 = $true
@@ -158,7 +161,7 @@ function Invoke-TestsWithCodeCoverage {
         CodeCoverageTrackingType = 'PerRun'
         ProduceCodeCoverageMap   = 'PerCodeunit'
         CodeCoverageOutputPath   = $codeCoverageOutputPath
-        CodeCoverageFilePrefix   = "CodeCoverage_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        CodeCoverageFilePrefix   = "CodeCoverage_$(Get-Date -Format 'yyyyMMdd_HHmmss')_attempt$attempt"
     }
     
     # Map optional parameters
@@ -214,14 +217,20 @@ function Invoke-TestsWithCodeCoverage {
             if ($testResults.testsuites) {
                 $failures = 0
                 $errors = 0
-                # Aggregate from all testsuites
-                foreach ($ts in $testResults.testsuites.testsuite) {
-                    if ($ts.failures) { $failures += [int]$ts.failures }
-                    if ($ts.errors) { $errors += [int]$ts.errors }
+                # Use root-level attributes if available (they are aggregates)
+                if ($testResults.testsuites.failures) {
+                    $failures = [int]$testResults.testsuites.failures
                 }
-                # Also check root level attributes
-                if ($testResults.testsuites.failures) { $failures += [int]$testResults.testsuites.failures }
-                if ($testResults.testsuites.errors) { $errors += [int]$testResults.testsuites.errors }
+                elseif ($testResults.testsuites.testsuite) {
+                    # Fall back to summing child testsuites
+                    foreach ($ts in $testResults.testsuites.testsuite) {
+                        if ($ts.failures) { $failures += [int]$ts.failures }
+                        if ($ts.errors) { $errors += [int]$ts.errors }
+                    }
+                }
+                if ($testResults.testsuites.errors) {
+                    $errors = [int]$testResults.testsuites.errors
+                }
                 return ($failures -eq 0 -and $errors -eq 0)
             }
             elseif ($testResults.testsuite) {
@@ -252,17 +261,21 @@ if (((Get-BuildMode) -eq "CZ") -and ($parameters["appName"] -eq "Quality Managem
     return $true
 }
 
-$testType = Get-ALGoSetting -Key "testType"
+# Use a different variable name to avoid overwriting the validated $TestType parameter
+$settingTestType = Get-ALGoSetting -Key "testType"
 
-$parameters["returnTrueIfAllPassed"] = $true
-
-if ($null -ne $TestType) {
-    Write-Host "Using test type $TestType"
+if ($null -ne $settingTestType -and $settingTestType -ne '') {
+    Write-Host "Using test type from settings: $settingTestType"
+    $parameters["testType"] = $settingTestType
+}
+elseif ($null -ne $TestType -and $TestType -ne '') {
+    Write-Host "Using test type from parameter: $TestType"
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTests)  # Add disabled tests to parameters
-$parameters["renewClientContextBetweenTests"] = $true
+$parameters["disabledTests"] = @(Get-DisabledTests)
+# Note: renewClientContextBetweenTests has no equivalent in Run-AlTests; the new runner
+# manages client context lifecycle internally.
 
 if ($DisableTestIsolation) {
     Write-Host "Using RequiredTestIsolation: Disabled"
