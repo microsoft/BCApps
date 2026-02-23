@@ -411,12 +411,17 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         SalesLine: Record "Sales Line";
         Currency: Record Currency;
         OrderHeader: Record "Shpfy Order Header";
+        SkipBalancing: Boolean;
         RoundingAmount: Decimal;
     begin
         SalesHeader.CalcFields(Amount, "Amount Including VAT");
         Currency.Initialize(SalesHeader."Currency Code");
         RoundingAmount := CreateRoundingLine(RefundHeader, SalesHeader, LineNo);
         OrderHeader.Get(RefundHeader."Order Id");
+
+        RefundProcessEvents.OnBeforeCreateSalesLinesFromRemainingAmount(RefundHeader, SalesHeader, SkipBalancing);
+        if SkipBalancing then
+            exit;
 
         case OrderHeader."Processed Currency Handling" of
             "Shpfy Currency Handling"::"Shop Currency":

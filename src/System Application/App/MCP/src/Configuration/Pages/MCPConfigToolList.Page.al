@@ -26,9 +26,13 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object Type"; Rec."Object Type") { }
+                field("Object Type"; Rec."Object Type")
+                {
+                    ToolTip = 'Specifies the type of the object.';
+                }
                 field("Object Id"; Rec."Object Id")
                 {
+                    ToolTip = 'Specifies the ID of the object.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -52,8 +56,11 @@ page 8352 "MCP Config Tool List"
                     end;
 
                     trigger OnValidate()
+                    var
+                        PageMetadata: Record "Page Metadata";
                     begin
-                        MCPConfigImplementation.ValidateAPITool(Rec."Object Id", true);
+                        PageMetadata := MCPConfigImplementation.ValidateAPITool(Rec."Object Id", true);
+                        Rec."API Version" := MCPConfigImplementation.GetHighestAPIVersion(PageMetadata);
                         SetPermissions();
                     end;
                 }
@@ -63,21 +70,50 @@ page 8352 "MCP Config Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the name of the object.';
                 }
-                field("Allow Read"; Rec."Allow Read") { }
+                field("API Version"; Rec."API Version")
+                {
+                    Caption = 'API Version';
+                    ToolTip = 'Specifies the API version of the tool.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        APIVersion: Text[30];
+                    begin
+                        if Rec."Object ID" = 0 then
+                            exit;
+
+                        MCPConfigImplementation.LookupAPIVersions(Rec."Object Id", APIVersion);
+                        if APIVersion <> '' then
+                            Rec."API Version" := APIVersion;
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        MCPConfigImplementation.ValidateAPIVersion(Rec."Object Id", Rec."API Version");
+                    end;
+                }
+                field("Allow Read"; Rec."Allow Read")
+                {
+                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
+                }
                 field("Allow Create"; Rec."Allow Create")
                 {
+                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
                     Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
+                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
                     Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
+                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
                     Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools;
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
+                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                     Editable = AllowCreateUpdateDeleteTools;
                 }
             }

@@ -40,11 +40,6 @@ report 20400 "Qlty. Create Inspection"
         {
             area(Content)
             {
-                group(DidYouKnow)
-                {
-                    Caption = 'Did you know';
-                    InstructionalText = 'Did you know that you can create inspections from many subforms in Business Central already? You can create inspections from the output journal, production order routing lines, consumption journal, purchase order sub form, sales return subform, and item tracking lines.';
-                }
                 group(Parameters)
                 {
                     Caption = 'Parameters';
