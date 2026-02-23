@@ -109,7 +109,7 @@ codeunit 9027 "Plan Ids"
     /// Returns the ID for the Delegated Admin agent - Partner plan.
     /// </summary>
     /// <returns>The ID for the Delegated Admin agent - Partner plan.</returns>
-    procedure GetDelegatedAdminPlanId(): Guid
+    procedure GetDelegatedGlobalAdminPlanId(): Guid
     begin
         exit(DelegatedAdminGUIDTxt);
     end;
@@ -118,7 +118,7 @@ codeunit 9027 "Plan Ids"
     /// Returns the ID for the Delegated BC Admin agent - Partner plan.
     /// </summary>
     /// <returns>The ID for the Delegated BC Admin agent - Partner plan.</returns>
-    procedure GetDelegatedBCAdminPlanId(): Guid
+    procedure GetD365BCAdminPlanId(): Guid
     begin
         exit(BCAdminPartnerGUIDTxt);
     end;

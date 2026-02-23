@@ -40,8 +40,8 @@ codeunit 132925 "Plan Configuration E2E Test"
         // Initialize
 
         PlanConfigurationLibrary.ClearPlanConfigurations();
-        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetDelegatedAdminPlanId(), false);
-        PlanConfiguration.AddDefaultPermissionSetToPlan(PlanIds.GetDelegatedAdminPlanId(), 'SUPER', NullGuid, 0);
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetGlobalAdminPlanId(), false);
+        PlanConfiguration.AddDefaultPermissionSetToPlan(PlanIds.GetGlobalAdminPlanId(), 'SUPER', NullGuid, 0);
 
         UserPermissionsLibrary.CreateSuperUser(CopyStr(Any.AlphabeticText(50), 1, 50));
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'SUPER');
