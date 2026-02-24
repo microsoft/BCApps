@@ -139,6 +139,17 @@ page 8351 "MCP Config Card"
                     MCPConfigImplementation.ValidateConfiguration(Rec, false);
                 end;
             }
+            action(GiveFeedback)
+            {
+                Caption = 'Give Feedback';
+                ToolTip = 'Share your feedback about the MCP server experience.';
+                Image = Questionaire;
+
+                trigger OnAction()
+                begin
+                    MCPConfigFeedback.TriggerGeneralFeedback();
+                end;
+            }
             group(Advanced)
             {
                 Caption = 'Advanced';
@@ -161,6 +172,7 @@ page 8351 "MCP Config Card"
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
+            actionref(Promoted_GiveFeedback; GiveFeedback) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -198,6 +210,7 @@ page 8351 "MCP Config Card"
 
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        MCPConfigFeedback: Codeunit "MCP Config Feedback";
         IsDefault: Boolean;
         ToolModeLbl: Text;
         StaticToolModeLbl: Label 'In Static Tool Mode, objects in the available tools will be directly exposed to clients. You can manage these tools by adding, modifying, or removing them from the configuration.';

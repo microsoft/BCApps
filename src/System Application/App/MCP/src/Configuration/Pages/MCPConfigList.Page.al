@@ -78,6 +78,17 @@ page 8350 "MCP Config List"
         }
         area(Processing)
         {
+            action(GiveFeedback)
+            {
+                Caption = 'Give Feedback';
+                ToolTip = 'Share your feedback about the MCP server experience.';
+                Image = Questionaire;
+
+                trigger OnAction()
+                begin
+                    MCPConfigFeedback.TriggerGeneralFeedback();
+                end;
+            }
             group(Advanced)
             {
                 Caption = 'Advanced';
@@ -138,6 +149,7 @@ page 8350 "MCP Config List"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_GiveFeedback; GiveFeedback) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -159,22 +171,34 @@ page 8350 "MCP Config List"
         }
     }
 
-#if not CLEAN28
     trigger OnOpenPage()
+#if not CLEAN28
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErrorInfo: ErrorInfo;
+#endif
     begin
-        if MCPConfigImplementation.IsFeatureEnabled() then
-            exit;
+#if not CLEAN28
+        if not MCPConfigImplementation.IsFeatureEnabled() then begin
+            FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
+            FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
+            FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
+            Error(FeatureNotEnabledErrorInfo);
+        end;
+#endif
+        HadActiveConfigsOnOpen := not MCPConfigFeedback.HasNoActiveConfigurations();
+    end;
 
-        FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
-        FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
-        FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
-        Error(FeatureNotEnabledErrorInfo);
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if HadActiveConfigsOnOpen and MCPConfigFeedback.HasNoActiveConfigurations() then
+            MCPConfigFeedback.TriggerNoActiveConfigsFeedback();
     end;
 
     var
+        MCPConfigFeedback: Codeunit "MCP Config Feedback";
+        HadActiveConfigsOnOpen: Boolean;
+#if not CLEAN28
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
         GoToFeatureManagementLbl: Label 'Go to Feature Management';
 #endif
