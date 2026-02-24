@@ -5,7 +5,7 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Document;
+using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.API;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
@@ -16,8 +16,9 @@ using System.TestLibraries.Utilities;
 codeunit 139972 "Qlty. Tests - Inspections API"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
 
     trigger OnRun()
     begin
@@ -28,6 +29,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         LibraryAssert: Codeunit "Library Assert";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         IsInitialized: Boolean;
         InspectionsServiceNameTxt: Label 'qualityInspections', Locked = true;
@@ -45,8 +48,10 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     begin
         if IsInitialized then
             exit;
+
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+        Commit();
     end;
 
     // region Qlty. Inspections API (page 20414) - GET Tests
@@ -63,7 +68,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [WHEN] A GET request is made for the specific inspection
@@ -72,7 +77,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response contains the inspection information
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyIDInJson(ResponseText);
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyTestNo', QltyInspectionHeader."No.");
     end;
 
     [Test]
@@ -87,7 +92,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A quality inspection exists with a known template code
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [WHEN] A GET request is made for the inspection
@@ -112,7 +117,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A quality inspection exists with source information
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [WHEN] A GET request is made for the inspection
@@ -137,7 +142,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A new quality inspection exists with Open status
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [WHEN] A GET request is made for the inspection
@@ -163,8 +168,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] Two quality inspections exist
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader1, QltyInspectionTemplateHdr1);
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader2, QltyInspectionTemplateHdr2);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader1, QltyInspectionTemplateHdr1);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader2, QltyInspectionTemplateHdr2);
         Commit();
 
         // [WHEN] A GET request is made for the inspections collection
@@ -191,7 +196,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] An open quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [WHEN] The FinishInspection action is called
@@ -218,8 +223,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] An open quality inspection exists with no finished date
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
-        LibraryAssert.AreEqual(0D, QltyInspectionHeader."Finished Date", 'Finished date should initially be blank.');
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        LibraryAssert.AreEqual(0D, DT2Date(QltyInspectionHeader."Finished Date"), 'Finished date should initially be blank.');
         Commit();
 
         // [WHEN] The FinishInspection action is called
@@ -229,7 +234,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The finished date is set to today
         QltyInspectionHeader.Get(QltyInspectionHeader."No.");
-        LibraryAssert.AreEqual(Today(), QltyInspectionHeader."Finished Date", 'Finished date should be set to today.');
+        LibraryAssert.AreEqual(Today(), DT2Date(QltyInspectionHeader."Finished Date"), 'Finished date should be set to today.');
     end;
 
     [Test]
@@ -244,7 +249,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A finished quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             QltyInspectionHeader.SystemId, PAGE::"Qlty. Inspections API", InspectionsServiceNameTxt, ActionFinishInspectionTxt);
@@ -277,7 +282,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A finished quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             QltyInspectionHeader.SystemId, PAGE::"Qlty. Inspections API", InspectionsServiceNameTxt, ActionFinishInspectionTxt);
@@ -313,7 +318,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] An open quality inspection exists with test lines
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [GIVEN] A test code from the first inspection line
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -348,7 +353,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] An open quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         AssignedUser := CopyStr(UserId(), 1, 50);
         Commit();
 
@@ -380,7 +385,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] An open quality inspection exists with test lines
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
 
         // [GIVEN] All test values are set via the API
@@ -418,7 +423,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A finished quality inspection exists
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreatePurchaseOrderAndInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
         Commit();
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             QltyInspectionHeader.SystemId, PAGE::"Qlty. Inspections API", InspectionsServiceNameTxt, ActionFinishInspectionTxt);
@@ -442,7 +447,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
         ActionBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -452,18 +457,18 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         // [SCENARIO] Create a quality inspection from a record ID using the table number as tableName
         Initialize();
 
-        // [GIVEN] A production order routing line exists with a matching generation rule
-        SetupProductionOrderForCreateInspection(QltyInspectionTemplateHdr, ProdOrderRoutingLine);
+        // [GIVEN] A purchase order line exists with a matching generation rule
+        SetupPurchaseOrderForCreateInspection(QltyInspectionTemplateHdr, PurchaseLine);
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
         Commit();
 
         // [WHEN] The CreateInspectionFromRecordID action is called with the table number
-        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Prod. Order Routing Line"));
+        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Purchase Line"));
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            ProdOrderRoutingLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromRecordIDTxt);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 201);
+            PurchaseLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromRecordIDTxt);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 204);
 
         // [THEN] A new quality inspection is created
         QltyInspectionHeader.Reset();
@@ -480,7 +485,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
         ActionBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -490,18 +495,18 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         // [SCENARIO] Create a quality inspection from a record ID using the table name as tableName
         Initialize();
 
-        // [GIVEN] A production order routing line exists with a matching generation rule
-        SetupProductionOrderForCreateInspection(QltyInspectionTemplateHdr, ProdOrderRoutingLine);
+        // [GIVEN] A purchase order line exists with a matching generation rule
+        SetupPurchaseOrderForCreateInspection(QltyInspectionTemplateHdr, PurchaseLine);
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
         Commit();
 
         // [WHEN] The CreateInspectionFromRecordID action is called with the table name
-        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', 'Prod. Order Routing Line');
+        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', 'Purchase Line');
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            ProdOrderRoutingLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromRecordIDTxt);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 201);
+            PurchaseLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromRecordIDTxt);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 204);
 
         // [THEN] A new quality inspection is created
         QltyInspectionHeader.Reset();
@@ -514,7 +519,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
         ActionBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -525,26 +530,24 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         // [SCENARIO] Create a quality inspection from a table ID and filter
         Initialize();
 
-        // [GIVEN] A production order routing line exists with a matching generation rule
-        SetupProductionOrderForCreateInspection(QltyInspectionTemplateHdr, ProdOrderRoutingLine);
+        // [GIVEN] A purchase order line exists with a matching generation rule
+        SetupPurchaseOrderForCreateInspection(QltyInspectionTemplateHdr, PurchaseLine);
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
 
-        // [GIVEN] A table filter that uniquely identifies the routing line
-        TableFilter := StrSubstNo('WHERE(Prod. Order No.=FILTER(%1),Routing Reference No.=FILTER(%2),Routing No.=FILTER(%3),Operation No.=FILTER(%4))',
-            ProdOrderRoutingLine."Prod. Order No.",
-            ProdOrderRoutingLine."Routing Reference No.",
-            ProdOrderRoutingLine."Routing No.",
-            ProdOrderRoutingLine."Operation No.");
+        // [GIVEN] A table filter that uniquely identifies the purchase line
+        TableFilter := StrSubstNo('WHERE(Document Type=CONST(Order),Document No.=FILTER(%1),Line No.=FILTER(%2))',
+            PurchaseLine."Document No.",
+            PurchaseLine."Line No.");
         Commit();
 
         // [WHEN] The CreateInspectionFromTableIDAndFilter action is called
-        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Prod. Order Routing Line"));
+        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Purchase Line"));
         ActionBody := LibraryGraphMgt.AddPropertytoJSON(ActionBody, 'tableNameFilter', TableFilter);
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            ProdOrderRoutingLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromTableFilterTxt);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 201);
+            PurchaseLine.SystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromTableFilterTxt);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 204);
 
         // [THEN] A new quality inspection is created
         QltyInspectionHeader.Reset();
@@ -556,7 +559,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     procedure CreateInspectionFromRecordIDWithInvalidSystemIdFails()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
         ActionBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -566,34 +569,52 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         Initialize();
 
         // [GIVEN] A generation rule exists but the SystemId does not match any record
-        SetupProductionOrderForCreateInspection(QltyInspectionTemplateHdr, ProdOrderRoutingLine);
+        SetupPurchaseOrderForCreateInspection(QltyInspectionTemplateHdr, PurchaseLine);
         InvalidSystemId := CreateGuid();
         Commit();
 
         // [WHEN] The CreateInspectionFromRecordID action is called with an invalid SystemId
-        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Prod. Order Routing Line"));
+        ActionBody := LibraryGraphMgt.AddPropertytoJSON('', 'tableName', Format(Database::"Purchase Line"));
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             InvalidSystemId, PAGE::"Qlty. Create Inspection API", CreateInspectionsServiceNameTxt, ActionCreateFromRecordIDTxt);
 
         // [THEN] An error occurs because the record cannot be found
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 201);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, ActionBody, ResponseText, 204);
     end;
 
     // endregion
 
     // region Helper procedures
 
-    local procedure SetupProductionOrderForCreateInspection(var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    local procedure CreatePurchaseOrderAndInspection(var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+    begin
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyInspectionUtility.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
+
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, OutQltyInspectionTemplateHdr.Code, OutQltyInspectionHeader);
+    end;
+
+    local procedure SetupPurchaseOrderForCreateInspection(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutPurchaseLine: Record "Purchase Line")
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        PurchaseHeader: Record "Purchase Header";
         Item: Record Item;
-        ProdProductionOrder: Record "Production Order";
-        QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
-        QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
-        QltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyInspectionUtility.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(OutPurchaseLine, PurchaseHeader, OutPurchaseLine.Type::Item, Item."No.", 10);
     end;
 
     // endregion
