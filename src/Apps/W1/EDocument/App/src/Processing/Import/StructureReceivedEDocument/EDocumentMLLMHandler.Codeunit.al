@@ -16,6 +16,8 @@ using System.Utilities;
 codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         StructuredData: Text;
@@ -23,12 +25,10 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ReadIntoDraftImpl: Enum "E-Doc. Read into Draft";
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
-        UserPromptLbl: Label 'Extract the invoice data per this JSON schema:\n%1', Locked = true;
+        UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only.', Locked = true;
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
-        EDocMLLMExtractionSchema: Record "E-Doc. MLLM Extraction Schema";
-        EDocument: Record "E-Document";
         Base64Convert: Codeunit "Base64 Convert";
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
@@ -42,21 +42,12 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data: Text;
         SchemaText: Text;
         SystemPrompt: Text;
+        JsonResponse: JsonObject;
     begin
         RegisterCopilotCapabilityIfNeeded();
 
         // Load schema for the E-Document's service code, or fall back to default
         SchemaText := EDocMLLMSchemaHelper.GetDefaultSchema();
-        EDocument.SetRange("Unstructured Data Entry No.", EDocumentDataStorage."Entry No.");
-        if EDocument.FindFirst() then
-            if EDocMLLMExtractionSchema.Get(EDocument.Service) then begin
-                EDocMLLMExtractionSchema.CalcFields(Schema);
-                if EDocMLLMExtractionSchema.Schema.HasValue() then begin
-                    SchemaText := EDocMLLMExtractionSchema.GetSchemaText();
-                    if SchemaText = '' then
-                        SchemaText := EDocMLLMSchemaHelper.GetDefaultSchema();
-                end;
-            end;
 
         // Convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
@@ -65,9 +56,8 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         // Build AOAI call
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Extraction");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
 
-        AOAIChatCompletionParams.SetMaxTokens(16000);
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetJsonMode(true);
 
@@ -83,6 +73,10 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if AOAIOperationResponse.IsSuccess() then begin
             StructuredData := AOAIOperationResponse.GetResult();
             if StructuredData <> '' then begin
+
+                if JsonResponse.ReadFrom(StructuredData) then
+                    StructuredData := JsonResponse.GetText('content', true);
+
                 FileFormat := "E-Doc. File Format"::JSON;
                 ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
             end else begin
@@ -116,32 +110,10 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     var
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocPurchaseDraftWriter: Codeunit "E-Doc. Purchase Draft Writer";
     begin
-        // Clean up old data
-        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentPurchaseHeader.DeleteAll();
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentPurchaseLine.DeleteAll();
-
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-        EDocumentPurchaseHeader := TempEDocPurchaseHeader;
-        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
-        EDocumentPurchaseHeader.Insert();
-        OnInsertedEDocumentPurchaseHeader(EDocument, EDocumentPurchaseHeader);
-
-        if TempEDocPurchaseLine.FindSet() then begin
-            repeat
-                EDocumentPurchaseLine := TempEDocPurchaseLine;
-                EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
-                EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocument."Entry No");
-                EDocumentPurchaseLine.Insert();
-            until TempEDocPurchaseLine.Next() = 0;
-
-            OnInsertedEDocumentPurchaseLines(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine);
-        end;
-
+        EDocPurchaseDraftWriter.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
     end;
 
@@ -165,7 +137,7 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         EDocMLLMSchemaHelper.MapHeaderFromJson(SourceJsonObject, TempEDocPurchaseHeader);
         TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
 
-        if SourceJsonObject.Get('invoiceLines', LinesToken) then
+        if SourceJsonObject.Get('invoice_line', LinesToken) then
             if LinesToken.IsArray() then begin
                 LinesArray := LinesToken.AsArray();
                 EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine);
@@ -191,23 +163,13 @@ codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Extraction") then
-            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Extraction", '');
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Analysis") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document Analysis", '');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
     local procedure HandleOnRegisterCopilotCapability()
     begin
         RegisterCopilotCapabilityIfNeeded();
-    end;
-
-    [InternalEvent(false, false)]
-    local procedure OnInsertedEDocumentPurchaseHeader(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    begin
-    end;
-
-    [InternalEvent(false, false)]
-    local procedure OnInsertedEDocumentPurchaseLines(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line")
-    begin
     end;
 }

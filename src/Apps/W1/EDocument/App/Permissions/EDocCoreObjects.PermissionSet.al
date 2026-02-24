@@ -46,7 +46,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
-        table "E-Doc. MLLM Extraction Schema" = X,
 #if not CLEAN28
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
@@ -122,7 +121,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Doc. Purchase Draft Subform" = X,
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
-        page "E-Doc. MLLM Extraction Schema" = X,
         page "E-Document Purchase Draft" = X,
         page "Inbound E-Doc. Factbox" = X,
         page "Inbound E-Documents" = X,
@@ -140,6 +138,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Document ADI Handler" = X,
         codeunit "E-Document MLLM Handler" = X,
         codeunit "E-Doc. MLLM Schema Helper" = X,
+        codeunit "E-Doc. Purchase Draft Writer" = X,
         codeunit "E-Document PEPPOL Handler" = X,
         codeunit "E-Document Upgrade" = X,
         codeunit "EDoc Import PEPPOL BIS 3.0" = X,

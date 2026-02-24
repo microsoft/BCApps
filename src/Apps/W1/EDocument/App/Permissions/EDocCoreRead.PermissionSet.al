@@ -50,7 +50,6 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Doc. Purchase Line History" = R,
         tabledata "ED Purchase Line Field Setup" = R,
         tabledata "E-Doc Sample Purch. Inv File" = R,
-        tabledata "E-Doc. MLLM Extraction Schema" = R,
 #if not CLEAN28
 #pragma warning disable AL0432
         tabledata "EDoc Historical Matching Setup" = R,
