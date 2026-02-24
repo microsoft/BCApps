@@ -7,7 +7,9 @@ using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Posting;
+#if not CLEAN28
 using Microsoft.Inventory.Tracking;
+#endif
 using Microsoft.Purchases.Posting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
