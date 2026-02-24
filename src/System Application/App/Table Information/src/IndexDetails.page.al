@@ -8,7 +8,7 @@ namespace System.DataAdministration;
 using System.Diagnostics;
 
 /// <summary>
-/// 
+/// Displays additional details for a specific index.
 /// </summary>
 page 9705 "Index Details"
 {
