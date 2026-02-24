@@ -21,7 +21,7 @@ codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
 
     procedure PreferredStructureDataImplementation(): Enum "Structure Received E-Doc."
     begin
-        exit("Structure Received E-Doc."::MLLM);
+        exit("Structure Received E-Doc."::ADI);
     end;
 
     procedure FileExtension(): Text
