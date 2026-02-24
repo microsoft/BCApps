@@ -1830,7 +1830,7 @@ table 8059 "Subscription Line"
         Page.RunModal(Page::"Usage Data Billing Metadata", UsageDataBillingMetadata);
     end;
 
-    internal procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
+    procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
     var
         UnitCost: Decimal;
         UnitCostLCY: Decimal;
