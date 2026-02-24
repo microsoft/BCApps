@@ -78,6 +78,11 @@ page 8705 "Table Information Card"
             {
                 SubPageLink = TableId = field(ID);
             }
+            part(IndexDetails; "Index Details Factbox")
+            {
+                Provider = IndexLines;
+                SubPageLink = TableId = field(TableId), "Company Name" = field("Company Name"), "Source App ID" = field("Source App ID"), "Index Name" = field("Index Name");
+            }
         }
     }
 
