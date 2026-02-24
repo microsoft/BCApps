@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "description": "Export sales invoices and credit memos in PEPPOL BIS 3.0 format for electronic invoicing compliance across Europe.",
   "brief": "PEPPOL BIS 3.0 electronic invoicing for sales documents.",
-  "version": "28.0.0.0",
+  "version": "28.1.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -20,7 +20,7 @@
       "to": 37300
     }
   ],
-  "application": "28.0.0.0",
+  "application": "28.1.0.0",
   "features": [
     "NoImplicitWith",
     "TranslationFile"
