@@ -381,6 +381,20 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
+        field(102; "Checklist Items Registered"; Boolean)
+        {
+            Caption = 'Checklist Items Registered';
+            ToolTip = 'Specifies whether the guided experience checklist items have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(103; "Guided Experience Registered"; Boolean)
+        {
+            Caption = 'Guided Experience Items Registered';
+            ToolTip = 'Specifies whether the guided experience items (tours, features, links) have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys

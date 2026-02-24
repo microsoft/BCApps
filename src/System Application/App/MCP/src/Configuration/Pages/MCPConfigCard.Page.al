@@ -26,15 +26,12 @@ page 8351 "MCP Config Card"
                 Caption = 'General';
                 field(Name; Rec.Name)
                 {
+                    ToolTip = 'Specifies the name of the MCP configuration.';
                     Editable = not IsDefault and not Rec.Active;
-                }
-                field(Description; Rec.Description)
-                {
-                    Editable = not IsDefault and not Rec.Active;
-                    MultiLine = true;
                 }
                 field(Active; Rec.Active)
                 {
+                    ToolTip = 'Specifies whether the MCP configuration is active.';
                     Editable = not IsDefault;
 
                     trigger OnValidate()
@@ -54,6 +51,7 @@ page 8351 "MCP Config Card"
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                     Editable = not IsDefault and not Rec.Active;
 
                     trigger OnValidate()
@@ -67,10 +65,18 @@ page 8351 "MCP Config Card"
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
+                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                     Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
+                }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies the description of the MCP configuration.';
+                    Editable = not IsDefault and not Rec.Active;
+                    MultiLine = true;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
+                    ToolTip = 'Allows create, update and delete tools for the specified MCP configuration. Disallowing this will make the tools read-only.';
                     Editable = not IsDefault and not Rec.Active;
 
                     trigger OnValidate()
