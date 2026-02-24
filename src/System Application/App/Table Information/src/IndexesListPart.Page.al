@@ -133,8 +133,11 @@ page 8704 "Indexes List Part"
                 var
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
                 begin
-                    if not Rec."Metadata Defined" then
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
@@ -145,8 +148,8 @@ page 8704 "Indexes List Part"
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
 
-                    if Rec."Metadata Defined" then
-                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position, not possible for non-AL defined indexes as they are removed from the underlying table.
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
 
                     CurrPage.Update(false);
                 end;
@@ -164,8 +167,11 @@ page 8704 "Indexes List Part"
                     DatabaseIndex: Record "Database Index";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
                 begin
-                    if not Rec."Metadata Defined" then
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
@@ -179,8 +185,9 @@ page 8704 "Indexes List Part"
 
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-                    if Rec."Metadata Defined" then
-                        Rec.Get(RecordIDOfCurrentPosition); // Return to the same position, not possible for non-AL defined indexes as they are removed from the underlying table.
+
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
 
                     CurrPage.Update(false);
                 end;
