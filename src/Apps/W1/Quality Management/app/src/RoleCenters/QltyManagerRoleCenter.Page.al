@@ -100,20 +100,20 @@ page 20426 "Qlty. Manager Role Center"
                 action(Processing_CertificateOfAnalysis)
                 {
                     Caption = 'Certificate of Analysis';
-                    Image = Certificate;
+                    Image = PrintAcknowledgement;
                     ToolTip = 'Printable Certificate of Analysis (COA) report.';
                     RunObject = Report "Qlty. Certificate of Analysis";
                 }
                 action(Processing_GeneralInspectionReport)
                 {
                     Caption = 'Inspection Report';
-                    Image = PrintReport;
+                    Image = PrintChecklistReport;
                     ToolTip = 'Specifies a printable general purpose inspection report.';
                     RunObject = Report "Qlty. General Purpose Inspect.";
                 }
                 action(Processing_NonConformanceReport)
                 {
-                    Image = PrintReport;
+                    Image = PrintCover;
                     Caption = 'Non Conformance Report';
                     ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
                     RunObject = Report "Qlty. Non-Conformance";
@@ -134,7 +134,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Processing_QualityInspectionGenerationRules)
                 {
                     Caption = 'Inspection Generation Rules';
-                    Image = FilterLines;
+                    Image = CopyFromTask;
                     RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
@@ -142,7 +142,7 @@ page 20426 "Qlty. Manager Role Center"
                 action(Processing_QualityTests)
                 {
                     Caption = 'Quality Tests';
-                    Image = Task;
+                    Image = TaskQualityMeasure;
                     RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
@@ -178,7 +178,7 @@ page 20426 "Qlty. Manager Role Center"
             action(Embedding_QualityInspections)
             {
                 Caption = 'Quality Inspections';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 ToolTip = 'See existing Quality Inspections and create a new inspection.';
                 RunObject = Page "Qlty. Inspection List";
             }
