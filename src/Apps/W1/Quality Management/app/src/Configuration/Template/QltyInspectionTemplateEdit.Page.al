@@ -31,7 +31,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 Caption = ' ';
                 Visible = not IsHTMLFormatted;
 
-                field(htmlContent; HtmlContentText)
+                field(HtmlContent; HtmlContentText)
                 {
                     Caption = 'Text';
                     ShowCaption = false;
@@ -163,8 +163,6 @@ page 20440 "Qlty. Inspection Template Edit"
                 Caption = 'Add Test';
                 Image = CopyFromTask;
                 ToolTip = 'Click here to use a Quality Inspection test in this expression.';
-                AboutTitle = 'Add inspection test';
-                AboutText = 'Click here to use a Quality Inspection test in this expression.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -181,8 +179,6 @@ page 20440 "Qlty. Inspection Template Edit"
                 Caption = 'Add Table Field';
                 Image = Add;
                 ToolTip = 'Click here to insert additional Fields into the template.';
-                AboutTitle = 'Add a field from a table.';
-                AboutText = 'Click here to insert additional Fields into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;

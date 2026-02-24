@@ -15,11 +15,11 @@ codeunit 5593 "Create Quality Test"
     trigger OnRun()
     var
         ContosoQualityManagement: Codeunit "Contoso Quality Management";
-        CreateQualityLookupCode: Codeunit "Create Quality Lookup Code";
-        QltyLookupCodeTableNo: Integer;
-        LookupFilterLbl: Label 'where(Group code=const(%1))', Locked = true, Comment = '%1 is the group code to filter with';
+        CreateQualityTestLookupValue: Codeunit "Create Quality Lookup Value";
+        QltyTestLookupValueTableNo: Integer;
+        LookupFilterLbl: Label 'where(Lookup group code=const(%1))', Locked = true, Comment = '%1 is the Lookup group code to filter with';
     begin
-        QltyLookupCodeTableNo := Database::"Qlty. Lookup Code";
+        QltyTestLookupValueTableNo := Database::"Qlty. Test Lookup Value";
 
         ContosoQualityManagement.InsertQualityTest(ApcPerGram(), ApcPerGramDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Decimal", '1..999000000', 0, 0, '', '', '');
         ContosoQualityManagement.InsertQualityTest(ColiformCount(), ColiformCountDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Decimal", '', 0, 0, '', '', '');
@@ -48,17 +48,17 @@ codeunit 5593 "Create Quality Test"
         ContosoQualityManagement.InsertQualityTest(LblNcrPlannedAction(), LblNcrPlannedActionDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Label", '', 0, 0, '', '', '');
         ContosoQualityManagement.InsertQualityTest(LblVerification(), LblVerificationDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Label", '', 0, 0, '', '', '');
 
-        ContosoQualityManagement.InsertQualityTest(CarType(), CarTypeDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.TypeOfCar()), '', '');
+        ContosoQualityManagement.InsertQualityTest(CarType(), CarTypeDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.TypeOfCar()), '', '');
         ContosoQualityManagement.InsertQualityTest(CustomerServiceRepre(), CustomerServiceRepreDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', 5200, 1, '', '', '');
-        ContosoQualityManagement.InsertQualityTest(EcoliPresent(), EcoliPresentDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.EcoliPresent()), '', '');
-        ContosoQualityManagement.InsertQualityTest(NcrClassification(), NcrClassificationDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.NcrClassification()), '', '');
-        ContosoQualityManagement.InsertQualityTest(Odor(), OdorDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.Odor()), '', '');
-        ContosoQualityManagement.InsertQualityTest(PackagingVisual(), PackagingVisualDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.PackagingVisual()), '', '');
-        ContosoQualityManagement.InsertQualityTest(ReasonCode(), ReasonCodeDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, ReasonCode()), '', '');
-        ContosoQualityManagement.InsertQualityTest(ShippingLabel(), ShippingLabelDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.ShippingLabel()), '', '');
+        ContosoQualityManagement.InsertQualityTest(EcoliPresent(), EcoliPresentDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.EcoliPresent()), '', '');
+        ContosoQualityManagement.InsertQualityTest(NcrClassification(), NcrClassificationDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.NcrClassification()), '', '');
+        ContosoQualityManagement.InsertQualityTest(Odor(), OdorDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.Odor()), '', '');
+        ContosoQualityManagement.InsertQualityTest(PackagingVisual(), PackagingVisualDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.PackagingVisual()), '', '');
+        ContosoQualityManagement.InsertQualityTest(ReasonCode(), ReasonCodeDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, ReasonCode()), '', '');
+        ContosoQualityManagement.InsertQualityTest(ShippingLabel(), ShippingLabelDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.ShippingLabel()), '', '');
 
-        ContosoQualityManagement.InsertQualityTest(CoffeeUniformity(), CoffeeUniformityDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.CoffeeUniformity()), '', '');
-        ContosoQualityManagement.InsertQualityTest(CoffeeDefect(), CoffeeDefectDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyLookupCodeTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityLookupCode.CoffeeDefect()), '', '');
+        ContosoQualityManagement.InsertQualityTest(CoffeeUniformity(), CoffeeUniformityDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.CoffeeUniformity()), '', '');
+        ContosoQualityManagement.InsertQualityTest(CoffeeDefect(), CoffeeDefectDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Table Lookup", '', QltyTestLookupValueTableNo, 2, StrSubstNo(LookupFilterLbl, CreateQualityTestLookupValue.CoffeeDefect()), '', '');
         ContosoQualityManagement.InsertQualityTest(Comment(), CommentDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Text", '', 0, 0, '', '', '');
         ContosoQualityManagement.InsertQualityTest(Moisture(), MoistureDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Integer", '0..100', 0, 0, '', '', '');
         ContosoQualityManagement.InsertQualityTest(Labeling(), LabelingDescLbl, Enum::"Qlty. Test Value Type"::"Value Type Boolean", '', 0, 0, '', '', '');

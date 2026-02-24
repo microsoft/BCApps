@@ -68,6 +68,26 @@ page 9202 "Advanced Settings"
                             end;
                         }
                     }
+                    group(TextSearchLanguageGroup)
+                    {
+                        ShowCaption = false;
+                        InstructionalText = 'Text search language settings for optimized full-text search performance.';
+
+                        field(TextSearchLanguage; TextSearchLanguageLbl)
+                        {
+                            ShowCaption = false;
+                            ApplicationArea = All;
+                            DrillDown = true;
+                            Caption = 'Text Search Language';
+                            ToolTip = 'Open the Text Search Language Setup page.';
+
+                            trigger OnDrillDown()
+                            begin
+                                Page.Run(Page::"Text Search Language Setup");
+                                CurrPage.Close();
+                            end;
+                        }
+                    }
                 }
             }
         }
@@ -96,4 +116,5 @@ page 9202 "Advanced Settings"
     var
         ExtensionsLbl: Label 'Extensions';
         ManualSetupLbl: Label 'Manual Setup';
+        TextSearchLanguageLbl: Label 'Text Search Language';
 }

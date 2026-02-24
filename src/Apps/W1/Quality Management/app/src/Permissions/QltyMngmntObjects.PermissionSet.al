@@ -36,6 +36,7 @@ using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Setup.ManualSetup;
 using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
@@ -48,7 +49,7 @@ permissionset 20406 "QltyMngmnt - Objects"
 
     Permissions =
         // Codeunits
-        codeunit "Qlty. - Warehouse Integration" = X,
+        codeunit "Qlty. Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
         codeunit "Qlty. Inspection - Create" = X,
@@ -61,6 +62,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
         codeunit "Qlty. Guided Experience" = X,
+        codeunit "Qlty. Manual Setup" = X,
         codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Result Condition Mgmt." = X,
         codeunit "Qlty. Result Evaluation" = X,
@@ -86,6 +88,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
+        codeunit "Qlty. Demo Data Mgmt." = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
         codeunit "Qlty. Session Helper" = X,
@@ -98,20 +101,20 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Inspection Template Edit" = X,
-        page "Qlty. Manager RC" = X,
         page "Qlty. Test Card" = X,
         page "Qlty. Test Lookup" = X,
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
-        page "Qlty. Lookup Code List" = X,
+        page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
+        page "Qlty. Demo Data Launcher" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
-        page "Qlty. Prod. Gen. Rule Wizard" = X,
-        page "Qlty. Asm. Gen. Rule Wizard" = X,
-        page "Qlty. Rec. Gen. Rule Wizard" = X,
+        page "Qlty. Prod. Gen. Rule S. Guide" = X,
+        page "Qlty. Asm. Gen. Rule S. Guide" = X,
+        page "Qlty. Rec. Gen. Rule S. Guide" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection - QM" = X,
         page "Qlty. Routing Line Lookup" = X,
@@ -122,7 +125,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Inspection Lines" = X,
         page "Qlty. Inspection Activities" = X,
         page "Qlty. Inspection List" = X,
-        page "Qlty. Whse. Gen. Rule Wizard" = X,
+        page "Qlty. Whse. Gen. Rule S. Guide" = X,
         page "Qlty. Inspection" = X,
         page "Qlty. Inspect. Source Config." = X,
         page "Qlty. Source Config Line Part" = X,
@@ -146,11 +149,11 @@ permissionset 20406 "QltyMngmnt - Objects"
         report "Qlty. Create Transfer Order" = X,
 
         // Tables
-        table "Qlty. Express Config. Value" = X,
+        table "Qlty. Workflow Config. Value" = X,
         table "Qlty. Inspection Gen. Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,
-        table "Qlty. Lookup Code" = X,
+        table "Qlty. Test Lookup Value" = X,
         table "Qlty. Management Setup" = X,
         table "Qlty. Related Transfers Buffer" = X,
         table "Qlty. Mgmt. Role Center Cue" = X,
