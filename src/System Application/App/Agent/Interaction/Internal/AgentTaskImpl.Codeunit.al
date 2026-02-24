@@ -7,6 +7,7 @@ namespace System.Agents;
 
 using System.Agents.Troubleshooting;
 using System.Environment;
+using System.Environment.Consumption;
 using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
@@ -150,6 +151,15 @@ codeunit 4300 "Agent Task Impl."
     procedure IsTaskStopped(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
+    end;
+
+    procedure GetConsumedCredits(var AgentTask: Record "Agent Task"): Decimal
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+    begin
+        UserAIConsumptionData.SetRange("Agent Task Id", AgentTask.ID);
+        UserAIConsumptionData.CalcSums("Copilot Credits");
+        exit(UserAIConsumptionData."Copilot Credits");
     end;
 
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean

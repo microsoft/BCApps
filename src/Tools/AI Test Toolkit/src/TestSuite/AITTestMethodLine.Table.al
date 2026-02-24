@@ -223,7 +223,6 @@ table 149032 "AIT Test Method Line"
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
     }
-
     keys
     {
         key(Key1; "Test Suite Code", "Line No.")

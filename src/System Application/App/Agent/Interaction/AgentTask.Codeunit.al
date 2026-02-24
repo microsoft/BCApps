@@ -136,6 +136,19 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.IsTaskStopped(AgentTask));
     end;
 
+    /// <summary>
+    /// Gets the total Copilot credits consumed by the agent task.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to get consumed credits for.</param>
+    /// <returns>The total Copilot credits consumed by the agent task.</returns>
+    procedure GetConsumedCredits(var AgentTask: Record "Agent Task"): Decimal
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskImpl.GetConsumedCredits(AgentTask));
+    end;
+
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
 
