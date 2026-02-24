@@ -66,4 +66,15 @@ codeunit 30247 "Shpfy Refund Process Events"
     internal procedure OnAfterProcessSalesDocument(RefundHeader: Record "Shpfy Refund Header"; var SalesHeader: Record "Sales Header")
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    /// <summary>
+    /// Raised before creating the auto-balance line from the remaining refund amount.
+    /// </summary>
+    /// <param name="RefundHeader">Parameter of type Record "Shpfy Refund Header".</param>
+    /// <param name="SalesHeader">Parameter of type Record "Sales Header".</param>
+    /// <param name="SkipBalancing">Set to true to skip the auto-balance remaining amount calculation.</param>
+    internal procedure OnBeforeCreateSalesLinesFromRemainingAmount(RefundHeader: Record "Shpfy Refund Header"; var SalesHeader: Record "Sales Header"; var SkipBalancing: Boolean)
+    begin
+    end;
 }

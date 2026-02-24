@@ -3255,7 +3255,6 @@ codeunit 139235 "PEPPOL30 Management Tests"
 #pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
 #pragma warning restore AL0432
-        PEPPOLMgt: Codeunit "PEPPOL30";
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3285,7 +3284,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
             TempVATAmtLine);
 
         // [THEN] Correct values are returned
-        Assert.AreEqual(PEPPOLMgt.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code", true, true), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
+        Assert.AreEqual(Cust.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code"), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
         Assert.AreEqual('', CustPartyTaxSchemeCompIDSchID, 'Company ID''s Scheme ID should be empty.');
         Assert.AreEqual('VAT', CustTaxSchemeID, 'Wrong Tax Scheme ID.');
     end;
@@ -3770,8 +3769,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     local procedure GetFormat(): Enum "PEPPOL 3.0 Format";
+    var
+        Peppol30Setup: Record "PEPPOL 3.0 Setup";
     begin
-        exit(Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+        Peppol30Setup.GetSetup();
+        exit(Peppol30Setup."PEPPOL 3.0 Sales Format");
     end;
 
     local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]) Data: Text
