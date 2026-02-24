@@ -349,6 +349,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling: Record "Usage Data Billing";
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
+        TransferExtendedText: Codeunit "Transfer Extended Text";
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -381,6 +382,10 @@ codeunit 8060 "Create Billing Documents"
 
         OnBeforeInsertPurchaseLineFromContractLine(PurchaseLine, TempBillingLine);
         PurchaseLine.Insert(false);
+
+        if TransferExtendedText.PurchCheckIfAnyExtText(PurchaseLine, false) then
+            TransferExtendedText.InsertPurchExtText(PurchaseLine);
+
         InsertDescriptionPurchaseLine(
              StrSubstNo(GetBillingPeriodDescriptionTxt(PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
 
