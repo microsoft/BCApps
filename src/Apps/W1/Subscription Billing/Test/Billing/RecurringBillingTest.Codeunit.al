@@ -1457,6 +1457,8 @@ codeunit 139688 "Recurring Billing Test"
 
     [Test]
     procedure TestBillingProposalWithZeroQuantity()
+    var
+        ExpectedNextBillingDate: Date;
     begin
         // [SCENARIO] Billing proposal creates billing lines with quantity 0 and amount 0 when subscription quantity is 0
         Initialize();
@@ -1467,7 +1469,7 @@ codeunit 139688 "Recurring Billing Test"
         ServiceObject.Validate(Quantity, 0);
         ServiceObject.Modify(true);
 
-        // [GIVEN] Save the current Next Billing Date
+        // [GIVEN] Read the subscription line to be able to refresh it after billing proposal is created
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
         ServiceCommitment.SetRange(Partner, "Service Partner"::Customer);
         ServiceCommitment.FindFirst();
@@ -1485,6 +1487,11 @@ codeunit 139688 "Recurring Billing Test"
             Assert.AreEqual(0, BillingLine."Service Object Quantity", 'Billing Line quantity should be 0.');
             Assert.AreEqual(0, BillingLine.Amount, 'Billing Line amount should be 0 when quantity is 0.');
         until BillingLine.Next() = 0;
+
+        // [THEN] Next Billing Date on the subscription line is set to the day after the last billing line's Billing To date
+        ExpectedNextBillingDate := CalcDate('<1D>', BillingLine."Billing to");
+        ServiceCommitment.Get(ServiceCommitment."Entry No.");
+        Assert.AreEqual(ExpectedNextBillingDate, ServiceCommitment."Next Billing Date", 'Next Billing Date should be the day after the last Billing To date.');
     end;
 
     #endregion Tests

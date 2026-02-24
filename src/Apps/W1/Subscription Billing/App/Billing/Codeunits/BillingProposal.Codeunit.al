@@ -391,12 +391,16 @@ codeunit 8062 "Billing Proposal"
         if UsageDataBilling.Rebilling or (UsageDataBilling."Usage Base Pricing" = Enum::"Usage Based Pricing"::"Usage Quantity") then
             BillingLine."Service Object Quantity" := UsageDataBilling.Quantity;
         if BillingLine."Service Object Quantity" <> 0 then
-            BillingLine."Unit Price" := BillingLine.Amount / BillingLine."Service Object Quantity";
+            BillingLine."Unit Price" := BillingLine.Amount / BillingLine."Service Object Quantity"
+        else
+            BillingLine."Unit Price" := UsageDataBilling."Unit Price";
         BillingLine."Discount %" := ServiceCommitment."Discount %";
         // Apply discount from Subscription Line
         BillingLine.Amount := BaseAmount * (1 - ServiceCommitment."Discount %" / 100);
         if UsageDataBilling.Quantity <> 0 then
-            BillingLine."Unit Cost" := UsageDataBilling."Cost Amount" / UsageDataBilling.Quantity;
+            BillingLine."Unit Cost" := UsageDataBilling."Cost Amount" / UsageDataBilling.Quantity
+        else
+            BillingLine."Unit Cost" := UsageDataBilling."Unit Cost";
         Currency.Initialize(ServiceCommitment."Currency Code");
         Currency.TestField("Unit-Amount Rounding Precision");
         BillingLine."Unit Cost (LCY)" := Round(CurrExchRate.ExchangeAmtFCYToLCY(ServiceCommitment."Currency Factor Date", ServiceCommitment."Currency Code", BillingLine."Unit Cost", ServiceCommitment."Currency Factor"), Currency."Unit-Amount Rounding Precision");
