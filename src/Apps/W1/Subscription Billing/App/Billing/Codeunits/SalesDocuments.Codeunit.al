@@ -428,6 +428,42 @@ codeunit 8063 "Sales Documents"
             TempSalesLine.Validate("Qty. to Invoice", 0);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeCheckHeaderPostingType, '', false, false)]
+    local procedure SkipInvoiceOrShipFlagCheckForSubscriptionBillingOnBeforeCheckHeaderPostingType(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        // Allow posting without Invoice or Ship flags being set for subscription billing documents
+        if SalesHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", OnBeforeSalesLineFind, '', false, false)]
+    local procedure SkipQuantityCheckForSubscriptionBillingOnBeforeSalesLineFind(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+        // Skip quantity check for subscription billing documents
+        if SalesHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeCalcInvoice, '', false, false)]
+    local procedure ForceInvoiceCreationForZeroQtyDocumentOnBeforeCalcInvoice(SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var NewInvoice: Boolean; var IsHandled: Boolean)
+    begin
+        // For subscription billing documents with zero quantity lines, force invoice creation
+        // so that the posted invoice header is always generated
+        if SalesHeader."Recurring Billing" then begin
+            NewInvoice := true;
+            IsHandled := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnAfterSetEverythingInvoiced, '', false, false)]
+    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean)
+    begin
+        // Treat zero-qty subscription billing lines as fully invoiced so BC cleans up the source document
+        if (SalesLine."Recurring Billing from" = 0D) and (SalesLine."Recurring Billing to" = 0D) then
+            exit;
+        EverythingInvoiced := true;
+    end;
+
     local procedure CheckResetValueForServiceCommitmentItems(var TempSalesLine: Record "Sales Line") ResetValueForServiceCommitmentItems: Boolean
     var
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";

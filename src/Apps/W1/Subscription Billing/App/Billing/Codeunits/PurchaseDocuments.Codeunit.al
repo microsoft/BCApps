@@ -104,6 +104,42 @@ codeunit 8066 "Purchase Documents"
         end
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeCheckHeaderPostingType, '', false, false)]
+    local procedure SkipInvoiceOrShipFlagCheckForSubscriptionBillingOnBeforeCheckHeaderPostingType(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+        // Allow posting without Invoice or Ship flags being set for subscription billing documents
+        if PurchaseHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", OnCodeOnAfterPurchLineSetFilters, '', false, false)]
+    local procedure SkipQuantityCheckForSubscriptionBillingOnCodeOnAfterPurchLineSetFilters(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        // Skip quantity check for subscription billing documents
+        if PurchaseHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeCalcInvoice, '', false, false)]
+    local procedure ForceInvoiceCreationForZeroQtyDocumentOnBeforeCalcInvoice(var PurchHeader: Record "Purchase Header"; var NewInvoice: Boolean; var IsHandled: Boolean)
+    begin
+        // For subscription billing documents with zero quantity lines, force invoice creation
+        // so that the posted invoice header is always generated
+        if PurchHeader."Recurring Billing" then begin
+            NewInvoice := true;
+            IsHandled := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnAfterSetEverythingInvoiced, '', false, false)]
+    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(PurchaseLine: Record "Purchase Line"; var EverythingInvoiced: Boolean)
+    begin
+        // Treat zero-qty subscription billing lines as fully invoiced so BC cleans up the source document
+        if (PurchaseLine."Recurring Billing from" = 0D) and (PurchaseLine."Recurring Billing to" = 0D) then
+            exit;
+        EverythingInvoiced := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeDeleteAfterPosting, '', false, false)]
     local procedure PurchasePostOnBeforePurchaseLineDeleteAll(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     var
