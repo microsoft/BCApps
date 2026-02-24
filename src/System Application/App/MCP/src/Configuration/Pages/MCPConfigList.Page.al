@@ -69,8 +69,6 @@ page 8350 "MCP Config List"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
                     MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
                 end;
@@ -86,7 +84,7 @@ page 8350 "MCP Config List"
 
                 trigger OnAction()
                 begin
-                    MCPConfigFeedback.TriggerGeneralFeedback();
+                    MCPConfigImplementation.TriggerGeneralFeedback();
                 end;
             }
             group(Advanced)
@@ -102,8 +100,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ShowConnectionString(Rec.Name);
                     end;
@@ -123,8 +119,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
                     end;
@@ -137,8 +131,6 @@ page 8350 "MCP Config List"
                     AccessByPermission = tabledata "MCP Configuration" = IM;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ImportConfigurationFromFile();
                         CurrPage.Update(false);
@@ -174,7 +166,6 @@ page 8350 "MCP Config List"
     trigger OnOpenPage()
 #if not CLEAN28
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErrorInfo: ErrorInfo;
 #endif
     begin
@@ -186,17 +177,17 @@ page 8350 "MCP Config List"
             Error(FeatureNotEnabledErrorInfo);
         end;
 #endif
-        HadActiveConfigsOnOpen := not MCPConfigFeedback.HasNoActiveConfigurations();
+        HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if HadActiveConfigsOnOpen and MCPConfigFeedback.HasNoActiveConfigurations() then
-            MCPConfigFeedback.TriggerNoActiveConfigsFeedback();
+        if HadActiveConfigsOnOpen and MCPConfigImplementation.HasNoActiveConfigurations() then
+            MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
     end;
 
     var
-        MCPConfigFeedback: Codeunit "MCP Config Feedback";
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         HadActiveConfigsOnOpen: Boolean;
 #if not CLEAN28
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
