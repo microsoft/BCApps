@@ -17,15 +17,15 @@ codeunit 3708 "Tenant Feedback Settings Impl."
     var
         PPACTenantSettings: DotNet PPACTenantSettings;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
-        IsInitialized: Boolean;
+        CacheExpiration: DateTime;
 
     local procedure InitializeConfigSettings()
     begin
-        if IsInitialized then
+        if CurrentDateTime() > GetCacheExpiration() then
             exit;
 
         PPACTenantSettings := ALCopilotFunctions.GetPPACTenantSettings();
-        IsInitialized := true;
+        UpdateCacheExpiration();
     end;
 
     procedure GetCopilotFeedbackEnabled(): Boolean
@@ -56,5 +56,18 @@ codeunit 3708 "Tenant Feedback Settings Impl."
     begin
         InitializeConfigSettings();
         exit(PPACTenantSettings.UserInitiatedFeedbackEnabled);
+    end;
+
+    local procedure GetCacheExpiration(): DateTime
+    begin
+        exit(CacheExpiration);
+    end;
+
+    local procedure UpdateCacheExpiration()
+    var
+        CacheDurationMs: Integer;
+    begin
+        CacheDurationMs := 1000 * 60 * 30;
+        CacheExpiration := CurrentDateTime() + CacheDurationMs;
     end;
 }
