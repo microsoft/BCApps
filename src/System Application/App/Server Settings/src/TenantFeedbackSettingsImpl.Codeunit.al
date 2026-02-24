@@ -21,7 +21,8 @@ codeunit 3708 "Tenant Feedback Settings Impl."
 
     local procedure InitializeConfigSettings()
     begin
-        if CurrentDateTime() > GetCacheExpiration() then
+        if CurrentDateTime() < GetCacheExpiration() then
+            // Cache valid
             exit;
 
         PPACTenantSettings := ALCopilotFunctions.GetPPACTenantSettings();
