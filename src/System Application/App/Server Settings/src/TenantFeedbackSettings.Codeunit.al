@@ -6,7 +6,8 @@
 namespace System.Environment.Configuration;
 
 /// <summary>
-/// Exposes functionality to check the current feedback settings set for this tenant These settings can be controlled by admins in the Power Platform Tenant Admin Center.
+/// Exposes functionality to check the current feedback settings set for this tenant.
+/// These settings can be controlled by admins in the Power Platform Admin Center.
 /// </summary>
 codeunit 3707 "Tenant Feedback Settings"
 {
