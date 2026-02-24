@@ -18,7 +18,7 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
                 ApplicationArea = QualityManagement;
                 AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
 
                 trigger OnAction()
