@@ -58,7 +58,7 @@ codeunit 8351 "MCP Config Implementation"
         JsonFilterTxt: Label 'JSON Files (*.json)|*.json';
         InvalidJsonErr: Label 'The selected file is not a valid configuration file.';
         ConfigNameExistsMsg: Label 'A configuration with the name ''%1'' already exists. Please provide a different name.', Comment = '%1 = configuration name';
-        MCPServerFeedbackConfirmQst: Label 'We noticed you no longer have any active MCP configurations. Could you share what made you decide to stop using the MCP server? Your feedback helps us improve the experience.';
+        MCPServerFeedbackConfirmQst: Label 'We noticed you no longer have any active configurations. Could you share what made you decide to stop using the MCP server? Your feedback helps us improve the experience.';
         MCPServerFeedbackQst: Label 'What could we do to improve the MCP server experience?';
         NoActiveConfigsFeedbackTxt: Label 'No active configs feedback triggered', Locked = true;
         GeneralFeedbackTxt: Label 'General MCP feedback triggered', Locked = true;
@@ -1055,7 +1055,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         Feedback.WithCustomQuestion(MCPServerFeedbackQst, MCPServerFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
-        Feedback.RequestDislikeFeedback('MCP Server', 'MCPConfig', 'MCP Server Configuration');
+        Feedback.RequestDislikeFeedback('MCP Server', 'MCPConfig', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1064,7 +1064,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         Feedback: Codeunit "Microsoft User Feedback";
     begin
-        Feedback.RequestFeedback('MCP Server', 'MCPConfig', 'MCP Server Configuration');
+        Feedback.RequestFeedback('MCP Server', 'MCPConfig', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1074,6 +1074,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
     begin
         MCPConfiguration.SetRange(Active, true);
+        MCPConfiguration.SetFilter(Name, '<>%1', '');
         exit(MCPConfiguration.IsEmpty());
     end;
     #endregion Feedback

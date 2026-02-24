@@ -182,7 +182,10 @@ page 8350 "MCP Config List"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if HadActiveConfigsOnOpen and MCPConfigImplementation.HasNoActiveConfigurations() then
+        if not HadActiveConfigsOnOpen then
+            exit;
+
+        if MCPConfigImplementation.HasNoActiveConfigurations() then
             MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
     end;
 
