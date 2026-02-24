@@ -199,6 +199,7 @@ page 8704 "Indexes List Part"
                 Image = Add;
                 ToolTip = 'Enqueues the index to be turned on in the subsequent maintenance window.';
 
+
                 trigger OnAction()
                 var
                     KeyRec: Record "Key";

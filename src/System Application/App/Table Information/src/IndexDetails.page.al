@@ -7,14 +7,18 @@ namespace System.DataAdministration;
 
 using System.Diagnostics;
 
-page 9705 "Index Details Factbox"
+/// <summary>
+/// 
+/// </summary>
+page 9705 "Index Details"
 {
+    Caption = 'Index Details';
+
     PageType = CardPart;
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Database Index";
-
-    Editable = false;
+    Permissions = tabledata "Database Index" = r;
 
     layout
     {
@@ -22,7 +26,8 @@ page 9705 "Index Details Factbox"
         {
             group(Fields)
             {
-                Caption = 'Index Key Fields';
+                Caption = 'Key Fields';
+
                 field(FieldNames; Rec."Column Names")
                 {
                     Caption = 'Fields in Index';
