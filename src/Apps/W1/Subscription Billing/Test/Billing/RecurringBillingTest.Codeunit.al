@@ -1510,7 +1510,7 @@ codeunit 139688 "Recurring Billing Test"
         VerifySalesLine.SetRange("Document Type", VerifySalesLine."Document Type"::Invoice);
         VerifySalesLine.SetRange(Type, VerifySalesLine.Type::" ");
         VerifySalesLine.SetRange(Description, ExtendedTextLine[1].Text);
-        Assert.IsTrue(VerifySalesLine.FindFirst(), ExtendedTextValueErr);
+        Assert.IsTrue(VerifySalesLine.Count() > 0, ExtendedTextValueErr);
     end;
 
     [Test]
@@ -1547,7 +1547,7 @@ codeunit 139688 "Recurring Billing Test"
         VerifyPurchaseLine.SetRange("Document Type", VerifyPurchaseLine."Document Type"::Invoice);
         VerifyPurchaseLine.SetRange(Type, VerifyPurchaseLine.Type::" ");
         VerifyPurchaseLine.SetRange(Description, ExtendedTextLine[1].Text);
-        Assert.IsTrue(VerifyPurchaseLine.FindFirst(), ExtendedTextPurchValueErr);
+        Assert.IsTrue(VerifyPurchaseLine.Count() > 0, ExtendedTextPurchValueErr);
     end;
 
     #endregion Tests
@@ -1896,13 +1896,13 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.Modify(false);
     end;
 
-    local procedure CreateExtendedTextForItem(Item: Record Item; var ExtendedTextLine: Record "Extended Text Line")
+    local procedure CreateExtendedTextForItem(ItemRec: Record Item; var ExtendedTextLine: Record "Extended Text Line")
     var
         ExtendedTextHeader: Record "Extended Text Header";
     begin
-        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, ItemRec."No.");
         LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
-        ExtendedTextLine.Text := LibraryRandom.RandText(50);
+        ExtendedTextLine.Text := CopyStr(LibraryRandom.RandText(50), 1, 50);
         ExtendedTextLine.Modify(true);
         ExtendedTextLine.Find();
     end;
