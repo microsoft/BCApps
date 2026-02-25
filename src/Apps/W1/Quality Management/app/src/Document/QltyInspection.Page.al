@@ -626,7 +626,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Certificate of Analysis';
                 ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
-                Image = PrintAcknowledgement;
+                Image = Certificate;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -646,7 +646,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = PrintCover;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -666,7 +666,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
                 ToolTip = 'General purpose inspection report.';
-                Image = PrintChecklistReport;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;

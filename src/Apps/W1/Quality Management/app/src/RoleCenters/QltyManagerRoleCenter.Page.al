@@ -100,20 +100,20 @@ page 20426 "Qlty. Manager Role Center"
                 action(Processing_CertificateOfAnalysis)
                 {
                     Caption = 'Certificate of Analysis';
-                    Image = PrintAcknowledgement;
+                    Image = Certificate;
                     ToolTip = 'Printable Certificate of Analysis (COA) report.';
                     RunObject = Report "Qlty. Certificate of Analysis";
                 }
                 action(Processing_GeneralInspectionReport)
                 {
                     Caption = 'Inspection Report';
-                    Image = PrintChecklistReport;
+                    Image = Report;
                     ToolTip = 'Specifies a printable general purpose inspection report.';
                     RunObject = Report "Qlty. General Purpose Inspect.";
                 }
                 action(Processing_NonConformanceReport)
                 {
-                    Image = PrintCover;
+                    Image = Report;
                     Caption = 'Non Conformance Report';
                     ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
                     RunObject = Report "Qlty. Non-Conformance";
@@ -185,7 +185,7 @@ page 20426 "Qlty. Manager Role Center"
             action(Embedding__QualityInspectionLines)
             {
                 Caption = 'Quality Inspection Lines';
-                Image = AnalysisView;
+                Image = CheckList;
                 ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                 RunObject = Page "Qlty. Inspection Lines";
             }

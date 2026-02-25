@@ -437,7 +437,7 @@ page 20408 "Qlty. Inspection List"
                 ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
                 AboutTitle = 'Print and share reports';
                 AboutText = 'You can preview, print, or share the certificate of analysis and other inspection reports to support quality, traceability, and compliance.';
-                Image = PrintAcknowledgement;
+                Image = Certificate;
                 Scope = Repeater;
                 Promoted = true;
                 PromotedOnly = true;
@@ -460,7 +460,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Non Conformance Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = PrintCover;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -481,7 +481,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Inspection Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'General purpose inspection report.';
-                Image = PrintChecklistReport;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;

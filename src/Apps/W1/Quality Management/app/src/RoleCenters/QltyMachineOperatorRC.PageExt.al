@@ -35,7 +35,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 action(Qlty_CertificateOfAnalysis)
                 {
                     Caption = 'Certificate of Analysis';
-                    Image = PrintAcknowledgement;
+                    Image = Certificate;
                     ToolTip = 'Certificate of Analysis (CoA) report.';
                     ApplicationArea = QualityManagement;
                     RunObject = Report "Qlty. Certificate of Analysis";
@@ -47,7 +47,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                     action(Qlty_QualityInspectionLines)
                     {
                         Caption = 'Quality Inspection Lines';
-                        Image = AnalysisView;
+                        Image = CheckList;
                         ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
                         RunObject = Page "Qlty. Inspection Lines";
@@ -115,7 +115,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 action(Qlty_Sections_QualityInspectionLines)
                 {
                     Caption = 'Quality Inspection Lines';
-                    Image = AnalysisView;
+                    Image = CheckList;
                     ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection Lines";
