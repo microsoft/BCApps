@@ -16,7 +16,6 @@ page 20415 "Qlty. Create Inspection API"
     APIVersion = 'v1.0';
     APIGroup = 'qualityManagement';
     APIPublisher = 'microsoft';
-    DelayedInsert = true;
     Editable = false;
     EntityName = 'createQualityInspection';
     EntitySetName = 'createQualityInspections';

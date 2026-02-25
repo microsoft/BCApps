@@ -22,7 +22,6 @@ page 20414 "Qlty. Inspections API"
     APIGroup = 'qualityManagement';
     APIPublisher = 'microsoft';
     DelayedInsert = true;
-    Editable = false;
     EntityName = 'qualityInspection';
     EntitySetName = 'qualityInspections';
     EntityCaption = 'Quality Inspection';
