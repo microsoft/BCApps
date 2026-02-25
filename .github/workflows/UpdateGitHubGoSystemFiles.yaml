@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       templateUrl:
-        description: Template Repository URL (current is https://github.com/spetersenms/AL-Go@CodeCoverage)
+        description: Template Repository URL (current is https://github.com/microsoft/AL-Go-PTE@preview)
         required: false
         default: ''
       downloadLatest:
@@ -22,7 +22,7 @@ on:
   workflow_call:
     inputs:
       templateUrl:
-        description: Template Repository URL (current is https://github.com/spetersenms/AL-Go@CodeCoverage)
+        description: Template Repository URL (current is https://github.com/microsoft/AL-Go-PTE@preview)
         type: string
         required: false
         default: ''
@@ -64,18 +64,18 @@ jobs:
       TemplateUrl: ${{ steps.DetermineTemplateUrl.outputs.TemplateUrl }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read settings
         id: ReadSettings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
+        uses: microsoft/AL-Go-Actions/ReadSettings@v8.3
         with:
           shell: powershell
           get: templateUrl
 
       - name: Get Workflow Multi-Run Branches
         id: GetBranches
-        uses: spetersenms/AL-Go/Actions/GetWorkflowMultiRunBranches@CodeCoverage
+        uses: microsoft/AL-Go-Actions/GetWorkflowMultiRunBranches@v8.3
         with:
           shell: powershell
           includeBranches: ${{ github.event.inputs.includeBranches }}
@@ -105,30 +105,30 @@ jobs:
 
     steps:
       - name: Dump Workflow Information
-        uses: spetersenms/AL-Go/Actions/DumpWorkflowInfo@CodeCoverage
+        uses: microsoft/AL-Go-Actions/DumpWorkflowInfo@v8.3
         with:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.branch }}
 
       - name: Initialize the workflow
         id: init
-        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@CodeCoverage
+        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v8.3
         with:
           shell: powershell
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
+        uses: microsoft/AL-Go-Actions/ReadSettings@v8.3
         with:
           shell: powershell
           get: commitOptions
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v8.3
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -155,7 +155,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "downloadLatest=$downloadLatest"
 
       - name: Update AL-Go system files
-        uses: spetersenms/AL-Go/Actions/CheckForUpdates@CodeCoverage
+        uses: microsoft/AL-Go-Actions/CheckForUpdates@v8.3
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -169,7 +169,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@CodeCoverage
+        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v8.3
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
