@@ -82,6 +82,18 @@ table 149036 "AIT Run History"
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
             AutoFormatType = 0;
         }
+        field(15; "Copilot Credits"; Decimal)
+        {
+            Caption = 'Copilot credits';
+            ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+            Editable = false;
+        }
+        field(16; "Agent Task IDs"; Text[2048])
+        {
+            Caption = 'Agent tasks';
+            ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the current version.';
+            Editable = false;
+        }
         field(20; "No. of Tests Executed - By Tag"; Integer)
         {
             Caption = 'No. of Evals Executed';
@@ -122,6 +134,18 @@ table 149036 "AIT Run History"
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Tag = field(Tag), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
             AutoFormatType = 0;
+        }
+        field(25; "Copilot Credits - By Tag"; Decimal)
+        {
+            Caption = 'Copilot credits';
+            ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
+            Editable = false;
+        }
+        field(26; "Agent Task IDs - By Tag"; Text[2048])
+        {
+            Caption = 'Agent tasks';
+            ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the tag.';
+            Editable = false;
         }
     }
 

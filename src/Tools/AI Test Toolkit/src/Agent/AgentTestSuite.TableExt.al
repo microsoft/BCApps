@@ -3,9 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
-
-using System.TestTools.AITestToolkit;
+namespace System.TestTools.AITestToolkit;
 
 tableextension 149050 "Agent Test Suite" extends "AIT Test Suite"
 {

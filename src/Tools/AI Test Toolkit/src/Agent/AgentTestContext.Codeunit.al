@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.TestTools.AITestToolkit;
 
 /// <summary>
 /// Exposes Agent specific functionality that can be used by the AI tests.

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 page 149034 "AIT Test Method Lines"
 {
@@ -84,7 +85,7 @@ page 149034 "AIT Test Method Lines"
                     ToolTip = 'Specifies the number of failed evals for the eval line.';
                     Style = Unfavorable;
 
-                    trigger OnDrillDown()
+                    trigger OnAssistEdit()
                     var
                         AITTestSuite: Record "AIT Test Suite";
                         AITLogEntry: Codeunit "AIT Log Entry";
@@ -150,6 +151,25 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
+                }
+                field("Copilot Credits"; CopilotCredits)
+                {
+                    Caption = 'Copilot credits';
+                    ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
+                    Editable = false;
+                }
+                field("Agent Task Count"; AgentTaskCount)
+                {
+                    Caption = 'Agent tasks';
+                    ToolTip = 'Specifies the number of Agent Tasks related to this eval line.';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    var
+                        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                    begin
+                        AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                    end;
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
@@ -263,9 +283,13 @@ page 149034 "AIT Test Method Lines"
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         NoLineSelectedErr: Label 'Select a line to compare';
         TurnsText: Text;
         EvaluationSetupTxt: Text;
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
+        AgentTaskCount: Integer;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -279,6 +303,12 @@ page 149034 "AIT Test Method Lines"
     begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
+        UpdateAgentTaskMetrics();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateAgentTaskMetrics();
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
@@ -293,6 +323,20 @@ page 149034 "AIT Test Method Lines"
         if BaseNo = 0 then
             exit(0);
         exit(Round((100 * (No - BaseNo)) / BaseNo, 0.1));
+    end;
+
+    local procedure UpdateAgentTaskMetrics()
+    var
+        VersionFilter: Text;
+        CurrentFilterGroup: Integer;
+    begin
+        CurrentFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        VersionFilter := Rec.GetFilter(Rec."Version Filter");
+        Rec.FilterGroup(CurrentFilterGroup);
+        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
+        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
+        AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
 
     internal procedure Refresh()

@@ -207,7 +207,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="AgentTaskFile">The file to attach.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure AddAttachment(AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
+    procedure AddAttachment(var AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);

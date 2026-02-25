@@ -221,6 +221,23 @@ page 149031 "AIT Test Suite"
                     Caption = 'Average Tokens Consumed';
                     ToolTip = 'Specifies the average number of tokens consumed by the evals in the last run.';
                 }
+                field("Copilot Credits"; CopilotCredits)
+                {
+                    Editable = false;
+                    Caption = 'Copilot credits';
+                    ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+                }
+                field("Agent Task Count"; AgentTaskCount)
+                {
+                    Editable = false;
+                    Caption = 'Agent tasks';
+                    ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
+
+                    trigger OnDrillDown()
+                    begin
+                        AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                    end;
+                }
             }
 
         }
@@ -409,9 +426,13 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
         TotalDuration: Duration;
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
+        AgentTaskCount: Integer;
         PageCaptionLbl: Label 'AI Eval';
         TestRunnerDisplayName: Text;
         Language: Text;
@@ -437,6 +458,7 @@ page 149031 "AIT Test Suite"
     begin
         UpdateTotalDuration();
         UpdateAverages();
+        UpdateAgentTaskMetrics();
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
@@ -460,5 +482,12 @@ page 149031 "AIT Test Suite"
             AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
         else
             AvgTokensConsumed := 0;
+    end;
+
+    local procedure UpdateAgentTaskMetrics()
+    begin
+        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0);
+        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec.Code, Rec.Version, '', 0);
+        AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
 }

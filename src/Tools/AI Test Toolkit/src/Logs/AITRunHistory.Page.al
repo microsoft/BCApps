@@ -139,6 +139,27 @@ page 149032 "AIT Run History"
                         Caption = 'Total Tokens Consumed';
                         ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
                     }
+                    field("Copilot Credits - By Version"; Rec."Copilot Credits")
+                    {
+                        Visible = ViewBy = ViewBy::Version;
+                        Caption = 'Copilot credits';
+                        ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+                        Editable = false;
+                    }
+                    field("Agent Task IDs - By Version"; Rec."Agent Task IDs")
+                    {
+                        Visible = ViewBy = ViewBy::Version;
+                        Caption = 'Agent tasks';
+                        ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the current version.';
+                        Editable = false;
+
+                        trigger OnDrillDown()
+                        var
+                            AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                        begin
+                            AgentTestContextImpl.OpenAgentTaskList(Rec."Agent Task IDs");
+                        end;
+                    }
                     field("No. of Tests - By Tag"; Rec."No. of Tests Executed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
@@ -184,6 +205,27 @@ page 149032 "AIT Run History"
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Tokens Consumed';
                         ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+                    }
+                    field("Copilot Credits - By Tag"; Rec."Copilot Credits - By Tag")
+                    {
+                        Visible = ViewBy = ViewBy::Tag;
+                        Caption = 'Copilot credits';
+                        ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
+                        Editable = false;
+                    }
+                    field("Agent Task IDs - By Tag"; Rec."Agent Task IDs - By Tag")
+                    {
+                        Visible = ViewBy = ViewBy::Tag;
+                        Caption = 'Agent tasks';
+                        ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the tag.';
+                        Editable = false;
+
+                        trigger OnDrillDown()
+                        var
+                            AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                        begin
+                            AgentTestContextImpl.OpenAgentTaskList(Rec."Agent Task IDs - By Tag");
+                        end;
                     }
                 }
             }

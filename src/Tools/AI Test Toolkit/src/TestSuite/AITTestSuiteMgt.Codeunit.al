@@ -163,10 +163,12 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITRunHistory: Record "AIT Run History";
         AITTestContext: Codeunit "AIT Test Context";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
     begin
         AITRunHistory."Test Suite Code" := Code;
         AITRunHistory.Version := Version;
         AITRunHistory.Tag := Tag;
+        AITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(Code, Version, Tag, 0);
         AITRunHistory.Insert();
 
         AITTestContext.OnAfterRunComplete(Code, Version, Tag);

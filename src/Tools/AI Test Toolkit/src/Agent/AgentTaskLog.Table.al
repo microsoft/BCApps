@@ -51,11 +51,22 @@ table 149050 "Agent Task Log"
             Caption = 'Version';
             ToolTip = 'Specifies the Version No. of the eval run.';
         }
+        field(15; Tag; Text[20])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tag';
+            ToolTip = 'Specifies the Tag that we entered in the AI Eval Suite.';
+        }
         field(17; "Procedure Name"; Text[128])
         {
             Caption = 'Procedure Name';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the procedure being executed.';
+        }
+        field(5001; "Test Log Entry ID"; Integer)
+        {
+            Caption = 'Test Log Entry ID';
+            ToolTip = 'Specifies the AIT Log Entry ID that this agent task is associated with.';
         }
         field(5000; "Agent Task ID"; BigInteger)
         {
@@ -74,6 +85,9 @@ table 149050 "Agent Task Log"
         key(Key2; "Test Suite Code", Version, "Test Method Line No.", "Agent Task ID", Operation, "Procedure Name")
         {
             IncludedFields = Status;
+        }
+        key(Key3; "Test Log Entry ID", "Agent Task ID")
+        {
         }
     }
 }

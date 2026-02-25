@@ -122,6 +122,25 @@ page 149033 "AIT Log Entries"
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
                 }
+                field("Copilot Credits"; CopilotCredits)
+                {
+                    Caption = 'Copilot credits';
+                    ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
+                    Editable = false;
+                }
+                field("Agent Task IDs"; AgentTaskIDs)
+                {
+                    Caption = 'Agent tasks';
+                    ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    var
+                        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                    begin
+                        AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                    end;
+                }
                 field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
@@ -341,6 +360,7 @@ page 149033 "AIT Log Entries"
     }
 
     var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         ClickToShowLbl: Label 'Show eval input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
@@ -353,6 +373,8 @@ page 149033 "AIT Log Entries"
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
         ShowSensitiveData: Boolean;
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
 
     trigger OnAfterGetRecord()
     var
@@ -364,6 +386,7 @@ page 149033 "AIT Log Entries"
         SetErrorFields();
         SetStatusStyleExpr();
         SetTurnsStyleExpr();
+        UpdateAgentTaskMetrics();
     end;
 
     local procedure SetStatusStyleExpr()
@@ -415,5 +438,11 @@ page 149033 "AIT Log Entries"
             InputText := Rec.GetInputBlob();
             OutputText := Rec.GetOutputBlob();
         end;
+    end;
+
+    local procedure UpdateAgentTaskMetrics()
+    begin
+        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
+        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 }
