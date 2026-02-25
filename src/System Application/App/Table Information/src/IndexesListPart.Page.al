@@ -182,9 +182,14 @@ page 8704 "Indexes List Part"
 
                 trigger OnAction()
                 var
+                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                 begin
+                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        if KeyRec.MaintainSIFTIndex then
+                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+
                     if not Rec."Metadata Defined" then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
@@ -211,9 +216,14 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     DatabaseIndex: Record "Database Index";
+                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                 begin
+                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        if KeyRec.MaintainSIFTIndex then
+                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+
                     if not Rec."Metadata Defined" then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
@@ -415,5 +425,6 @@ page 8704 "Indexes List Part"
         ReadWriteRatio: Decimal;
         MaintainVSIFT: Boolean;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
-        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
+        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window.';
+        CannotDisableSIFTIndexErr: Label 'Cannot enable or disable SIFT indexes ''%1''.', Comment = '%1 = Index Name';
 }
