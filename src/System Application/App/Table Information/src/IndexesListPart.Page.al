@@ -32,26 +32,58 @@ page 8704 "Indexes List Part"
         {
             repeater(Indexes)
             {
-                field("Index name"; Rec."Index Name")
-                {
-                    Width = 30;
-                    Caption = 'Index Name';
-                    ToolTip = 'Specifies the name of the index.';
-                }
+                FreezeColumn = "Index Fields";
                 field(Enabled; Rec.Enabled)
                 {
                     Caption = 'Enabled in Database';
                     ToolTip = 'Specifies whether the index is enabled in the database.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("AL defined"; Rec."Metadata Defined")
                 {
                     Caption = 'AL Defined';
                     ToolTip = 'Specifies whether the index is defined as an AL key or automatically created to improve performance.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Unique"; Rec.Unique)
                 {
                     Caption = 'Unique';
                     ToolTip = 'Specifies whether the index is defined as unique in AL.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Index name"; Rec."Index Name")
+                {
+                    Width = 30;
+                    Caption = 'Index Name';
+                    ToolTip = 'Specifies the name of the index.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Index Fields"; Rec."Column Names")
+                {
+                    Width = 40;
+                    Caption = 'Index Fields';
+                    ToolTip = 'Specifies the fields that are part of the index.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Maintain SIFT"; MaintainVSIFT)
+                {
+                    Caption = 'Maintain SIFT';
+                    ToolTip = 'Specifies whether the SIFT index is actively maintained for this key.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("SIFT Fields"; VSIFTFields)
+                {
+                    Width = 40;
+                    Caption = 'SIFT Fields';
+                    ToolTip = 'Specifies the fields maintained in SIFT (Sum Index Field Technology) for aggregation purposes.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Included Columns"; Rec."Included Fields")
+                {
+                    Width = 40;
+                    Caption = 'Included Columns';
+                    ToolTip = 'Specifies the non-key fields included in the index for covering queries.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Fragmentation"; Rec."Fragmentation %")
                 {
@@ -59,60 +91,79 @@ page 8704 "Indexes List Part"
                     ToolTip = 'Specifies the percentage of fragmentation in the index.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0;
+                    StyleExpr = FragmentationStyleExpr;
                 }
                 field("Index size in KB"; Rec."Index Size (KB)")
                 {
                     Caption = 'Index Size (kB)';
                     ToolTip = 'Specifies the size of the index in kilobytes.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User seeks"; Rec."User seeks")
                 {
                     Width = 10;
                     Caption = 'Seeks';
                     ToolTip = 'Specifies the number of user seeks on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User scans"; Rec."User scans")
                 {
                     Width = 10;
                     Caption = 'Scans';
                     ToolTip = 'Specifies the number of user scans on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User lookups"; Rec."User lookups")
                 {
                     Width = 10;
                     Caption = 'Lookups';
                     ToolTip = 'Specifies the number of user lookups on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User updates"; Rec."User updates")
                 {
                     Width = 10;
                     Caption = 'Updates';
                     ToolTip = 'Specifies the number of user updates on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last seek"; Rec."Last seek")
+                field("Read/Write Ratio"; ReadWriteRatio)
+                {
+                    Width = 10;
+                    Caption = 'Reads/Writes';
+                    ToolTip = 'Specifies the ratio of reads (seeks + scans + lookups) to writes (updates). A higher value indicates the index is more read-heavy.';
+                    DecimalPlaces = 2;
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Last seek"; LastSeekText)
                 {
                     Caption = 'Last Seek';
                     ToolTip = 'Specifies the timestamp of the last user seek on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last scan"; Rec."Last scan")
+                field("Last scan"; LastScanText)
                 {
                     Caption = 'Last Scan';
                     ToolTip = 'Specifies the timestamp of the last user scan on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last lookup"; Rec."Last lookup")
+                field("Last lookup"; LastLookupText)
                 {
                     Caption = 'Last Lookup';
                     ToolTip = 'Specifies the timestamp of the last user lookup on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last Update"; Rec."Last update")
+                field("Last Update"; LastUpdateText)
                 {
                     Caption = 'Last Update';
                     ToolTip = 'Specifies the timestamp of the last user update on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Stat updated at"; Rec."Statistics rebuild at")
                 {
                     Caption = 'Statistics updated at';
                     ToolTip = 'Specifies the last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
+                    StyleExpr = IndexStyleExpr;
                 }
             }
         }
@@ -131,9 +182,14 @@ page 8704 "Indexes List Part"
 
                 trigger OnAction()
                 var
+                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                 begin
+                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        if KeyRec.MaintainSIFTIndex then
+                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+
                     if not Rec."Metadata Defined" then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
@@ -160,9 +216,14 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     DatabaseIndex: Record "Database Index";
+                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                 begin
+                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        if KeyRec.MaintainSIFTIndex then
+                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+
                     if not Rec."Metadata Defined" then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
@@ -226,6 +287,54 @@ page 8704 "Indexes List Part"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        KeyRec: Record "Key";
+    begin
+        if Rec.Enabled then
+            IndexStyleExpr := 'Standard'
+        else
+            IndexStyleExpr := 'Unfavorable';
+
+        if Rec."Fragmentation %" > 30 then
+            FragmentationStyleExpr := 'Unfavorable'
+        else
+            FragmentationStyleExpr := IndexStyleExpr;
+
+        if FindKeyFromDatabaseIndex(Rec, KeyRec) then begin
+            MaintainVSIFT := KeyRec.MaintainSIFTIndex;
+            VSIFTFields := KeyRec.SumIndexFields;
+        end else begin
+            MaintainVSIFT := false;
+            VSIFTFields := '';
+        end;
+
+        if Rec."User seeks" <> 0 then
+            LastSeekText := Format(Rec."Last seek")
+        else
+            LastSeekText := '';
+
+        if Rec."User scans" <> 0 then
+            LastScanText := Format(Rec."Last scan")
+        else
+            LastScanText := '';
+
+        if Rec."User lookups" <> 0 then
+            LastLookupText := Format(Rec."Last lookup")
+        else
+            LastLookupText := '';
+
+        if Rec."User updates" <> 0 then
+            LastUpdateText := Format(Rec."Last update")
+        else
+            LastUpdateText := '';
+
+        if Rec."User updates" <> 0 then
+            ReadWriteRatio := (Rec."User seeks" + Rec."User scans" + Rec."User lookups") / Rec."User updates"
+        else
+            ReadWriteRatio := (Rec."User seeks" + Rec."User scans" + Rec."User lookups") / 1;
+    end;
 
     trigger OnFindRecord(Which: Text): Boolean
     var
@@ -306,6 +415,16 @@ page 8704 "Indexes List Part"
 
     var
         SetCompanyName: Text;
+        IndexStyleExpr: Text;
+        FragmentationStyleExpr: Text;
+        VSIFTFields: Text;
+        LastSeekText: Text;
+        LastScanText: Text;
+        LastLookupText: Text;
+        LastUpdateText: Text;
+        ReadWriteRatio: Decimal;
+        MaintainVSIFT: Boolean;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
-        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
+        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window.';
+        CannotDisableSIFTIndexErr: Label 'Cannot enable or disable SIFT indexes ''%1''.', Comment = '%1 = Index Name';
 }
