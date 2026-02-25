@@ -30,23 +30,21 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
         Base64Convert: Codeunit "Base64 Convert";
-        AzureOpenAI: Codeunit "Azure OpenAI";
-        AOAIChatMessages: Codeunit "AOAI Chat Messages";
-        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
-        AOAIUserMessage: Codeunit "AOAI User Message";
-        AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        EDocMLLMExemplarMgmt: Codeunit "E-Doc. MLLM Exemplar Mgmt";
         FromTempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         Base64Data: Text;
         SchemaText: Text;
-        SystemPrompt: Text;
-        JsonResponse: JsonObject;
+        ZeroShotResult: Text;
+        OneShotResult: Text;
+        VendorName: Text[250];
+        ExemplarPdfBase64: Text;
+        ExemplarJson: Text;
+        ExemplarFound: Boolean;
     begin
         RegisterCopilotCapabilityIfNeeded();
 
-        // Load schema for the E-Document's service code, or fall back to default
         SchemaText := EDocMLLMSchemaHelper.GetDefaultSchema();
 
         // Convert PDF to base64
@@ -54,7 +52,45 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         FromTempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         Base64Data := Base64Convert.ToBase64(InStream);
 
-        // Build AOAI call
+        // Phase 1: Zero-shot extraction
+        ZeroShotResult := CallMLLMZeroShot(Base64Data, SchemaText);
+
+        if ZeroShotResult = '' then begin
+            SetBlankDraft();
+            exit(this);
+        end;
+
+        // Phase 2: Try one-shot with vendor exemplar
+        VendorName := EDocMLLMExemplarMgmt.ExtractVendorNameFromJson(ZeroShotResult);
+        EDocMLLMExemplarMgmt.TryGetExemplar(VendorName, ExemplarFound, ExemplarPdfBase64, ExemplarJson);
+
+        if ExemplarFound then begin
+            OneShotResult := CallMLLMOneShot(Base64Data, SchemaText, ExemplarPdfBase64, ExemplarJson);
+            if OneShotResult <> '' then
+                StructuredData := OneShotResult
+            else
+                StructuredData := ZeroShotResult;
+        end else
+            StructuredData := ZeroShotResult;
+
+        FileFormat := "E-Doc. File Format"::JSON;
+        ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
+
+        exit(this);
+    end;
+
+    local procedure CallMLLMZeroShot(Base64Data: Text; SchemaText: Text): Text
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        SystemPrompt: Text;
+        ResultText: Text;
+        JsonResponse: JsonObject;
+    begin
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
 
@@ -70,25 +106,76 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
 
-        if AOAIOperationResponse.IsSuccess() then begin
-            StructuredData := AOAIOperationResponse.GetResult();
-            if StructuredData <> '' then begin
+        if not AOAIOperationResponse.IsSuccess() then
+            exit('');
 
-                if JsonResponse.ReadFrom(StructuredData) then
-                    StructuredData := JsonResponse.GetText('content', true);
+        ResultText := AOAIOperationResponse.GetResult();
+        if ResultText = '' then
+            exit('');
 
-                FileFormat := "E-Doc. File Format"::JSON;
-                ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
-            end else begin
-                FileFormat := "E-Doc. File Format"::Unspecified;
-                ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
-            end;
-        end else begin
-            FileFormat := "E-Doc. File Format"::Unspecified;
-            ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
-        end;
+        if JsonResponse.ReadFrom(ResultText) then
+            ResultText := JsonResponse.GetText('content', true);
 
-        exit(this);
+        exit(ResultText);
+    end;
+
+    local procedure CallMLLMOneShot(Base64Data: Text; SchemaText: Text; ExemplarPdfBase64: Text; ExemplarJson: Text): Text
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        AOAIExemplarMessage: Codeunit "AOAI User Message";
+        AOAICurrentMessage: Codeunit "AOAI User Message";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        SystemPrompt: Text;
+        ExtractionPrompt: Text;
+        ResultText: Text;
+        JsonResponse: JsonObject;
+    begin
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
+
+        AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetJsonMode(true);
+
+        SystemPrompt := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
+        AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
+
+        ExtractionPrompt := StrSubstNo(UserPromptLbl, SchemaText);
+
+        // User message 1: exemplar PDF + extraction prompt
+        AOAIExemplarMessage.AddFilePart(StrSubstNo(FileDataLbl, ExemplarPdfBase64));
+        AOAIExemplarMessage.AddTextPart(ExtractionPrompt);
+        AOAIChatMessages.AddUserMessage(AOAIExemplarMessage);
+
+        // Assistant message: corrected JSON (the exemplar answer)
+        AOAIChatMessages.AddAssistantMessage(ExemplarJson);
+
+        // User message 2: current PDF + extraction prompt
+        AOAICurrentMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
+        AOAICurrentMessage.AddTextPart(ExtractionPrompt);
+        AOAIChatMessages.AddUserMessage(AOAICurrentMessage);
+
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+
+        if not AOAIOperationResponse.IsSuccess() then
+            exit('');
+
+        ResultText := AOAIOperationResponse.GetResult();
+        if ResultText = '' then
+            exit('');
+
+        if JsonResponse.ReadFrom(ResultText) then
+            ResultText := JsonResponse.GetText('content', true);
+
+        exit(ResultText);
+    end;
+
+    local procedure SetBlankDraft()
+    begin
+        FileFormat := "E-Doc. File Format"::Unspecified;
+        ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
     end;
 
     procedure GetFileFormat(): Enum "E-Doc. File Format"

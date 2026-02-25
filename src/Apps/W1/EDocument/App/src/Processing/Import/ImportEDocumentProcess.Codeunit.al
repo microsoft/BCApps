@@ -169,6 +169,8 @@ codeunit 6104 "Import E-Document Process"
         // Clean up / reset E-Document fields
         EDocument."Document Record ID" := IEDocumentFinishDraft.ApplyDraftToBC(EDocument, EDocImportParameters);
         EDocument.Modify();
+
+        OnDraftFinished(EDocument);
     end;
 
     local procedure UndoProcessingStep(EDocument: Record "E-Document"; Step: Enum "Import E-Document Steps")
@@ -355,6 +357,11 @@ codeunit 6104 "Import E-Document Process"
 
     [InternalEvent(false, false)]
     local procedure OnFoundVendorNo(EDocument: Record "E-Document"; VendNo: Code[20])
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnDraftFinished(EDocument: Record "E-Document")
     begin
     end;
 

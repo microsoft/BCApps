@@ -136,7 +136,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     end;
 #pragma warning restore AA0139
 
-    local procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)
+    internal procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)
     var
         JsonToken: JsonToken;
         TextValue: Text;
@@ -179,7 +179,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         FieldValue := JsonToken.AsValue().AsDecimal();
     end;
 
-    local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
+    internal procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
     var
         JsonToken: JsonToken;
     begin
