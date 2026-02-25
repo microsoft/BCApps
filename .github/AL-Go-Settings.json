@@ -6,10 +6,10 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/28.0.46427.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.46659.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "28.0",
+  "repoVersion": "29.0",
   "conditionalSettings": [
     {
       "buildModes": [
@@ -20,7 +20,8 @@
           "CLEAN25",
           "CLEAN26",
           "CLEAN27",
-          "CLEAN28"
+          "CLEAN28",
+          "CLEAN29"
         ]
       }
     },
