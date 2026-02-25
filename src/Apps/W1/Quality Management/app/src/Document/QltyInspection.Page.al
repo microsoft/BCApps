@@ -102,6 +102,7 @@ page 20406 "Qlty. Inspection"
                     field(Status; Rec.Status)
                     {
                         Editable = false;
+                        StyleExpr = StatusStyleExpr;
                     }
                     field("Finished Date"; Rec."Finished Date")
                     {
@@ -841,6 +842,7 @@ page 20406 "Qlty. Inspection"
         VisibleSourceSubType: Boolean;
         VisibleSourceType: Boolean;
         CanChangeQuantity: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnOpenPage()
     begin
@@ -862,6 +864,10 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
+        if IsOpen then
+            StatusStyleExpr := 'Favorable'
+        else
+            StatusStyleExpr := 'None';
         CanReopen := not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if Rec.Status = Rec.Status::Open then
