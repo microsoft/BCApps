@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/CodeCoverage/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.3/.Modules/settings.schema.json",
   "projectName": "Business Foundation Tests",
   "testFolders": [
     "../../../src/Business Foundation/Test"
