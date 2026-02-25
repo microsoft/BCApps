@@ -31,8 +31,7 @@ tableextension 20409 "Qlty. Transfer Header" extends "Transfer Header"
     keys
     {
         key(Key20400; "Qlty. Inspection No.", "Qlty. Re-inspection No.")
-        {
-        }
+        { IncludedFields = Status, "Transfer-from Code", "Transfer-to Code", "Posting Date"; }
     }
 
     /// <summary>

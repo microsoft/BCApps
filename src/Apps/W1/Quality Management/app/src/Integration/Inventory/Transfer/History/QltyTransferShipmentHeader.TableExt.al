@@ -31,8 +31,7 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
     keys
     {
         key(Key20400; "Qlty. Inspection No.", "Qlty. Re-inspection No.")
-        {
-        }
+        { IncludedFields = "Transfer-from Code", "Transfer-to Code", "Posting Date"; }
     }
 
     /// <summary>

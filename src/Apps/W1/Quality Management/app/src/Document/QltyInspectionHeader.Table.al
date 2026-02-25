@@ -500,35 +500,37 @@ table 20405 "Qlty. Inspection Header"
         {
             Clustered = true;
         }
-        key(bySource; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.")
+        key(Key2; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.")
         {
         }
-        key(byCustomSource; "Template Code", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
+        key(Key3; "Template Code", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
         {
         }
-        key(byAllSource; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6")
+        key(Key4; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6")
         {
         }
-        key(byItemTracking; "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Template Code")
+        key(Key5; "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Template Code")
+        {
+            IncludedFields = Description, Status, "Source Document No.", "Result Description";
+        }
+        key(Key6; "Source Record Table No.", "Source RecordId", "Trigger Record Table No.", "Trigger RecordId")
         {
         }
-        key(byRecord; "Source Record Table No.", "Source RecordId", "Trigger Record Table No.", "Trigger RecordId")
+        key(Key7; "Template Code", "Source RecordId", "Source Record Table No.")
         {
         }
-        key(byTemplateAndRecord; "Template Code", "Source RecordId", "Source Record Table No.")
+        key(Key8; SystemCreatedBy, SystemCreatedAt, "Template Code")
         {
         }
-        key(byUser; SystemCreatedBy, SystemCreatedAt, "Template Code")
+        key(Key9; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
         {
         }
-        key(byDocumentAndItemNo; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
+        key(Key10; SystemModifiedAt, SystemCreatedAt, SystemModifiedBy, SystemCreatedBy, "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
         {
         }
-        key(byDateAndTracking; SystemModifiedAt, SystemCreatedAt, SystemModifiedBy, SystemCreatedBy, "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
+        key(Key11; Status, "Assigned User ID", "Planned Start Date")
         {
-        }
-        key(StatusKey; Status, "Assigned User ID", "Planned Start Date")
-        {
+            IncludedFields = "No.", Description, "Source Item No.", "Source Document No.", "Template Code";
         }
     }
 

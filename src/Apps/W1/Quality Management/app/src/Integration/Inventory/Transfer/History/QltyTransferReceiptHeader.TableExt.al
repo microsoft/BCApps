@@ -31,8 +31,7 @@ tableextension 20412 "Qlty. Transfer Receipt Header" extends "Transfer Receipt H
     keys
     {
         key(Key20400; "Qlty. Inspection No.", "Qlty. Re-inspection No.")
-        {
-        }
+        { IncludedFields = "Transfer-from Code", "Transfer-to Code", "Posting Date"; }
     }
 
     /// <summary>
