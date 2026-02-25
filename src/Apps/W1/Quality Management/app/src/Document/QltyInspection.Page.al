@@ -864,13 +864,11 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
-        if IsOpen then
-            StatusStyleExpr := 'Favorable'
-        else
-            StatusStyleExpr := 'None';
+        StatusStyleExpr := IsOpen ? 'Favorable' : 'None';
+        
         CanReopen := not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
-        if Rec.Status = Rec.Status::Open then
+        if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
