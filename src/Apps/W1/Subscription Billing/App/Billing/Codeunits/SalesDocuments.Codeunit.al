@@ -456,12 +456,11 @@ codeunit 8063 "Sales Documents"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnAfterSetEverythingInvoiced, '', false, false)]
-    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean)
+    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(SalesHeader: Record "Sales Header"; var EverythingInvoiced: Boolean)
     begin
         // Treat zero-qty subscription billing lines as fully invoiced so BC cleans up the source document
-        if (SalesLine."Recurring Billing from" = 0D) and (SalesLine."Recurring Billing to" = 0D) then
-            exit;
-        EverythingInvoiced := true;
+        if SalesHeader."Recurring Billing" then
+            EverythingInvoiced := true;
     end;
 
     local procedure CheckResetValueForServiceCommitmentItems(var TempSalesLine: Record "Sales Line") ResetValueForServiceCommitmentItems: Boolean

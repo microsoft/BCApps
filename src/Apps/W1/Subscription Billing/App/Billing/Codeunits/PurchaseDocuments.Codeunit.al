@@ -132,12 +132,11 @@ codeunit 8066 "Purchase Documents"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnAfterSetEverythingInvoiced, '', false, false)]
-    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(PurchaseLine: Record "Purchase Line"; var EverythingInvoiced: Boolean)
+    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(PurchaseHeader: Record "Purchase Header"; var EverythingInvoiced: Boolean)
     begin
         // Treat zero-qty subscription billing lines as fully invoiced so BC cleans up the source document
-        if (PurchaseLine."Recurring Billing from" = 0D) and (PurchaseLine."Recurring Billing to" = 0D) then
-            exit;
-        EverythingInvoiced := true;
+        if PurchaseHeader."Recurring Billing" then
+            EverythingInvoiced := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeDeleteAfterPosting, '', false, false)]
