@@ -16,7 +16,7 @@ query 20401 "Qlty. Inspection Values"
     QueryType = API;
     Caption = 'Quality Inspection Values', Locked = true;
     APIPublisher = 'microsoft';
-    APIGroup = 'qualityInspection';
+    APIGroup = 'qualityManagement';
     APIVersion = 'v1.0';
     EntityName = 'qualityInspectionValue';
     EntityCaption = 'Quality Inspection Value';

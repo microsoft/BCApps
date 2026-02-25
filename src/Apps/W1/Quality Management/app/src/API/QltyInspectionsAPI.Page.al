@@ -385,7 +385,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="optionalSourceBinFilter">Optionally restrict the specific bins to move from.</param>
     /// <param name="moveBehavior">Valid options are: SpecificQuantity (quantity defined in optionalSpecificQuantity), TrackedQuantity (quantity of lot/package/serial), SampleQuantity (sample size), FailQuantity (number of failed samples), PassQuantity (number of passed samples)</param>
     [ServiceEnabled]
-    procedure CreateWarehouseInternalPutaway(var ActionContext: WebServiceActionContext; optionalSpecificQuantity: Text; releaseImmediately: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; moveBehavior: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+    procedure CreateWarehouseInternalPutaway(var ActionContext: WebServiceActionContext; optionalSpecificQuantity: Text; releaseImmediately: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; moveBehavior: Text)
     var
         QltyDispInternalPutAway: Codeunit "Qlty. Disp. Internal Put-away";
         OverrideQuantity: Decimal;
@@ -425,7 +425,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="putawayBehavior">valid options are KEEPOPEN (create internal put-away), RELEASE (create and release internal put-away), or CREATEPUTAWAY (create and release internal put-away and create warehouse put-away) </param>
     /// <param name="moveBehavior">Valid options are: SpecificQuantity (quantity defined in optionalSpecificQuantity), TrackedQuantity (quantity of lot/package/serial), SampleQuantity (sample size), FailQuantity (number of failed samples), PassQuantity (number of passed samples)</param>
     [ServiceEnabled]
-    procedure CreateWarehousePutAway(var ActionContext: WebServiceActionContext; optionalSpecificQuantity: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; putAwayBehavior: Text; moveBehavior: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+    procedure CreateWarehousePutAway(var ActionContext: WebServiceActionContext; optionalSpecificQuantity: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; putAwayBehavior: Text; moveBehavior: Text)
     var
         QltyDispInternalPutAway: Codeunit "Qlty. Disp. Internal Put-away";
         QltyDispWarehousePutAway: Codeunit "Qlty. Disp. Warehouse Put-away";
@@ -477,7 +477,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="useMoveSheet">When set to TRUE, will use the Movement Worksheet instead of a reclassification journal.</param>
     /// <param name="moveBehavior">Valid options are: SpecificQuantity (quantity defined in optionalSpecificQuantity), TrackedQuantity (quantity of lot/package/serial) SampleQuantity (sample size), FailQuantity (number of failed samples), PassQuantity (number of passed samples)</param>
     [ServiceEnabled]
-    procedure MoveInventory(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; optionalDestinationBin: Text; optionalSpecificQuantity: Text; postImmediately: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; useMoveSheet: Text; moveBehavior: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+    procedure MoveInventory(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; optionalDestinationBin: Text; optionalSpecificQuantity: Text; postImmediately: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; useMoveSheet: Text; moveBehavior: Text)
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         InventoryQltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
@@ -528,7 +528,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="adjustmentBehavior">Remove a specific quantity, tracked quantity, sample size, or sample pass/fail quantity</param>
     /// <param name="postingBehavior">Whether to create journal entries, register a warehouse item journal, or post an item journal</param>
     [ServiceEnabled]
-    procedure CreateNegativeAdjustment(var ActionContext: WebServiceActionContext; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; optionalSpecificQuantity: Text; optionalReasonCode: Text; adjustmentBehavior: Text; postingBehavior: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+    procedure CreateNegativeAdjustment(var ActionContext: WebServiceActionContext; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; optionalSpecificQuantity: Text; optionalReasonCode: Text; adjustmentBehavior: Text; postingBehavior: Text)
     var
         QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
         SpecificQuantity: Decimal;
@@ -584,7 +584,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="newExpirationDate">New expiration date</param>
     [ServiceEnabled]
     procedure ChangeItemTracking(var ActionContext: WebServiceActionContext; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; optionalSpecificQuantity: Text; quantityChoice: Text; postImmediately: Text;
-                                    newLotNo: Text; newSerialNo: Text; newPackageNo: Text; newExpirationDate: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+                                    newLotNo: Text; newSerialNo: Text; newPackageNo: Text; newExpirationDate: Text)
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
@@ -630,7 +630,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="inTransitLocation">The in-transit location to use</param>
     [ServiceEnabled]
     procedure CreateTransferOrder(var ActionContext: WebServiceActionContext; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; destinationLocation: Text; optionalSpecificQuantity: Text; quantityChoice: Text;
-                                    directTransfer: Text; inTransitLocation: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+                                    directTransfer: Text; inTransitLocation: Text)
     var
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
         SpecificQuantity: Decimal;
