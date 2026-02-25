@@ -29,12 +29,6 @@ page 8351 "MCP Config Card"
                     ToolTip = 'Specifies the name of the MCP configuration.';
                     Editable = not IsDefault and not Rec.Active;
                 }
-                field(Description; Rec.Description)
-                {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
-                    Editable = not IsDefault and not Rec.Active;
-                    MultiLine = true;
-                }
                 field(Active; Rec.Active)
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
@@ -64,6 +58,12 @@ page 8351 "MCP Config Card"
                 {
                     ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                     Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
+                }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies the description of the MCP configuration.';
+                    Editable = not IsDefault and not Rec.Active;
+                    MultiLine = true;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
