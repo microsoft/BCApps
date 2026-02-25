@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
 
-codeunit 6203 "E-Doc. MLLM Schema Helper"
+codeunit 6232 "E-Doc. MLLM Schema Helper"
 {
     Access = Internal;
     InherentEntitlements = X;

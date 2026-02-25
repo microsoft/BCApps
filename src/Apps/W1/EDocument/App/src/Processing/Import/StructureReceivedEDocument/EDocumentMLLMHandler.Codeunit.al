@@ -13,7 +13,7 @@ using System.Environment;
 using System.Text;
 using System.Utilities;
 
-codeunit 6202 "E-Document MLLM Handler" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
+codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {
     Access = Internal;
     InherentEntitlements = X;
