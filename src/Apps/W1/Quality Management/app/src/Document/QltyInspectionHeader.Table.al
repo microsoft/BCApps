@@ -530,7 +530,6 @@ table 20405 "Qlty. Inspection Header"
         }
         key(Key11; Status, "Assigned User ID", "Planned Start Date")
         {
-            IncludedFields = "No.", Description, "Source Item No.", "Source Document No.", "Template Code";
         }
     }
 
