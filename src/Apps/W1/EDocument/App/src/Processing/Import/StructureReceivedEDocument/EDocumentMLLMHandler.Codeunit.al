@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
-using System.Environment;
 using System.Text;
 using System.Utilities;
 
@@ -56,7 +55,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         // Build AOAI call
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetJsonMode(true);
@@ -158,13 +157,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     local procedure RegisterCopilotCapabilityIfNeeded()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
-
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Analysis") then
-            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document Analysis", '');
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", Enum::"Copilot Availability"::Preview, "Copilot Billing Type"::"Not Billed", '');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
