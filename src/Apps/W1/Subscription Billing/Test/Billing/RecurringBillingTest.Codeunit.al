@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -61,11 +62,14 @@ codeunit 139688 "Recurring Billing Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryInventory: Codeunit "Library - Inventory";
         BillingRhythm: DateFormula;
         IsInitialized: Boolean;
         PostedDocumentNo: Code[20];
         StrMenuHandlerStep: Integer;
         BillingProposalNotCreatedErr: Label 'Billing proposal not created.', Locked = true;
+        ExtendedTextValueErr: Label 'Sales line with extended text description should be created.', Locked = true;
+        ExtendedTextPurchValueErr: Label 'Purchase line with extended text description should be created.', Locked = true;
         RecurringBillingPage: TestPage "Recurring Billing";
         IsPartnerVendor: Boolean;
         PostDocuments: Boolean;
@@ -1472,6 +1476,80 @@ codeunit 139688 "Recurring Billing Test"
         Assert.AreEqual("Sales Document Type"::"Credit Memo", BillingLine.GetSalesDocumentTypeForContractNo(), 'Sales Document Type is not calculated correctly for Credit Memo.');
     end;
 
+    [Test]
+    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,MessageHandler')]
+    procedure ExtendedTextTransferredToSalesLine()
+    var
+        InvoicingItem: Record Item;
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+        VerifySalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 621546] Extended text configured for invoicing item should be transferred to created sales line when creating document from recurring billing.
+        Initialize();
+
+        // [GIVEN] Create billing proposal with customer contract and subscription.
+        CreateBillingProposalForCustomerContractUsingRealTemplate();
+
+        // [GIVEN] Get first billing line and retrieve the invoicing item from service commitment.
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.FindFirst();
+        ServiceCommitment.Get(BillingLine."Subscription Line Entry No.");
+        InvoicingItem.Get(ServiceObject."Source No.");
+        InvoicingItem.Validate("Automatic Ext. Texts", true);
+        InvoicingItem.Modify(true);
+
+        // [GIVEN] Configure extended text for the invoicing item and get the description.
+        CreateExtendedTextForItem(InvoicingItem, ExtendedTextLine[1]);
+
+        // [WHEN] Create billing document from the billing proposal.
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] Verify the transferred extended text matches the configured extended text description.
+        VerifySalesLine.Reset();
+        VerifySalesLine.SetRange("Document Type", VerifySalesLine."Document Type"::Invoice);
+        VerifySalesLine.SetRange(Type, VerifySalesLine.Type::" ");
+        VerifySalesLine.SetRange(Description, ExtendedTextLine[1].Text);
+        Assert.IsTrue(VerifySalesLine.Count() > 0, ExtendedTextValueErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateBillingDocsVendorPageHandler,MessageHandler')]
+    procedure ExtendedTextTransferredToPurchaseLine()
+    var
+        InvoicingItem: Record Item;
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+        VerifyPurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 621546] Extended text configured for invoicing item should be transferred to created purchase line when creating document from recurring billing.
+        Initialize();
+
+        // [GIVEN] Create billing proposal with Vendor contract and subscription.
+        CreateBillingProposalForVendorContractUsingRealTemplate();
+
+        // [GIVEN] Get first billing line and retrieve the invoicing item from service commitment.
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.FindFirst();
+        ServiceCommitment.Get(BillingLine."Subscription Line Entry No.");
+        InvoicingItem.Get(ServiceObject."Source No.");
+        InvoicingItem.Validate("Automatic Ext. Texts", true);
+        InvoicingItem.Modify(true);
+
+        // [GIVEN] Configure extended text for the invoicing item and get the description.
+        CreateExtendedTextForItem(InvoicingItem, ExtendedTextLine[1]);
+
+        // [WHEN] Create billing document from the billing proposal.
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] Verify the transferred extended text matches the configured extended text description.
+        VerifyPurchaseLine.Reset();
+        VerifyPurchaseLine.SetRange("Document Type", VerifyPurchaseLine."Document Type"::Invoice);
+        VerifyPurchaseLine.SetRange(Type, VerifyPurchaseLine.Type::" ");
+        VerifyPurchaseLine.SetRange(Description, ExtendedTextLine[1].Text);
+        Assert.IsTrue(VerifyPurchaseLine.Count() > 0, ExtendedTextPurchValueErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1816,6 +1894,17 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.FindFirst();
         BillingLine."Update Required" := false;
         BillingLine.Modify(false);
+    end;
+
+    local procedure CreateExtendedTextForItem(ItemRec: Record Item; var ExtendedTextLine: Record "Extended Text Line")
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+    begin
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, ItemRec."No.");
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Text := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        ExtendedTextLine.Modify(true);
+        ExtendedTextLine.Find();
     end;
 
     #endregion Procedures
