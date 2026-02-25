@@ -511,7 +511,6 @@ table 20405 "Qlty. Inspection Header"
         }
         key(Key5; "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Template Code")
         {
-            IncludedFields = Description, Status, "Source Document No.", "Result Description";
         }
         key(Key6; "Source Record Table No.", "Source RecordId", "Trigger Record Table No.", "Trigger RecordId")
         {
