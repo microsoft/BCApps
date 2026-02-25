@@ -10,7 +10,7 @@ using System.Diagnostics;
 /// <summary>
 /// Displays additional details for a specific index.
 /// </summary>
-page 8705 "Index Details"
+page 8706 "Index Details"
 {
     Caption = 'Index Details';
 
