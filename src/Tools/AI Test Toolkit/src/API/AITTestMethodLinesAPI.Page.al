@@ -87,34 +87,7 @@ page 149030 "AIT Test Method Lines API"
                 {
                     Caption = 'Total Tokens Consumed';
                 }
-                field(copilotCredits; CopilotCredits)
-                {
-                    Caption = 'Copilot credits';
-                    Editable = false;
-                }
-                field(agentTaskIDs; AgentTaskIDs)
-                {
-                    Caption = 'Agent tasks';
-                    Editable = false;
-                }
             }
         }
     }
-
-    trigger OnAfterGetRecord()
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        TestSuite: Record "AIT Test Suite";
-        VersionFilter: Text;
-    begin
-        VersionFilter := Rec.GetFilter(Rec."Version Filter");
-        if VersionFilter = '' then
-            VersionFilter := Format(Rec."Version Filter", 0, 9);
-        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
-        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
-    end;
-
-    var
-        CopilotCredits: Decimal;
-        AgentTaskIDs: Text;
 }

@@ -94,16 +94,7 @@ codeunit 149049 "Agent Test Context Impl."
         TaskIDTextList: List of [Text];
     begin
         AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
-
-        if AgentTaskLog.FindSet() then
-            repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
-                    TaskIDTextList.Add(Format(AgentTaskLog."Agent Task ID"));
-                end;
-            until AgentTaskLog.Next() = 0;
-
-        exit(ConcatenateList(TaskIDTextList, ', '));
+        exit(GetAgentTaskIDs(AgentTaskLog));
     end;
 
     /// <summary>
@@ -134,8 +125,6 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Text
     var
         AgentTaskLog: Record "Agent Task Log";
-        TaskIDList: List of [BigInteger];
-        TaskIDTextList: List of [Text];
     begin
         AgentTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if Tag <> '' then
@@ -145,15 +134,7 @@ codeunit 149049 "Agent Test Context Impl."
         if TestMethodLineNo <> 0 then
             AgentTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
 
-        if AgentTaskLog.FindSet() then
-            repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
-                    TaskIDTextList.Add(Format(AgentTaskLog."Agent Task ID"));
-                end;
-            until AgentTaskLog.Next() = 0;
-
-        exit(ConcatenateList(TaskIDTextList, ', '));
+        exit(GetAgentTaskIDs(AgentTaskLog));
     end;
 
     /// <summary>
@@ -164,21 +145,10 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
-        AgentTask: Codeunit "Agent Task";
-        TaskIDList: List of [BigInteger];
-        TotalCredits: Decimal;
+
     begin
         AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
-
-        if AgentTaskLog.FindSet() then
-            repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
-                    TotalCredits += AgentTask.GetCopilotCreditsConsumed(AgentTaskLog."Agent Task ID");
-                end;
-            until AgentTaskLog.Next() = 0;
-
-        exit(TotalCredits);
+        exit(GetCopilotCredits(AgentTaskLog));
     end;
 
     /// <summary>
@@ -209,9 +179,6 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
-        AgentTask: Codeunit "Agent Task";
-        TaskIDList: List of [BigInteger];
-        TotalCredits: Decimal;
     begin
         AgentTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if VersionFilter <> '' then
@@ -223,6 +190,15 @@ codeunit 149049 "Agent Test Context Impl."
         if TestMethodLineNo > 0 then
             AgentTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
 
+        exit(GetCopilotCredits(AgentTaskLog));
+    end;
+
+    local procedure GetCopilotCredits(var AgentTaskLog: Record "Agent Task Log"): Decimal
+    var
+        AgentTask: Codeunit "Agent Task";
+        TaskIDList: List of [BigInteger];
+        TotalCredits: Decimal;
+    begin
         if AgentTaskLog.FindSet() then
             repeat
                 if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
@@ -267,6 +243,22 @@ codeunit 149049 "Agent Test Context Impl."
         AgentTask.SetFilter(ID, FilterText);
         AgentTaskListPage.SetTableView(AgentTask);
         AgentTaskListPage.Run();
+    end;
+
+    local procedure GetAgentTaskIDs(var AgentTaskLog: Record "Agent Task Log"): Text
+    var
+        TaskIDList: List of [BigInteger];
+        TaskIDTextList: List of [Text];
+    begin
+        if AgentTaskLog.FindSet() then
+            repeat
+                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
+                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
+                    TaskIDTextList.Add(Format(AgentTaskLog."Agent Task ID"));
+                end;
+            until AgentTaskLog.Next() = 0;
+
+        exit(ConcatenateList(TaskIDTextList, ', '));
     end;
 
     local procedure ConvertCommaSeparatedToFilter(CommaSeparatedValues: Text): Text
