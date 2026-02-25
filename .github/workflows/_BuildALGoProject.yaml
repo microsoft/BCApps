@@ -167,7 +167,7 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
       - name: Build
-        uses: microsoft/AL-Go/Actions/RunPipeline@0c7b1de38ba518aaf5fdee3902c2d2ae886ede32
+        uses: microsoft/AL-Go/Actions/RunPipeline@aholstrup/docker_startup_issue
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
