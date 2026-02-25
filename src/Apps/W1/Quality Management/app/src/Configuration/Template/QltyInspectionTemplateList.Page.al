@@ -93,6 +93,8 @@ page 20404 "Qlty. Inspection Template List"
                 Image = Copy;
                 Caption = 'Copy Template';
                 ToolTip = 'Copy an existing template.';
+                AboutTitle = 'Copy inspection templates';
+                AboutText = 'Copy an existing template and adjust it to your needs. This helps you define what to inspect and how, while keeping inspections consistent across documents.';
                 Promoted = true;
                 PromotedCategory = Process;
                 Scope = Repeater;
