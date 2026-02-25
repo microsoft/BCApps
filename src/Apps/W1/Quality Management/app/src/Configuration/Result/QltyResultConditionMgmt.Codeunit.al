@@ -17,6 +17,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         ChangedTestConditionsUpdateTemplatesQst: Label 'You have changed default conditions on the test %2, there are %1 template lines with earlier conditions for this result. Do you want to update the templates?', Comment = '%1=the amount of template lines that have other conditions, %2=the test name';
         ChangedResultConditionsUpdateDefaultsOnTestsQst: Label 'You have changed default conditions on the result %1, there are %2 tests with earlier conditions for this result. Do you want to update these tests?', Comment = '%1=the amount of tests that have other conditions, %2=the result name';
+        UpdateResultsOnTestsTemplatesInspectionsQst: Label 'This will insert new results and adjust evaluation sequence on existing results on all templates, tests, and inspections. Do you want to continue?';
 
     /// <summary>
     /// Prompts if templates should be updated.
@@ -247,7 +248,15 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        Continue: Boolean;
     begin
+        if not GuiAllowed() then
+            Continue := true
+        else
+            Continue := Confirm(StrSubstNo(UpdateResultsOnTestsTemplatesInspectionsQst));
+        if not Continue then
+            exit;
+
         QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         if QltyInspectionResult.FindSet() then
             repeat
