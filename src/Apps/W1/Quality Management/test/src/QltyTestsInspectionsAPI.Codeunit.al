@@ -42,6 +42,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         ActionAssignToTxt: Label 'Microsoft.NAV.AssignTo', Locked = true;
         ActionCreateFromRecordIDTxt: Label 'Microsoft.NAV.CreateInspectionFromRecordID', Locked = true;
         ActionCreateFromTableFilterTxt: Label 'Microsoft.NAV.CreateInspectionFromTableIDAndFilter', Locked = true;
+        PurchaseLineTableFilterTxt: Label 'WHERE(Document Type=CONST(Order),Document No.=FILTER(%1),Line No.=FILTER(%2))', Comment = '%1 = Document No., %2 = Line No.', Locked = true;
         EmptyResponseErr: Label 'Response should not be empty.';
 
     local procedure Initialize()
@@ -537,7 +538,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         BeforeCount := QltyInspectionHeader.Count();
 
         // [GIVEN] A table filter that uniquely identifies the purchase line
-        TableFilter := StrSubstNo('WHERE(Document Type=CONST(Order),Document No.=FILTER(%1),Line No.=FILTER(%2))',
+        TableFilter := StrSubstNo(PurchaseLineTableFilterTxt,
             PurchaseLine."Document No.",
             PurchaseLine."Line No.");
         Commit();
