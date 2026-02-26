@@ -204,7 +204,7 @@ codeunit 4325 "Agent Setup Impl."
         exit(NewSummaryText);
     end;
 
-    internal procedure CopyAgentSetupBuffer(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
+    internal procedure CopySetupRecord(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
     var
         TempUserSettings: Record "User Settings" temporary;
         TempAccessControl: Record "Agent Access Control" temporary;

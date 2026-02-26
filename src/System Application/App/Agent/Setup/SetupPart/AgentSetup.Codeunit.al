@@ -39,7 +39,7 @@ codeunit 4324 "Agent Setup"
     procedure CopySetupRecord(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentSetupImpl.CopyAgentSetupBuffer(Target, Source);
+        AgentSetupImpl.CopySetupRecord(Target, Source);
     end;
 
     /// <summary>
