@@ -20,8 +20,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
     SourceTableView = sorting("Sort Order", Intent);
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
-    AboutTitle = 'Quality Inspection Generation Rule';
-    AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+    AboutTitle = 'About Quality Inspection Generation Rules';
+    AboutText = 'Use inspection generation rules to control when quality inspections are created. You can define the business context, such as receiving, production, or warehouse activities, and specify which inspection template applies.';
 
     layout
     {
@@ -64,6 +64,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 {
                     AssistEdit = true;
                     ShowMandatory = true;
+                    AboutTitle = 'The table for this rule';
+                    AboutText = 'Here you select a table for which you want to create an inspection. For example, for receiving to a purchase line, you would use table 39. You then set criteria using a table filter to control when the rule applies. When the filter criteria are met, the template is selected. If multiple templates match, the first one found by sort order is used.';
 
                     trigger OnAssistEdit()
                     begin
@@ -102,6 +104,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 }
                 field("Activation Trigger"; Rec."Activation Trigger")
                 {
+                    AboutTitle = 'Activation trigger';
+                    AboutText = 'Use the activation trigger to control when inspections are created automatically. For each business intent, you define the event that triggers the inspection to start, such as posting a purchase receipt.';
                 }
                 field("Assembly Trigger"; Rec."Assembly Trigger")
                 {
@@ -156,7 +160,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
                             if Rec."Schedule Group" = '' then begin
                                 Rec."Schedule Group" := DefaultScheduleGroupLbl;
                                 Rec.Modify(false);
-                                QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
+                                if not QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group") then begin
+                                    Rec."Schedule Group" := '';
+                                    Rec.Modify(false);
+                                end
                             end else
                                 QltyJobQueueManagement.RunPageLookupJobQueueEntriesForScheduleGroup(Rec."Schedule Group")
                     end;

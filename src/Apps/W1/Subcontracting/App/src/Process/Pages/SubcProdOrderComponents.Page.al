@@ -19,7 +19,7 @@ page 99001503 "Subc. Prod. Order Components"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(Components)
             {
                 ShowCaption = false;
                 field("Subcontracting Type"; Rec."Subcontracting Type")
@@ -139,11 +139,11 @@ page 99001503 "Subc. Prod. Order Components"
         }
         area(FactBoxes)
         {
-            systempart(Control1900383207; Links)
+            systempart(LinksFactbox; Links)
             {
                 Visible = false;
             }
-            systempart(Control1905767507; Notes)
+            systempart(NotesFactbox; Notes)
             {
                 Visible = false;
             }
