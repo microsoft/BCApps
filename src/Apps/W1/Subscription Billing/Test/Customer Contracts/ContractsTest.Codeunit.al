@@ -33,6 +33,8 @@ codeunit 148155 "Contracts Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         CustShipToCodeErr: Label 'Ship-to Code should be the same as Sell-to Customer';
+        CalcBaseAmountErr: Label 'Calculation Base Amount should be %1', Comment = '%1=Calculation Base Amount', Locked = true;
+        SubscLineDescErr: Label 'Subscription Line Description should be %1', Comment = '%1=Subscription Line Description', Locked = true;
 
     #region Tests
 
@@ -1930,6 +1932,118 @@ codeunit 148155 "Contracts Test"
 
         // [THEN] Ship-to Code should not be set from Sell-to Customer
         Assert.AreEqual(CustomerSellTo."Ship-to Code", CustomerContract."Ship-to Code", CustShipToCodeErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    procedure CanEnterCalculationBaseAmountWithoutErrorForCustomer()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        CustomerContractPage: TestPage "Customer Contract";
+        CalculationBaseAmount: Decimal;
+        TestDesc: Text[50];
+    begin
+        // [SCENARIO 621501] Verify no error occurs when entering a Calculation Base Amount in subscription line.
+        Initialize();
+
+        // [GIVEN] Create a non-inventory item with Service Commitment option.
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        Item.Validate("Unit Price", 0);
+        Item.Modify(true);
+
+        // [GIVEN] Create customer and subscription contract.
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [GIVEN] Create subscription header and line with reference to the item, and link it to customer contract line.
+        ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, false, Item, 1, 0);
+        ServiceObject.Validate("End-User Customer Name", Customer.Name);
+        ServiceObject.Modify(false);
+
+        // [WHEN] Add subscription item to customer contract lines.
+        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject, false);
+
+        // [GIVEN] Get the contract line.
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        CustomerContractLine.FindFirst();
+
+        // [GIVEN] Open Customer Contract page.
+        CustomerContractPage.OpenEdit();
+        CustomerContractPage.GoToRecord(CustomerContract);
+
+        // [WHEN] Update Subscription Description to TEST.
+        TestDesc := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        CustomerContractPage.Lines.GoToRecord(CustomerContractLine);
+        CustomerContractPage.Lines."Service Commitment Description".SetValue(TestDesc);
+        CalculationBaseAmount := 1000;
+        CustomerContractPage.Lines."Calculation Base Amount".SetValue('1000');
+        CustomerContractPage.Close();
+
+        // [THEN] Verify no error occurred and values were stored correctly.
+        CustomerContractLine.GetServiceCommitment(ServiceCommitment);
+        Assert.AreEqual(CalculationBaseAmount, ServiceCommitment."Calculation Base Amount", StrSubstNo(CalcBaseAmountErr, CalculationBaseAmount));
+        Assert.AreEqual(TestDesc, ServiceCommitment.Description, StrSubstNo(SubscLineDescErr, TestDesc));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CanEnterCalculationBaseAmountWithoutErrorForVendor()
+    var
+        Vendor: Record Vendor;
+        VendorContract: Record "Vendor Subscription Contract";
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        VendorContractPage: TestPage "Vendor Contract";
+        CalculationBaseAmount: Decimal;
+        TestDesc: Text[50];
+    begin
+        // [SCENARIO 621501] Verify no error occurs when entering a Calculation Base Amount in subscription line.
+        Initialize();
+
+        // [GIVEN] Create a non-inventory item with Service Commitment option.
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        Item.Validate("Unit Price", 0);
+        Item.Modify(true);
+
+        // [GIVEN] Create vendor and subscription contract.
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+
+        // [GIVEN] Create subscription header and line with reference to the item, and link it to vendor contract line.
+        ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, false, Item, 0, 1);
+
+        // [WHEN] Add subscription item to vendor contract lines.
+        ContractTestLibrary.AssignServiceObjectForItemToVendorContract(VendorContract, ServiceObject, false);
+
+        // [GIVEN] Get the contract line.
+        VendorContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        VendorContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        VendorContractLine.FindFirst();
+
+        // [GIVEN] Open Vendor Contract page.
+        VendorContractPage.OpenEdit();
+        VendorContractPage.GoToRecord(VendorContract);
+
+        // [WHEN] Update Subscription Description to TEST.
+        TestDesc := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        VendorContractPage.Lines.GoToRecord(VendorContractLine);
+        VendorContractPage.Lines."Service Commitment Description".SetValue(TestDesc);
+        CalculationBaseAmount := 1000;
+        VendorContractPage.Lines."Calculation Base Amount".SetValue('1000');
+        VendorContractPage.Close();
+
+        // [THEN] Verify no error occurred and values were stored correctly.
+        VendorContractLine.GetServiceCommitment(ServiceCommitment);
+        Assert.AreEqual(CalculationBaseAmount, ServiceCommitment."Calculation Base Amount", StrSubstNo(CalcBaseAmountErr, CalculationBaseAmount));
+        Assert.AreEqual(TestDesc, ServiceCommitment.Description, StrSubstNo(SubscLineDescErr, TestDesc));
     end;
 
     #endregion Tests
