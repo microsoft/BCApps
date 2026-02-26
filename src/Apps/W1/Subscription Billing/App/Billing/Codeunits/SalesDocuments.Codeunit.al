@@ -386,7 +386,7 @@ codeunit 8063 "Sales Documents"
     end;
 
 #if not CLEAN28
-    [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '28.0')]
+    [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '29.0')]
     procedure CreateServiceObjectFromSales(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
     var
         TempTrackingSpecBuffer: Record "Tracking Specification" temporary;
