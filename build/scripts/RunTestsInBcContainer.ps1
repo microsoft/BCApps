@@ -33,6 +33,48 @@ function Get-DisabledTests {
     return @($disabledTests)
 }
 
+function Merge-TestResultFiles {
+    param(
+        [string]$SourceFile,
+        [string]$TargetFile,
+        [string]$Format = 'JUnit'
+    )
+
+    if (-not (Test-Path $TargetFile)) {
+        Copy-Item -Path $SourceFile -Destination $TargetFile
+        return
+    }
+
+    try {
+        [xml]$source = Get-Content $SourceFile
+        [xml]$target = Get-Content $TargetFile
+
+        if ($Format -eq 'JUnit') {
+            foreach ($suite in $source.testsuites.ChildNodes) {
+                if ($suite.NodeType -eq 'Element') {
+                    $imported = $target.ImportNode($suite, $true)
+                    $target.testsuites.AppendChild($imported) | Out-Null
+                }
+            }
+        }
+        else {
+            # XUnit format
+            foreach ($assembly in $source.assemblies.ChildNodes) {
+                if ($assembly.NodeType -eq 'Element') {
+                    $imported = $target.ImportNode($assembly, $true)
+                    $target.assemblies.AppendChild($imported) | Out-Null
+                }
+            }
+        }
+
+        $target.Save($TargetFile)
+    }
+    catch {
+        Write-Host "Warning: Could not merge test results, copying instead: $_"
+        Copy-Item -Path $SourceFile -Destination $TargetFile -Force
+    }
+}
+
 function Invoke-TestsWithReruns {
     param(
         [Hashtable]$parameters,
@@ -101,6 +143,14 @@ function Invoke-TestsWithCodeCoverage {
     elseif ($parameters["XUnitResultFileName"]) {
         $resultsFilePath = $parameters["XUnitResultFileName"]
         $resultsFormat = 'XUnit'
+    }
+    
+    # Handle append mode for result file accumulation across test apps
+    $appendToResults = $false
+    $tempResultsFilePath = $null
+    if ($resultsFilePath -and ($parameters["AppendToJUnitResultFile"] -or $parameters["AppendToXUnitResultFile"])) {
+        $appendToResults = $true
+        $tempResultsFilePath = Join-Path ([System.IO.Path]::GetDirectoryName($resultsFilePath)) "TempTestResults_$([Guid]::NewGuid().ToString('N')).xml"
     }
     
     # Get container web client URL for connecting from host
@@ -174,7 +224,7 @@ function Invoke-TestsWithCodeCoverage {
     }
     
     if ($resultsFilePath) {
-        $testRunParams.ResultsFilePath = $resultsFilePath
+        $testRunParams.ResultsFilePath = if ($appendToResults) { $tempResultsFilePath } else { $resultsFilePath }
         $testRunParams.SaveResultFile = $true
     }
     
@@ -208,21 +258,23 @@ function Invoke-TestsWithCodeCoverage {
     # Run tests with code coverage
     Run-AlTests @testRunParams
     
+    # Determine which file to check for this app's results
+    $checkResultsFile = if ($appendToResults) { $tempResultsFilePath } else { $resultsFilePath }
+    $testsPassed = $true
+    
     # Check test results file for pass/fail status
-    if ($resultsFilePath -and (Test-Path $resultsFilePath)) {
+    if ($checkResultsFile -and (Test-Path $checkResultsFile)) {
         try {
-            [xml]$testResults = Get-Content $resultsFilePath
+            [xml]$testResults = Get-Content $checkResultsFile
             
             # JUnit format - can be <testsuites> root or <testsuite> root
             if ($testResults.testsuites) {
                 $failures = 0
                 $errors = 0
-                # Use root-level attributes if available (they are aggregates)
                 if ($testResults.testsuites.failures) {
                     $failures = [int]$testResults.testsuites.failures
                 }
                 elseif ($testResults.testsuites.testsuite) {
-                    # Fall back to summing child testsuites
                     foreach ($ts in $testResults.testsuites.testsuite) {
                         if ($ts.failures) { $failures += [int]$ts.failures }
                         if ($ts.errors) { $errors += [int]$ts.errors }
@@ -231,27 +283,31 @@ function Invoke-TestsWithCodeCoverage {
                 if ($testResults.testsuites.errors) {
                     $errors = [int]$testResults.testsuites.errors
                 }
-                return ($failures -eq 0 -and $errors -eq 0)
+                $testsPassed = ($failures -eq 0 -and $errors -eq 0)
             }
             elseif ($testResults.testsuite) {
-                # Single testsuite root
                 $failures = if ($testResults.testsuite.failures) { [int]$testResults.testsuite.failures } else { 0 }
                 $errors = if ($testResults.testsuite.errors) { [int]$testResults.testsuite.errors } else { 0 }
-                return ($failures -eq 0 -and $errors -eq 0)
+                $testsPassed = ($failures -eq 0 -and $errors -eq 0)
             }
             elseif ($testResults.assemblies) {
                 # XUnit format
                 $failed = if ($testResults.assemblies.assembly.failed) { [int]$testResults.assemblies.assembly.failed } else { 0 }
-                return ($failed -eq 0)
+                $testsPassed = ($failed -eq 0)
             }
         }
         catch {
             Write-Host "Warning: Could not parse test results file: $_"
         }
+        
+        # Merge this app's results into the consolidated file if append mode
+        if ($appendToResults) {
+            Merge-TestResultFiles -SourceFile $tempResultsFilePath -TargetFile $resultsFilePath -Format $resultsFormat
+            Remove-Item $tempResultsFilePath -Force -ErrorAction SilentlyContinue
+        }
     }
     
-    # If we can't determine from results file, assume success (tests ran without exception)
-    return $true
+    return $testsPassed
 }
 
 # Main execution
