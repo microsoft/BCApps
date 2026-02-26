@@ -121,26 +121,7 @@ page 149033 "AIT Log Entries"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
-                }
-                field("Copilot Credits"; CopilotCredits)
-                {
-                    AutoFormatType = 0;
-                    Caption = 'Copilot credits';
-                    ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
-                    Editable = false;
-                }
-                field("Agent Task IDs"; AgentTaskIDs)
-                {
-                    Caption = 'Agent tasks';
-                    ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
-                    Editable = false;
-
-                    trigger OnDrillDown()
-                    var
-                        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-                    begin
-                        AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
-                    end;
+                    Visible = ShowTokens;
                 }
                 field(TestRunDuration; TestRunDuration)
                 {
@@ -374,8 +355,7 @@ page 149033 "AIT Log Entries"
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
         ShowSensitiveData: Boolean;
-        CopilotCredits: Decimal;
-        AgentTaskIDs: Text;
+        ShowTokens: Boolean;
 
     trigger OnAfterGetRecord()
     var
@@ -387,7 +367,7 @@ page 149033 "AIT Log Entries"
         SetErrorFields();
         SetStatusStyleExpr();
         SetTurnsStyleExpr();
-        UpdateAgentTaskMetrics();
+        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec."Test Suite Code");
     end;
 
     local procedure SetStatusStyleExpr()
@@ -439,11 +419,5 @@ page 149033 "AIT Log Entries"
             InputText := Rec.GetInputBlob();
             OutputText := Rec.GetOutputBlob();
         end;
-    end;
-
-    local procedure UpdateAgentTaskMetrics()
-    begin
-        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
-        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 }

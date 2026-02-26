@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.Environment;
 using System.TestTools.TestRunner;
 
 codeunit 149049 "Agent Test Context Impl."
@@ -82,11 +83,6 @@ codeunit 149049 "Agent Test Context Impl."
         AgentTaskLog.Insert();
     end;
 
-    /// <summary>
-    /// Gets the comma-separated list of Agent Task IDs for a specific log entry.
-    /// </summary>
-    /// <param name="LogEntryNo">The log entry number.</param>
-    /// <returns>Comma-separated string of Agent Task IDs.</returns>
     procedure GetAgentTaskIDsForLogEntry(LogEntryNo: Integer): Text
     var
         AgentTaskLog: Record "Agent Task Log";
@@ -95,14 +91,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetAgentTaskIDs(AgentTaskLog));
     end;
 
-    /// <summary>
-    /// Gets the comma-separated list of Agent Task IDs for the given test suite, version, and line number.
-    /// </summary>
-    /// <param name="TestSuiteCode">The test suite code.</param>
-    /// <param name="VersionNumber">The version number.</param>
-    /// <param name="Tag">The tag.</param>
-    /// <param name="TestMethodLineNo">The test method line number. Use 0 for all lines.</param>
-    /// <returns>Comma-separated string of Agent Task IDs.</returns>
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionNumber: Integer; Tag: Text[20]; TestMethodLineNo: Integer): Text
     var
         VersionFilterText: Text;
@@ -112,14 +100,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetAgentTaskIDs(TestSuiteCode, VersionFilterText, Tag, TestMethodLineNo));
     end;
 
-    /// <summary>
-    /// Gets the comma-separated list of Agent Task IDs for the given test suite, version, and line number.
-    /// </summary>
-    /// <param name="TestSuiteCode">The test suite code.</param>
-    /// <param name="VersionFilter">The version filter.</param>
-    /// <param name="Tag">The tag.</param>
-    /// <param name="TestMethodLineNo">The test method line number. Use 0 for all lines.</param>
-    /// <returns>Comma-separated string of Agent Task IDs.</returns>
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Text
     var
         AgentTaskLog: Record "Agent Task Log";
@@ -135,11 +115,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetAgentTaskIDs(AgentTaskLog));
     end;
 
-    /// <summary>
-    /// Gets the total Copilot Credits consumed for a specific log entry.
-    /// </summary>
-    /// <param name="LogEntryNo">The log entry number.</param>
-    /// <returns>Total Copilot Credits consumed.</returns>
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
@@ -149,14 +124,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetCopilotCredits(AgentTaskLog));
     end;
 
-    /// <summary>
-    /// Gets the total Copilot Credits consumed for the given test suite, version, and line number.
-    /// </summary>
-    /// <param name="TestSuiteCode">The test suite code.</param>
-    /// <param name="Tag">The tag.</param>
-    /// <param name="VersionNumber">The version number.</param>
-    /// <param name="TestMethodLineNo">The test method line number. Use 0 for all lines.</param>
-    /// <returns>Total Copilot Credits consumed.</returns>
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionNumber: Integer; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
     var
         VersionFilterText: Text;
@@ -166,14 +133,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetCopilotCredits(TestSuiteCode, VersionFilterText, Tag, TestMethodLineNo));
     end;
 
-    /// <summary>
-    /// Gets the total Copilot Credits consumed for the given test suite, version, and line number.
-    /// </summary>
-    /// <param name="TestSuiteCode">The test suite code.</param>
-    /// <param name="VersionFilter">The version filter.</param>
-    /// <param name="Tag">The tag.</param>
-    /// <param name="TestMethodLineNo">The test method line number. Use 0 for all lines.</param>
-    /// <returns>Total Copilot Credits consumed.</returns>
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
@@ -208,11 +167,6 @@ codeunit 149049 "Agent Test Context Impl."
         exit(TotalCredits);
     end;
 
-    /// <summary>
-    /// Gets the count of Agent Tasks from a comma-separated list of Agent Task IDs.
-    /// </summary>
-    /// <param name="CommaSeparatedTaskIDs">Comma-separated string of Agent Task IDs.</param>
-    /// <returns>The number of Agent Tasks in the list.</returns>
     procedure GetAgentTaskCount(CommaSeparatedTaskIDs: Text): Integer
     var
         TaskIDList: List of [Text];
@@ -224,10 +178,27 @@ codeunit 149049 "Agent Test Context Impl."
         exit(TaskIDList.Count());
     end;
 
-    /// <summary>
-    /// Opens the Agent Task List page filtered to the specified Agent Task IDs.
-    /// </summary>
-    /// <param name="CommaSeparatedTaskIDs">Comma-separated string of Agent Task IDs.</param>
+    procedure IsAgentTestType(TestSuiteCode: Code[100]): Boolean
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        if not AITTestSuite.Get(TestSuiteCode) then
+            exit(false);
+
+        exit(AITTestSuite."Test Type" = AITTestSuite."Test Type"::Agent);
+    end;
+
+    procedure ShouldShowTokens(TestSuiteCode: Code[100]): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        // Hide tokens if it's Agent test type AND SaaS environment
+        if IsAgentTestType(TestSuiteCode) and EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(false);
+
+        exit(true);
+    end;
+
     procedure OpenAgentTaskList(CommaSeparatedTaskIDs: Text)
     var
         AgentTask: Record "Agent Task";
