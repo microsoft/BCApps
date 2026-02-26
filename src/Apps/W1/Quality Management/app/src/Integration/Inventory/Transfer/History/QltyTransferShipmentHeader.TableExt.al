@@ -33,7 +33,7 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
         key(Key20400; "Qlty. Inspection No.", "Qlty. Re-inspection No.")
         {
         }
-
+    }
     /// <summary>
     /// Runs associated Quality Inspection page
     /// </summary>
