@@ -15,5 +15,6 @@ permissionset 8702 "Table Information - Objects"
                   page "Table Information Cache Part" = X,
                   page "Table Information Card" = X,
                   page "Indexes List Part" = X,
+                  page "Index Details" = X,
                   page "Table Information" = X;
 }
