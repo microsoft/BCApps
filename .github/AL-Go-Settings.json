@@ -1,15 +1,15 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.2/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/0c7b1de38ba518aaf5fdee3902c2d2ae886ede32/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/28.0.46233.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.46742.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "28.0",
+  "repoVersion": "29.0",
   "conditionalSettings": [
     {
       "buildModes": [
@@ -20,7 +20,8 @@
           "CLEAN25",
           "CLEAN26",
           "CLEAN27",
-          "CLEAN28"
+          "CLEAN28",
+          "CLEAN29"
         ]
       }
     },
@@ -130,7 +131,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "aba28939b4b0c8e55221385c42399f5b39f4d3cd",
+  "templateSha": "87ad9f919052f78e0cc462d90fec1cf3c2e72c80",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,

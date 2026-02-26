@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.DataAdministration;
 
+using System.Database;
 using System.Diagnostics;
+using System.Environment;
 using System.Reflection;
 
 /// <summary>
@@ -12,6 +14,7 @@ using System.Reflection;
 /// </summary>
 page 8704 "Indexes List Part"
 {
+    Caption = 'Indexes';
     PageType = ListPart;
     AdditionalSearchTerms = 'Database,Size,Storage';
     ApplicationArea = All;
@@ -59,7 +62,7 @@ page 8704 "Indexes List Part"
                 }
                 field("Index size in KB"; Rec."Index Size (KB)")
                 {
-                    Caption = 'Index Size (KB)';
+                    Caption = 'Index Size (kB)';
                     ToolTip = 'Specifies the size of the index in kilobytes.';
                 }
                 field("User seeks"; Rec."User seeks")
@@ -115,10 +118,128 @@ page 8704 "Indexes List Part"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(TurnIndexOff)
+            {
+                Caption = 'Turn index off';
+                Enabled = Rec.Enabled and not Rec.Unique;
+                Image = Delete;
+                ToolTip = 'Turn off the index in the database. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+
+                trigger OnAction()
+                var
+                    IndexManagement: Codeunit "Index Management";
+                    RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
+                begin
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
+                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
+                            exit;
+
+                    IndexManagement.DisableIndex(Rec);
+
+                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
+
+                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
+                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
+
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
+
+                    CurrPage.Update(false);
+                end;
+            }
+            action(TurnIndexOffInAllCompanies)
+            {
+                Caption = 'Turn index off (all companies)';
+                Enabled = Rec.Enabled and not Rec.Unique;
+                Image = Delete;
+                ToolTip = 'Turn off the index in the database in all companies. For non-AL defined indexes, this action cannot be undone, for AL-defined indexes, the index can be re-created by enabling it again.';
+
+                trigger OnAction()
+                var
+                    Company: Record Company;
+                    DatabaseIndex: Record "Database Index";
+                    IndexManagement: Codeunit "Index Management";
+                    RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
+                begin
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
+                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
+                            exit;
+
+                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
+
+                    if Company.FindSet() then
+                        repeat
+                            if DatabaseIndex.Get(Rec.TableId, Rec."Index Name", Company.Name, Rec."Source App ID") then
+                                IndexManagement.DisableIndex(DatabaseIndex);
+                        until Company.Next() = 0;
+
+                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
+                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
+
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
+
+                    CurrPage.Update(false);
+                end;
+            }
+            action(TurnOnIndex)
+            {
+                Caption = 'Turn index on';
+                Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
+                Image = Add;
+                ToolTip = 'Enqueues the index to be turned on in the subsequent maintenance window.';
+
+
+                trigger OnAction()
+                var
+                    KeyRec: Record "Key";
+                    IndexManagement: Codeunit "Index Management";
+                begin
+                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        IndexManagement.EnableKey(KeyRec, Rec."Company Name");
+
+                    Message(TurnOnIndexQueueInfoMsg);
+                end;
+            }
+            action(TurnOnIndexAllCompanies)
+            {
+                Caption = 'Turn index on (all companies)';
+                Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
+                Image = Add;
+                ToolTip = 'Enqueues the index to be turned on for all companies in the subsequent maintenance window.';
+
+                trigger OnAction()
+                var
+                    Company: Record Company;
+                    KeyRec: Record "Key";
+                    IndexManagement: Codeunit "Index Management";
+                begin
+                    if not FindKeyFromDatabaseIndex(Rec, KeyRec) then
+                        exit;
+
+                    if Company.FindSet() then
+                        repeat
+                            IndexManagement.EnableKey(KeyRec, Company.Name);
+                        until Company.Next() = 0;
+
+                    Message(TurnOnIndexQueueInfoMsg);
+                end;
+            }
+        }
+    }
+
     trigger OnFindRecord(Which: Text): Boolean
     var
-        DatabaseIndex: Record "Database Index";
-        KeyRec: Record "Key";
         LinkTableId: Integer;
         PrevFilterGroup: Integer;
     begin
@@ -135,6 +256,16 @@ page 8704 "Indexes List Part"
 
         Rec.FilterGroup := PrevFilterGroup;
 
+        BuildInMemoryList(LinkTableId);
+
+        exit(Rec.Find(Which));
+    end;
+
+    local procedure BuildInMemoryList(LinkTableId: Integer)
+    var
+        DatabaseIndex: Record "Database Index";
+        KeyRec: Record "Key";
+    begin
         // Combines the indexes from "Database Index" and "Key" virtual tables. "Database Index" contains all indexes currently in the database,
         // including those automatically created by the database engine, while "Key" contains all metadata defined keys.
 
@@ -167,9 +298,6 @@ page 8704 "Indexes List Part"
 
                 Rec.Insert();
             until KeyRec.Next() = 0;
-
-
-        exit(Rec.Find(Which));
     end;
 
     procedure SetCompanyFilter(NewCompanyName: Text)
@@ -180,6 +308,15 @@ page 8704 "Indexes List Part"
         Rec.DeleteAll();
     end;
 
+    local procedure FindKeyFromDatabaseIndex(DatabaseIndex: Record "Database Index"; var KeyRec: Record "Key"): Boolean
+    begin
+        KeyRec.SetRange(KeyRec.TableNo, DatabaseIndex.TableId);
+        KeyRec.SetRange(KeyRec."Key name", DatabaseIndex."Index Name");
+        exit(KeyRec.FindFirst());
+    end;
+
     var
         SetCompanyName: Text;
+        TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
+        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
 }

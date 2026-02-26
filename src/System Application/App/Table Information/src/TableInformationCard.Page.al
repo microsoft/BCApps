@@ -56,7 +56,7 @@ page 8705 "Table Information Card"
                 }
                 field(IndexSize; IndexSizeKB)
                 {
-                    Caption = 'Combined Index Size (KB)';
+                    Caption = 'Combined Index Size (kB)';
                     Editable = false;
                     ToolTip = 'Specifies the combined size of all indexes on the table for this company, presented in kilobytes.';
                 }
@@ -73,10 +73,17 @@ page 8705 "Table Information Card"
                     ToolTip = 'Specifies the last time the database engine was started. Index statistics are reset when SQL Server is restarted.';
                 }
             }
-
             part(IndexLines; "Indexes List Part")
             {
                 SubPageLink = TableId = field(ID);
+            }
+            part(IndexDetails; "Index Details")
+            {
+                Provider = IndexLines;
+                SubPageLink = TableId = field(TableId),
+                              "Company Name" = field("Company Name"),
+                              "Source App ID" = field("Source App ID"),
+                              "Index Name" = field("Index Name");
             }
         }
     }

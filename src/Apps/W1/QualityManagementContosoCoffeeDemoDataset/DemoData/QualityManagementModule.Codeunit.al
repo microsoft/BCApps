@@ -25,13 +25,13 @@ codeunit 5592 "Quality Management Module" implements "Contoso Demo Data Module"
 
     procedure CreateSetupData()
     begin
-        Codeunit.Run(Codeunit::"Create Quality Lookup Value");
-        Codeunit.Run(Codeunit::"Create Quality Test");
-        Codeunit.Run(Codeunit::"Create Quality Insp. Result");
     end;
 
     procedure CreateMasterData()
     begin
+        Codeunit.Run(Codeunit::"Create Quality Lookup Value");
+        Codeunit.Run(Codeunit::"Create Quality Test");
+        Codeunit.Run(Codeunit::"Create Quality Insp. Result");
         Codeunit.Run(Codeunit::"Create QM Insp. Template Hdr");
         Codeunit.Run(Codeunit::"Create QM Insp. Template Line");
         Codeunit.Run(Codeunit::"Create QM Result Condit. Conf.");
