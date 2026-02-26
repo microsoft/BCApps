@@ -2,7 +2,7 @@
   "id": "aa5fc5d3-ef4e-4b03-8512-9c584cdc1ceb",
   "name": "Quality Management-Tests",
   "publisher": "Microsoft",
-  "version": "28.0.0.0",
+  "version": "28.1.0.0",
   "brief": "Quality Management Tests",
   "description": "Quality Management Tests",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2338953",
@@ -16,37 +16,37 @@
       "id": "bc7b3891-f61b-4883-bbb3-384cdef88bec",
       "name": "Quality Management",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     },
     {
       "id": "9c32d4af-77d5-4fba-a3de-361805163a00",
       "name": "Quality Management Test Library",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     },
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "publisher": "Microsoft",
       "name": "Tests-TestLibraries",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     },
     {
       "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
       "publisher": "Microsoft",
       "name": "System Application Test Library",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "publisher": "Microsoft",
       "name": "Library Assert",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "publisher": "Microsoft",
       "name": "Any",
-      "version": "28.0.0.0"
+      "version": "28.1.0.0"
     }
   ],
   "features": [
@@ -54,7 +54,7 @@
     "TranslationFile"
   ],
   "platform": "28.0.0.0",
-  "application": "28.0.0.0",
+  "application": "28.1.0.0",
   "idRanges": [
     {
       "from": 139955,

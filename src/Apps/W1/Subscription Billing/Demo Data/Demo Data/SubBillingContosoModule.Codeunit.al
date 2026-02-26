@@ -52,6 +52,7 @@ codeunit 8102 "Sub. Billing Contoso Module" implements "Contoso Demo Data Module
         Codeunit.Run(Codeunit::"Create Sub. Bill. UD Subscr.");
         Codeunit.Run(Codeunit::"Create Sub. Bill. UD Import");
         Codeunit.Run(Codeunit::"Init Sub. Bill. Job Queue");
+        Codeunit.Run(Codeunit::"Create Sub. Analysis Entries");
     end;
 
     procedure CreateHistoricalData()

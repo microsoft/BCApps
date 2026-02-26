@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
@@ -40,7 +40,7 @@ jobs:
     needs: GitHubIssueValidation
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
@@ -66,8 +66,18 @@ jobs:
         run: |
           gh api /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels  -f "labels[]=Linked" -H "Accept: application/vnd.github.v3+json" -H "X-GitHub-Api-Version: 2022-11-28"
 
+      - name: Get repo version from target branch
+        id: get-repo-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $settingsContent = gh api "/repos/${{ github.repository }}/contents/.github/AL-Go-Settings.json?ref=${{ github.event.pull_request.base.ref }}" -H "Accept: application/vnd.github.raw+json" -H "X-GitHub-Api-Version: 2022-11-28" | ConvertFrom-Json
+          $repoVersion = $settingsContent.repoVersion
+          Write-Host "Repo version on target branch: $repoVersion"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "repoVersion=$repoVersion"
+
       - name: Add milestone to PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          build/scripts/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }} -RepoVersion ${{ steps.get-repo-version.outputs.repoVersion }}
