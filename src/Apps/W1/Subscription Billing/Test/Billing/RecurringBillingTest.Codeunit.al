@@ -601,7 +601,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyCustomerContractLine()
     var
         DiscountAmount: Decimal;
@@ -611,7 +610,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         BillingLine.Reset();
@@ -656,7 +655,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyVendorContractLine()
     var
         DiscountAmount: Decimal;
@@ -666,7 +664,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         BillingLine.Reset();
