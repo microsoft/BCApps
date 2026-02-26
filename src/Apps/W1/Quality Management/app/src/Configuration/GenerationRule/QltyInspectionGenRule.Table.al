@@ -65,7 +65,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     if Rec."Schedule Group" <> '' then begin
                         QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
                         Rec.Modify();
-                        QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
+                        if not QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group") then begin
+                            Rec."Schedule Group" := xRec."Schedule Group";
+                            Rec.Modify();
+                        end;
                     end else
                         QltyJobQueueManagement.DeleteJobQueueIfNothingElseIsUsingThisGroup(Rec, xRec."Schedule Group");
             end;
