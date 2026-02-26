@@ -34,7 +34,8 @@ tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
     keys
     {
         key(Key20400; "Qlty. Inspection No.", "Qlty. Re-inspection No.")
-        { IncludedFields = "Transfer-from Code", "Transfer-to Code", "Posting Date"; }
+        {
+        }
     }
 
     /// <summary>
