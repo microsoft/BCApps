@@ -84,16 +84,6 @@ page 149036 "AIT Test Suite Compare"
                             Caption = 'Total Tokens Consumed';
                             ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module.';
                         }
-                        label(CopilotCredits)
-                        {
-                            Caption = 'Copilot credits';
-                            ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks.';
-                        }
-                        label(AgentTaskIDs)
-                        {
-                            Caption = 'Agent tasks';
-                            ToolTip = 'Specifies the comma-separated list of Agent Task IDs.';
-                        }
                     }
                     group("Latest Version")
                     {

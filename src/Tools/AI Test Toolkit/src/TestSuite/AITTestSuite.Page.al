@@ -36,6 +36,11 @@ page 149031 "AIT Test Suite"
                 field(TestType; Rec."Test Type")
                 {
                     Importance = Additional;
+                    trigger OnValidate()
+                    begin
+                        if Rec."Test Type" <> xRec."Test Type" then
+                            Message(YouNeedToOpenAndCloseThePageMsg);
+                    end;
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
@@ -423,6 +428,7 @@ page 149031 "AIT Test Suite"
         TestRunnerDisplayName: Text;
         Language: Text;
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
+        YouNeedToOpenAndCloseThePageMsg: Label 'You need to open and close the page for the change to take effect on the UI controls.';
         EvaluationSetupTxt: Text;
         ShowTokens: Boolean;
 

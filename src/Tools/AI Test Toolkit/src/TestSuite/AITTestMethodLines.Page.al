@@ -280,13 +280,19 @@ page 149034 "AIT Test Method Lines"
 
     trigger OnAfterGetRecord()
     begin
-        EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
-        TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
-        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec."Test Suite Code");
+        UpdateControls();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    begin
+        EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
+        TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
+        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec."Test Suite Code");
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
