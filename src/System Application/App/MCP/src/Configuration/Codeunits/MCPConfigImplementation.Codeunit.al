@@ -1048,25 +1048,24 @@ codeunit 8351 "MCP Config Implementation"
     #region Feedback
     internal procedure TriggerNoActiveConfigsFeedback()
     var
-        ConfirmMgt: Codeunit "Confirm Management";
         Feedback: Codeunit "Microsoft User Feedback";
     begin
-        if not ConfirmMgt.GetResponse(MCPServerFeedbackConfirmQst) then
+        if not Confirm(MCPServerFeedbackConfirmQst, true) then
             exit;
 
         Feedback.WithCustomQuestion(MCPServerFeedbackQst, MCPServerFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
-        Feedback.RequestDislikeFeedback('MCP Server', 'MCPConfig', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestDislikeFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
 
-        Session.LogMessage('', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
+        Session.LogMessage('0000RTR', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure TriggerGeneralFeedback()
     var
         Feedback: Codeunit "Microsoft User Feedback";
     begin
-        Feedback.RequestFeedback('MCP Server', 'MCPConfig', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
 
-        Session.LogMessage('', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
+        Session.LogMessage('0000RTS', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure HasNoActiveConfigurations(): Boolean
