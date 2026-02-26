@@ -262,6 +262,36 @@ jobs:
           sarif_file: '${{ github.workspace }}/ErrorLogs/output.sarif.json'
           category: "ALCodeAnalysis"
 
+  MergeCoverage:
+    needs: [ Initialization, Build ]
+    if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped')
+    runs-on: [ windows-latest ]
+    name: Merge Code Coverage
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: '*CodeCoverage*'
+          path: '${{ github.workspace }}/.coverage-inputs/'
+
+      - name: Merge Coverage Summaries
+        if: hashFiles('.coverage-inputs/**/cobertura.xml') != ''
+        uses: spetersenms/AL-Go/Actions/MergeCoverageSummaries@CodeCoverage
+        with:
+          shell: powershell
+          coveragePath: '${{ github.workspace }}/.coverage-inputs'
+
+      - name: Publish merged coverage artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: hashFiles('.coverage-inputs/_merged/cobertura.xml') != ''
+        with:
+          name: MergedCodeCoverage
+          path: '${{ github.workspace }}/.coverage-inputs/_merged/'
+          if-no-files-found: ignore
+
   DeployALDoc:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.generateALDocArtifact == 1 && github.ref_name == 'main'

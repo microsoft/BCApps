@@ -182,6 +182,7 @@ jobs:
           installTestAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedTestApps }}
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
           baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
+          projectDependenciesJson: ${{ inputs.projectDependenciesJson }}
 
       - name: Sign
         id: sign
