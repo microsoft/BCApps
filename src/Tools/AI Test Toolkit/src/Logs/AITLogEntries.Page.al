@@ -124,6 +124,7 @@ page 149033 "AIT Log Entries"
                 }
                 field("Copilot Credits"; CopilotCredits)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
                     Editable = false;

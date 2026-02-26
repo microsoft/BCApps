@@ -176,7 +176,6 @@ page 149035 "AIT Test Method Lines Compare"
     }
 
     var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         Version: Integer;
         BaseVersion: Integer;
 

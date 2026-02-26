@@ -180,7 +180,6 @@ page 149036 "AIT Test Suite Compare"
     }
 
     var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         BaseVersion: Integer;
 
     trigger OnOpenPage()

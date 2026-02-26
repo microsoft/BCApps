@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
-using System.TestTools.TestRunner;
 
 page 149034 "AIT Test Method Lines"
 {
@@ -154,6 +153,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("Copilot Credits"; CopilotCredits)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
                     Editable = false;

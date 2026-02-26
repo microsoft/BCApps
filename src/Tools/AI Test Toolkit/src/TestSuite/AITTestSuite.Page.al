@@ -223,6 +223,7 @@ page 149031 "AIT Test Suite"
                 }
                 field("Copilot Credits"; CopilotCredits)
                 {
+                    AutoFormatType = 0;
                     Editable = false;
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';

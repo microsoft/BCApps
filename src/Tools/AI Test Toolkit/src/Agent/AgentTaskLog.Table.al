@@ -63,16 +63,16 @@ table 149050 "Agent Task Log"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the procedure being executed.';
         }
-        field(5001; "Test Log Entry ID"; Integer)
-        {
-            Caption = 'Test Log Entry ID';
-            ToolTip = 'Specifies the AIT Log Entry ID that this agent task is associated with.';
-        }
         field(5000; "Agent Task ID"; BigInteger)
         {
             Caption = 'Agent Task ID';
             NotBlank = true;
             ToolTip = 'Specifies the Agent Task ID.';
+        }
+        field(5001; "Test Log Entry ID"; Integer)
+        {
+            Caption = 'Test Log Entry ID';
+            ToolTip = 'Specifies the AIT Log Entry ID that this agent task is associated with.';
         }
     }
 

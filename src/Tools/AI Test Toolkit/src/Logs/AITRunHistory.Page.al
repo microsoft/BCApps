@@ -141,6 +141,7 @@ page 149032 "AIT Run History"
                     }
                     field("Copilot Credits - By Version"; Rec."Copilot Credits")
                     {
+                        AutoFormatType = 0;
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Copilot credits';
                         ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
@@ -208,6 +209,7 @@ page 149032 "AIT Run History"
                     }
                     field("Copilot Credits - By Tag"; Rec."Copilot Credits - By Tag")
                     {
+                        AutoFormatType = 0;
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Copilot credits';
                         ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';

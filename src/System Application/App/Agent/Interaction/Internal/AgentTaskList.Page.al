@@ -129,21 +129,6 @@ page 4300 "Agent Task List"
     {
         area(Processing)
         {
-            action(ShowTask)
-            {
-                ApplicationArea = All;
-                Caption = 'Show task';
-                ToolTip = 'Show the selected task in the task pane.';
-                Enabled = TaskSelected;
-                Image = Task;
-
-                trigger OnAction()
-                var
-                    TaskPane: Codeunit "Task Pane";
-                begin
-                    TaskPane.ShowTask(Rec);
-                end;
-            }
             action(ViewTaskMessage)
             {
                 ApplicationArea = All;
@@ -214,9 +199,6 @@ page 4300 "Agent Task List"
                 {
                 }
                 actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
-                {
-                }
-                actionref(ShowTask_Promoted; ShowTask)
                 {
                 }
             }

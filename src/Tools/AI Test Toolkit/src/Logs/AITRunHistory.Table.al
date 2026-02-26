@@ -84,6 +84,7 @@ table 149036 "AIT Run History"
         }
         field(15; "Copilot Credits"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Copilot credits';
             ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
             Editable = false;
@@ -137,6 +138,7 @@ table 149036 "AIT Run History"
         }
         field(25; "Copilot Credits - By Tag"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Copilot credits';
             ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
             Editable = false;

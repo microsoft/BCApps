@@ -90,8 +90,6 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetAgentTaskIDsForLogEntry(LogEntryNo: Integer): Text
     var
         AgentTaskLog: Record "Agent Task Log";
-        TaskIDList: List of [BigInteger];
-        TaskIDTextList: List of [Text];
     begin
         AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetAgentTaskIDs(AgentTaskLog));
@@ -264,7 +262,7 @@ codeunit 149049 "Agent Test Context Impl."
     local procedure ConvertCommaSeparatedToFilter(CommaSeparatedValues: Text): Text
     var
         Values: List of [Text];
-        Value: Text;
+        CurrentValue: Text;
         FilterText: Text;
         IsFirst: Boolean;
     begin
@@ -273,15 +271,14 @@ codeunit 149049 "Agent Test Context Impl."
 
         Values := CommaSeparatedValues.Split(',');
         IsFirst := true;
-        foreach Value in Values do begin
-            Value := Value.Trim();
-            if Value <> '' then begin
+        foreach CurrentValue in Values do begin
+            CurrentValue := CurrentValue.Trim();
+            if CurrentValue <> '' then
                 if IsFirst then begin
-                    FilterText := Value;
+                    FilterText := CurrentValue;
                     IsFirst := false;
                 end else
-                    FilterText += '|' + Value;
-            end;
+                    FilterText += '|' + CurrentValue;
         end;
         exit(FilterText);
     end;
@@ -293,13 +290,13 @@ codeunit 149049 "Agent Test Context Impl."
         IsFirst: Boolean;
     begin
         IsFirst := true;
-        foreach Item in TextList do begin
+        foreach Item in TextList do
             if IsFirst then begin
                 Result := Item;
                 IsFirst := false;
             end else
                 Result += Separator + Item;
-        end;
+
         exit(Result);
     end;
 
