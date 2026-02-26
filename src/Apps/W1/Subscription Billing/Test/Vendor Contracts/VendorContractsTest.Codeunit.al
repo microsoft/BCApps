@@ -5,7 +5,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 #pragma warning disable AA0210
 codeunit 148154 "Vendor Contracts Test"
