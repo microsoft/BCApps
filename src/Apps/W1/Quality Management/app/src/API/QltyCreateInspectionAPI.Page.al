@@ -9,7 +9,7 @@ using Microsoft.Utilities;
 
 /// <summary>
 /// Power automate friendly web service for quality inspections.
-/// This web service is used to help create tests.
+/// This web service is used to help create quality inspections.
 /// </summary>
 page 20415 "Qlty. Create Inspection API"
 {
@@ -30,14 +30,14 @@ page 20415 "Qlty. Create Inspection API"
     {
         area(Content)
         {
-            repeater(rptTests)
+            repeater(SourceDocument)
             {
                 ShowCaption = false;
 
-                field(qltySystemIDOfAnyRecord; Rec.SystemId)
+                field(systemIDOfAnyRecord; Rec.SystemId)
                 {
                     Caption = 'System ID of any record';
-                    ToolTip = 'Specifies the System ID of the record to create a test for.';
+                    ToolTip = 'Specifies the System ID of the record to create an inspection for.';
                 }
             }
         }
@@ -72,9 +72,9 @@ page 20415 "Qlty. Create Inspection API"
     end;
 
     /// <summary>
-    /// Creates a test from a known table.
+    /// Creates an inspection from a known table.
     /// </summary>
-    /// <param name="tableName">The table ID or table name to create a test</param>
+    /// <param name="tableName">The table ID or table name to create an inspection for.</param>
     /// <param name="ActionContext"></param>
     [ServiceEnabled]
     procedure CreateInspectionFromRecordID(var ActionContext: WebServiceActionContext; tableName: Text)
@@ -106,7 +106,7 @@ page 20415 "Qlty. Create Inspection API"
     end;
 
     /// <summary>
-    /// Creates a test with a table and table filter to identify a record.
+    /// Creates an inspection with a table and table filter to identify a record.
     /// </summary>
     /// <param name="ActionContext">VAR WebServiceActionContext.</param>
     /// <param name="tableName">Text. The table ID, or table name, or table caption.</param>

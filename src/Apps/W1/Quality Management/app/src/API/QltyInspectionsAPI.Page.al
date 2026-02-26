@@ -34,138 +34,138 @@ page 20414 "Qlty. Inspections API"
     {
         area(Content)
         {
-            repeater(rptTests)
+            repeater(Inspections)
             {
                 ShowCaption = false;
-                field(qltySystemIDOfTest; Rec.SystemId)
+                field(systemIDOfInspection; Rec.SystemId)
                 {
-                    Caption = 'System ID of test';
-                    ToolTip = 'Specifies the System ID of the record this test refers to. The quality inspection document No.';
+                    Caption = 'System ID of inspection';
+                    ToolTip = 'Specifies the System ID of the inspection.';
                 }
-                field(qltyTestNo; Rec."No.")
+                field(inspectionNo; Rec."No.")
                 {
-                    Caption = 'Test No.';
+                    Caption = 'Inspection No.';
                     ToolTip = 'Specifies the quality inspection document No.';
                 }
-                field(qltyTestRetestNo; Rec."Re-inspection No.")
+                field(reInspectionNo; Rec."Re-inspection No.")
                 {
-                    Caption = 'Test retest No.';
-                    ToolTip = 'Specifies which retest this is for.';
+                    Caption = 'Re-inspection No.';
+                    ToolTip = 'Specifies the re-inspection counter.';
                 }
-                field(qltyTemplate; Rec."Template Code")
+                field(templateCode; Rec."Template Code")
                 {
                     Caption = 'Template';
-                    ToolTip = 'Specifies which template this test was created from.';
+                    ToolTip = 'Specifies which template this inspection was created from.';
                 }
-                field(qltyDescription; Rec.Description)
+                field(description; Rec.Description)
                 {
                     Caption = 'Description';
-                    ToolTip = 'Specifies a description of the test itself.';
+                    ToolTip = 'Specifies a description of the inspection.';
                 }
-                field(qltyInspectionStatus; Rec.Status)
+                field(status; Rec.Status)
                 {
                     Caption = 'Inspection status';
-                    ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished quality inspection.';
+                    ToolTip = 'Specifies the status of the inspection. No additional changes can be made to a finished quality inspection.';
                 }
 
-                field(qltyResultCode; Rec."Result Code")
+                field(resultCode; Rec."Result Code")
                 {
                     Caption = 'Result code';
                     ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
                 }
-                field(qltyResultDescription; Rec."Result Description")
+                field(resultDescription; Rec."Result Description")
                 {
                     Caption = 'Result description';
-                    ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+                    ToolTip = 'Specifies the result description for this inspection. The result is automatically determined based on the test value and result configuration.';
                 }
-                field(qltyFinishedDate; Rec."Finished Date")
+                field(finishedDate; Rec."Finished Date")
                 {
                     Caption = 'Finished date';
-                    ToolTip = 'Specifies the date that the test was finished.';
+                    ToolTip = 'Specifies the date that the inspection was finished.';
                 }
-                field(qltyResultPriority; Rec."Evaluation Sequence")
+                field(evaluationSequence; Rec."Evaluation Sequence")
                 {
-                    Caption = 'Result priority';
-                    ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
+                    Caption = 'Evaluation sequence';
+                    ToolTip = 'Specifies the associated evaluation sequence for this inspection. The result is automatically determined based on the test value and result configuration.';
                 }
-                field(qltySourceTableNo; Rec."Source Table No.")
+                field(sourceTableNo; Rec."Source Table No.")
                 {
                     Caption = 'Source table No.';
                     ToolTip = 'Specifies a reference to the table that the quality inspection is for.';
                 }
-                field(qltySourceDocumentNo; Rec."Source Document No.")
+                field(sourceDocumentNo; Rec."Source Document No.")
                 {
                     Caption = 'Source document No.';
-                    ToolTip = 'Specifies a reference to the source that this quality inspection is referring to. This typically refers to a production order document number.';
+                    ToolTip = 'Specifies a reference to the source that this quality inspection is referring to.';
                 }
-                field(qltySourceDocumentLineNo; Rec."Source Document Line No.")
+                field(sourceDocumentLineNo; Rec."Source Document Line No.")
                 {
                     Caption = 'Source document line No.';
-                    ToolTip = 'Specifies a reference to the source line No. that this quality inspection is referring to. This typically refers to a production order line No.';
+                    ToolTip = 'Specifies a reference to the source line No. that this quality inspection is referring to.';
                 }
 
-                field(qltySourceItemNo; Rec."Source Item No.")
+                field(sourceItemNo; Rec."Source Item No.")
                 {
                     Caption = 'Source item No.';
-                    ToolTip = 'Specifies the item that the quality inspection is for. When used with production orders this typically refers to the item being produced.';
+                    ToolTip = 'Specifies the item that the quality inspection is for.';
                 }
-                field(qltySourceVariantCode; Rec."Source Variant Code")
+                field(sourceVariantCode; Rec."Source Variant Code")
                 {
                     Caption = 'Source variant code';
-                    ToolTip = 'Specifies the item variant that the quality inspection is for. When used with production orders this typically refers to the item being produced.';
+                    ToolTip = 'Specifies the item variant that the quality inspection is for.';
                 }
 
-                field(qltySourceSerialNo; Rec."Source Serial No.")
+                field(sourceSerialNo; Rec."Source Serial No.")
                 {
                     Caption = 'Source serial No.';
                     ToolTip = 'Specifies the serial number that the quality inspection is for. This is only used for serial tracked items.';
                 }
-                field(qltySourceLotNo; Rec."Source Lot No.")
+                field(sourceLotNo; Rec."Source Lot No.")
                 {
                     Caption = 'Source lot No.';
                     ToolTip = 'Specifies the lot number that the quality inspection is for. This is only used for lot tracked items.';
                 }
-                field(qltySourcePackageNo; Rec."Source Package No.")
+                field(sourcePackageNo; Rec."Source Package No.")
                 {
                     Caption = 'Source package No.';
                     ToolTip = 'Specifies the package number that the quality inspection is for. This is only used for package tracked items.';
                 }
-                field(qltySourceQuantity; Rec."Source Quantity (Base)")
+                field(sourceQuantity; Rec."Source Quantity (Base)")
                 {
                     Caption = 'Source quantity';
                     ToolTip = 'Specifies the source quantity when configured.';
                 }
-                field(qltySourceRecordID; Rec."Source RecordId")
+                field(sourceRecordID; Rec."Source RecordId")
                 {
                     Caption = 'Source record ID';
                     ToolTip = 'Specifies the source record ID.';
                 }
-                field(qltySourceRecordTableNo; Rec."Source Record Table No.")
+                field(sourceRecordTableNo; Rec."Source Record Table No.")
                 {
                     Caption = 'Source record table No.';
                     ToolTip = 'Specifies the source record table No.';
                 }
-                field(qltyAssignedUserID; Rec."Assigned User ID")
+                field(assignedUserID; Rec."Assigned User ID")
                 {
                     Caption = 'Assigned user ID';
-                    ToolTip = 'Specifies the user this test is assigned to.';
+                    ToolTip = 'Specifies the user this inspection is assigned to.';
                 }
-                field(qltySystemCreatedAt; Rec.SystemCreatedAt)
+                field(systemCreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'System created at';
-                    ToolTip = 'Specifies the date the test was created.';
+                    ToolTip = 'Specifies the date the inspection was created.';
                 }
-                field(qltySystemCreatedBy; Rec.SystemCreatedBy)
+                field(systemCreatedBy; Rec.SystemCreatedBy)
                 {
                     Caption = 'System created by';
-                    ToolTip = 'Specifies which user ID made the test.';
+                    ToolTip = 'Specifies which user ID created the inspection.';
                 }
-                field(qltySystemModifiedAt; Rec.SystemModifiedAt)
+                field(systemModifiedAt; Rec.SystemModifiedAt)
                 {
                     Caption = 'System modified at';
-                    ToolTip = 'Specifies the last modified date of the test.';
+                    ToolTip = 'Specifies the last modified date of the inspection.';
                 }
-                field(qltySystemModifiedBy; Rec.SystemModifiedBy)
+                field(systemModifiedBy; Rec.SystemModifiedBy)
                 {
                     Caption = 'System modified by';
                     ToolTip = 'Specifies the last modified by user ID.';
@@ -225,10 +225,10 @@ page 20414 "Qlty. Inspections API"
     end;
 
     /// <summary>
-    /// Assigns the test to a user.
+    /// Assigns the inspection to a user.
     /// </summary>
     /// <param name="ActionContext"></param>
-    /// <param name="assignToUser">Text. The user id to assign the test to.</param>
+    /// <param name="assignToUser">Text. The user id to assign the inspection to.</param>
     [ServiceEnabled]
     procedure AssignTo(var ActionContext: WebServiceActionContext; assignToUser: Text)
     begin
@@ -327,7 +327,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="optionalSourceLocationFilter"></param>
     /// <param name="optionalSourceBinFilter"></param>
     [ServiceEnabled]
-    procedure CreateMovement(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; binCode: Text; optionalSpecificQuantity: Text; moveEntireLot: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text) // Text to work around limitations in MS power automate integration as of 2023/April/17
+    procedure CreateMovement(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; binCode: Text; optionalSpecificQuantity: Text; moveEntireLot: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text)
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyDispInternalMove: Codeunit "Qlty. Disp. Internal Move";

@@ -132,7 +132,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Ins. Source Config. List" = X,
 
         // Queries  
-        query "Qlty. Inspection Values" = X,
+        query "Qlty. Inspection Values API" = X,
         query "Qlty. Item Ledger By Location" = X,
 
         // Reports

@@ -77,7 +77,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response contains the inspection information
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyTestNo', QltyInspectionHeader."No.");
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'inspectionNo', QltyInspectionHeader."No.");
     end;
 
     [Test]
@@ -101,8 +101,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response contains the correct No. and template code
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyTestNo', QltyInspectionHeader."No.");
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyTemplate', QltyInspectionHeader."Template Code");
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'inspectionNo', QltyInspectionHeader."No.");
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'templateCode', QltyInspectionHeader."Template Code");
     end;
 
     [Test]
@@ -126,8 +126,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response contains source information fields
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltySourceDocumentNo', QltyInspectionHeader."Source Document No.");
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltySourceItemNo', QltyInspectionHeader."Source Item No.");
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'sourceDocumentNo', QltyInspectionHeader."Source Document No.");
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'sourceItemNo', QltyInspectionHeader."Source Item No.");
     end;
 
     [Test]
@@ -151,7 +151,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response contains the status field showing Open
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyInspectionStatus', Format(QltyInspectionHeader.Status::Open));
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'status', Format(QltyInspectionHeader.Status::Open));
     end;
 
     [Test]
@@ -435,7 +435,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
         // [THEN] The response shows the Finished status
         LibraryAssert.AreNotEqual('', ResponseText, EmptyResponseErr);
-        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'qltyInspectionStatus', Format(QltyInspectionHeader.Status::Finished));
+        LibraryGraphMgt.VerifyPropertyInJSON(ResponseText, 'status', Format(QltyInspectionHeader.Status::Finished));
     end;
 
     // endregion
