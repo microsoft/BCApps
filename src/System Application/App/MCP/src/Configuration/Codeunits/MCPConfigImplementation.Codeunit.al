@@ -30,6 +30,8 @@ codeunit 8351 "MCP Config Implementation"
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
+        DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
+        ConfigurationMustBeActiveErr: Label 'Only active configurations can be set as the default.';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
         VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
         MCPConfigurationCreatedLbl: Label 'MCP Configuration created', Locked = true;
@@ -40,6 +42,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationAuditDeletedLbl: Label 'MCP Configuration %1 deleted by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
         InvalidConfigurationWarningLbl: Label 'The configuration is invalid and may not work as expected. Do you want to review warnings before activating?';
         ConfigValidLbl: Label 'No warnings found. The configuration is valid.';
+        MCPDefaultConfigDesignatedLbl: Label 'MCP default configuration designated', Locked = true;
         ConnectionStringLbl: Label '%1 Connection String', Comment = '%1 - configuration name';
         MCPUrlProdLbl: Label 'https://mcp.businesscentral.dynamics.com', Locked = true;
         MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
@@ -91,6 +94,9 @@ codeunit 8351 "MCP Config Implementation"
         if not Active and IsDefaultConfiguration(MCPConfiguration) then
             Error(DefaultConfigCannotBeDeactivatedErr);
 
+        if not Active and IsDesignatedDefaultConfiguration(MCPConfiguration) then
+            Error(DesignatedDefaultCannotBeDeactivatedErr);
+
         MCPConfiguration.Active := Active;
         MCPConfiguration.Modify();
 
@@ -138,6 +144,9 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(DefaultConfigCannotBeDeletedErr);
 
+        if IsDesignatedDefaultConfiguration(MCPConfiguration) then
+            MarkSystemDefaultAsDefault();
+
         LogConfigurationDeleted(MCPConfiguration);
         MCPConfiguration.Delete();
     end;
@@ -169,6 +178,7 @@ codeunit 8351 "MCP Config Implementation"
         NewMCPConfiguration.Copy(SourceMCPConfiguration);
         NewMCPConfiguration.Name := NewName;
         NewMCPConfiguration.Description := NewDescription;
+        NewMCPConfiguration.Default := false;
         NewMCPConfiguration.Insert();
 
         CopyTools(SourceMCPConfiguration, NewMCPConfiguration);
@@ -258,12 +268,64 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.EnableDynamicToolMode := true;
         MCPConfiguration.DiscoverReadOnlyObjects := true;
         MCPConfiguration.AllowProdChanges := true;
+        MCPConfiguration.Default := true;
         MCPConfiguration.Insert();
     end;
 
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
     begin
         exit(MCPConfiguration.Name = '');
+    end;
+
+    internal procedure IsDesignatedDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
+    begin
+        exit(MCPConfiguration.Default);
+    end;
+
+    internal procedure SetAsDefaultConfiguration(ConfigId: Guid)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        PreviousDefault: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if not MCPConfiguration.Active then
+            Error(ConfigurationMustBeActiveErr);
+
+        PreviousDefault.SetRange(Default, true);
+        PreviousDefault.ModifyAll(Default, false);
+
+        MCPConfiguration.Default := true;
+        MCPConfiguration.Modify();
+
+        Session.LogMessage('0000R0R', MCPDefaultConfigDesignatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
+    end;
+
+    internal procedure ClearDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+    begin
+        MCPConfiguration.SetRange(Default, true);
+        MCPConfiguration.SetFilter(Name, '<>%1', '');
+        MCPConfiguration.ModifyAll(Default, false);
+
+        if SystemDefault.Get('') then begin
+            SystemDefault.Default := true;
+            SystemDefault.Modify();
+        end;
+    end;
+
+    local procedure MarkSystemDefaultAsDefault()
+    var
+        SystemDefault: Record "MCP Configuration";
+    begin
+        if not SystemDefault.Get('') then
+            exit;
+
+        SystemDefault.Default := true;
+        SystemDefault.Modify();
     end;
 
     internal procedure IsConfigurationActive(ConfigId: Guid): Boolean
@@ -1055,6 +1117,7 @@ codeunit 8351 "MCP Config Implementation"
         Dimensions.Add('Category', GetTelemetryCategory());
         Dimensions.Add('MCPConfigurationName', MCPConfiguration.Name);
         Dimensions.Add('Active', Format(MCPConfiguration.Active));
+        Dimensions.Add('IsDesignatedDefault', Format(MCPConfiguration.Default));
         Dimensions.Add('UnblockEditTools', Format(MCPConfiguration.AllowProdChanges));
         Dimensions.Add('DynamicToolMode', Format(MCPConfiguration.EnableDynamicToolMode));
         Dimensions.Add('DiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));

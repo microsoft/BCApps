@@ -37,8 +37,17 @@ page 8351 "MCP Config Card"
                     trigger OnValidate()
                     begin
                         if Rec.Active then
-                            MCPConfigImplementation.ValidateConfiguration(Rec, true);
+                            MCPConfigImplementation.ValidateConfiguration(Rec, true)
+                        else
+                            if Rec.Default then
+                                Error(DesignatedDefaultCannotBeDeactivatedErr);
                     end;
+                }
+                field(Default; Rec.Default)
+                {
+                    Caption = 'Default';
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
+                    Editable = false;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
@@ -156,11 +165,43 @@ page 8351 "MCP Config Card"
                     end;
                 }
             }
+            action(SetAsDefault)
+            {
+                Caption = 'Set as Default';
+                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                Image = Approve;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Visible = not IsDefault;
+                Enabled = not Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ClearDefault)
+            {
+                Caption = 'Clear Default';
+                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                Image = Undo;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Visible = not IsDefault;
+                Enabled = Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ClearDefaultConfiguration();
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -202,6 +243,7 @@ page 8351 "MCP Config Card"
         ToolModeLbl: Text;
         StaticToolModeLbl: Label 'In Static Tool Mode, objects in the available tools will be directly exposed to clients. You can manage these tools by adding, modifying, or removing them from the configuration.';
         DynamicToolModeLbl: Label 'In Dynamic Tool Mode, only system tools will be exposed to clients. Objects within the available tools can be discovered, described and invoked dynamically using system tools. You can enable dynamic discovery of any read-only object outside of the available tools using Discover Additional Objects setting.';
+        DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 
     local procedure GetToolModeDescription(): Text
     begin

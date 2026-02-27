@@ -44,6 +44,11 @@ page 8350 "MCP Config List"
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
                 }
+                field(Default; Rec.Default)
+                {
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
+                    Editable = false;
+                }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
                     ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
@@ -133,11 +138,47 @@ page 8350 "MCP Config List"
                         CurrPage.Update(false);
                     end;
                 }
+                action(SetAsDefault)
+                {
+                    Caption = 'Set as Default';
+                    ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                    Image = Approve;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = not Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(ClearDefault)
+                {
+                    Caption = 'Clear Default';
+                    ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                    Image = Undo;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.ClearDefaultConfiguration();
+                        CurrPage.Update(false);
+                    end;
+                }
             }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -158,6 +199,8 @@ page 8350 "MCP Config List"
             Filters = where(Active = const(true));
         }
     }
+
+
 
 #if not CLEAN28
     trigger OnOpenPage()
