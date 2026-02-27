@@ -108,6 +108,7 @@
     "features/*"
   ],
   "enableCodeCop": true,
+  "enableCodeCoverage": true,
   "enableAppSourceCop": true,
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
