@@ -36,11 +36,6 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
         }
     }
 
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        CopilotCredits: Decimal;
-        AgentTaskIDs: Text;
-
     trigger OnAfterGetRecord()
     begin
         UpdateAgentTaskMetrics();
@@ -51,4 +46,9 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
         CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
+
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
 }

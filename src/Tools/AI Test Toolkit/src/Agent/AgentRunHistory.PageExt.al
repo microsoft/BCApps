@@ -65,11 +65,6 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         }
     }
 
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        AgentTaskCountByVersion: Integer;
-        AgentTaskCountByTag: Integer;
-
     trigger OnAfterGetRecord()
     begin
         UpdateAgentTaskCounts();
@@ -85,5 +80,11 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         AgentTaskCountByVersion := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs");
         AgentTaskCountByTag := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs - By Tag");
     end;
+
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        AgentTaskCountByVersion: Integer;
+        AgentTaskCountByTag: Integer;
+
 }
 

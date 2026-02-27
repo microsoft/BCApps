@@ -36,12 +36,6 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         }
     }
 
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        CopilotCredits: Decimal;
-        AgentTaskIDs: Text;
-        AgentTaskCount: Integer;
-
     trigger OnAfterGetRecord()
     begin
         UpdateAgentTaskMetrics();
@@ -65,4 +59,10 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
+
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
+        AgentTaskCount: Integer;
 }

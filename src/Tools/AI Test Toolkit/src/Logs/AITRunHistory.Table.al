@@ -67,7 +67,7 @@ table 149036 "AIT Run History"
         field(13; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by the agent sessions are not included in this number.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), Version = field("Version"), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -108,7 +108,7 @@ table 149036 "AIT Run History"
         field(23; "Tokens Consumed - By Tag"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by the agent sessions are not included in this number.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Tag = field(Tag), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
