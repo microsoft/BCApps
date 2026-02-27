@@ -12,7 +12,7 @@ pageextension 6370 "E-Doc. Service" extends "E-Document Service"
     {
         addafter(General)
         {
-            group(AvalaraFields)
+            group(Avalara)
             {
                 Caption = 'Avalara';
                 Visible = Rec."Service Integration V2" = Rec."Service Integration V2"::Avalara;
