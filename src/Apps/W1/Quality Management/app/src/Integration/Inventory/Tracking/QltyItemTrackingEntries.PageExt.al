@@ -20,30 +20,14 @@ pageextension 20429 "Qlty. Item Tracking Entries" extends "Item Tracking Entries
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
-
-                trigger OnAction()
-                begin
-                    ShowQualityInspections();
-                end;
+                RunObject = Page "Qlty. Inspection List";
+                RunPageLink = "Source Item No." = field("Item No."),
+                              "Source Variant Code" = field("Variant Code"),
+                              "Source Lot No." = field("Lot No."),
+                              "Source Serial No." = field("Serial No."),
+                              "Source Package No." = field("Package No.");
+                RunPageView = sorting("Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.");
             }
         }
     }
-
-    local procedure ShowQualityInspections()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
-        if Rec."Variant Code" <> '' then
-            QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
-        if Rec."Lot No." <> '' then
-            QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
-        if Rec."Serial No." <> '' then
-            QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
-        if Rec."Package No." <> '' then
-            QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
-        if Rec."Location Code" <> '' then
-            QltyInspectionHeader.SetRange("Location Code", Rec."Location Code");
-        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
-    end;
 }
