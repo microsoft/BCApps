@@ -78,7 +78,6 @@ codeunit 20410 "Qlty. Result Evaluation"
 
         QltyInspectionResult.SetCurrentKey("Evaluation Sequence");
         QltyInspectionResult.Ascending();
-        QltyInspectionResult.SetLoadFields(Code);
         if not QltyInspectionResult.FindSet() then
             exit;
 
