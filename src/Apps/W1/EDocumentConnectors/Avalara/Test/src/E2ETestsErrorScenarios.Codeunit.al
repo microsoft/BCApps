@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.eServices.EDocument;
 using Microsoft.Sales.Customer;
 
-codeunit 148195 "E2E Tests - Error Scenarios"
+codeunit 133625 "E2E Tests - Error Scenarios"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;

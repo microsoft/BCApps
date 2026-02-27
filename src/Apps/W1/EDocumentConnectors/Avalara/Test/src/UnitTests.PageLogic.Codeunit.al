@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-codeunit 148204 "Unit Tests - Page Logic"
+codeunit 133631 "Unit Tests - Page Logic"
 {
     Subtype = Test;
     TestPermissions = Disabled;

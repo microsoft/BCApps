@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
-codeunit 148197 "Unit Tests - HTTP & Processing"
+codeunit 148191 "Unit Tests - HTTP & Processing"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;

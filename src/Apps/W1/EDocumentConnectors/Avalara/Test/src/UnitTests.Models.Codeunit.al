@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 
-codeunit 148203 "Unit Tests - Models"
+codeunit 133630 "Unit Tests - Models"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocumentConnector.Avalara;
 
-codeunit 148194 "Unit Tests - Document Mgmt"
+codeunit 133635 "Unit Tests - Document Mgmt"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;

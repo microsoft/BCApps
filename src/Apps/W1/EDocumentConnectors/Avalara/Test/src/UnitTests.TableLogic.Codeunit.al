@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
-codeunit 148201 "Unit Tests - Table Logic"
+codeunit 133633 "Unit Tests - Table Logic"
 {
     Subtype = Test;
     TestPermissions = Disabled;

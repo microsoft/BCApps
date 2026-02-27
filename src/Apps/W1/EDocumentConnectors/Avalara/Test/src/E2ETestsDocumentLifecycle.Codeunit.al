@@ -11,7 +11,7 @@ using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
 
-codeunit 148196 "E2E Tests - Document Lifecycle"
+codeunit 133624 "E2E Tests - Document Lifecycle"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;

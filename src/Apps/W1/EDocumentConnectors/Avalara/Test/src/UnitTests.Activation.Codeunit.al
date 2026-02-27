@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-codeunit 148200 "Unit Tests - Activation"
+codeunit 133627 "Unit Tests - Activation"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.eServices.EDocument;
 using System.Utilities;
 
-codeunit 148198 "Unit Tests - Maintenance"
+codeunit 133629 "Unit Tests - Maintenance"
 {
     Subtype = Test;
     TestPermissions = Disabled;

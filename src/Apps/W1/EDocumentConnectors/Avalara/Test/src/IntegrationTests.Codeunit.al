@@ -17,7 +17,7 @@ using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
 
-codeunit 148191 "Integration Tests"
+codeunit 133626 "Integration Tests"
 {
 
     Permissions = tabledata "Connection Setup" = rimd,

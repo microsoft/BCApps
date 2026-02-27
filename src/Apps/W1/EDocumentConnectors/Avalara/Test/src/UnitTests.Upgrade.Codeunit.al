@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Upgrade;
 
-codeunit 148199 "Unit Tests - Upgrade"
+codeunit 133634 "Unit Tests - Upgrade"
 {
     Subtype = Test;
     TestPermissions = Disabled;

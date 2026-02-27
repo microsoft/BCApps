@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Utilities;
 
-codeunit 148193 "Unit Tests - Authentication"
+codeunit 133628 "Unit Tests - Authentication"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
