@@ -97,6 +97,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
     local procedure ValidateAgentName()
     var
         AgentSetup: Codeunit "Agent Setup";
+        Agent: Codeunit Agent;
     begin
         if AgentUserName = '' then begin
             Clear(Rec."Agent User Security ID");
@@ -107,6 +108,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         if not AgentSetup.FindAgentByUserName(AgentUserName, Rec."Agent User Security ID") then
             Error(AgentWithNameNotFoundErr, AgentUserName);
 
+        AgentUserName := Agent.GetUserName(Rec."Agent User Security ID");
         Rec.Modify();
     end;
 

@@ -209,7 +209,7 @@ table 149032 "AIT Test Method Line"
         field(120; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by the agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -221,7 +221,7 @@ table 149032 "AIT Test Method Line"
             ObsoleteReason = 'This field is deprecated as it is not used in any page or calculation. It will be removed in future versions.';
             ObsoleteTag = '26.0';
             Caption = 'Tokens Consumed - Base';
-            ToolTip = 'Specifies the number of tokens consumed by the eval in the base version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the base version. This is applicable only when using Microsoft AI Module.Tokens consumed by the agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
