@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
-using Microsoft.QualityManagement.RoleCenters;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Configuration.Result;
+using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment;
@@ -44,34 +46,86 @@ page 20438 "Qlty. Management Setup Guide"
                 group(WelcomeText1)
                 {
                     Caption = 'Welcome to Quality Management';
-                    InstructionalText = 'Quality Management in Business Central helps you set up and manage inspection processes to support consistent product quality.';
-                }
-                group(WelcomeText2)
-                {
-                    ShowCaption = false;
-                    InstructionalText = 'We''ve prepared a dedicated Role Center and a getting started checklist with guided tours to help you explore key pages and default setup steps.';
+                    InstructionalText = @'Quality Management in Business Central helps you set up and manage inspection processes to support consistent product quality.
+                    
+
+                    We''ve prepared a dedicated Quality Manager Role Center and a getting started checklist with guided tours to help you explore key pages and default setup steps.';
                 }
                 group(LetsGoText)
                 {
                     Caption = 'Let''s go!';
-                    InstructionalText = 'Select the link below to open the Quality Manager Role Center in a new browser tab and follow the guided tours.';
-                }
-                field(LetsGoLink; LetsGoLinkLbl)
-                {
-                    Caption = 'Open the Quality Manager Role Center';
-                    ShowCaption = false;
-                    ToolTip = 'Open Quality Management Role Center and checklist in a new browser tab.';
-                    Editable = false;
-                    ApplicationArea = QualityManagement;
 
-                    trigger OnDrillDown()
-                    var
-                        TargetURL: Text;
-                    begin
-                        TargetURL := GetUrl(ClientType::Web, CompanyName, ObjectType::Page, Page::"Qlty. Manager Role Center") + URLProfileLbl;
-                        Hyperlink(TargetURL);
-                    end;
+                    grid(LinksGrid)
+                    {
+                        ShowCaption = false;
+                        GridLayout = Rows;
 
+                        group(Link1)
+                        {
+                            InstructionalText = 'Choose the Quality Manager role in your settings and explore the checklist.';
+                            ShowCaption = false;
+
+                            field(MySettingsLink; MySettingsLbl)
+                            {
+                                ShowCaption = false;
+                                ApplicationArea = All;
+                                DrillDown = true;
+                                Caption = 'Open My Settings';
+                                ToolTip = 'Open My Settings page.';
+
+                                trigger OnDrillDown()
+                                begin
+                                    Page.Run(Page::"User Settings");
+                                end;
+                            }
+                        }
+
+                        group(Link2)
+                        {
+                            InstructionalText = 'Or explore these key pages on your own:';
+                            ShowCaption = false;
+
+                            field(QualityInspectionResults; QualityInspectionResultsLbl)
+                            {
+                                ShowCaption = false;
+                                ApplicationArea = All;
+                                DrillDown = true;
+                                Caption = 'Quality Inspection Results';
+                                ToolTip = 'Open the Quality Inspection Results page.';
+
+                                trigger OnDrillDown()
+                                begin
+                                    Page.Run(Page::"Qlty. Inspection Result List");
+                                end;
+                            }
+                            field(QualityInspectionTemplates; QualityInspectionTemplatesLbl)
+                            {
+                                ShowCaption = false;
+                                ApplicationArea = All;
+                                DrillDown = true;
+                                Caption = 'Quality Inspection Templates';
+                                ToolTip = 'Open the Quality Inspection Templates page.';
+
+                                trigger OnDrillDown()
+                                begin
+                                    Page.Run(Page::"Qlty. Inspection Template List");
+                                end;
+                            }
+                            field(QualityInspectionGenerationRules; QualityInspectionGenerationRulesLbl)
+                            {
+                                ShowCaption = false;
+                                ApplicationArea = All;
+                                DrillDown = true;
+                                Caption = 'Quality Inspection Generation Rules';
+                                ToolTip = 'Open the Quality Inspection Generation Rules page.';
+
+                                trigger OnDrillDown()
+                                begin
+                                    Page.Run(Page::"Qlty. Inspection Gen. Rules");
+                                end;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -81,17 +135,16 @@ page 20438 "Qlty. Management Setup Guide"
     {
         area(Processing)
         {
-            action(Finish)
+            action(Done)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Finish';
-                ToolTip = 'Finish';
+                Caption = 'Done';
+                ToolTip = 'Done';
                 InFooterBar = true;
-                Image = Approve;
 
                 trigger OnAction();
                 begin
-                    FinishAction();
+                    DoneAction();
                 end;
             }
         }
@@ -104,8 +157,10 @@ page 20438 "Qlty. Management Setup Guide"
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
-        LetsGoLinkLbl: Label 'Open the Quality Manager Role Center';
-        URLProfileLbl: Label '&profile=QLTY.%20MANAGER', Locked = true;
+        MySettingsLbl: Label 'Open My Settings', Locked = true;
+        QualityInspectionResultsLbl: Label 'Quality Inspection Results', Locked = true;
+        QualityInspectionTemplatesLbl: Label 'Quality Inspection Templates', Locked = true;
+        QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
 
     trigger OnInit();
     begin
@@ -118,7 +173,7 @@ page 20438 "Qlty. Management Setup Guide"
         FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 
-    local procedure FinishAction();
+    local procedure DoneAction();
     var
         GuidedExperience: Codeunit "Guided Experience";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
