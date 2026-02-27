@@ -34,7 +34,7 @@ table 4580 "Ext. SharePoint Account"
         field(5; "Base Relative Folder Path"; Text[2048])
         {
             Caption = 'Base Relative Folder Path';
-            ToolTip = 'Specifies the folder path relative to the site collection. Start with the document library or folder name (e.g., Shared Documents/Reports). This path can be copied from the URL of the folder in SharePoint after the site collection (e.g., /Shared Documents/Reports from https://mysharepoint.sharepoint.com/sites/ProjectX/Shared%20Documents/Reports).';
+            ToolTip = 'Specifies the base folder path. For SharePoint REST API: Use the full server-relative path including the site (e.g., /sites/ProjectX/Shared Documents/Reports). For Microsoft Graph API: Use only the path relative to the document library (e.g., Reports). When using Graph API, the path should not include the site or document library root, only the folders within the library.';
         }
         field(6; "Tenant Id"; Guid)
         {
@@ -50,6 +50,7 @@ table 4580 "Ext. SharePoint Account"
         }
         field(8; "Client Secret Key"; Guid)
         {
+            Caption = 'Client Secret Key';
             Access = Internal;
             DataClassification = SystemMetadata;
         }
@@ -66,13 +67,23 @@ table 4580 "Ext. SharePoint Account"
         }
         field(11; "Certificate Key"; Guid)
         {
+            Caption = 'Certificate Key';
             Access = Internal;
+            AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
         }
         field(12; "Certificate Password Key"; Guid)
         {
+            Caption = 'Certificate Password Key';
             Access = Internal;
+            AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
+        }
+        field(13; "Use Graph API"; Boolean)
+        {
+            Caption = 'Use Microsoft Graph API';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. Note: Requires Microsoft Graph permissions (Sites.ReadWrite.All) configured in your app registration instead of SharePoint permissions.';
         }
     }
 

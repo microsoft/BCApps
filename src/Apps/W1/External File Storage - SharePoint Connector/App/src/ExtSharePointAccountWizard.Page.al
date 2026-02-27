@@ -43,7 +43,6 @@ page 4581 "Ext. SharePoint Account Wizard"
                 Caption = 'Account Name';
                 NotBlank = true;
                 ShowMandatory = true;
-                ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
 
                 trigger OnValidate()
                 begin
@@ -54,7 +53,6 @@ page 4581 "Ext. SharePoint Account Wizard"
             field("Tenant Id"; Rec."Tenant Id")
             {
                 ShowMandatory = true;
-                ToolTip = 'Specifies the Microsoft Entra ID Tenant ID (Directory ID) where your SharePoint site and app registration are located.';
 
                 trigger OnValidate()
                 begin
@@ -65,7 +63,6 @@ page 4581 "Ext. SharePoint Account Wizard"
             field("Client Id"; Rec."Client Id")
             {
                 ShowMandatory = true;
-                ToolTip = 'Specifies the Client ID (Application ID) of the App Registration in Microsoft Entra ID.';
 
                 trigger OnValidate()
                 begin
@@ -75,7 +72,6 @@ page 4581 "Ext. SharePoint Account Wizard"
 
             field("Authentication Type"; Rec."Authentication Type")
             {
-                ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
                 trigger OnValidate()
                 begin
                     UpdateAuthTypeVisibility();
@@ -133,6 +129,9 @@ page 4581 "Ext. SharePoint Account Wizard"
                 begin
                     IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                 end;
+            }
+            field("Use Graph API"; Rec."Use Graph API")
+            {
             }
 
             field("Base Relative Folder Path"; Rec."Base Relative Folder Path")
