@@ -13,20 +13,6 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         modify("Direct Transfer")
         {
             Enabled = EsEnableTransferFields;
-            Visible = false;
-        }
-        addafter("Direct Transfer")
-        {
-            field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
-            {
-                ApplicationArea = Location;
-                Editable = (Rec.Status = Rec.Status::Open) and EsEnableTransferFields;
-                ToolTip = 'Specifies whether the incoming posting of the transfer order is posted directly with the outgoing posting, or whether the posting is done in 2 steps. Note: If "Direct transfer" is selected, no transit code will be used and no posted documents will be created.';
-                trigger OnValidate()
-                begin
-                    CurrPage.Update();
-                end;
-            }
         }
         addlast(General)
         {
