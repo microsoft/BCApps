@@ -212,7 +212,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.order.fulfillmentOrders.pageInfo.hasNextPage');
     end;
 
-    internal procedure GetAssignedFulfillmentOrders(Shop: Record "Shpfy Shop"; var FulfillmentOrderIds: Dictionary of [BigInteger, Code[20]])
+    internal procedure GetAssignedFulfillmentOrders(var Shop: Record "Shpfy Shop"; var FulfillmentOrderIds: Dictionary of [BigInteger, Code[20]])
     var
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
@@ -222,6 +222,13 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
             exit;
 
         CommunicationMgt.SetShop(Shop);
+
+        if not HasFulfillmentService() then begin
+            Shop."Fulfillment Service Activated" := false;
+            Shop.Modify();
+            exit;
+        end;
+
         GraphQLType := "Shpfy GraphQL Type"::GetAssignedFulfillmentOrders;
 
         repeat
@@ -236,6 +243,25 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.assignedFulfillmentOrders.pageInfo.hasNextPage');
+    end;
+
+    local procedure HasFulfillmentService(): Boolean
+    var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JLocations: JsonArray;
+    begin
+        GraphQLType := "Shpfy GraphQL Type"::HasFulfillmentService;
+        Parameters.Add('Name', SyncShopLocations.GetFulfillmentServiceName());
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+        if not JResponse.IsObject() then
+            exit(false);
+
+        if not JsonHelper.GetJsonArray(JResponse.AsObject(), JLocations, 'data.locations.nodes') then
+            exit(false);
+
+        exit(JLocations.Count() > 0);
     end;
 
     local procedure ExtractAssignedFulfillmentOrderIds(ShopCode: Code[20]; JResponse: JsonObject; var FulfillmentOrderIds: Dictionary of [BigInteger, Code[20]]; var Cursor: Text): Boolean
