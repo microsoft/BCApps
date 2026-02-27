@@ -24,6 +24,7 @@ codeunit 9057 "Plan Upgrade"
     begin
         UpdateSubscriptionPlan();
         RenamePlansAndDeleteOldPlans();
+        RenameDelegatedAdminPlans();
         RenameTeamMemberPlan();
         RenameDevicePlan();
         AddPremiumPartnerSandbox();
