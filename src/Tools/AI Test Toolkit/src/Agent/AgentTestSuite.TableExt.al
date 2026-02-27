@@ -3,20 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.TestTools.AITestToolkit;
 
-dotnet
+tableextension 149050 "Agent Test Suite" extends "AIT Test Suite"
 {
-    assembly("Microsoft.Dynamics.Nav.Types")
+    fields
     {
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Types.ALConfigSettings"; "ALConfigSettings")
+        field(4900; "Agent User Security ID"; Guid)
         {
-        }
-        type("Microsoft.Dynamics.Nav.Types.PPACTenantSettings"; "PPACTenantSettings")
-        {
+            DataClassification = SystemMetadata;
+            Caption = 'Agent User Security ID';
+            ToolTip = 'Specifies the agent to be used by the test suite.';
         }
     }
 }
