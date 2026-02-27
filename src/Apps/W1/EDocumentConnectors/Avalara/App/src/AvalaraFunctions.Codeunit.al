@@ -249,25 +249,6 @@ codeunit 6800 "Avalara Functions"
 
     /// <summary>
     /// Get available media types for a specific mandate from Avalara API.
-    /// </summary>
-    /// <param name="Mandate">Mandate code (e.g., AU-B2B-PEPPOL).</param>
-    /// <param name="MediaTypes">Output JsonArray of available media types.</param>
-    [Obsolete('Use GetAvailableMediaTypesForMandate returning List of [Text] instead', '28.0')]
-    procedure GetInvoiceAvailableMediaType(Mandate: Text; var MediaTypes: JsonArray)
-    var
-        MediaTypeList: List of [Text];
-        MediaType: Text;
-    begin
-        // Delegate to modern implementation and convert result
-        MediaTypeList := GetAvailableMediaTypesForMandate(Mandate);
-
-        Clear(MediaTypes);
-        foreach MediaType in MediaTypeList do
-            MediaTypes.Add(MediaType);
-    end;
-
-    /// <summary>
-    /// Get available media types for a specific mandate from Avalara API.
     /// Modern implementation using List of [Text] return type.
     /// </summary>
     /// <param name="Mandate">Mandate code (e.g., AU-B2B-PEPPOL).</param>
