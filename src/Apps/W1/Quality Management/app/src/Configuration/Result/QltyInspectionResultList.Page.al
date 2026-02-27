@@ -128,7 +128,7 @@ page 20416 "Qlty. Inspection Result List"
     {
         area(Processing)
         {
-            action(UpdateTestsTemplatesInspections)
+            action(CopyResultsToAllTemplates)
             {
                 ApplicationArea = QualityManagement;
                 Caption = 'Update Tests, Templates, and Inspections';
