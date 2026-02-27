@@ -24,6 +24,7 @@
       "name": "Test Runner",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
+    }
   ],
   "internalsVisibleTo": [
       {
