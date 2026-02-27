@@ -12,6 +12,7 @@ codeunit 149036 "AIT Run History"
     procedure GetHistory(Code: Code[100]; LineNo: Integer; AITViewBy: Enum "AIT Run History - View By"; var TempAITRunHistory: Record "AIT Run History" temporary)
     var
         AITRunHistory: Record "AIT Run History";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         SeenTags: List of [Text[20]];
     begin
         TempAITRunHistory.DeleteAll();
@@ -21,6 +22,8 @@ codeunit 149036 "AIT Run History"
             if AITRunHistory.FindSet() then
                 repeat
                     TempAITRunHistory.TransferFields(AITRunHistory);
+                    TempAITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo);
+                    TempAITRunHistory."Agent Task IDs" := CopyStr(AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo), 1, MaxStrLen(TempAITRunHistory."Agent Task IDs"));
                     TempAITRunHistory.Insert();
                 until AITRunHistory.Next() = 0;
 
@@ -29,6 +32,8 @@ codeunit 149036 "AIT Run History"
                 repeat
                     if not SeenTags.Contains(AITRunHistory.Tag) then begin
                         TempAITRunHistory.TransferFields(AITRunHistory);
+                        TempAITRunHistory."Copilot Credits - By Tag" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo);
+                        TempAITRunHistory."Agent Task IDs - By Tag" := CopyStr(AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo), 1, MaxStrLen(TempAITRunHistory."Agent Task IDs - By Tag"));
                         TempAITRunHistory.Insert();
                     end;
                     SeenTags.Add(AITRunHistory.Tag);
