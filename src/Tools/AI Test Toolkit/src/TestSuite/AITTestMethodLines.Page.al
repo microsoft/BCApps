@@ -277,6 +277,16 @@ page 149034 "AIT Test Method Lines"
 
     trigger OnAfterGetRecord()
     begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
     end;
