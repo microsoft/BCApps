@@ -105,7 +105,7 @@ codeunit 9027 "Plan Ids"
         exit(ExternalAccountantPlanGUIDTxt);
     end;
 
-#if not CLEAN28
+#if not CLEAN32
     /// <summary>
     /// Returns the ID for the Delegated Admin agent - Partner plan.
     /// </summary>
@@ -126,7 +126,7 @@ codeunit 9027 "Plan Ids"
         exit(DelegatedAdminGUIDTxt);
     end;
 
-#if not CLEAN28
+#if not CLEAN32
     /// <summary>
     /// Returns the ID for the Delegated BC Admin agent - Partner plan.
     /// </summary>
