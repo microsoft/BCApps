@@ -84,7 +84,7 @@ page 149034 "AIT Test Method Lines"
                     ToolTip = 'Specifies the number of failed evals for the eval line.';
                     Style = Unfavorable;
 
-                    trigger OnAssistEdit()
+                    trigger OnDrillDown()
                     var
                         AITTestSuite: Record "AIT Test Suite";
                         AITLogEntry: Codeunit "AIT Log Entry";
