@@ -24,6 +24,7 @@ codeunit 9057 "Plan Upgrade"
     begin
         UpdateSubscriptionPlan();
         RenamePlansAndDeleteOldPlans();
+        RenameDelegatedAdminPlans();
         RenameTeamMemberPlan();
         RenameDevicePlan();
         AddPremiumPartnerSandbox();
@@ -86,7 +87,7 @@ codeunit 9057 "Plan Upgrade"
         RenameOrCreatePlan(PlanIds.GetExternalAccountantPlanId(), 'Dynamics 365 Business Central External Accountant');
         RenameOrCreatePlan(PlanIds.GetPremiumISVPlanId(), 'Dynamics 365 Business Central Premium - Embedded');
         RenameOrCreatePlan(PlanIds.GetViralSignupPlanId(), 'Dynamics 365 Business Central for IWs');
-        RenameOrCreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner');
+        RenameOrCreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Delegated Admin agent - Partner');
         RenameOrCreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner');
         RenameOrCreatePlan('996DEF3D-B36C-4153-8607-A6FD3C01B89F', 'D365 Business Central Infrastructure');
 
@@ -96,9 +97,29 @@ codeunit 9057 "Plan Upgrade"
         DeletePlan('46764787-E039-4AB0-8F00-820FC2D89BF9');
         DeletePlan('312BDEEE-8FBD-496E-B529-EB985F305FCF');
 
-        Session.LogMessage('0000AHN', 'Subscription Plans were renamed and old plans werer deleted.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+        Session.LogMessage('0000AHN', 'Subscription Plans were renamed and old plans were deleted.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
 
         UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetRenamePlansUpgradeTag());
+    end;
+
+    [NonDebuggable]
+    local procedure RenameDelegatedAdminPlans()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        if UpgradeTag.HasUpgradeTag(PlanUpgradeTag.GetRenameDelegatedAdminPlansUpgradeTag()) then
+            exit;
+
+        RenameOrCreatePlan(PlanIds.GetD365BCAdminPlanId(), 'Delegated Dynamics 365 Business Central Administrator');
+        RenameOrCreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Delegated Global Administrator');
+        RenameOrCreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator');
+        RenameOrCreatePlan(PlanIds.GetD365AdminPartnerPlanId(), 'Delegated Dynamics 365 Administrator');
+
+        Session.LogMessage('0000AHN', 'Subscription Plans were renamed.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+
+        UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetRenameDelegatedAdminPlansUpgradeTag());
     end;
 
     [NonDebuggable]
@@ -232,8 +253,8 @@ codeunit 9057 "Plan Upgrade"
             CreatePlan(PlanId, PlanName, RoleCenterId);
 
         // Create delegated plan
-        PlanId := PlanIds.GetDelegatedBCAdminPlanId();
-        PlanName := 'Delegated BC Admin agent - Partner';
+        PlanId := PlanIds.GetD365BCAdminPlanId();
+        PlanName := 'Delegated Dynamics 365 Business Central Administrator';
         RoleCenterId := 9022;
 
         if not Plan.Get(PlanId) then
@@ -283,7 +304,7 @@ codeunit 9057 "Plan Upgrade"
             exit;
 
         PlanId := PlanIds.GetD365AdminPartnerPlanId();
-        PlanName := 'Delegated Dynamics 365 Admin agent - Partner';
+        PlanName := 'Delegated Dynamics 365 Administrator';
         RoleCenterId := 9022;
 
         if Plan.Get(PlanId) then

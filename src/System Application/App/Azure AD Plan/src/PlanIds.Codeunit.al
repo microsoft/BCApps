@@ -105,20 +105,44 @@ codeunit 9027 "Plan Ids"
         exit(ExternalAccountantPlanGUIDTxt);
     end;
 
+#if not CLEAN32
     /// <summary>
     /// Returns the ID for the Delegated Admin agent - Partner plan.
     /// </summary>
     /// <returns>The ID for the Delegated Admin agent - Partner plan.</returns>
+    [Obsolete('Use GetDelegatedGlobalAdminPlanId instead', '28.0')]
     procedure GetDelegatedAdminPlanId(): Guid
     begin
         exit(DelegatedAdminGUIDTxt);
     end;
+#endif
+
+    /// <summary>
+    /// Returns the ID for the Delegated Admin agent - Partner plan.
+    /// </summary>
+    /// <returns>The ID for the Delegated Admin agent - Partner plan.</returns>
+    procedure GetDelegatedGlobalAdminPlanId(): Guid
+    begin
+        exit(DelegatedAdminGUIDTxt);
+    end;
+
+#if not CLEAN32
+    /// <summary>
+    /// Returns the ID for the Delegated BC Admin agent - Partner plan.
+    /// </summary>
+    /// <returns>The ID for the Delegated BC Admin agent - Partner plan.</returns>
+    [Obsolete('Use GetD365BCAdminPlanId instead', '28.0')]
+    procedure GetDelegatedBCAdminPlanId(): Guid
+    begin
+        exit(BCAdminPartnerGUIDTxt);
+    end;
+#endif
 
     /// <summary>
     /// Returns the ID for the Delegated BC Admin agent - Partner plan.
     /// </summary>
     /// <returns>The ID for the Delegated BC Admin agent - Partner plan.</returns>
-    procedure GetDelegatedBCAdminPlanId(): Guid
+    procedure GetD365BCAdminPlanId(): Guid
     begin
         exit(BCAdminPartnerGUIDTxt);
     end;
