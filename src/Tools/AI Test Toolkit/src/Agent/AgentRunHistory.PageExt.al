@@ -20,12 +20,12 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
                 Editable = false;
             }
-            field("Agent Task IDs - By Version"; Rec."Agent Task IDs")
+            field("Agent Task Count - By Version"; AgentTaskCountByVersion)
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Version;
                 Caption = 'Agent tasks';
-                ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the current version.';
+                ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -47,12 +47,12 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
                 Editable = false;
             }
-            field("Agent Task IDs - By Tag"; Rec."Agent Task IDs - By Tag")
+            field("Agent Task Count - By Tag"; AgentTaskCountByTag)
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Tag;
                 Caption = 'Agent tasks';
-                ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the tag.';
+                ToolTip = 'Specifies the number of Agent Tasks related to the tag.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -65,5 +65,25 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         }
     }
 
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        AgentTaskCountByVersion: Integer;
+        AgentTaskCountByTag: Integer;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateAgentTaskCounts();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateAgentTaskCounts();
+    end;
+
+    local procedure UpdateAgentTaskCounts()
+    begin
+        AgentTaskCountByVersion := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs");
+        AgentTaskCountByTag := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs - By Tag");
+    end;
 }
 
