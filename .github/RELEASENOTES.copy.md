@@ -4,6 +4,13 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 
 ### Issues
 
+- Attempt to start docker service in case it is not running
+
+## v8.3
+
+### Issues
+
+- Issue 2107 Publish a specific build mode to an environment
 - Issue 1915 CICD fails on releases/26.x branch - '26.x' cannot be recognized as a semantic version string
 
 ### The default pull request trigger is changing
