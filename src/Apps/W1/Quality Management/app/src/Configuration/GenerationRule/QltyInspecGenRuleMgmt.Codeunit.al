@@ -91,6 +91,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         KnownTableIds: List of [Integer];
     begin
         Filter := '0';
+        AvailableQltyInspectSourceConfig.SetLoadFields("From Table No.", "To Table No.");
         if AvailableQltyInspectSourceConfig.FindSet() then
             repeat
                 if not KnownTableIds.Contains(AvailableQltyInspectSourceConfig."From Table No.") then begin
