@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-page 6804 "Mandate List"
+page 6370 "Mandate List"
 {
     ApplicationArea = All;
     Caption = 'Avalara Mandate List';

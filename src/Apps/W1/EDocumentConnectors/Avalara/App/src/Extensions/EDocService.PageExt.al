@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
-pageextension 6371 "E-Doc. Service" extends "E-Document Service"
+pageextension 6370 "E-Doc. Service" extends "E-Document Service"
 {
     layout
     {
