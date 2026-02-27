@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
 
 codeunit 6232 "E-Doc. MLLM Schema Helper"
 {
@@ -16,10 +17,46 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     procedure GetDefaultSchema() Value: Text
     var
         DefaultSchemaFileLbl: Label 'AITools/ubl_example.json', Locked = true;
-        JsonObject: JsonObject;
+        SchemaJson: JsonObject;
     begin
-        JsonObject := NavApp.GetResourceAsJson(DefaultSchemaFileLbl, TextEncoding::UTF8);
-        JsonObject.WriteTo(Value);
+        SchemaJson := NavApp.GetResourceAsJson(DefaultSchemaFileLbl, TextEncoding::UTF8);
+        PrefillCustomerFromCompanyInfo(SchemaJson);
+        SchemaJson.WriteTo(Value);
+    end;
+
+    local procedure PrefillCustomerFromCompanyInfo(var SchemaJson: JsonObject)
+    var
+        CompanyInformation: Record "Company Information";
+        CustomerPartyObj: JsonObject;
+        PartyObj: JsonObject;
+        PartyNameObj: JsonObject;
+        PostalAddressObj: JsonObject;
+        CountryObj: JsonObject;
+        TaxSchemeObj: JsonObject;
+        PartyTaxSchemeObj: JsonObject;
+    begin
+        if not CompanyInformation.Get() then
+            exit;
+
+        PartyNameObj.Add('name', CompanyInformation.Name);
+
+        CountryObj.Add('identification_code', CompanyInformation."Country/Region Code");
+        PostalAddressObj.Add('street_name', CompanyInformation.Address);
+        PostalAddressObj.Add('additional_street_name', CompanyInformation."Address 2");
+        PostalAddressObj.Add('city_name', CompanyInformation.City);
+        PostalAddressObj.Add('postal_zone', CompanyInformation."Post Code");
+        PostalAddressObj.Add('country', CountryObj);
+
+        TaxSchemeObj.Add('id', 'VAT');
+        PartyTaxSchemeObj.Add('company_id', CompanyInformation."VAT Registration No.");
+        PartyTaxSchemeObj.Add('tax_scheme', TaxSchemeObj);
+
+        PartyObj.Add('party_name', PartyNameObj);
+        PartyObj.Add('postal_address', PostalAddressObj);
+        PartyObj.Add('party_tax_scheme', PartyTaxSchemeObj);
+
+        CustomerPartyObj.Add('party', PartyObj);
+        SchemaJson.Replace('accounting_customer_party', CustomerPartyObj);
     end;
 
 #pragma warning disable AA0139

@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
-using System.Environment;
 using System.Text;
 using System.Utilities;
 
@@ -23,11 +22,48 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         StructuredData: Text;
         FileFormat: Enum "E-Doc. File Format";
         ReadIntoDraftImpl: Enum "E-Doc. Read into Draft";
+        FeatureNameLbl: Label 'E-Document MLLM Extraction', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
         UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only.', Locked = true;
+        MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
+        MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
+        MLLMApiCallFailedMsg: Label 'MLLM API call failed, falling back to ADI.', Locked = true;
+        MLLMEmptyResponseMsg: Label 'MLLM returned empty response, falling back to ADI.', Locked = true;
+        MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
+        MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required fields (invoice_line), falling back to ADI.', Locked = true;
+        ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
+        ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
+    var
+        ResponseJson: JsonObject;
+        CustomDimensions: Dictionary of [Text, Text];
+        ResponseText: Text;
+        DurationMs: Integer;
+    begin
+        Session.LogMessage('', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl);
+
+        RegisterCopilotCapabilityIfNeeded();
+
+        ResponseText := CallMLLM(EDocumentDataStorage, DurationMs);
+
+        if not ValidateAndUnwrapResponse(ResponseText, ResponseJson, DurationMs) then
+            exit(FallbackToADI(EDocumentDataStorage));
+
+        StructuredData := ResponseText;
+        FileFormat := "E-Doc. File Format"::JSON;
+        ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
+
+        CustomDimensions.Add('Category', FeatureNameLbl);
+        CustomDimensions.Add('DurationMs', Format(DurationMs));
+        CustomDimensions.Add('LineCount', Format(GetInvoiceLineCount(ResponseJson)));
+        Session.LogMessage('', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+
+        exit(this);
+    end;
+
+    local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"; var DurationMs: Integer): Text
     var
         Base64Convert: Codeunit "Base64 Convert";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -40,55 +76,105 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         FromTempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         Base64Data: Text;
-        SchemaText: Text;
-        SystemPrompt: Text;
-        JsonResponse: JsonObject;
+        StartTime: DateTime;
     begin
-        RegisterCopilotCapabilityIfNeeded();
-
-        // Load schema for the E-Document's service code, or fall back to default
-        SchemaText := EDocMLLMSchemaHelper.GetDefaultSchema();
-
-        // Convert PDF to base64
+        // Load schema and convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
         FromTempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         Base64Data := Base64Convert.ToBase64(InStream);
 
         // Build AOAI call
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetJsonMode(true);
 
-        SystemPrompt := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
-        AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
+        AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
 
         AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
-        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptLbl, SchemaText));
+        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema()));
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
+        StartTime := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        DurationMs := CurrentDateTime() - StartTime;
 
-        if AOAIOperationResponse.IsSuccess() then begin
-            StructuredData := AOAIOperationResponse.GetResult();
-            if StructuredData <> '' then begin
-
-                if JsonResponse.ReadFrom(StructuredData) then
-                    StructuredData := JsonResponse.GetText('content', true);
-
-                FileFormat := "E-Doc. File Format"::JSON;
-                ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
-            end else begin
-                FileFormat := "E-Doc. File Format"::Unspecified;
-                ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
-            end;
-        end else begin
-            FileFormat := "E-Doc. File Format"::Unspecified;
-            ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
+        if not AOAIOperationResponse.IsSuccess() then begin
+            Session.LogMessage('', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            exit('');
         end;
 
-        exit(this);
+        exit(AOAIOperationResponse.GetResult());
+    end;
+
+    local procedure ValidateAndUnwrapResponse(var ResponseText: Text; var ResponseJson: JsonObject; DurationMs: Integer): Boolean
+    var
+        ContentToken: JsonToken;
+    begin
+        if ResponseText = '' then begin
+            Session.LogMessage('', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            exit(false);
+        end;
+
+        if not ResponseJson.ReadFrom(ResponseText) then begin
+            Session.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            exit(false);
+        end;
+
+        // Unwrap 'content' wrapper if AOAI wrapped the response
+        if ResponseJson.Get('content', ContentToken) then begin
+            ResponseText := ContentToken.AsValue().AsText();
+            if not ResponseJson.ReadFrom(ResponseText) then begin
+                Session.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+                exit(false);
+            end;
+        end;
+
+        if not ValidateMLLMResponse(ResponseJson) then begin
+            Session.LogMessage('', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure FallbackToADI(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
+    var
+        ADIHandler: Codeunit "E-Document ADI Handler";
+        ADIResult: Interface IStructuredDataType;
+    begin
+        ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
+
+        if ADIResult.GetContent() <> '' then
+            Session.LogMessage('', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl)
+        else
+            Session.LogMessage('', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl);
+
+        exit(ADIResult);
+    end;
+
+    local procedure ValidateMLLMResponse(ResponseJson: JsonObject): Boolean
+    var
+        LinesToken: JsonToken;
+        LinesArray: JsonArray;
+    begin
+        if not ResponseJson.Get('invoice_line', LinesToken) then
+            exit(false);
+        if not LinesToken.IsArray() then
+            exit(false);
+        LinesArray := LinesToken.AsArray();
+        exit(LinesArray.Count() >= 0);
+    end;
+
+    local procedure GetInvoiceLineCount(ResponseJson: JsonObject): Integer
+    var
+        LinesToken: JsonToken;
+    begin
+        if ResponseJson.Get('invoice_line', LinesToken) then
+            if LinesToken.IsArray() then
+                exit(LinesToken.AsArray().Count());
+        exit(0);
     end;
 
     procedure GetFileFormat(): Enum "E-Doc. File Format"
@@ -158,13 +244,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     local procedure RegisterCopilotCapabilityIfNeeded()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
-
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Analysis") then
-            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document Analysis", '');
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
