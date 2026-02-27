@@ -87,6 +87,7 @@ if ($null -ne $TestType) {
 }
 
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
+$parameters["renewClientContextBetweenTests"] = $true
 
 if ($DisableTestIsolation)
 {
