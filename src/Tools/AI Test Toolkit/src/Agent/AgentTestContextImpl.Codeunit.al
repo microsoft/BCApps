@@ -6,7 +6,6 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
-using System.Environment;
 using System.TestTools.TestRunner;
 
 codeunit 149049 "Agent Test Context Impl."
@@ -176,27 +175,6 @@ codeunit 149049 "Agent Test Context Impl."
 
         TaskIDList := CommaSeparatedTaskIDs.Split(',');
         exit(TaskIDList.Count());
-    end;
-
-    procedure IsAgentTestType(TestSuiteCode: Code[100]): Boolean
-    var
-        AITTestSuite: Record "AIT Test Suite";
-    begin
-        if not AITTestSuite.Get(TestSuiteCode) then
-            exit(false);
-
-        exit(AITTestSuite."Test Type" = AITTestSuite."Test Type"::Agent);
-    end;
-
-    procedure ShouldShowTokens(TestSuiteCode: Code[100]): Boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        // Hide tokens if it's Agent test type AND SaaS environment
-        if IsAgentTestType(TestSuiteCode) and EnvironmentInformation.IsSaaSInfrastructure() then
-            exit(false);
-
-        exit(true);
     end;
 
     procedure OpenAgentTaskList(CommaSeparatedTaskIDs: Text)

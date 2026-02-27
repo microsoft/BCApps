@@ -18,7 +18,6 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
                 Caption = 'Copilot credits';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
                 Editable = false;
-                Visible = IsAgentTestType;
             }
             field("Agent Task Count"; AgentTaskCount)
             {
@@ -26,7 +25,6 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
                 Caption = 'Agent tasks';
                 ToolTip = 'Specifies the number of Agent Tasks related to this eval line.';
                 Editable = false;
-                Visible = IsAgentTestType;
 
                 trigger OnDrillDown()
                 var
@@ -43,7 +41,6 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
-        IsAgentTestType: Boolean;
 
     trigger OnAfterGetRecord()
     begin
@@ -60,8 +57,6 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         VersionFilter: Text;
         CurrentFilterGroup: Integer;
     begin
-        IsAgentTestType := AgentTestContextImpl.IsAgentTestType(Rec."Test Suite Code");
-
         CurrentFilterGroup := Rec.FilterGroup();
         Rec.FilterGroup(4);
         VersionFilter := Rec.GetFilter(Rec."Version Filter");

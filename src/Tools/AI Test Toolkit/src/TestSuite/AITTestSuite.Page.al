@@ -223,14 +223,12 @@ page 149031 "AIT Test Suite"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
-                    Visible = ShowTokens;
                 }
                 field("Average Tokens Consumed"; AvgTokensConsumed)
                 {
                     Editable = false;
                     Caption = 'Average Tokens Consumed';
                     ToolTip = 'Specifies the average number of tokens consumed by the evals in the last run.';
-                    Visible = ShowTokens;
                 }
             }
 
@@ -420,7 +418,6 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
         TotalDuration: Duration;
@@ -430,7 +427,6 @@ page 149031 "AIT Test Suite"
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
         YouNeedToOpenAndCloseThePageMsg: Label 'You need to open and close the page for the change to take effect on the UI controls.';
         EvaluationSetupTxt: Text;
-        ShowTokens: Boolean;
 
     trigger OnOpenPage()
     var
@@ -454,7 +450,6 @@ page 149031 "AIT Test Suite"
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
-        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec.Code);
     end;
 
     local procedure UpdateTotalDuration()

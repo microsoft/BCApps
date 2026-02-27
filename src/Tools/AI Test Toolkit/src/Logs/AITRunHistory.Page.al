@@ -135,7 +135,7 @@ page 149032 "AIT Run History"
                     }
                     field("Tokens - By Version"; Rec."Tokens Consumed")
                     {
-                        Visible = (ViewBy = ViewBy::Version) and ShowTokens;
+                        Visible = ViewBy = ViewBy::Version;
                         Caption = 'Total Tokens Consumed';
                         ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
                     }
@@ -181,7 +181,7 @@ page 149032 "AIT Run History"
                     }
                     field("Tokens - By Tag"; Rec."Tokens Consumed - By Tag")
                     {
-                        Visible = (ViewBy = ViewBy::Tag) and ShowTokens;
+                        Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Tokens Consumed';
                         ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
                     }
@@ -191,12 +191,10 @@ page 149032 "AIT Run History"
     }
 
     var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         TestSuiteCode: Code[100];
         LineNo: Integer;
         ApplyLineFilter: Boolean;
         LineNoFilter: Text;
-        ShowTokens: Boolean;
 
     protected var
         ViewBy: Enum "AIT Run History - View By";
@@ -233,7 +231,6 @@ page 149032 "AIT Run History"
             LineNo := 0;
 
         AITRunHistory.GetHistory(TestSuiteCode, LineNo, ViewBy, Rec);
-        ShowTokens := AgentTestContextImpl.ShouldShowTokens(TestSuiteCode);
         CurrPage.Update();
     end;
 }

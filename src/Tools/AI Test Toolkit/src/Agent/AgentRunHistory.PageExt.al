@@ -15,7 +15,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = (ViewBy = ViewBy::Version) and IsAgentTestType;
+                Visible = ViewBy = ViewBy::Version;
                 Caption = 'Copilot credits';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
                 Editable = false;
@@ -23,7 +23,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             field("Agent Task IDs - By Version"; Rec."Agent Task IDs")
             {
                 ApplicationArea = All;
-                Visible = (ViewBy = ViewBy::Version) and IsAgentTestType;
+                Visible = ViewBy = ViewBy::Version;
                 Caption = 'Agent tasks';
                 ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the current version.';
                 Editable = false;
@@ -42,7 +42,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = (ViewBy = ViewBy::Tag) and IsAgentTestType;
+                Visible = ViewBy = ViewBy::Tag;
                 Caption = 'Copilot credits';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
                 Editable = false;
@@ -50,7 +50,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             field("Agent Task IDs - By Tag"; Rec."Agent Task IDs - By Tag")
             {
                 ApplicationArea = All;
-                Visible = (ViewBy = ViewBy::Tag) and IsAgentTestType;
+                Visible = ViewBy = ViewBy::Tag;
                 Caption = 'Agent tasks';
                 ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to the tag.';
                 Editable = false;
@@ -65,17 +65,5 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         }
     }
 
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        IsAgentTestType: Boolean;
-
-    trigger OnAfterGetRecord()
-    begin
-        UpdateVisibility();
-    end;
-
-    local procedure UpdateVisibility()
-    begin
-        IsAgentTestType := AgentTestContextImpl.IsAgentTestType(Rec."Test Suite Code");
-    end;
 }
+

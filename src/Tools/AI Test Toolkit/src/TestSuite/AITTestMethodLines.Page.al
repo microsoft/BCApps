@@ -150,7 +150,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
-                    Visible = ShowTokens;
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
@@ -264,11 +263,9 @@ page 149034 "AIT Test Method Lines"
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         NoLineSelectedErr: Label 'Select a line to compare';
         TurnsText: Text;
         EvaluationSetupTxt: Text;
-        ShowTokens: Boolean;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -292,7 +289,6 @@ page 149034 "AIT Test Method Lines"
     begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
-        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec."Test Suite Code");
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer

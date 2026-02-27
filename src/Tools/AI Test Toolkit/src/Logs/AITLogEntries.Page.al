@@ -121,7 +121,6 @@ page 149033 "AIT Log Entries"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
-                    Visible = ShowTokens;
                 }
                 field(TestRunDuration; TestRunDuration)
                 {
@@ -342,7 +341,6 @@ page 149033 "AIT Log Entries"
     }
 
     var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         ClickToShowLbl: Label 'Show eval input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
@@ -355,7 +353,6 @@ page 149033 "AIT Log Entries"
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
         ShowSensitiveData: Boolean;
-        ShowTokens: Boolean;
 
     trigger OnAfterGetRecord()
     var
@@ -367,7 +364,6 @@ page 149033 "AIT Log Entries"
         SetErrorFields();
         SetStatusStyleExpr();
         SetTurnsStyleExpr();
-        ShowTokens := AgentTestContextImpl.ShouldShowTokens(Rec."Test Suite Code");
     end;
 
     local procedure SetStatusStyleExpr()
