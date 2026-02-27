@@ -52,14 +52,7 @@ codeunit 149049 "Agent Test Context Impl."
         Clear(AgentTaskList);
     end;
 
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"AIT Test Suite Mgt.", OnAfterInsertAITLogEntry, '', false, false)]
-    local procedure InsertAgentTaskLogs(var AITLogEntry: Record "AIT Log Entry")
-    begin
-        LogAgentTasks(AITLogEntry);
-    end;
-
-    local procedure LogAgentTasks(var AITLogEntry: Record "AIT Log Entry")
+    procedure LogAgentTasks(var AITLogEntry: Record "AIT Log Entry")
     var
         AgentTaskId: BigInteger;
     begin

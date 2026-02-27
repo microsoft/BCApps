@@ -215,6 +215,7 @@ table 149032 "AIT Test Method Line"
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
 #if not CLEAN26
+#pragma warning disable AS0072
         field(121; "Tokens Consumed - Base"; Integer)
         {
             ObsoleteState = Pending;
@@ -226,6 +227,7 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+#pragma warning restore AS0072
 #endif
     }
     keys

@@ -10,7 +10,7 @@ table 149050 "Agent Task Log"
     Caption = 'AI Agent Task Log';
     DataClassification = SystemMetadata;
     Extensible = true;
-    Access = Public;
+    Access = Internal;
     ReplicateData = false;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;

@@ -152,11 +152,11 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure AddAttachment(var AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Msg. Builder Impl."
     var
-        InStream: InStream;
+        FileInStream: InStream;
     begin
         AgentTaskFile.CalcFields(Content);
-        AgentTaskFile.Content.CreateInStream(InStream);
-        AddAttachment(AgentTaskFile."File Name", AgentTaskFile."File MIME Type", InStream);
+        AgentTaskFile.Content.CreateInStream(FileInStream);
+        AddAttachment(AgentTaskFile."File Name", AgentTaskFile."File MIME Type", FileInStream);
         exit(this);
     end;
 

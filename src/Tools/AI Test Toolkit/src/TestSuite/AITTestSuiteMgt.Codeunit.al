@@ -333,6 +333,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestInput: Record "Test Input";
         AITTestRunIteration: Codeunit "AIT Test Run Iteration"; // single instance
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
         ModifiedMessage: Text;
@@ -399,7 +400,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
         AITLogEntry."Test Method Line Accuracy" := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
         AITLogEntry.Insert(true);
-        OnAfterInsertAITLogEntry(AITLogEntry);
+        AgentTestContextImpl.LogAgentTasks(AITLogEntry);
 
         Commit();
         AITTestRunIteration.AddToNoOfLogEntriesInserted();
@@ -536,11 +537,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         FilenameTxt := StrSubstNo(SummaryFileNameLbl, AITLogEntries."Test Suite Code");
         ResultsTempBlob.CreateInStream(ResultsInStream);
         DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', FilenameTxt);
-    end;
-
-    [InternalEvent(false, false)]
-    local procedure OnAfterInsertAITLogEntry(var AITLogEntry: Record "AIT Log Entry")
-    begin
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]
