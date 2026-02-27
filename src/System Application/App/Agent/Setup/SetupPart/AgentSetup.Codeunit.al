@@ -32,6 +32,17 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
+    /// Copies the setup record from the source buffer to the target buffer.
+    /// </summary>
+    /// <param name="Target"><see cref="AgentSetupBuffer"/> that will receive the setup data.</param>
+    /// <param name="Source"><see cref="AgentSetupBuffer"/> that contains the setup data to be copied.</param>
+    procedure CopySetupRecord(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentSetupImpl.CopySetupRecord(Target, Source);
+    end;
+
+    /// <summary>
     /// Saves changes done. If the agent does not exist we will create a new agent otherwise we will update the agent.
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
