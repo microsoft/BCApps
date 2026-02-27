@@ -31,6 +31,7 @@ codeunit 3707 "Tenant Feedback Settings"
     /// <summary>
     /// Checks whether survey feedback is enabled.
     /// </summary>
+    [Scope('OnPrem')]
     procedure GetSurveyFeedbackEnabled(): Boolean
     begin
         exit(TenantFeedbackSettingsImpl.GetSurveyFeedbackEnabled());
@@ -39,6 +40,7 @@ codeunit 3707 "Tenant Feedback Settings"
     /// <summary>
     /// Checks whether feedback attachments are enabled.
     /// </summary>
+    [Scope('OnPrem')]
     procedure GetFeedbackAttachmentsEnabled(): Boolean
     begin
         exit(TenantFeedbackSettingsImpl.GetFeedbackAttachmentsEnabled());
