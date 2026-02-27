@@ -137,6 +137,11 @@ page 30134 "Shpfy Transactions"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Posted Invoice number to which the transaction relates.';
                 }
+                field("Auto-Post Enabled"; Rec."Auto-Post Enabled")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether auto-posting is enabled for the transaction.';
+                }
             }
         }
     }
@@ -194,6 +199,31 @@ page 30134 "Shpfy Transactions"
                     SuggestPayments.Run();
                 end;
             }
+            action(ShowPostableTransactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Filter Postable Transactions';
+                Image = FilterLines;
+                ToolTip = 'Show transactions that need to be posted. Filters by auto-post enabled, not yet posted, and linked to a posted invoice. Optionally filter by gateway and date range.';
+
+                trigger OnAction()
+                begin
+                    FilterPostableTransactions()
+                end;
+            }
+            action(ClearFilter)
+            {
+                ApplicationArea = All;
+                Caption = 'Clear Filter';
+                Image = ClearFilter;
+                ToolTip = 'Remove the postable transactions filter and show all transactions.';
+
+                trigger OnAction()
+                begin
+                    Rec.ClearMarks();
+                    Rec.MarkedOnly(false);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -210,6 +240,8 @@ page 30134 "Shpfy Transactions"
             {
                 Caption = 'Related';
                 actionref(CustLedgerEntries_Promoted; CustLedgerEntries) { }
+                actionref(ShowPostableTransactions_Promoted; ShowPostableTransactions) { }
+                actionref(ClearFilter_Promoted; ClearFilter) { }
             }
         }
     }
@@ -231,5 +263,59 @@ page 30134 "Shpfy Transactions"
             exit;
 
         PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
+
+    local procedure FilterPostableTransactions()
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        FilterTransactions: Page "Shpfy Filter Transactions";
+        FilterShopCode: Code[20];
+        FilterCreditCardCompany: Text[50];
+        FilterGateway: Text[30];
+        FilterStartDate: DateTime;
+        FilterEndDate: DateTime;
+    begin
+        if not (FilterTransactions.RunModal() = Action::OK) then
+            exit;
+
+        FilterTransactions.GetParameters(FilterShopCode, FilterGateway, FilterCreditCardCompany, FilterStartDate, FilterEndDate);
+        if (FilterStartDate <> 0DT) or (FilterEndDate <> 0DT) then
+            if FilterEndDate <> 0DT then
+                Rec.SetRange("Created At", FilterStartDate, FilterEndDate)
+            else
+                Rec.SetRange("Created At", FilterStartDate, CreateDateTime(DMY2Date(31, 12, 9999), 0T));
+        Rec.SetRange(Used, false);
+        Rec.SetFilter("Posted Invoice No.", '<>%1', '');
+
+        Rec.ClearMarks();
+        Rec.MarkedOnly(false);
+        if FilterGateway <> '' then
+            MarkPostableTransactions(FilterShopCode, FilterCreditCardCompany, FilterGateway)
+        else begin
+            PaymentMethodMapping.SetRange("Post Automatically", true);
+            if PaymentMethodMapping.FindSet() then
+                repeat
+                    MarkPostableTransactions(PaymentMethodMapping."Shop Code", PaymentMethodMapping."Credit Card Company", PaymentMethodMapping.Gateway);
+                until PaymentMethodMapping.Next() = 0;
+        end;
+
+        Rec.MarkedOnly(true);
+        Rec.SetRange(Shop);
+        Rec.SetRange(Gateway);
+        Rec.SetRange("Credit Card Company");
+        Rec.SetRange("Created At");
+        Rec.SetRange(Used);
+        Rec.SetRange("Posted Invoice No.");
+    end;
+
+    local procedure MarkPostableTransactions(FilterShopCode: Code[20]; FilterCreditCardCompany: Text[50]; FilterGateway: Text[30])
+    begin
+        Rec.SetRange(Shop, FilterShopCode);
+        Rec.SetRange(Gateway, FilterGateway);
+        Rec.SetRange("Credit Card Company", FilterCreditCardCompany);
+        if Rec.FindSet() then
+            repeat
+                Rec.Mark(true);
+            until Rec.Next() = 0;
     end;
 }
