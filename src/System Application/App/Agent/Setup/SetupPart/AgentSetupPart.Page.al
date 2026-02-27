@@ -122,7 +122,7 @@ page 4310 "Agent Setup Part"
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
-        AgentSetupImpl.CopyAgentSetupBuffer(AgentSetupBuffer, Rec);
+        AgentSetupImpl.CopySetupRecord(AgentSetupBuffer, Rec);
     end;
 
     /// <summary>
@@ -136,7 +136,7 @@ page 4310 "Agent Setup Part"
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
-        AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
+        AgentSetupImpl.CopySetupRecord(Rec, AgentSetupBuffer);
         AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
         UpdateAgentSummaryDisplayText();
         UpdateAgentPublisherText();

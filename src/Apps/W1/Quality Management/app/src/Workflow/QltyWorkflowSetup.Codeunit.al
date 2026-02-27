@@ -78,7 +78,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to finish an inspection
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseFinishInspection(): Text
+    internal procedure GetWorkflowResponseFinishInspection(): Text
     begin
         exit(QMWorkflowResponseFinishInspectionTok);
     end;
@@ -87,12 +87,12 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to re-open an inspection
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseReopenInspection(): Text
+    internal procedure GetWorkflowResponseReopenInspection(): Text
     begin
         exit(QMWorkflowResponseReopenInspectionTok);
     end;
 
-    procedure GetWorkflowResponseCreateReinspection(): Text
+    internal procedure GetWorkflowResponseCreateReinspection(): Text
     begin
         exit(QMWorkflowResponseCreateReinspectionTok);
     end;
@@ -101,7 +101,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to block a lot
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseBlockLot(): Text
+    internal procedure GetWorkflowResponseBlockLot(): Text
     begin
         exit(QMWorkflowResponseBlockLotTok);
     end;
@@ -110,7 +110,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to block a serial
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseBlockSerial(): Text
+    internal procedure GetWorkflowResponseBlockSerial(): Text
     begin
         exit(QMWorkflowResponseBlockSerialTok);
     end;
@@ -119,7 +119,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to block a package
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseBlockPackage(): Text
+    internal procedure GetWorkflowResponseBlockPackage(): Text
     begin
         exit(QMWorkflowResponseBlockPackageTok);
     end;
@@ -128,7 +128,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to Unblock a lot
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnblockLot(): Text
+    internal procedure GetWorkflowResponseUnblockLot(): Text
     begin
         exit(QMWorkflowResponseUnblockLotTok);
     end;
@@ -137,7 +137,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to Unblock a serial
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnblockSerial(): Text
+    internal procedure GetWorkflowResponseUnblockSerial(): Text
     begin
         exit(QMWorkflowResponseUnblockSerialTok);
     end;
@@ -146,7 +146,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to Unblock a package
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnblockPackage(): Text
+    internal procedure GetWorkflowResponseUnblockPackage(): Text
     begin
         exit(QMWorkflowResponseUnblockPackageTok);
     end;
@@ -191,7 +191,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to set a database value
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseSetDatabaseValue(): Text
+    internal procedure GetWorkflowResponseSetDatabaseValue(): Text
     begin
         exit(QMWorkflowResponseSetDatabaseValueTok);
     end;
@@ -209,7 +209,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     ///Returns the token for a workflow response to change item tracking
     /// </summary>
     /// <returns></returns>
-    procedure GetWorkflowResponseChangeItemTracking(): Text
+    internal procedure GetWorkflowResponseChangeItemTracking(): Text
     begin
         exit(QMWorkflowResponseChangeItemTrackingTok);
     end;

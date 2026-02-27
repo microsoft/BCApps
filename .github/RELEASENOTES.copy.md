@@ -4,6 +4,31 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 
 ### Issues
 
+- Attempt to start docker service in case it is not running
+
+## v8.3
+
+### Issues
+
+- Issue 2107 Publish a specific build mode to an environment
+- Issue 1915 CICD fails on releases/26.x branch - '26.x' cannot be recognized as a semantic version string
+
+### The default pull request trigger is changing
+
+AL-Go for GitHub is transitioning from the pull_request_target trigger to the more secure pull_request trigger. This is a step we are taking to make AL-Go for GitHub more secure by default. If you are used to working from branches within the repository you may not notice any difference. If you get pull requests from forks, those pull requests will no longer be able to access secrets. If that is blocking for your repository, you will need to update your settings to use the pull_request_target trigger.
+
+**How do I revert back to pull_request_target?**
+
+Add the following setting to one of your settings files and run the Update AL-Go System Files workflow:
+
+```json
+  "pullRequestTrigger": "pull_request_target"
+```
+
+## v8.2
+
+### Issues
+
 - Issue 2095 DeliverToAppSource.ProductId needs to be specified (Library app)
 - Issue 2082 Sign action no longer fails when repository is empty or no artifacts are generated
 - Issue 2078 Workflows run since January 14th '26 have space before CI/CD removed

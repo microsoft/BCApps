@@ -50,4 +50,56 @@ enum 9060 "Storage Service API Version"
     {
         Caption = '2022-11-02', Locked = true;
     }
+    value(9; "2023-01-03")
+    {
+        Caption = '2023-01-03', Locked = true;
+    }
+    value(10; "2023-05-03")
+    {
+        Caption = '2023-05-03', Locked = true;
+    }
+    value(11; "2023-08-03")
+    {
+        Caption = '2023-08-03', Locked = true;
+    }
+    value(12; "2023-11-03")
+    {
+        Caption = '2023-11-03', Locked = true;
+    }
+    value(13; "2024-02-04")
+    {
+        Caption = '2024-02-04', Locked = true;
+    }
+    value(14; "2024-05-04")
+    {
+        Caption = '2024-05-04', Locked = true;
+    }
+    value(15; "2024-08-04")
+    {
+        Caption = '2024-08-04', Locked = true;
+    }
+    value(16; "2024-11-04")
+    {
+        Caption = '2024-11-04', Locked = true;
+    }
+    value(17; "2025-01-05")
+    {
+        Caption = '2025-01-05', Locked = true;
+    }
+    value(18; "2025-05-05")
+    {
+        Caption = '2025-05-05', Locked = true;
+    }
+    value(19; "2025-07-05")
+    {
+        Caption = '2025-07-05', Locked = true;
+    }
+    value(20; "2025-11-05")
+    {
+        Caption = '2025-11-05', Locked = true;
+    }
+    value(21; "2026-02-06")
+    {
+        Caption = '2026-02-06', Locked = true;
+    }
 }

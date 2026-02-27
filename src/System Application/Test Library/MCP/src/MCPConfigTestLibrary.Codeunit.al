@@ -48,4 +48,9 @@ codeunit 130131 "MCP Config Test Library"
     begin
         exit(MCPConfigImplementation.GetHighestAPIVersion(PageMetadata));
     end;
+
+    procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
+    begin
+        exit(MCPConfigImplementation.GenerateConnectionString(ConfigurationName));
+    end;
 }

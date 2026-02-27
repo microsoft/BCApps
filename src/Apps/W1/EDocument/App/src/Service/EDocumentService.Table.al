@@ -356,11 +356,7 @@ table 6103 "E-Document Service"
     end;
 
     internal procedure GetImportProcessVersion(): Enum "E-Document Import Process"
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
     begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            exit("E-Document Import Process"::"Version 1.0");
         exit(Rec."Import Process");
     end;
 
