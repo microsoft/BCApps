@@ -63,7 +63,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesHeader.CalcFields("Amount Including VAT");
         LibraryAssert.AreEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 'The SalesHeader."Amount Including VAT" must be equal to RefundHeader."Total Refunded Amount".');
         // Tear down
-        ResetProccesOnRefund(RefundId);
+        ResetProcessOnRefund(RefundId);
     end;
 
     [Test]
@@ -99,7 +99,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesHeader.CalcFields("Amount Including VAT");
         LibraryAssert.AreNearlyEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 0.5, 'The SalesHeader."Amount Including VAT" must be equal to RefundHeader."Total Refunded Amount".');
         // Tear down
-        ResetProccesOnRefund(RefundId);
+        ResetProcessOnRefund(RefundId);
     end;
 
     [Test]
@@ -136,7 +136,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 'The SalesHeader."Amount Including VAT" must be equal to RefundHeader."Total Refunded Amount".');
 
         // Tear down
-        ResetProccesOnRefund(RefundId);
+        ResetProcessOnRefund(RefundId);
     end;
 
     [Test]
@@ -434,7 +434,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesLine.SetRange(Description, StrSubstNo(ShopifyOrderNoLbl, RefundHeader."Shopify Order No."));
         LibraryAssert.RecordIsNotEmpty(SalesLine);
         // Tear down
-        ResetProccesOnRefund(RefundId);
+        ResetProcessOnRefund(RefundId);
     end;
 
     [Test]
@@ -444,13 +444,15 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesHeader: Record "Sales Header";
         RefundHeader: Record "Shpfy Refund Header";
         RefundId: BigInteger;
-        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";        
         CanCreateDocument: Boolean;
         ErrorInfo: ErrorInfo;
+        RefundAccount: Code[20];
     begin
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where only the shipment is refunded.
         Initialize();
         Shop := InitializeTest.CreateShop();
+        RefundAccount := Shop."Refund Account";
         Shop."Refund Account" := '';
         Shop.Modify(false);
 
@@ -473,7 +475,47 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(RefundHeader."Has Processing Error", true, 'RefundHeader."Has Processing Error" must be true');
 
         // Tear down
-        ResetProccesOnRefund(RefundId);
+        ResetProcessOnRefund(RefundId);
+        Shop."Refund Account" := RefundAccount;
+        Shop.Modify(false);
+    end;
+
+    [Test]
+    procedure UnitTestCreateReturnOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        Shop: Record "Shpfy Shop";
+        RefundId: BigInteger;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        CanCreateDocument: Boolean;
+        ErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO] Create a Return Order from a Shopify Refund where only the shipment is refunded.
+        Initialize();
+
+        // [GIVEN] Shop configured to process returns as Return Order
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Shpfy Process Returns As"::"Return Order";
+        Shop.Modify(false);
+
+        // [GIVEN] Set the process of the document: "Auto Create Credit Memo";
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        // [GIVEN] The document type Refund
+        // [GIVEN] The RefundId of the refund for creating the Return Order.
+        RefundId := ShopifyIds.Get('Refund').Get(2);
+
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [THEN] CanCreateDocument must be true
+        LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+        // [THEN] SalesHeader."Document Type" = Enum::"Sales Document Type"::"Return Order"
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Return Order", SalesHeader."Document Type", 'SalesHeader."Document Type" must be a Return Order');
+        // Tear down
+        ResetProcessOnRefund(RefundId);
     end;
 
     local procedure Initialize()
@@ -492,7 +534,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         Commit();
     end;
 
-    local procedure ResetProccesOnRefund(ReFundId: Integer)
+    local procedure ResetProcessOnRefund(ReFundId: Integer)
     var
         ShpfyDocLinkToDoc: Record "Shpfy Doc. Link To Doc.";
     begin

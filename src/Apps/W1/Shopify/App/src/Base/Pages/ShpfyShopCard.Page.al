@@ -576,6 +576,10 @@ page 30101 "Shpfy Shop Card"
                         Caption = 'Return Location Priority';
                         ToolTip = 'Specifies the priority of the return location.';
                     }
+                    field("Process Returns As"; Rec."Process Returns As")
+                    {
+                        ApplicationArea = All;
+                    }
                     field("Location Code of Returns"; Rec."Return Location")
                     {
                         ApplicationArea = All;
