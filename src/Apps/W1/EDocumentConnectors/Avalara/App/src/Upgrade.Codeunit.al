@@ -8,7 +8,6 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 #endif
-
 using System.Upgrade;
 
 #pragma warning disable AS0130
@@ -55,7 +54,6 @@ codeunit 6380 Upgrade
     end;
 #endif
 
-
 #if not CLEANSCHEMA30
     local procedure UpdateAvalaraDocId()
     var
@@ -94,7 +92,7 @@ codeunit 6380 Upgrade
             if EDocumentServiceStatus.FindSet() then
                 repeat
                     if EDocument.Get(EDocumentServiceStatus."E-Document Entry No") then begin
-                        RecordRef := EDocument;
+                        RecordRef.GetTable(EDocument);
                         DocumentId := RecordRef.Field(6363).Value();
                         if DocumentId <> '' then begin
                             EDocument."Avalara Document Id" := CopyStr(DocumentId, 1, MaxStrLen(EDocument."Avalara Document Id"));
@@ -115,7 +113,6 @@ codeunit 6380 Upgrade
                     end;
                     ConnectionSetup.Modify();
                 until ConnectionSetup.Next() = 0;
-
         end;
         UpgradeTag.SetUpgradeTag(UpgradeAvalaraDocIdTag());
     end;
@@ -137,6 +134,4 @@ codeunit 6380 Upgrade
     begin
         exit('MS-547765-UpdateAvalaraDocId-20250627');
     end;
-
-
 }

@@ -11,13 +11,20 @@ permissionset 6372 Edit
 {
     Access = Public;
     Assignable = true;
-    IncludedPermissionSets = "Avalara Read";
     Caption = 'Avalara E-Document Connector - Edit';
+    IncludedPermissionSets = "Avalara Read";
     ObsoleteReason = 'This permission set is obsolete. Use Avalara Edit permission set instead.';
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
 
-    Permissions = tabledata "Connection Setup" = imd;
+    Permissions =
+                tabledata "Activation Header" = imd,
+                tabledata "Activation Mandate" = imd,
+                tabledata "Avalara Input Field" = imd,
+                tabledata "Connection Setup" = imd,
+                tabledata "Media Types" = imd,
+                tabledata "Message Event" = imd,
+                tabledata "Message Response Header" = imd;
 }
 
 #pragma warning restore AS0072 // Obsolete permission set

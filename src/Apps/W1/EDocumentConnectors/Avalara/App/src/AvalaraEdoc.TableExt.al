@@ -12,6 +12,12 @@ tableextension 6372 "Avalara E-Doc." extends "E-Document"
     {
         field(6373; "Avalara Document Id"; Text[50])
         {
+            Caption = 'Avalara Document Id';
+            DataClassification = CustomerContent;
+        }
+        field(6374; "Avalara Response Value"; Text[100])
+        {
+            Caption = 'Avalara Response Value';
             DataClassification = CustomerContent;
         }
     }
