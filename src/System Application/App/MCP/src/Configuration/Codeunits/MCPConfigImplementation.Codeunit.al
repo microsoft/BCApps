@@ -10,6 +10,7 @@ using System.Environment;
 #if not CLEAN28
 using System.Environment.Configuration;
 #endif
+using System.Feedback;
 using System.Reflection;
 using System.Utilities;
 
@@ -57,6 +58,10 @@ codeunit 8351 "MCP Config Implementation"
         JsonFilterTxt: Label 'JSON Files (*.json)|*.json';
         InvalidJsonErr: Label 'The selected file is not a valid configuration file.';
         ConfigNameExistsMsg: Label 'A configuration with the name ''%1'' already exists. Please provide a different name.', Comment = '%1 = configuration name';
+        MCPServerFeedbackConfirmQst: Label 'We noticed you no longer have any active configurations. Could you share what made you decide to stop using the MCP server? Your feedback helps us improve the experience.';
+        MCPServerFeedbackQst: Label 'What could we do to improve the MCP server experience?';
+        NoActiveConfigsFeedbackTxt: Label 'No active configs feedback triggered', Locked = true;
+        GeneralFeedbackTxt: Label 'General MCP feedback triggered', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -1040,16 +1045,40 @@ codeunit 8351 "MCP Config Implementation"
     end;
     #endregion
 
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
+    #region Feedback
+    internal procedure TriggerNoActiveConfigsFeedback()
     var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
+        Feedback: Codeunit "Microsoft User Feedback";
     begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
+        if not Confirm(MCPServerFeedbackConfirmQst, true) then
+            exit;
 
+        Feedback.WithCustomQuestion(MCPServerFeedbackQst, MCPServerFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
+        Feedback.RequestDislikeFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+
+        Session.LogMessage('0000RTR', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
+    end;
+
+    internal procedure TriggerGeneralFeedback()
+    var
+        Feedback: Codeunit "Microsoft User Feedback";
+    begin
+        Feedback.RequestFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+
+        Session.LogMessage('0000RTS', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
+    end;
+
+    internal procedure HasNoActiveConfigurations(): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        MCPConfiguration.SetRange(Active, true);
+        MCPConfiguration.SetFilter(Name, '<>%1', '');
+        exit(MCPConfiguration.IsEmpty());
+    end;
+    #endregion Feedback
+
+    #region Telemetry
     local procedure GetDimensions(MCPConfiguration: Record "MCP Configuration") Dimensions: Dictionary of [Text, Text]
     begin
         Dimensions.Add('Category', GetTelemetryCategory());
@@ -1102,4 +1131,15 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogMessage('0000QEB', MCPConfigurationDeletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
+    #endregion
+
+#if not CLEAN28
+    internal procedure IsFeatureEnabled(): Boolean
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
+    begin
+        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
+    end;
+#endif
 }

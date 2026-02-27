@@ -46,6 +46,12 @@
       "name": "Upgrade Tags",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "f7964d32-7685-400f-8297-4bc17d0aab0e",
+      "name": "Microsoft User Feedback",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "internalsVisibleTo": [
