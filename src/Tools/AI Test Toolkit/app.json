@@ -26,6 +26,13 @@
       "version": "29.0.0.0"
     }
   ],
+  "internalsVisibleTo": [
+      {
+        "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
+        "name": "Agent Test Library",
+        "publisher": "Microsoft"
+      }
+  ],
   "screenshots": [],
   "platform": "28.0.0.0",
   "idRanges": [
