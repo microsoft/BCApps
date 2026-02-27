@@ -82,61 +82,6 @@ codeunit 4300 "Agent Task Impl."
         exit(AgentTaskMessage);
     end;
 
-    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry")
-    begin
-        CreateUserIntervention(UserInterventionRequestEntry, '', -1);
-    end;
-
-    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text)
-    begin
-        CreateUserIntervention(UserInterventionRequestEntry, UserInput, -1);
-    end;
-
-    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; SelectedSuggestionId: Integer)
-    begin
-        CreateUserIntervention(UserInterventionRequestEntry, '', SelectedSuggestionId);
-    end;
-
-    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text; SelectedSuggestionId: Text)
-    var
-        SelectedSuggestionIdInt: Integer;
-    begin
-        if SelectedSuggestionId <> '' then
-            if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then begin
-                CreateUserIntervention(UserInterventionRequestEntry, UserInput, SelectedSuggestionIdInt);
-                exit;
-            end
-            else
-                Session.LogMessage('0000PKA', StrSubstNo(InvalidSelectedSuggestionIdErr, SelectedSuggestionId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-
-        CreateUserIntervention(UserInterventionRequestEntry, UserInput);
-    end;
-
-    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text; SelectedSuggestionId: Integer)
-    var
-        AgentTask: Record "Agent Task";
-        AgentALFunctions: DotNet AgentALFunctions;
-        UserIntervention: DotNet "AgentTaskUserIntervention";
-    begin
-        AgentTask.Get(UserInterventionRequestEntry."Task ID");
-
-        UserIntervention := UserIntervention.AgentTaskUserInterventionDetails();
-        if UserInput <> '' then
-            UserIntervention.UserInput := UserInput;
-        if SelectedSuggestionId >= 0 then
-            UserIntervention.SelectedSuggestionId := SelectedSuggestionId;
-        AgentALFunctions.CreateAgentTaskUserIntervention(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID, UserIntervention);
-    end;
-
-    procedure GetUserInterventionRequestDetails(UserInterventionRequestEntry: Record "Agent Task Log Entry"; var UserInterventionRequest: DotNet "AgentTaskUserInterventionRequest")
-    var
-        AgentTask: Record "Agent Task";
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        AgentTask.Get(UserInterventionRequestEntry."Task ID");
-        UserInterventionRequest := AgentALFunctions.GetAgentTaskUserInterventionRequest(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID);
-    end;
-
     procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
     begin
         if ((AgentTask.Status = AgentTaskStatus) and (AgentTask."Needs Attention" = false)) then
@@ -247,6 +192,4 @@ codeunit 4300 "Agent Task Impl."
         MessageTextMustBeProvidedErr: Label 'You must provide a message text.';
         AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';
         AreYouSureThatYouWantToStopTheTaskQst: Label 'Are you sure that you want to stop the task?';
-        InvalidSelectedSuggestionIdErr: Label 'Invalid SelectedSuggestionId: %1', Comment = '%1 - SelectedSuggestionId', Locked = true;
-        CategoryTok: Label 'Agents', Locked = true;
 }

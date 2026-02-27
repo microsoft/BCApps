@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "",
   "description": "Test library functions for Feature Configuration module",
-  "version": "28.0.0.0",
+  "version": "29.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "",
@@ -15,13 +15,13 @@
       "id": "4c7e7094-fe3b-43da-970d-1ca056f7f3d3",
       "name": "Feature Configuration",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],
