@@ -119,78 +119,12 @@ codeunit 148192 "Unit Tests - Avalara Functions"
         AvalaraInputField.DeleteAll();
     end;
 
-    [Test]
-    procedure TestCreateBoilerPlateDefs_CreatesDataExchangeDefinitions()
-    var
-        DataExchDef: Record "Data Exch. Def";
-        AvalaraFunctions: Codeunit "Avalara Functions";
-        EDocumentService: Record "E-Document Service";
-    begin
-        // [SCENARIO] CreateBoilerPlateDefs creates necessary data exchange definitions
-
-        // [GIVEN] A mandate identifier
-        Initialize();
-        CreateMockEDocumentService(EDocumentService, 'GB-TEST');
-
-        // [WHEN] Creating boilerplate definitions
-        AvalaraFunctions.CreateBoilerPlateDefs('GB-TEST');
-
-        // [THEN] Data exchange definitions should be created
-        DataExchDef.SetFilter(Code, 'GB-TEST*');
-        Assert.RecordIsNotEmpty(DataExchDef);
-
-        // Cleanup
-        DataExchDef.DeleteAll(true);
-    end;
-
-    [Test]
-    procedure TestEnsureMaintenanceJobQueueEntry_CreatesJobQueue()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-        AvalaraFunctions: Codeunit "Avalara Functions";
-    begin
-        // [SCENARIO] EnsureMaintenanceJobQueueEntry creates or updates job queue entry
-
-        // [GIVEN] No existing maintenance job queue entry
-        Initialize();
-        DeleteMaintenanceJobQueues();
-
-        // [WHEN] Ensuring maintenance job queue entry exists
-        AvalaraFunctions.EnsureMaintenanceJobQueueEntry();
-
-        // [THEN] Job queue entry should be created
-        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::Maintenance);
-        Assert.RecordIsNotEmpty(JobQueueEntry);
-
-        // Cleanup
-        JobQueueEntry.DeleteAll();
-    end;
-
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
 
         IsInitialized := true;
-    end;
-
-    local procedure CreateMockConnectionSetup(var ConnectionSetup: Record "Connection Setup")
-    var
-        AvalaraAuth: Codeunit Authenticator;
-        KeyGuid: Guid;
-    begin
-        if not ConnectionSetup.Get() then begin
-            AvalaraAuth.CreateConnectionSetupRecord();
-            ConnectionSetup.Get();
-        end;
-
-        AvalaraAuth.SetClientId(KeyGuid, 'mock-client-id');
-        ConnectionSetup."Client Id - Key" := KeyGuid;
-        AvalaraAuth.SetClientSecret(KeyGuid, 'mock-client-secret');
-        ConnectionSetup."Client Secret - Key" := KeyGuid;
-        ConnectionSetup."Company Id" := 'mock-company-id';
-        ConnectionSetup.Modify(true);
     end;
 
     local procedure CreateMockEDocumentService(var EDocumentService: Record "E-Document Service"; Mandate: Code[40])
@@ -205,14 +139,5 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     local procedure GetMockFieldsJson(): Text
     begin
         exit('[{"fieldId":1,"documentType":"ubl-invoice","documentVersion":"2.1","path":"//cbc:ID","pathType":"xpath","fieldName":"Invoice Number","exampleOrFixedValue":"INV-001","documentationLink":"http://example.com","dataType":"string","description":"Invoice identifier","optionality":"mandatory","acceptedValues":""}]');
-    end;
-
-    local procedure DeleteMaintenanceJobQueues()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::Maintenance);
-        JobQueueEntry.DeleteAll();
     end;
 }

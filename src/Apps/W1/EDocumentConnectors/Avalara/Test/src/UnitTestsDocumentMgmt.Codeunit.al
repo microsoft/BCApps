@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.EServices.EDocumentConnector.Avalara;
 
 codeunit 133635 "Unit Tests - Document Mgmt"
 {

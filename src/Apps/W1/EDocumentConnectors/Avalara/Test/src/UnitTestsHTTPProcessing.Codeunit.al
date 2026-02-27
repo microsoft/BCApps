@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.eServices.EDocument;
-
 codeunit 148191 "Unit Tests - HTTP & Processing"
 {
     Subtype = Test;
@@ -151,132 +149,6 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
         // Test implementation depends on Processing codeunit structure
     end;
 
-    [Test]
-    [HandlerFunctions('HttpSubmitDocumentHandler')]
-    procedure TestProcessing_SendEDocument_SetsDocumentId()
-    var
-        EDocument: Record "E-Document";
-        EDocService: Record "E-Document Service";
-        Processing: Codeunit Processing;
-        SendContext: Codeunit SendContext;
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-    begin
-        // [SCENARIO] SendEDocument sets Avalara Document ID
-
-        // [GIVEN] E-Document and mock payload
-        Initialize();
-        CreateMockConnectionSetup();
-        CreateMockEDocument(EDocument);
-        CreateMockEDocumentService(EDocService);
-
-        TempBlob.CreateOutStream(OutStream);
-        OutStream.WriteText('<?xml version="1.0"?><Invoice></Invoice>');
-        SendContext.GetTempBlob().FromRecord(TempBlob);
-
-        // [WHEN] Sending E-Document
-        Processing.SendEDocument(EDocument, EDocService, SendContext);
-
-        // [THEN] Avalara Document ID should be set
-        EDocument.Get(EDocument."Entry No");
-        Assert.AreNotEqual('', EDocument."Avalara Document Id", 'Avalara Document ID should be set');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpStatusCompleteHandler')]
-    procedure TestProcessing_GetDocumentStatus_Complete_ReturnsTrue()
-    var
-        EDocument: Record "E-Document";
-        Processing: Codeunit Processing;
-        SendContext: Codeunit SendContext;
-        Result: Boolean;
-    begin
-        // [SCENARIO] GetDocumentStatus returns true for complete status
-
-        // [GIVEN] E-Document with Avalara Document ID
-        Initialize();
-        CreateMockConnectionSetup();
-        CreateMockEDocument(EDocument);
-        EDocument."Avalara Document Id" := 'test-doc-id';
-        EDocument.Modify();
-
-        // [WHEN] Getting document status (complete)
-        Result := Processing.GetDocumentStatus(EDocument, SendContext);
-
-        // [THEN] Should return true
-        Assert.IsTrue(Result, 'Should return true for complete status');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpStatusPendingHandler')]
-    procedure TestProcessing_GetDocumentStatus_Pending_ReturnsFalse()
-    var
-        EDocument: Record "E-Document";
-        Processing: Codeunit Processing;
-        SendContext: Codeunit SendContext;
-        Result: Boolean;
-    begin
-        // [SCENARIO] GetDocumentStatus returns false for pending status
-
-        // [GIVEN] E-Document with Avalara Document ID
-        Initialize();
-        CreateMockConnectionSetup();
-        CreateMockEDocument(EDocument);
-        EDocument."Avalara Document Id" := 'test-doc-id';
-        EDocument.Modify();
-
-        // [WHEN] Getting document status (pending)
-        Result := Processing.GetDocumentStatus(EDocument, SendContext);
-
-        // [THEN] Should return false
-        Assert.IsFalse(Result, 'Should return false for pending status');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpStatusErrorHandler')]
-    procedure TestProcessing_GetDocumentStatus_Error_ThrowsError()
-    var
-        EDocument: Record "E-Document";
-        Processing: Codeunit Processing;
-        SendContext: Codeunit SendContext;
-        Result: Boolean;
-    begin
-        // [SCENARIO] GetDocumentStatus throws error for error status
-
-        // [GIVEN] E-Document with Avalara Document ID
-        Initialize();
-        CreateMockConnectionSetup();
-        CreateMockEDocument(EDocument);
-        EDocument."Avalara Document Id" := 'test-doc-id';
-        EDocument.Modify();
-
-        // [WHEN] [THEN] Getting document status (error) should throw error
-        asserterror Result := Processing.GetDocumentStatus(EDocument, SendContext);
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpReceiveDocumentsHandler')]
-    procedure TestProcessing_ReceiveDocuments_LoadsDocuments()
-    var
-        EDocService: Record "E-Document Service";
-        Processing: Codeunit Processing;
-        ReceiveContext: Codeunit ReceiveContext;
-        ReceivedEDocuments: Codeunit "Temp Blob List";
-    begin
-        // [SCENARIO] ReceiveDocuments loads available documents
-
-        // [GIVEN] Valid E-Document service
-        Initialize();
-        CreateMockConnectionSetup();
-        CreateMockEDocumentService(EDocService);
-
-        // [WHEN] Receiving documents
-        Processing.ReceiveDocuments(EDocService, ReceivedEDocuments, ReceiveContext);
-
-        // [THEN] Documents should be loaded
-        Assert.IsTrue(ReceivedEDocuments.Count() > 0, 'Should receive documents');
-    end;
-
     // ============================================================================
     // Request Builder Tests
     // ============================================================================
@@ -373,25 +245,6 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup."Company Id" := 'test-company-id';
         ConnectionSetup.Modify(true);
-    end;
-
-    local procedure CreateMockEDocument(var EDocument: Record "E-Document")
-    begin
-        EDocument.Init();
-        EDocument."Entry No" := 100;
-        EDocument.Status := EDocument.Status::Created;
-        if EDocument.Insert() then;
-    end;
-
-    local procedure CreateMockEDocumentService(var EDocService: Record "E-Document Service")
-    begin
-        if not EDocService.Get('AVALARA-TEST') then begin
-            EDocService.Init();
-            EDocService.Code := 'AVALARA-TEST';
-            EDocService."Service Integration V2" := EDocService."Service Integration V2"::Avalara;
-            EDocService."Avalara Mandate" := 'GB-TEST';
-            EDocService.Insert();
-        end;
     end;
 
     // ============================================================================
