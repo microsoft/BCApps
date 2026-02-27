@@ -21,20 +21,41 @@ function Get-DisabledTests
     return @($disabledTests)
 }
 
+function Test-KnownTransientError {
+    param(
+        [string]$ErrorMessage
+    )
+    $knownTransientErrors = @(
+        "Cannot open page 130455"
+    )
+
+    foreach ($pattern in $knownTransientErrors) {
+        if ($ErrorMessage -like "*$pattern*") {
+            return $true
+        }
+    }
+    return $false
+}
+
 function Invoke-TestsWithReruns {
     param(
         [Hashtable]$parameters,
         [int]$maxReruns = 2
     )
     $attempt = 0
+    $hasRetriedTransientError = $false
     while ($attempt -lt $maxReruns) {
         $testsSucceeded = $false
+        $isTransientError = $false
         # Run tests and catch any exceptions to prevent the script from terminating
         try {
             $testsSucceeded = Run-TestsInBcContainer @parameters
         } catch {
             $testsSucceeded = $false
-            Write-Host "Exception occurred while running tests: $($_.Exception.Message) / $($_.Exception.StackTrace)"
+            $errorMessage = $_.Exception.Message
+            $isTransientError = Test-KnownTransientError -ErrorMessage $errorMessage
+            Write-Host "Exception occurred while running tests: $errorMessage / $($_.Exception.StackTrace)"
+            Write-Host "Is transient error: $isTransientError"
         }
 
         # Check if tests succeeded
@@ -43,6 +64,12 @@ function Invoke-TestsWithReruns {
             return $true
         } else {
             $attempt++
+            if ($isTransientError -and -not $hasRetriedTransientError) {
+                # Known transient error: retry with a fresh run (no ReRun flag)
+                $hasRetriedTransientError = $true
+                $attempt--
+            }
+            
             $parameters["ReRun"] = $true
             if ($attempt -ge $maxReruns) {
                 Write-Host "Tests failed after $maxReruns attempts."
@@ -60,7 +87,6 @@ if ($null -ne $TestType) {
 }
 
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
-$parameters["renewClientContextBetweenTests"] = $true
 
 if ($DisableTestIsolation)
 {
