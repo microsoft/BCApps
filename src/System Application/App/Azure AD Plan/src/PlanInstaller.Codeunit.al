@@ -32,7 +32,7 @@ codeunit 9056 "Plan Installer"
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
     begin
-        CreatePlan(PlanIds.GetD365BCAdminPlanId(), 'Delegated Dynamics 365 Business Central Administrator', 9022, 'FFF16A30-3B0B-47CB-9751-54A5C8F634ED');
+        CreatePlan(PlanIds.GetD365BCAdminPlanId(), 'Delegated D365 Business Central Administrator', 9022, 'FFF16A30-3B0B-47CB-9751-54A5C8F634ED');
         CreatePlan(PlanIds.GetBCAdminPlanId(), 'Internal BC Administrator', 9022, 'A2BB1194-FC0B-4C6B-840F-963851B783C9');
         CreatePlan(PlanIds.GetDelegatedGlobalAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
