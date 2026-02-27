@@ -62,6 +62,7 @@ page 20408 "Qlty. Inspection List"
                 {
                     AboutTitle = 'Inspection status at a glance';
                     AboutText = '**Status** shows whether the inspection is still in progress or finished. Finished inspections are locked and can''t be changed.';
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Result Code"; Rec."Result Code")
                 {
@@ -695,6 +696,7 @@ page 20408 "Qlty. Inspection List"
         CanFinish: Boolean;
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnOpenPage()
     begin
@@ -702,6 +704,18 @@ page 20408 "Qlty. Inspection List"
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
         CanCreateReinspection := RowActionsAreEnabled;
+        StatusStyleExpr :=
+            Rec.Status = Rec.Status::Open ? 'Favorable' :
+            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
+            'None';
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        StatusStyleExpr :=
+            Rec.Status = Rec.Status::Open ? 'Favorable' :
+            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
+            'None';
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -711,6 +725,10 @@ page 20408 "Qlty. Inspection List"
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
+        StatusStyleExpr :=
+            Rec.Status = Rec.Status::Open ? 'Favorable' :
+            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
+            'None';
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;
