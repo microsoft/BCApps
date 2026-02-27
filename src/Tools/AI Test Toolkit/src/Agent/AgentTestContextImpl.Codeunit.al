@@ -15,10 +15,6 @@ codeunit 149049 "Agent Test Context Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    var
-        GlobalAgentUserSecurityID: Guid;
-        AgentIsNotActiveErr: Label 'Agent %1 set on suite %2 is not active.', Comment = '%1 = Agent ID, %2 = Suite Code';
-
     procedure GetAgentRecord(var AgentUserSecurityID: Guid)
     begin
         AgentUserSecurityID := GlobalAgentUserSecurityID;
@@ -244,4 +240,6 @@ codeunit 149049 "Agent Test Context Impl."
 
     var
         AgentTaskList: List of [BigInteger];
+        GlobalAgentUserSecurityID: Guid;
+        AgentIsNotActiveErr: Label 'Agent %1 set on suite %2 is not active.', Comment = '%1 = Agent ID, %2 = Suite Code';
 }
