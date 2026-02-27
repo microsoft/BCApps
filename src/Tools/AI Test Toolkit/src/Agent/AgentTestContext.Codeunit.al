@@ -15,12 +15,12 @@ codeunit 149048 "Agent Test Context"
     InherentPermissions = X;
 
     /// <summary>
-    /// Gets the agent that is used by the test suite.
+    /// Gets the user security ID of the agent that is used by the test suite.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent used by the test suite. If no agent is set, a null GUID is returned.</param>
-    procedure GetAgentRecord(var AgentUserSecurityID: Guid)
+    procedure GetAgentUserSecurityID(var AgentUserSecurityID: Guid)
     begin
-        AgentTestContextImpl.GetAgentRecord(AgentUserSecurityID);
+        AgentTestContextImpl.GetAgentUserSecurityID(AgentUserSecurityID);
     end;
 
     /// <summary>

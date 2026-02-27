@@ -15,7 +15,7 @@ codeunit 149049 "Agent Test Context Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure GetAgentRecord(var AgentUserSecurityID: Guid)
+    procedure GetAgentUserSecurityID(var AgentUserSecurityID: Guid)
     begin
         AgentUserSecurityID := GlobalAgentUserSecurityID;
     end;
