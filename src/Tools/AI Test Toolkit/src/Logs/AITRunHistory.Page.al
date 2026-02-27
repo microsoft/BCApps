@@ -137,7 +137,7 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by agent sessions are not included in this number.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokans consumed by agent sessions are not included in this number.';
                     }
                     field("No. of Tests - By Tag"; Rec."No. of Tests Executed - By Tag")
                     {
@@ -183,7 +183,7 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.Tokens consumed by agent sessions are not included in this number.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokans consumed by agent sessions are not included in this number.';
                     }
                 }
             }

@@ -223,7 +223,7 @@ page 149031 "AIT Test Suite"
                 {
                     Editable = false;
                     Caption = 'Average Tokens Consumed';
-                    ToolTip = 'Specifies the average number of tokens consumed by the evals in the last run.Tokens consumed by agent sessions are not included in this number.';
+                    ToolTip = 'Specifies the average number of tokens consumed by the evals in the last run. Tokans consumed by agent sessions are not included in this number.';
                 }
             }
 

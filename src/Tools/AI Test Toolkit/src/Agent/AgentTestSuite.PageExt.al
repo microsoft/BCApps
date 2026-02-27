@@ -18,7 +18,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             {
                 ApplicationArea = All;
                 Caption = 'Agent';
-                ToolTip = 'Specifies the agent to be used by the tests.';
+                ToolTip = 'Specifies the agent to be used by the tests. You can use this field to test different configurations without changing the code. If you manually configure the agent and set it on the suite, this instance will be used in the eval runs. If you leave it blank, the system will automatically create an agent for each run.';
 
                 trigger OnValidate()
                 begin

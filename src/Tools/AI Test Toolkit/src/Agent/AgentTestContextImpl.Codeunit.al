@@ -20,23 +20,6 @@ codeunit 149049 "Agent Test Context Impl."
         AgentUserSecurityID := GlobalAgentUserSecurityID;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnRunTestSuite, '', false, false)]
-    local procedure OnRunTestSuite(var TestMethodLine: Record "Test Method Line")
-    var
-        AITTestSuite: Record "AIT Test Suite";
-        Agent: Codeunit Agent;
-        AITTestContext: Codeunit "AIT Test Context";
-    begin
-        AITTestContext.GetAITTestSuite(AITTestSuite);
-
-        if IsNullGuid(AITTestSuite."Agent User Security ID") then
-            exit;
-
-        GlobalAgentUserSecurityID := AITTestSuite."Agent User Security ID";
-        if not Agent.IsActive(GlobalAgentUserSecurityID) then
-            Error(AgentIsNotActiveErr, AITTestSuite.Code, AITTestSuite."Agent User Security ID");
-    end;
-
     procedure AddTaskToLog(AgentTaskId: BigInteger)
     begin
         if not AgentTaskList.Contains(AgentTaskId) then
@@ -97,7 +80,7 @@ codeunit 149049 "Agent Test Context Impl."
             AgentTaskLog.SetRange(Tag, Tag);
         if VersionFilter <> '' then
             AgentTaskLog.SetFilter(Version, VersionFilter);
-        if TestMethodLineNo <> 0 then
+        if TestMethodLineNo > 0 then
             AgentTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
 
         exit(GetAgentTaskIDs(AgentTaskLog));
@@ -199,9 +182,9 @@ codeunit 149049 "Agent Test Context Impl."
 
     local procedure ConvertCommaSeparatedToFilter(CommaSeparatedValues: Text): Text
     var
+        FilterTextBuilder: TextBuilder;
         Values: List of [Text];
         CurrentValue: Text;
-        FilterText: Text;
         IsFirst: Boolean;
     begin
         if CommaSeparatedValues = '' then
@@ -213,12 +196,12 @@ codeunit 149049 "Agent Test Context Impl."
             CurrentValue := CurrentValue.Trim();
             if CurrentValue <> '' then
                 if IsFirst then begin
-                    FilterText := CurrentValue;
+                    FilterTextBuilder.Append(CurrentValue);
                     IsFirst := false;
                 end else
-                    FilterText += '|' + CurrentValue;
+                    FilterTextBuilder.Append('|' + CurrentValue);
         end;
-        exit(FilterText);
+        exit(FilterTextBuilder.ToText());
     end;
 
     local procedure ConcatenateList(TextList: List of [Text]; Separator: Text): Text
@@ -236,6 +219,23 @@ codeunit 149049 "Agent Test Context Impl."
                 Result += Separator + Item;
 
         exit(Result);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnRunTestSuite, '', false, false)]
+    local procedure OnRunTestSuite(var TestMethodLine: Record "Test Method Line")
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        Agent: Codeunit Agent;
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITTestContext.GetAITTestSuite(AITTestSuite);
+
+        if IsNullGuid(AITTestSuite."Agent User Security ID") then
+            exit;
+
+        GlobalAgentUserSecurityID := AITTestSuite."Agent User Security ID";
+        if not Agent.IsActive(GlobalAgentUserSecurityID) then
+            Error(AgentIsNotActiveErr, AITTestSuite.Code, AITTestSuite."Agent User Security ID");
     end;
 
     var
