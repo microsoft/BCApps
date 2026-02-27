@@ -11,7 +11,7 @@ using Microsoft.QualityManagement.Document;
 /// Power Automate friendly web service for quality inspections.
 /// This web service is used to help list inspection values.
 /// </summary>
-query 20401 "Qlty. Inspection Values API"
+query 20401 "Qlty. Inspection Values"
 {
     QueryType = API;
     APIPublisher = 'microsoft';
