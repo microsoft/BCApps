@@ -5,6 +5,8 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Helpers;
 
 page 6182 "E-Doc. Readable Purchase Doc."
 {
@@ -224,6 +226,16 @@ page 6182 "E-Doc. Readable Purchase Doc."
                     Caption = 'Total';
                     ToolTip = 'Specifies the total.';
                 }
+                field(KeyValuePairs; KeyValuePairs)
+                {
+                    Caption = 'Key Value Pairs';
+                    ToolTip = 'Specifies the key value pairs found in the document that could not be mapped to other fields.';
+                    Importance = Additional;
+                    MultiLine = true;
+                    Editable = false;
+                    ApplicationArea = All;
+                    Visible = true;
+                }
             }
             part("Lines"; "E-Doc. Read. Purch. Lines")
             {
@@ -236,6 +248,7 @@ page 6182 "E-Doc. Readable Purchase Doc."
     trigger OnAfterGetRecord()
     begin
         DataCaption := 'Extracted Data - Purchase Document ' + Format(Rec."E-Document Entry No.");
+        ExtractKeyValuePairs();
     end;
 
     trigger OnOpenPage()
@@ -252,6 +265,17 @@ page 6182 "E-Doc. Readable Purchase Doc."
         CurrPage.Lines.Page.SetBuffer(EDocumentPurchaseLine);
     end;
 
+    local procedure ExtractKeyValuePairs(): Text
     var
-        DataCaption: Text;
+        EDocument: Record "E-Document";
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+    begin
+        EDocument.Get(Rec."E-Document Entry No.");
+        if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
+            EDocumentJsonHelper.GetKeyValuePairsArray(EDocumentDataStorage.GetTempBlob()).WriteTo(KeyValuePairs);
+    end;
+
+    var
+        DataCaption, KeyValuePairs : Text;
 }

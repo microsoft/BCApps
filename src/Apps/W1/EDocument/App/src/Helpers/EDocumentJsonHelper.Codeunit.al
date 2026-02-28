@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Helpers;
 
+using System.Utilities;
+
 codeunit 6121 "EDocument Json Helper"
 {
     Access = Internal;
@@ -39,6 +41,16 @@ codeunit 6121 "EDocument Json Helper"
         InnerObject := JsonToken.AsObject();
         InnerObject.Get('result', JsonToken);
         exit(JsonToken.AsObject());
+    end;
+
+    internal procedure GetKeyValuePairsArray(SourceJsonObject: JsonObject): JsonArray
+    var
+        JsonToken: JsonToken;
+        ContentObject: JsonObject;
+    begin
+        ContentObject := GetInnerObject(SourceJsonObject);
+        ContentObject.Get('key_value_pairs', JsonToken);
+        exit(JsonToken.AsArray());
     end;
 
     internal procedure SetStringValueInField(FieldName: Text; MaxStrLen: Integer; var FieldsJsonObject: JsonObject; var Field: Text)
@@ -107,6 +119,47 @@ codeunit 6121 "EDocument Json Helper"
 
         JsonValue := JsonToken.AsValue();
         exit(true);
+    end;
+
+    internal procedure GetKeyValuePairsArray(StructuredData: Codeunit "Temp Blob"): JsonObject
+    var
+        InStream: InStream;
+        SourceJsonObject: JsonObject;
+        KeyValuePairsArray: JsonArray;
+        BlobAsText: Text;
+    begin
+        StructuredData.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(BlobAsText);
+        SourceJsonObject.ReadFrom(BlobAsText);
+
+        KeyValuePairsArray := GetKeyValuePairsArray(SourceJsonObject);
+        exit(ExtractKeysAndValuesFromKeyValuePairsArray(KeyValuePairsArray));
+    end;
+
+    internal procedure ExtractKeysAndValuesFromKeyValuePairsArray(var KeyValuePairsArray: JsonArray): JsonObject
+    var
+        KVObject, NewKV, ResultKVPairs : JsonObject;
+        KVToken: JsonToken;
+        KeyText, Value : Text;
+        ADIConfidence: Decimal;
+    begin
+        foreach KVToken in KeyValuePairsArray do begin
+            if not KVToken.IsObject() then
+                continue;
+            KVObject := KVToken.AsObject();
+            KeyText := KVObject.GetText('key', false);
+            Value := KVObject.GetText('value', false);
+            ADIConfidence := KVObject.GetDecimal('confidence', true);
+            if ResultKVPairs.Contains(KeyText) then
+                continue;
+            if ADIConfidence > 0.1 then begin
+                Clear(NewKV);
+                NewKV.Add('value', Value);
+                NewKV.Add('confidence', ADIConfidence);
+                ResultKVPairs.Add(KeyText, NewKV);
+            end;
+        end;
+        exit(ResultKVPairs);
     end;
 
     [TryFunction]
