@@ -18,7 +18,7 @@ pageextension 20432 "Qlty. Item Variants" extends "Item Variants"
                 ApplicationArea = QualityManagement;
                 AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 ToolTip = 'View quality inspections filtered by the selected item and variant.';
                 RunObject = Page "Qlty. Inspection List";
                 RunPageLink = "Source Item No." = field("Item No."),
