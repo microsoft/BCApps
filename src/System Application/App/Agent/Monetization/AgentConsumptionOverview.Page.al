@@ -105,6 +105,19 @@ page 4333 "Agent Consumption Overview"
                 {
                     Caption = 'Agent task ID';
                     Enabled = not FilteredToTask;
+                    Visible = false;
+                    trigger OnDrillDown()
+                    begin
+                        DrillDownToAgentTaskConsumption();
+                    end;
+                }
+
+                field("Agent Task ID Text"; AgentTaskId)
+                {
+                    Caption = 'Agent task ID';
+                    ToolTip = 'Specifies the agent task related to the consumption, if applicable.';
+                    Enabled = not FilteredToTask;
+
                     trigger OnDrillDown()
                     begin
                         DrillDownToAgentTaskConsumption();
@@ -234,11 +247,12 @@ page 4333 "Agent Consumption Overview"
                 Image = PreviousSet;
                 trigger OnAction()
                 begin
+                    ClearRepeaterCalculatedValues();
+                    ClearSelectedRecordValues();
+
                     StartDate := CalcDate('<-1M-CM>', StartDate);
                     EndDate := CalcDate('<CM>', StartDate);
                     UpdateDateRange(StartDate, EndDate);
-                    Clear(TaskNameTxt);
-                    Clear(TotalTaskConsumedCredits);
                     CurrPage.Update(false);
                 end;
             }
@@ -251,6 +265,9 @@ page 4333 "Agent Consumption Overview"
                 Image = NextSet;
                 trigger OnAction()
                 begin
+                    ClearRepeaterCalculatedValues();
+                    ClearSelectedRecordValues();
+
                     if EndDate >= CalcDate('<CM>', Today()) then begin
                         Message(TheEndDateIsTodayMsg);
                         exit;
@@ -275,6 +292,9 @@ page 4333 "Agent Consumption Overview"
 
                 trigger OnAction()
                 begin
+                    ClearRepeaterCalculatedValues();
+                    ClearSelectedRecordValues();
+
                     SetDateRangeFilters();
                     CurrPage.Update(false);
                 end;
@@ -310,52 +330,88 @@ page 4333 "Agent Consumption Overview"
 
     trigger OnAfterGetRecord()
     begin
-        UpdateRowValues();
+        ClearRepeaterCalculatedValues();
+
+        UpdateDescription();
+        UpdateUserName();
+        UpdateTaskId();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        ClearSelectedRecordValues();
+
         UpdateAgentTaskName();
         UpdateTheDescriptionAndTotalsVisibility();
         UpdateTotals();
     end;
 
-    local procedure UpdateRowValues()
+    local procedure ClearRepeaterCalculatedValues()
+    begin
+        Clear(UserName);
+        Clear(AgentTaskId);
+        Clear(DescriptionTxt);
+    end;
+
+    local procedure UpdateDescription()
     var
-        User: Record User;
         DescriptionInStream: InStream;
     begin
         Rec.CalcFields(Description);
         Rec.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         DescriptionInStream.ReadText(DescriptionTxt);
-        if not UserNameDictionary.ContainsKey(Rec."User Id") then begin
-            if User.Get(Rec."User Id") then begin
-                UserName := User."User Name";
-                UserNameDictionary.Add(Rec."User Id", UserName);
-            end else
-                UserName := '';
+    end;
 
+    local procedure UpdateUserName()
+    var
+        User: Record User;
+    begin
+        if UserNameDictionary.ContainsKey(Rec."User Id") then begin
+            UserName := UserNameDictionary.Get(Rec."User Id");
             exit;
         end;
 
-        UserName := UserNameDictionary.Get(Rec."User Id");
+        if User.Get(Rec."User Id") then begin
+            UserName := User."User Name";
+            UserNameDictionary.Add(Rec."User Id", UserName);
+        end;
+    end;
+
+    local procedure UpdateTaskId()
+    begin
+        AgentTaskId := Format(Rec."Agent Task ID");
+
+        if Rec."Agent Task Id" = 0 then
+            OnLoadAgentTask(Rec."User Id", Rec."Unique Id", AgentTaskId, TaskNameTxt, TotalTaskConsumedCredits);
+    end;
+
+    local procedure ClearSelectedRecordValues()
+    begin
+        Clear(TaskNameTxt);
+        Clear(TotalEntriesCount);
+        Clear(TotalEntriesCopilotCredits);
     end;
 
     local procedure UpdateAgentTaskName()
     var
         AgentTask: Record "Agent Task";
     begin
-        if not AgentTaskDictionary.ContainsKey(Rec."Agent Task ID") then begin
-            if AgentTask.Get(Rec."Agent Task ID") then begin
-                TaskNameTxt := StrSubstNo(AgentTaskNameTxt, AgentTask.ID, AgentTask.Title);
-                AgentTaskDictionary.Add(Rec."Agent Task ID", TaskNameTxt);
-            end else
-                TaskNameTxt := '';
-
+        if AgentTaskDictionary.ContainsKey(Rec."Agent Task ID") then begin
+            TaskNameTxt := AgentTaskDictionary.Get(Rec."Agent Task ID");
             exit;
         end;
 
-        TaskNameTxt := AgentTaskDictionary.Get(Rec."Agent Task ID");
+        if Rec."Agent Task Id" = 0 then begin
+            OnLoadAgentTask(Rec."User Id", Rec."Unique Id", AgentTaskId, TaskNameTxt, TotalTaskConsumedCredits);
+            AgentTaskDictionary.Add(Rec."Agent Task ID", TaskNameTxt);
+            exit;
+        end;
+
+        if AgentTask.Get(Rec."Agent Task ID") then begin
+            TaskNameTxt := StrSubstNo(AgentTaskNameTxt, AgentTask.ID, AgentTask.Title);
+            AgentTaskDictionary.Add(Rec."Agent Task ID", TaskNameTxt);
+            exit;
+        end;
     end;
 
     local procedure UpdateTotals()
@@ -370,10 +426,12 @@ page 4333 "Agent Consumption Overview"
         UserAIConsumptionData.CalcSums("Copilot Credits");
         TotalEntriesCopilotCredits := UserAIConsumptionData."Copilot Credits";
 
-        UserAIConsumptionData.Copy(Rec);
-        UserAIConsumptionData.SetRange("Agent Task Id", Rec."Agent Task ID");
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        TotalTaskConsumedCredits := UserAIConsumptionData."Copilot Credits";
+        if Rec."Agent Task Id" <> 0 then begin
+            UserAIConsumptionData.Copy(Rec);
+            UserAIConsumptionData.SetRange("Agent Task Id", Rec."Agent Task ID");
+            UserAIConsumptionData.CalcSums("Copilot Credits");
+            TotalTaskConsumedCredits := UserAIConsumptionData."Copilot Credits";
+        end;
     end;
 
     local procedure UpdateTheDescriptionAndTotalsVisibility()
@@ -437,6 +495,11 @@ page 4333 "Agent Consumption Overview"
     var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
     begin
+        if Rec."Agent Task Id" = 0 then begin
+            OnDrillDownAgentTask(Rec."User Id", Rec."Unique Id");
+            exit;
+        end;
+
         AgentTaskLogEntry.SetRange("Task ID", Rec."Agent Task Id");
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry)
     end;
@@ -445,6 +508,11 @@ page 4333 "Agent Consumption Overview"
     var
         UserAIConsumptionData: Record "User AI Consumption Data";
     begin
+        if Rec."Agent Task Id" = 0 then begin
+            OnDrillDownAgentTaskConsumption(Rec."User Id", Rec."Unique Id");
+            exit;
+        end;
+
         UserAIConsumptionData.SetRange("Agent Task Id", Rec."Agent Task ID");
         Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
     end;
@@ -454,10 +522,26 @@ page 4333 "Agent Consumption Overview"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnLoadAgentTask(UserId: Guid; UniqueId: Text[1024]; var DisplayTaskId: Text[30]; var DisplayTaskName: Text; var TaskTotalConsumption: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDrillDownAgentTaskConsumption(UserId: Guid; UniqueId: Text[1024])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDrillDownAgentTask(UserId: Guid; UniqueId: Text[1024])
+    begin
+    end;
+
     var
         AgentTaskDictionary: Dictionary of [BigInteger, Text];
         UserNameDictionary: Dictionary of [Guid, Text[80]];
         ChangedDateRangeFilters: Boolean;
+        AgentTaskId: Text[30];
         StartDate: Date;
         EndDate: Date;
         DescriptionTxt: Text;
