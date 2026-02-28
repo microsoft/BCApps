@@ -15,28 +15,39 @@ codeunit 30197 "Shpfy Sync Inventory"
 
     var
         InventoryApi: Codeunit "Shpfy Inventory API";
+        SkipImport: Boolean;
 
     trigger OnRun()
     var
         ShopInventory: Record "Shpfy Shop Inventory";
         ShopLocation: Record "Shpfy Shop Location";
+        ShpfyInventoryEvents: Codeunit "Shpfy Inventory Events";
         ShopFilter: Text;
+        VariantIdFilter: Text;
     begin
         ShopFilter := Rec.GetFilter("Shop Code");
-        if ShopFilter <> '' then begin
+        if ShopFilter <> '' then
             ShopLocation.SetRange("Shop Code", ShopFilter);
-            ShopInventory.SetRange("Shop Code", ShopFilter);
-        end;
-        ShopLocation.SetFilter("Stock Calculation", '<>%1', ShopLocation."Stock Calculation"::Disabled);
-        if ShopLocation.FindSet(false) then begin
-            InventoryApi.SetShop(ShopLocation."Shop Code");
-            InventoryApi.SetInventoryIds();
-            repeat
-                InventoryApi.ImportStock(ShopLocation);
-            until ShopLocation.Next() = 0;
-        end;
-        InventoryApi.RemoveUnusedInventoryIds();
 
-        InventoryApi.ExportStock(ShopInventory);
+        ShopInventory.CopyFilters(Rec);
+
+        if not SkipImport then begin
+            ShopLocation.SetFilter("Stock Calculation", '<>%1', ShopLocation."Stock Calculation"::Disabled);
+            if ShopLocation.FindSet(false) then begin
+                InventoryApi.SetShop(ShopLocation."Shop Code");
+                InventoryApi.SetInventoryIds();
+                repeat
+                    InventoryApi.ImportStock(ShopLocation);
+                until ShopLocation.Next() = 0;
+            end;
+            InventoryApi.RemoveUnusedInventoryIds();
+        end;
+
+        InventoryApi.ExportStock(ShopInventory, SkipImport);
+    end;
+
+    internal procedure SetSkipImport(ImportSkip: Boolean)
+    begin
+        SkipImport := ImportSkip;
     end;
 }
