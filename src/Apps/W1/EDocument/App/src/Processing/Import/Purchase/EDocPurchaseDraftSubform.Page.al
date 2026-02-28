@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
@@ -170,6 +171,55 @@ page 6183 "E-Doc. Purchase Draft Subform"
             {
                 Caption = '&Line';
                 Image = Line;
+                group("Classify")
+                {
+                    Caption = 'Classify';
+                    action(ChooseFromHistory)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Classify line from history';
+                        ToolTip = 'Choose values from similar lines on previously posted invoices.';
+                        Image = History;
+
+                        trigger OnAction()
+                        var
+                            TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+                            EDocPurchSearchHistory: Page "E-Doc Purch. Search History";
+                        begin
+                            EDocPurchSearchHistory.SetDescription(Rec.Description);
+                            EDocPurchSearchHistory.LookupMode := true;
+                            if EDocPurchSearchHistory.RunModal() <> Action::LookupOK then
+                                exit;
+                            EDocPurchSearchHistory.GetRecord(TempPurchInvLine);
+
+                            if TempPurchInvLine."No." = '' then
+                                exit;
+
+                            Rec."[BC] Purchase Type No." := TempPurchInvLine."No.";
+                            Rec."[BC] Purchase Line Type" := TempPurchInvLine.Type;
+                            Rec.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
+                    action(SuggestGLAccount)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Suggest G/L accounts';
+                        ToolTip = 'Suggests a G/L account based on the line description.';
+                        Image = SuggestLines;
+
+                        trigger OnAction()
+                        begin
+                            EDocumentPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
+                            EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
+                            EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
+                            if not EDocumentPurchaseLine.IsEmpty() then
+                                Codeunit.Run(Codeunit::"E-Doc. GL Account Matching", EDocumentPurchaseLine);
+
+                            CurrPage.Update();
+                        end;
+                    }
+                }
                 group("Order Matching")
                 {
                     Caption = 'Order matching';
