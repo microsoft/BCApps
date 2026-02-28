@@ -190,7 +190,7 @@ page 20408 "Qlty. Inspection List"
                 AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection.';
-                Image = CreateForm;
+                Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -460,7 +460,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Non Conformance Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = PrintReport;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -481,7 +481,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Inspection Report';
                 Enabled = RowActionsAreEnabled;
                 ToolTip = 'General purpose inspection report.';
-                Image = PrintReport;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -551,7 +551,104 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Item Availability by';
                 Enabled = RowActionsAreEnabled;
                 Image = ItemAvailability;
+#if not CLEAN29
                 action(tItemAvailabilityByEvent)
+                {
+                    ApplicationArea = Suite;
+                    Caption = 'Event (Obsolete)';
+                    Image = "Event";
+                    ToolTip = 'View how the actual and the projected available balance of an item will develop over time according to supply and demand events.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByEvent action.';
+
+                    trigger OnAction()
+                    var
+                        Item: Record Item;
+                        AvailItemAvailabilityFormsMgt: Codeunit "Item Availability Forms Mgt";
+                    begin
+                        Item.Get(Rec."Source Item No.");
+                        AvailItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(Item, "Item Availability Type"::"Event");
+                    end;
+                }
+                action(Period)
+                {
+                    ApplicationArea = Suite;
+                    Caption = 'Period (Obsolete)';
+                    Image = Period;
+                    RunObject = Page "Item Availability by Periods";
+                    RunPageLink = "No." = field("Source Item No."),
+                                      "Location Filter" = field("Location Code"),
+                                      "Variant Filter" = field("Source Variant Code");
+                    ToolTip = 'Show the projected quantity of the item over time according to time periods, such as day, week, or month.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByPeriod action.';
+                }
+                action(Variant)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Variant (Obsolete)';
+                    Image = ItemVariant;
+                    RunObject = Page "Item Availability by Variant";
+                    RunPageLink = "No." = field("Source Item No."),
+                                      "Location Filter" = field("Location Code"),
+                                      "Variant Filter" = field("Source Variant Code");
+                    ToolTip = 'View the current and projected quantity of the item for each variant.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByVariant action.';
+                }
+                action(Location)
+                {
+                    ApplicationArea = Suite;
+                    Caption = 'Location (Obsolete)';
+                    Image = Warehouse;
+                    RunObject = Page "Item Availability by Location";
+                    RunPageLink = "No." = field("Source Item No."),
+                                      "Location Filter" = field("Location Code"),
+                                      "Variant Filter" = field("Source Variant Code");
+                    ToolTip = 'View the actual and projected quantity of the item per location.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByLocation action.';
+                }
+                action(Lot)
+                {
+                    ApplicationArea = ItemTracking;
+                    Caption = 'Lot (Obsolete)';
+                    Image = LotInfo;
+                    RunObject = Page "Item Availability by Lot No.";
+                    RunPageLink = "No." = field("Source Item No.");
+                    ToolTip = 'View the current and projected quantity of the item for each lot.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByLot action.';
+                }
+                action(BinContents)
+                {
+                    ApplicationArea = Warehouse;
+                    Caption = 'Bin Contents (Obsolete)';
+                    Image = BinContent;
+                    RunObject = Page "Bin Content";
+                    RunPageLink = "Item No." = field("Source Item No.");
+                    RunPageView = sorting("Item No.");
+                    ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Bin contents page is not ready for use and will be enabled in a future release.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Replaced by ItemAvailabilityByBinContents action.';
+                }
+#endif
+                action(ItemAvailabilityByEvent)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Event';
@@ -568,7 +665,7 @@ page 20408 "Qlty. Inspection List"
                         AvailItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(Item, "Item Availability Type"::"Event");
                     end;
                 }
-                action(Period)
+                action(ItemAvailabilityByPeriod)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period';
@@ -580,7 +677,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'Show the projected quantity of the item over time according to time periods, such as day, week, or month.';
                 }
-                action(Variant)
+                action(ItemAvailabilityByVariant)
                 {
                     ApplicationArea = Planning;
                     Caption = 'Variant';
@@ -592,7 +689,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the current and projected quantity of the item for each variant.';
                 }
-                action(Location)
+                action(ItemAvailabilityByLocation)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Location';
@@ -604,7 +701,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the actual and projected quantity of the item per location.';
                 }
-                action(Lot)
+                action(ItemAvailabilityByLot)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot';
@@ -614,7 +711,7 @@ page 20408 "Qlty. Inspection List"
                     RunPageLink = "No." = field("Source Item No.");
                     ToolTip = 'View the current and projected quantity of the item for each lot.';
                 }
-                action(BinContents)
+                action(ItemAvailabilityByBinContents)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Bin Contents';

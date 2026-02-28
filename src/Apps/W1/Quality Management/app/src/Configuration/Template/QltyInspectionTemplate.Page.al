@@ -132,7 +132,7 @@ page 20402 "Qlty. Inspection Template"
                 AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
-                Image = CreateForm;
+                Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -173,7 +173,7 @@ page 20402 "Qlty. Inspection Template"
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 AboutTitle = 'Inspection Generation Rules';
                 AboutText = 'View inspection generation rules for this template. These rules define when the questions in the template are asked.';
-                Image = FilterLines;
+                Image = CopyFromTask;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -186,7 +186,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
