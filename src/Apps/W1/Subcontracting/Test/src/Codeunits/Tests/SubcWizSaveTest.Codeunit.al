@@ -109,10 +109,10 @@ codeunit 139998 "Subc. Wiz. Save Test"
     [HandlerFunctions('HandlePurchProvisionWizardSaveToItem')]
     procedure TestH2_SaveToItem_BOMSavedToItem()
     var
+        Item: Record Item;
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         ProdOrder: Record "Production Order";
-        Item: Record Item;
         PurchLine: Record "Purchase Line";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         ItemNo: Code[20];
@@ -246,10 +246,10 @@ codeunit 139998 "Subc. Wiz. Save Test"
     var
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
-        RoutingVersion: Record "Routing Version";
-        ProdOrder: Record "Production Order";
         ProductionBOMVersion: Record "Production BOM Version";
+        ProdOrder: Record "Production Order";
         PurchLine: Record "Purchase Line";
+        RoutingVersion: Record "Routing Version";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         BOMNo: Code[20];
         ItemNo: Code[20];

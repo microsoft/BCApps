@@ -4,5 +4,131 @@
         "codeunitId": 139989,
         "codeunitName": "Subc. Subcontracting Test",
         "method": "TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149900,
+        "codeunitName": "Subc. Whse Receipt Last Op.",
+        "method": "FullWarehouseFlowForLastOperation_ReceiptToPutAway"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149900,
+        "codeunitName": "Subc. Whse Receipt Last Op.",
+        "method": "VerifyEndToEndUoMFlowWithAlternativeUoM"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149900,
+        "codeunitName": "Subc. Whse Receipt Last Op.",
+        "method": "UndoPurchaseReceiptForLastOperation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149900,
+        "codeunitName": "Subc. Whse Receipt Last Op.",
+        "method": "UndoPurchaseReceiptFailsWhenPutAwayRegistered"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149901,
+        "codeunitName": "Subc. Whse Put-Away LastOp.",
+        "method": "RecreatePutAwayFromPostedWhseReceipt"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149901,
+        "codeunitName": "Subc. Whse Put-Away LastOp.",
+        "method": "CreatePutAwayFromPutAwayWorksheetForLastOperation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149902,
+        "codeunitName": "Subc. Whse Partial Last Op",
+        "method": "PartialWhseReceiptPostingForLastOperation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149902,
+        "codeunitName": "Subc. Whse Partial Last Op",
+        "method": "PartialPutAwayPostingForLastOperation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149902,
+        "codeunitName": "Subc. Whse Partial Last Op",
+        "method": "MultiStepPartialPostingForLastOperation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149902,
+        "codeunitName": "Subc. Whse Partial Last Op",
+        "method": "PartialLotPostingWithItemTrackingAndPutAwayRecreation"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149904,
+        "codeunitName": "Subc. Whse Put-Away Worksheet",
+        "method": "CreateSinglePutAwayFromMultiplePostedWhseReceipts"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149905,
+        "codeunitName": "Subc. Whse Item Tracking",
+        "method": "FullProcessWithSerialTrackingFromProdOrderLine"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149905,
+        "codeunitName": "Subc. Whse Item Tracking",
+        "method": "FullProcessWithLotTrackingFromProdOrderLine"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149905,
+        "codeunitName": "Subc. Whse Item Tracking",
+        "method": "FullProcessWithLotTrackingFromWhseReceiptLine"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149905,
+        "codeunitName": "Subc. Whse Item Tracking",
+        "method": "ItemTrackingForNonLastOperations"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149906,
+        "codeunitName": "Subc. Whse Combined Scenarios",
+        "method": "ProdOrderWithLastAndIntermediateOperationsSameVendor"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149906,
+        "codeunitName": "Subc. Whse Combined Scenarios",
+        "method": "ProdOrderWithMultipleOperationsDifferentVendors"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149906,
+        "codeunitName": "Subc. Whse Combined Scenarios",
+        "method": "WhseReceiptCreationWithGetSourceDocumentsMultipleProdOrders"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149907,
+        "codeunitName": "Subc. Whse Location Config",
+        "method": "LocationWithRequirePutawayDisabled_DirectInventoryUpdateAndLedgerVerification"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149907,
+        "codeunitName": "Subc. Whse Location Config",
+        "method": "LocationWithBinMandatoryOnly_StandardPostingProcess"
+    },
+    {
+        "bug": "617432",
+        "codeunitId": 149909,
+        "codeunitName": "Subc. Whse Data Integrity",
+        "method": "VerifyQuantityReconciliationAfterMultiplePartialReceipts"
     }
 ]
