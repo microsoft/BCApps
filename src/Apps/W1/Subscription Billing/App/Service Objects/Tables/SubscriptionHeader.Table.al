@@ -1785,10 +1785,7 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Template := ServiceCommPackageLine.Template;
                         ServiceCommitment.Description := ServiceCommPackageLine.Description;
                         ServiceCommitment."Invoicing via" := ServiceCommPackageLine."Invoicing via";
-                        if Item.IsServiceCommitmentItem() then
-                            ServiceCommitment."Invoicing Item No." := Item."No."
-                        else
-                            ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine."Invoicing Item No.";
+                        ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine.GetInvoicingItemNo(Item);
                         ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group";
 
                         if ServiceAndCalculationStartDate <> 0D then

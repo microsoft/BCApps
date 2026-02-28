@@ -57,8 +57,6 @@ codeunit 8006 "Create Subscription Line"
     local procedure CreateServiceCommitment()
     var
         ServiceCommitment: Record "Subscription Line";
-        ServiceObject: Record "Subscription Header";
-        ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
     begin
         ServiceCommitment.Init();
         ServiceCommitment.Validate("Subscription Header No.", ImportedServiceCommitment."Subscription Header No.");
@@ -71,13 +69,7 @@ codeunit 8006 "Create Subscription Line"
         OnAfterSubscriptionLineInsert(ServiceCommitment, ImportedServiceCommitment);
 
         ServiceCommitment."Invoicing via" := ImportedServiceCommitment."Invoicing via";
-        if ImportedServiceCommitment."Invoicing Item No." <> '' then
-            ServiceCommitment."Invoicing Item No." := ImportedServiceCommitment."Invoicing Item No."
-        else
-            if ServiceObject.Get(ServiceCommitment."Subscription Header No.") then
-                if ServiceObject.IsItem() then
-                    if ContractsItemManagement.IsServiceCommitmentItem(ServiceObject."Source No.") then
-                        ServiceCommitment."Invoicing Item No." := ServiceObject."Source No.";
+        ServiceCommitment."Invoicing Item No." := ImportedServiceCommitment.GetInvoicingItemNo();
         ServiceCommitment.Template := ImportedServiceCommitment."Template Code";
         ServiceCommitment.Validate("Subscription Package Code", ImportedServiceCommitment."Subscription Package Code");
         ServiceCommitment.Partner := ImportedServiceCommitment.Partner;

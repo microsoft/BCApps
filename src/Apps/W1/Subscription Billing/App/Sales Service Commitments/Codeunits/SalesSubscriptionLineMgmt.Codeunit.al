@@ -370,7 +370,11 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         Item.Get(ItemNo);
         case Item."Subscription Option" of
             Item."Subscription Option"::"Service Commitment Item":
-                exit(Item."No.");
+                begin
+                    if ServiceCommitmentPackageLine."Invoicing Item No." <> '' then
+                        exit(ServiceCommitmentPackageLine."Invoicing Item No.");
+                    exit(Item."No.");
+                end;
             Item."Subscription Option"::"Sales with Service Commitment":
                 begin
                     if ServiceCommitmentPackageLine."Invoicing via" = Enum::"Invoicing Via"::Contract then
