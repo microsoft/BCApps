@@ -58,7 +58,7 @@ page 8058 "Service Comm. Package Lines"
                 {
                     Style = Strong;
                     StyleExpr = Bold;
-                    ToolTip = 'Specifies the percentage at which the price of the Subscription Line is calculated. 100% means that the the price is the same as the calculation base (item or document).';
+                    ToolTip = 'Specifies the percentage at which the price of the Subscription Line is calculated. 100% means that the price is the same as the calculation base (item or document).';
                     AboutTitle = 'What percentage should be applied to calculate the subscription line price?';
                     AboutText = 'Defines the percentage used as the basis for calculating the price of the subscription line in conjuction with the Calculation Base Type.';
                 }

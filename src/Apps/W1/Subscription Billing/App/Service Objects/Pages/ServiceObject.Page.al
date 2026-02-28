@@ -520,6 +520,45 @@ page 8060 "Service Object"
                     }
                 }
             }
+            group(Details)
+            {
+                Caption = 'Details';
+                field("Vendor No."; Rec."Vendor No.")
+                {
+                    Visible = false;
+                }
+                field("Vendor Name"; Rec."Vendor Name")
+                {
+                }
+                field("Vendor Name 2"; Rec."Vendor Name 2")
+                {
+                    Importance = Additional;
+                }
+                field("Vendor Item No."; Rec."Vendor Item No.")
+                {
+                }
+                field("Manufacturer Code"; Rec."Manufacturer Code")
+                {
+                    Visible = false;
+                }
+                field("Manufacturer Name"; Rec."Manufacturer Name")
+                {
+                }
+                field("Salesperson Code"; Rec."Salesperson Code")
+                {
+                }
+                field("Sales Order No."; Rec."Sales Order No.")
+                {
+                }
+                field("Item Ledger Entry No."; Rec."Item Ledger Entry No.")
+                {
+                    Importance = Additional;
+                }
+                field("Last Sales Invoice No."; Rec."Last Sales Invoice No.")
+                {
+                    Importance = Additional;
+                }
+            }
         }
         area(FactBoxes)
         {
