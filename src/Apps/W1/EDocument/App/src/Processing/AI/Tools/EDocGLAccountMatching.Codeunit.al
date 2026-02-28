@@ -39,9 +39,12 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
         TelemetryDimensions: Dictionary of [Text, Text];
         ActivityLogTitleTxt: Label 'GL Account %1', Comment = '%1 = G/L Account No.';
         AIAccountMatchEventTok: Label 'GL Account AI Match', Locked = true;
+        NoGLAccountsTxt: Label 'No G/L Accounts found in the system, skipping AI matching', Locked = true;
     begin
-        if GLAccount.IsEmpty() then
+        if GLAccount.IsEmpty() then begin
+            Session.LogMessage('', NoGLAccountsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
             exit;
+        end;
 
         if not EDocumentAIProcessor.Setup(this) then
             exit;
