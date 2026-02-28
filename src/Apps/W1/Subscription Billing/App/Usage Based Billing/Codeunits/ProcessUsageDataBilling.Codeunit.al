@@ -52,9 +52,6 @@ codeunit 8026 "Process Usage Data Billing"
                         SubscriptionLineEntryNoList.Add(UsageDataBilling."Subscription Line Entry No.");
                         ProcessServiceCommitment(UsageDataBilling);
                     end;
-
-                    if UsageDataBilling.Partner = "Service Partner"::Customer then
-                        HandleGracePeriod(UsageDataBilling);
                 until UsageDataBilling.Next() = 0;
         end else begin
             UsageDataBilling.SetRange("Subscription Contract No.");
@@ -163,19 +160,27 @@ codeunit 8026 "Process Usage Data Billing"
             "Usage Based Pricing"::"Usage Quantity":
                 begin
                     NewServiceObjectQuantity := CalculateTotalUsageBillingQuantity(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment);
-                    UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
-                    if ServiceCommitment.IsPartnerCustomer() then
-                        UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                    if NewServiceObjectQuantity <> 0 then begin
+                        UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                        if ServiceCommitment.IsPartnerCustomer() then
+                            UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                    end else begin
+                        UnitCost := 0;
+                        UnitPrice := 0;
+                    end;
                     if LastUsageDataBilling.Rebilling then
                         NewServiceObjectQuantity += ServiceObject."Quantity";
                 end;
             "Usage Based Pricing"::"Fixed Quantity":
                 ;
             "Usage Based Pricing"::"Unit Cost Surcharge":
-                begin
+                if NewServiceObjectQuantity <> 0 then begin
                     UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
                     if ServiceCommitment.IsPartnerCustomer() then
                         UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                end else begin
+                    UnitCost := 0;
+                    UnitPrice := 0;
                 end;
             else begin
                 IsHandled := false;
@@ -270,32 +275,6 @@ codeunit 8026 "Process Usage Data Billing"
             exit;
 
         ServiceCommitment.Modify(false);
-    end;
-
-    local procedure HandleGracePeriod(var UsageDataBilling: Record "Usage Data Billing")
-    var
-        UsageDataBilling2: Record "Usage Data Billing";
-        ServiceObject: Record "Subscription Header";
-        ServiceCommitment: Record "Subscription Line";
-        CustomerContractLine: Record "Cust. Sub. Contract Line";
-    begin
-        CustomerContractLine.Get(UsageDataBilling."Subscription Contract No.", UsageDataBilling."Subscription Contract Line No.");
-        CustomerContractLine.GetServiceCommitment(ServiceCommitment);
-
-        if not ServiceObject.Get(ServiceCommitment."Subscription Header No.") then
-            exit;
-        if ServiceObject.Quantity <> 0 then
-            exit;
-
-        UsageDataBilling2.SetRange(Partner, UsageDataBilling2.Partner::Customer);
-        UsageDataBilling2.SetRange("Subscription Line Entry No.", UsageDataBilling."Subscription Line Entry No.");
-        UsageDataBilling2.SetRange("Document Type", UsageDataBilling2."Document Type"::"Posted Invoice");
-        if not UsageDataBilling2.IsEmpty then
-            exit;
-
-        UsageDataBilling."Unit Price" := 0;
-        UsageDataBilling.Amount := 0;
-        UsageDataBilling.Modify(false);
     end;
 
     local procedure GetCustomerContractData(var CustomerContract: Record "Customer Subscription Contract"; var CustomerContractLine: Record "Cust. Sub. Contract Line"; var ServiceCommitment: Record "Subscription Line"; UsageDataBilling: Record "Usage Data Billing")

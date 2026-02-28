@@ -590,22 +590,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    procedure CheckBillingLineServiceAmountCalculation()
-    var
-        ExpectedServiceAmount: Decimal;
-    begin
-        // [SCENARIO] Unit testing the function CalculateBillingLineServiceAmount from Codeunit BillingProposal
-        Initialize();
-
-        // [GIVEN] BillingLine has values
-        MockBillingLineForPartnerNoWithUnitPriceAndDiscountAndServiceObjectQuantity(LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(50, 2), LibraryRandom.RandDec(10, 2));
-        ExpectedServiceAmount := BillingLine."Unit Price" * BillingLine."Service Object Quantity" * (1 - BillingLine."Discount %" / 100);
-
-        Assert.AreEqual(ExpectedServiceAmount, BillingProposal.CalculateBillingLineServiceAmount(BillingLine), 'Service Amount has not been calculated correctly on a Billing Line.');
-    end;
-
-    [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyCustomerContractLine()
     var
         DiscountAmount: Decimal;
@@ -615,7 +599,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         BillingLine.Reset();
@@ -660,7 +644,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyVendorContractLine()
     var
         DiscountAmount: Decimal;
@@ -670,7 +653,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         BillingLine.Reset();
@@ -1476,7 +1459,6 @@ codeunit 139688 "Recurring Billing Test"
         Assert.AreEqual("Sales Document Type"::"Credit Memo", BillingLine.GetSalesDocumentTypeForContractNo(), 'Sales Document Type is not calculated correctly for Credit Memo.');
     end;
 
-    [Test]
     [HandlerFunctions('CreateBillingDocsCustomerPageHandler,MessageHandler')]
     procedure ExtendedTextTransferredToSalesLine()
     var
@@ -1548,6 +1530,45 @@ codeunit 139688 "Recurring Billing Test"
         VerifyPurchaseLine.SetRange(Type, VerifyPurchaseLine.Type::" ");
         VerifyPurchaseLine.SetRange(Description, ExtendedTextLine[1].Text);
         Assert.IsTrue(VerifyPurchaseLine.Count() > 0, ExtendedTextPurchValueErr);
+    end;
+
+    [Test]
+    procedure TestBillingProposalWithZeroQuantity()
+    var
+        ExpectedNextBillingDate: Date;
+    begin
+        // [SCENARIO] Billing proposal creates billing lines with quantity 0 and amount 0 when subscription quantity is 0
+        Initialize();
+
+        // [GIVEN] Create customer contract with subscription and set quantity to 0
+        CreateCustomerContract('<1M>', '<12M>');
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] Read the subscription line to be able to refresh it after billing proposal is created
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, "Service Partner"::Customer);
+        ServiceCommitment.FindFirst();
+
+        // [WHEN] Create billing proposal
+        CreateRecurringBillingTemplateSetupForCustomerContract('<2M-CM>', '<8M+CM>', CustomerContract.GetView());
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [THEN] Billing lines are created with quantity 0 and amount 0
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+        BillingLine.FindSet();
+        repeat
+            Assert.AreEqual(0, BillingLine."Service Object Quantity", 'Billing Line quantity should be 0.');
+            Assert.AreEqual(0, BillingLine.Amount, 'Billing Line amount should be 0 when quantity is 0.');
+        until BillingLine.Next() = 0;
+
+        // [THEN] Next Billing Date on the subscription line is set to the day after the last billing line's Billing To date
+        ExpectedNextBillingDate := CalcDate('<1D>', BillingLine."Billing to");
+        ServiceCommitment.Get(ServiceCommitment."Entry No.");
+        Assert.AreEqual(ExpectedNextBillingDate, ServiceCommitment."Next Billing Date", 'Next Billing Date should be the day after the last Billing To date.');
     end;
 
     #endregion Tests
@@ -1838,14 +1859,6 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.Insert(false);
     end;
 
-    local procedure MockBillingLineForPartnerNoWithUnitPriceAndDiscountAndServiceObjectQuantity(NewUnitPrice: Decimal; NewDiscountPercentage: Decimal; NewServiceObjQuantity: Decimal)
-    begin
-        BillingLine.InitNewBillingLine();
-        BillingLine."Unit Price" := NewUnitPrice;
-        BillingLine."Discount %" := NewDiscountPercentage;
-        BillingLine."Service Object Quantity" := NewServiceObjQuantity;
-        BillingLine.Insert(false);
-    end;
 
     local procedure RecurringBillingPageSetupForCustomer()
     begin

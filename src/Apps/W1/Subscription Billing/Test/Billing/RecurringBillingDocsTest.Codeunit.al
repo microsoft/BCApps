@@ -512,6 +512,40 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure PostRecurringBillingInvoiceWithZeroQuantity()
+    var
+        Customer: Record Customer;
+        PostedDocumentNo: Code[20];
+    begin
+        // [SCENARIO] Sales Invoice with "Recurring Billing" = YES can be posted even when it has zero quantity lines
+        Initialize();
+
+        // [GIVEN] Create Customer Subscription Contract with subscription having quantity 0
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] Create billing proposal and billing documents - sales lines will have quantity 0
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        CreateBillingDocuments(false);
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        SalesHeader.TestField("Recurring Billing", true);
+
+        // [WHEN] Post the Sales Invoice with zero quantity lines
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The Sales Invoice is posted successfully
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        SalesInvoiceHeader.TestField("Recurring Billing", true);
+    end;
+
+    [Test]
     [HandlerFunctions('CheckDialogConfirmHandler,ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocsTestOpenPageHandler,MessageHandler')]
     procedure CheckVendorBillingProposalCanBeCreatedForPurchaseCrMemoExists()
     var
@@ -531,6 +565,42 @@ codeunit 139687 "Recurring Billing Docs Test"
         PurchaseInvoiceHeader.Get(BillingLineArchive."Document No.");
         CorrectPostedPurchaseInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseHeader);
         BillingProposal.CreateBillingProposalFromContract(VendorContract."No.", VendorContract.GetFilter("Billing Rhythm Filter"), "Service Partner"::Vendor);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure PostRecurringBillingPurchaseInvoiceWithZeroQuantity()
+    var
+        Vendor: Record Vendor;
+        PostedDocumentNo: Code[20];
+    begin
+        // [SCENARIO] Purchase Invoice with "Recurring Billing" = YES can be posted even when it has zero quantity lines
+        Initialize();
+
+        // [GIVEN] Create Vendor Subscription Contract with subscription having quantity 0
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] Create billing proposal and billing documents - purchase lines will have quantity 0
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+        CreateBillingDocuments(false);
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        PurchaseHeader.Get(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.");
+        PurchaseHeader.TestField("Recurring Billing", true);
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(false);
+
+        // [WHEN] Post the Purchase Invoice with zero quantity lines
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The Purchase Invoice is posted successfully
+        PurchaseInvoiceHeader.Get(PostedDocumentNo);
+        PurchaseInvoiceHeader.TestField("Recurring Billing", true);
     end;
 
     [Test]
@@ -1294,7 +1364,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,GetVendorContractLinesProducesCorrectAmountsDuringSelectionPageHandler,ExchangeRateSelectionModalPageHandler')]
+    [HandlerFunctions('GetVendorContractLinesProducesCorrectAmountsDuringSelectionPageHandler')]
     procedure GetVendorContractLinesProducesCorrectAmountsDuringSelection()
     var
         Item: Record Item;
@@ -1306,7 +1376,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [GIVEN] Setup Subscription with Subscription Line and assign it to Vendor Subscription Contract
         // [GIVEN] Create Purchase Invoice with Purchase Invoice Line
         ContractTestLibrary.DeleteAllContractRecords();
-        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         GetVendorContractServiceCommitment(VendorContract."No.");
         ServiceCommitment."Billing Rhythm" := ServiceCommitment."Billing Base Period";
@@ -1356,6 +1426,41 @@ codeunit 139687 "Recurring Billing Docs Test"
         BillingLine.Reset();
         BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
         asserterror BillingLine.FindFirst();
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure TestBillingDocumentWithZeroQuantity()
+    begin
+        // [SCENARIO] Billing documents are created with quantity 0 and amount 0 when subscription quantity is 0
+        Initialize();
+
+        // [GIVEN] Create customer contract with subscription and set quantity to 0
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [WHEN] Create billing proposal and billing documents
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.SetRange("Document No.", '');
+        if not BillingLine.IsEmpty() then begin
+            CreateBillingDocuments(false);
+
+            // [THEN] Sales line is created with quantity 0
+            BillingLine.SetFilter("Document No.", '<>%1', '');
+            if BillingLine.FindFirst() then begin
+                SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.");
+                SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+                SalesLine.SetRange("Document No.", SalesHeader."No.");
+                SalesLine.FindFirst();
+                Assert.AreEqual(0, SalesLine.Quantity, 'Sales Line quantity should be 0.');
+                Assert.AreEqual(0, SalesLine."Line Amount", 'Sales Line amount should be 0.');
+            end;
+        end;
     end;
 
     [Test]

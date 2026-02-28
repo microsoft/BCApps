@@ -58,7 +58,7 @@ codeunit 139912 "Customer Deferrals Test"
         PrevGLEntry: Integer;
         TotalNumberOfMonths: Integer;
         IsInitialized: Boolean;
-        ConfirmQuestionLbl: Label 'If you change Quantity, only the Amount for existing service commitments will be recalculated.\\Do you want to continue?', Comment = '%1= Changed Field Name.';
+        ConfirmQuestionLbl: Label 'If you change the Quantity, the amount for open subscription lines will be recalculated.\\Do you want to continue?';
 
     #region Tests
 
