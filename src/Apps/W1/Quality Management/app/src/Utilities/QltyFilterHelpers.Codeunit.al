@@ -15,7 +15,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Structure;
 using System.IO;
@@ -599,10 +598,9 @@ codeunit 20403 "Qlty. Filter Helpers"
     internal procedure AssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]): Boolean
     var
         RoutingLine: Record "Routing Line";
-        QltyRoutingLineLookup: Page "Qlty. Routing Line Lookup";
-
+        RoutingLineList: Page "Routing Line List";
     begin
-        QltyRoutingLineLookup.LookupMode(true);
+        RoutingLineList.LookupMode(true);
 
         if InRoutingNoFilter <> '' then
             RoutingLine.SetFilter("Routing No.", InRoutingNoFilter);
@@ -610,14 +608,14 @@ codeunit 20403 "Qlty. Filter Helpers"
         if OperationNoFilter <> '' then begin
             RoutingLine.SetFilter("Operation No.", OperationNoFilter);
             if RoutingLine.FindSet() then
-                QltyRoutingLineLookup.SetRecord(RoutingLine);
+                RoutingLineList.SetRecord(RoutingLine);
             RoutingLine.SetRange("Operation No.");
         end;
 
-        QltyRoutingLineLookup.SetTableView(RoutingLine);
+        RoutingLineList.SetTableView(RoutingLine);
 
-        if QltyRoutingLineLookup.RunModal() in [Action::LookupOK, Action::OK] then begin
-            QltyRoutingLineLookup.GetRecord(RoutingLine);
+        if RoutingLineList.RunModal() in [Action::LookupOK, Action::OK] then begin
+            RoutingLineList.GetRecord(RoutingLine);
             OperationNoFilter := RoutingLine."Operation No.";
             exit(true);
         end;
