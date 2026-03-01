@@ -253,16 +253,16 @@ table 20404 "Qlty. Inspection Gen. Rule"
         key(Key3; "Sort Order", Intent)
         {
         }
-        key(bySearchAndSort; "Template Code", "Source Table No.", "Sort Order")
+        key(Key4; "Template Code", "Source Table No.", "Sort Order")
         {
         }
-        key(siftOnSort; "Source Table No.")
+        key(Key5; "Source Table No.")
         {
         }
-        key(byActivation; "Activation Trigger", "Sort Order")
+        key(Key6; "Activation Trigger", "Sort Order")
         {
         }
-        key(byScheduleGroup; "Template Code", "Schedule Group", Description)
+        key(Key7; "Template Code", "Schedule Group", Description)
         {
         }
     }
