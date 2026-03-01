@@ -95,6 +95,12 @@ page 8081 "Vendor Contract Deferrals"
                 {
                     ToolTip = 'Specifies whether the Subscription Line is used as a basis for periodic invoicing or discounts.';
                 }
+                field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
+                {
+                }
+                field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
+                {
+                }
                 field("G/L Entry No."; Rec."G/L Entry No.")
                 {
                     ToolTip = 'Specifies the number of the G/L item with which the deferral was released.';

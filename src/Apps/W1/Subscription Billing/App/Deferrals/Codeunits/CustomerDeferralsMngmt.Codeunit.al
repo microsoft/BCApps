@@ -4,7 +4,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -19,16 +18,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
         tabledata "Sales Invoice Line" = r;
 
     var
-        TempCustomerContractDeferral: Record "Cust. Sub. Contract Deferral" temporary;
         GLSetup: Record "General Ledger Setup";
         DeferralEntryNo: Integer;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostSalesDoc, '', false, false)]
-    local procedure ClearGlobals()
-    begin
-        TempCustomerContractDeferral.Reset();
-        TempCustomerContractDeferral.DeleteAll(false);
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(SalesLine: Record "Sales Line"; var SalesAccount: Code[20])
@@ -63,20 +54,6 @@ codeunit 8067 "Customer Deferrals Mngmt."
         InsertContractDeferrals(SalesHeader, xSalesLine, SalesInvHeader."No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforeInsertCrMemoLine, '', false, false)]
-    local procedure InsertCustomerDeferralsFromSalesCrMemoOnPostSalesLineOnBeforeInsertCrMemoLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
-    var
-        SalesDocuments: Codeunit "Sales Documents";
-    begin
-        if (xSalesLine.Quantity >= 0) or (xSalesLine."Unit Price" >= 0) then
-            exit;
-
-        if SalesDocuments.GetAppliesToDocNo(SalesHeader) <> '' then
-            exit;
-
-        InsertContractDeferrals(SalesHeader, xSalesLine, SalesCrMemoHeader."No.");
-    end;
-
     local procedure InsertContractDeferrals(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; DocumentNo: Code[20])
     var
         CustContractHeader: Record "Customer Subscription Contract";
@@ -89,6 +66,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
         if DocumentNo = '' then
             exit;
         if SalesLine.Quantity = 0 then
+            exit;
+        if SalesLine.Amount = 0 then
             exit;
         if SalesLine."Recurring Billing from" > SalesLine."Recurring Billing to" then
             exit;
@@ -138,153 +117,134 @@ codeunit 8067 "Customer Deferrals Mngmt."
         CustomerContractDeferral."Deferral Base Amount" := SalesLine.Amount;
         SalesLine."Line Discount Amount" := Sign * SalesLine."Line Discount Amount";
 
-        if SalesLine."Recurring Billing from" = CalcDate('<-CM>', SalesLine."Recurring Billing from") then
-            InsertContractDeferralsWhenStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine)
-        else
-            InsertContractDeferralsWhenNotStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine);
+        InsertContractDeferralPeriods(CustomerContractDeferral, SalesLine);
     end;
 
-    local procedure GetDeferralParametersFromSalesLine(SalesLine: Record "Sales Line"; var FirstDayOfBillingPeriod: Date; var LastDayOfBillingPeriod: Date; var TotalLineAmount: Decimal; var TotalLineDiscountAmount: Decimal; var NumberOfPeriods: Integer)
+    local procedure GetNumberOfDeferralPeriods(FirstDayOfBillingPeriod: Date; LastDayOfBillingPeriod: Date) NumberOfPeriods: Integer
     var
         LoopDate: Date;
     begin
-        LoopDate := SalesLine."Recurring Billing from";
+        LoopDate := FirstDayOfBillingPeriod;
         repeat
             NumberOfPeriods += 1;
             LoopDate := CalcDate('<1M>', LoopDate);
-        until LoopDate > CalcDate('<CM>', SalesLine."Recurring Billing to");
-
-        FirstDayOfBillingPeriod := SalesLine."Recurring Billing from";
-        LastDayOfBillingPeriod := SalesLine."Recurring Billing to";
-        TotalLineAmount := SalesLine.Amount;
-        TotalLineDiscountAmount := SalesLine."Line Discount Amount";
+        until LoopDate > CalcDate('<CM>', LastDayOfBillingPeriod);
     end;
 
-    local procedure InsertContractDeferralsWhenStartingOnFirstDayInMonth(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line")
+    local procedure InsertContractDeferralPeriods(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line")
     var
         NumberOfPeriods: Integer;
         i: Integer;
-        NextPostingDate: Date;
-        LastDayOfBillingPeriod: Date;
-        TotalLineAmount: Decimal;
-        TotalLineDiscountAmount: Decimal;
-        LineAmountPerPeriod: Decimal;
-        LineDiscountAmountPerPeriod: Decimal;
-        RunningLineAmount: Decimal;
-        RunningLineDiscountAmount: Decimal;
-    begin
-        RunningLineAmount := 0;
-        RunningLineDiscountAmount := 0;
-        GetDeferralParametersFromSalesLine(SalesLine, NextPostingDate, LastDayOfBillingPeriod, TotalLineAmount, TotalLineDiscountAmount, NumberOfPeriods);
-        LineAmountPerPeriod := Round(TotalLineAmount / NumberOfPeriods, GLSetup."Amount Rounding Precision");
-        LineDiscountAmountPerPeriod := Round(TotalLineDiscountAmount / NumberOfPeriods, GLSetup."Amount Rounding Precision");
-
-        for i := 1 to NumberOfPeriods do begin
-            CustomerContractDeferral."Posting Date" := NextPostingDate;
-            NextPostingDate := CalcDate('<1M>', NextPostingDate);
-            if i = NumberOfPeriods then begin
-                LineAmountPerPeriod := TotalLineAmount - RunningLineAmount;
-                LineDiscountAmountPerPeriod := TotalLineDiscountAmount - RunningLineDiscountAmount;
-            end;
-            RunningLineAmount += LineAmountPerPeriod;
-            RunningLineDiscountAmount += LineDiscountAmountPerPeriod;
-
-            CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
-            CustomerContractDeferral.Amount := LineAmountPerPeriod;
-            CustomerContractDeferral."Discount Amount" := LineDiscountAmountPerPeriod;
-            CustomerContractDeferral."Entry No." := 0;
-            OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
-            CustomerContractDeferral.Insert(false);
-            TempCustomerContractDeferral := CustomerContractDeferral;
-            TempCustomerContractDeferral.Insert(false); //Used for Preview Posting
-        end;
-    end;
-
-    local procedure InsertContractDeferralsWhenNotStartingOnFirstDayInMonth(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line")
-    var
-        NumberOfPeriods: Integer;
         NextPostingDate: Date;
         FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        TotalLineAmount: Decimal;
-        TotalLineDiscountAmount: Decimal;
-        LineAmountPerPeriod: Decimal;
-        LineDiscountAmountPerPeriod: Decimal;
         LineAmountPerDay: Decimal;
         LineDiscountAmountPerDay: Decimal;
-        LineAmountPerMonth: Decimal;
-        LineDiscountAmountPerMonth: Decimal;
-        FirstMonthDays: Integer;
-        FirstMonthLineAmount: Decimal;
-        FirstMonthLineDiscountAmount: Decimal;
-        LastMonthDays: Integer;
-        LastMonthLineAmount: Decimal;
-        LastMonthLineDiscountAmount: Decimal;
+        FullMonthLineAmount: Decimal;
+        FullMonthLineDiscountAmount: Decimal;
+        PartialFirstMonthAmount: Decimal;
+        PartialFirstMonthDiscountAmount: Decimal;
+        PartialLastMonthAmount: Decimal;
+        PartialLastMonthDiscountAmount: Decimal;
+        PeriodLineAmount: Decimal;
+        PeriodLineDiscountAmount: Decimal;
         RunningLineAmount: Decimal;
-        RunningLineDiscountTotal: Decimal;
+        RunningLineDiscountAmount: Decimal;
         NumberOfDaysInSchedule: Integer;
-        i: Integer;
+        FirstMonthDays: Integer;
+        LastMonthDays: Integer;
+        FullMonthCount: Integer;
+        FirstMonthIsPartial: Boolean;
+        LastMonthIsPartial: Boolean;
     begin
-        RunningLineAmount := 0;
-        RunningLineDiscountTotal := 0;
-        GetDeferralParametersFromSalesLine(SalesLine, FirstDayOfBillingPeriod, LastDayOfBillingPeriod, TotalLineAmount, TotalLineDiscountAmount, NumberOfPeriods);
-        NextPostingDate := FirstDayOfBillingPeriod;
-        NumberOfDaysInSchedule := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
-        LineAmountPerDay := TotalLineAmount / NumberOfDaysInSchedule;
-        LineDiscountAmountPerDay := TotalLineDiscountAmount / NumberOfDaysInSchedule;
-        FirstMonthDays := CalcDate('<CM>', NextPostingDate) - NextPostingDate + 1;
-        FirstMonthLineAmount := Round(FirstMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-        FirstMonthLineDiscountAmount := Round(FirstMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
-        LastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
-        LastMonthLineAmount := Round(LastMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
-        LastMonthLineDiscountAmount := Round(LastMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
-        if NumberOfPeriods > 2 then begin
-            LineAmountPerMonth := Round((TotalLineAmount - FirstMonthLineAmount - LastMonthLineAmount) / (NumberOfPeriods - 2), GLSetup."Amount Rounding Precision");
-            LineDiscountAmountPerMonth := Round((TotalLineDiscountAmount - FirstMonthLineDiscountAmount - LastMonthLineDiscountAmount) / (NumberOfPeriods - 2), GLSetup."Amount Rounding Precision");
+        FirstDayOfBillingPeriod := SalesLine."Recurring Billing from";
+        NumberOfPeriods := GetNumberOfDeferralPeriods(FirstDayOfBillingPeriod, SalesLine."Recurring Billing to");
+
+        // Determine which months are partial (not covering the entire calendar month)
+        FirstMonthIsPartial := FirstDayOfBillingPeriod <> CalcDate('<-CM>', FirstDayOfBillingPeriod);
+        LastMonthIsPartial := SalesLine."Recurring Billing to" <> CalcDate('<CM>', SalesLine."Recurring Billing to");
+
+        // Calculate daily rate for day-proportioning partial months
+        NumberOfDaysInSchedule := SalesLine."Recurring Billing to" - FirstDayOfBillingPeriod + 1;
+        LineAmountPerDay := SalesLine.Amount / NumberOfDaysInSchedule;
+        LineDiscountAmountPerDay := SalesLine."Line Discount Amount" / NumberOfDaysInSchedule;
+        FirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        LastMonthDays := Date2DMY(SalesLine."Recurring Billing to", 1);
+
+        // Calculate partial month amounts and determine how many full months remain
+        FullMonthCount := NumberOfPeriods;
+        if FirstMonthIsPartial then begin
+            // When first month is partial, day-proportion both first and last months
+            CalcPartialMonthAmounts(FirstMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialFirstMonthAmount, PartialFirstMonthDiscountAmount);
+            CalcPartialMonthAmounts(LastMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialLastMonthAmount, PartialLastMonthDiscountAmount);
+            FullMonthCount -= 2;
+        end else
+            if LastMonthIsPartial and (NumberOfPeriods > 1) then begin
+                // When only last month is partial, day-proportion just that month
+                CalcPartialMonthAmounts(LastMonthDays, LineAmountPerDay, LineDiscountAmountPerDay, PartialLastMonthAmount, PartialLastMonthDiscountAmount);
+                FullMonthCount -= 1;
+            end;
+
+        // Equal share for full months from the remaining amount after partial months
+        if FullMonthCount > 0 then begin
+            FullMonthLineAmount := Round((SalesLine.Amount - PartialFirstMonthAmount - PartialLastMonthAmount) / FullMonthCount, GLSetup."Amount Rounding Precision");
+            FullMonthLineDiscountAmount := Round((SalesLine."Line Discount Amount" - PartialFirstMonthDiscountAmount - PartialLastMonthDiscountAmount) / FullMonthCount, GLSetup."Amount Rounding Precision");
         end;
+
+        // Insert deferral records for each period
+        NextPostingDate := FirstDayOfBillingPeriod;
+        RunningLineAmount := 0;
+        RunningLineDiscountAmount := 0;
 
         for i := 1 to NumberOfPeriods do begin
             CustomerContractDeferral."Posting Date" := NextPostingDate;
             NextPostingDate := CalcDate('<1M-CM>', NextPostingDate);
-            case i of
-                1:
-                    begin
-                        LineAmountPerPeriod := FirstMonthLineAmount;
-                        LineDiscountAmountPerPeriod := FirstMonthLineDiscountAmount;
-                        CustomerContractDeferral."Number of Days" := FirstMonthDays;
-                    end;
-                NumberOfPeriods:
-                    begin
-                        LineAmountPerPeriod := TotalLineAmount - RunningLineAmount;
-                        LineDiscountAmountPerPeriod := TotalLineDiscountAmount - RunningLineDiscountTotal;
-                        CustomerContractDeferral."Number of Days" := LastMonthDays;
-                    end;
-                else begin
-                    LineAmountPerPeriod := LineAmountPerMonth;
-                    LineDiscountAmountPerPeriod := LineDiscountAmountPerMonth;
-                    CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
-                end;
-            end;
-            RunningLineAmount += LineAmountPerPeriod;
-            RunningLineDiscountTotal += LineDiscountAmountPerPeriod;
 
-            CustomerContractDeferral.Amount := LineAmountPerPeriod;
-            CustomerContractDeferral."Discount Amount" := LineDiscountAmountPerPeriod;
+            // Determine period amount: last period absorbs rounding, first partial is day-proportioned, rest are equal
+            if i = NumberOfPeriods then begin
+                PeriodLineAmount := SalesLine.Amount - RunningLineAmount;
+                PeriodLineDiscountAmount := SalesLine."Line Discount Amount" - RunningLineDiscountAmount;
+            end else
+                if (i = 1) and FirstMonthIsPartial then begin
+                    PeriodLineAmount := PartialFirstMonthAmount;
+                    PeriodLineDiscountAmount := PartialFirstMonthDiscountAmount;
+                end else begin
+                    PeriodLineAmount := FullMonthLineAmount;
+                    PeriodLineDiscountAmount := FullMonthLineDiscountAmount;
+                end;
+
+            // Determine number of days: partial months use actual day count, full months use calendar month days
+            if (i = NumberOfPeriods) and (NumberOfPeriods > 1) and (FirstMonthIsPartial or LastMonthIsPartial) then
+                CustomerContractDeferral."Number of Days" := LastMonthDays
+            else
+                if (i = 1) and FirstMonthIsPartial then
+                    CustomerContractDeferral."Number of Days" := FirstMonthDays
+                else
+                    CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
+
+            RunningLineAmount += PeriodLineAmount;
+            RunningLineDiscountAmount += PeriodLineDiscountAmount;
+
+            CustomerContractDeferral.Amount := PeriodLineAmount;
+            CustomerContractDeferral."Discount Amount" := PeriodLineDiscountAmount;
             CustomerContractDeferral."Entry No." := 0;
-            OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
+#pragma warning disable AL0432
+            if FirstMonthIsPartial then
+                OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods)
+            else
+                OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
+#pragma warning restore AL0432
+            OnBeforeInsertCustomerContractDeferral(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
             CustomerContractDeferral.Insert(false);
-            TempCustomerContractDeferral := CustomerContractDeferral;
-            TempCustomerContractDeferral.Insert(false); //Used for Preview Posting
         end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterSalesCrMemoLineInsert, '', false, false)]
-    local procedure InsertCustomerDeferralsFromSalesCrMemo(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesHeader: Record "Sales Header")
+    local procedure InsertCustomerDeferralsFromSalesCrMemo(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
-        ReleaseAndCreditCustomerContractDeferrals(SalesHeader, SalesCrMemoLine);
+        ProcessCreditMemoContractDeferrals(SalesHeader, SalesCrMemoLine, SalesLine);
     end;
 
-    local procedure ReleaseAndCreditCustomerContractDeferrals(SalesHeader: Record "Sales Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    local procedure ProcessCreditMemoContractDeferrals(SalesHeader: Record "Sales Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesLine: Record "Sales Line")
     var
         InvoiceCustContractDeferral: Record "Cust. Sub. Contract Deferral";
         CreditMemoCustContractDeferral: Record "Cust. Sub. Contract Deferral";
@@ -294,6 +254,10 @@ codeunit 8067 "Customer Deferrals Mngmt."
         AppliesToDocNo: Code[20];
     begin
         AppliesToDocNo := SalesDocuments.GetAppliesToDocNo(SalesHeader);
+        if AppliesToDocNo = '' then begin
+            InsertContractDeferrals(SalesHeader, SalesLine, SalesCrMemoLine."Document No.");
+            exit;
+        end;
         if SalesDocuments.IsInvoiceCredited(AppliesToDocNo) then
             exit;
         InvoiceCustContractDeferral.FilterOnDocumentTypeAndDocumentNo(Enum::"Rec. Billing Document Type"::Invoice, AppliesToDocNo);
@@ -327,26 +291,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
                 ContractDeferralRelease.SetRequestPageParameters(CreditMemoCustContractDeferral."Posting Date", SalesCrMemoLine."Posting Date");
                 ContractDeferralRelease.ReleaseCustomerContractDeferralAndInsertTempGenJournalLine(CreditMemoCustContractDeferral);
                 ContractDeferralRelease.PostTempGenJnlLineBufferForCustomerDeferrals();
-
-                TempCustomerContractDeferral := CreditMemoCustContractDeferral;
-                TempCustomerContractDeferral.Insert(false); //Used for Preview Posting
             until InvoiceCustContractDeferral.Next() = 0;
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterFillDocumentEntry, '', false, false)]
-    local procedure OnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
-    var
-        PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
-    begin
-        PostingPreviewEventHandler.InsertDocumentEntry(TempCustomerContractDeferral, DocumentEntry);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterShowEntries, '', false, false)]
-    local procedure OnAfterShowEntries(TableNo: Integer)
-    begin
-        if TableNo = Database::"Cust. Sub. Contract Deferral" then
-            Page.Run(Page::"Customer Contract Deferrals", TempCustomerContractDeferral);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::Navigate, OnAfterNavigateFindRecords, '', false, false)]
@@ -424,11 +370,29 @@ codeunit 8067 "Customer Deferrals Mngmt."
         DeferralEntryNo := NewDeferralNo;
     end;
 
+    local procedure CalcPartialMonthAmounts(MonthDays: Integer; LineAmountPerDay: Decimal; LineDiscountAmountPerDay: Decimal; var PartialMonthAmount: Decimal; var PartialMonthDiscountAmount: Decimal)
+    begin
+        PartialMonthAmount := CalcDaysAmount(MonthDays, LineAmountPerDay);
+        PartialMonthDiscountAmount := CalcDaysAmount(MonthDays, LineDiscountAmountPerDay);
+    end;
+
+    local procedure CalcDaysAmount(MonthDays: Integer; AmountPerDay: Decimal): Decimal
+    begin
+        exit(Round(MonthDays * AmountPerDay, GLSetup."Amount Rounding Precision"));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertCustomerContractDeferral(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
+    begin
+    end;
+
+    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
     end;
 
+    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
