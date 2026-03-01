@@ -386,13 +386,13 @@ codeunit 8067 "Customer Deferrals Mngmt."
     begin
     end;
 
-    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '28.0')]
+    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
     end;
 
-    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '28.0')]
+    [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
