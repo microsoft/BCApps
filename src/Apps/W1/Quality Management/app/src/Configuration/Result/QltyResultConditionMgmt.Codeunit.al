@@ -462,6 +462,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
         QltyInspectionResult.Ascending(false);
+        QltyInspectionResult.SetLoadFields(Code, Description, "Default Number Condition");
         if QltyInspectionResult.FindSet() then begin
             Iterator := 0;
             repeat
