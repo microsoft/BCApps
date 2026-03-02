@@ -23,7 +23,7 @@ page 8006 "Contract Renewal Selection"
                 field(AddVendorServicesCtrl; AddVendorServices)
                 {
                     CaptionClass = GetAddVendorServicesCaption();
-#pragma warning disable AA0219                    
+#pragma warning disable AA0219
                     ToolTip = 'Selecting this Option will also select and add the related Vendor Subscription Contract Lines.';
 #pragma warning restore AA0219
                     trigger OnValidate()
@@ -279,10 +279,13 @@ page 8006 "Contract Renewal Selection"
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(TempServiceCommitment);
+        RenewalTerm := TempServiceCommitment."Renewal Term";
+        RenewalTermEnabled := TempServiceCommitment."Subscription Header No." <> '';
 
         LineCheckText := '';
+        LineFormatStyleExpression := '';
         if not CheckContractLine(Rec) then begin
             LineCheckText := CopyStr(GetLastErrorText(), 1, MaxStrLen(LineCheckText));
             LineFormatStyleExpression := 'Attention';
@@ -347,17 +350,6 @@ page 8006 "Contract Renewal Selection"
         exit(ServiceCommitment."Renewal Term" <> EmptyDateFormula);
     end;
 
-
-    local procedure InitializePageVariables()
-    begin
-        if not TempServiceCommitment.Get(Rec."Subscription Line Entry No.") then
-            Clear(TempServiceCommitment);
-        RenewalTerm := TempServiceCommitment."Renewal Term";
-        RenewalTermEnabled := TempServiceCommitment."Subscription Header No." <> '';
-        if not ServiceObject.Get(Rec."Subscription Header No.") then
-            Clear(ServiceObject);
-    end;
-
     local procedure AddVendorServicesToBuffer()
     var
         ServiceCommitmentVend: Record "Subscription Line";
@@ -368,8 +360,7 @@ page 8006 "Contract Renewal Selection"
             repeat
                 if not TempServiceCommitmentVend.Get(ServiceCommitmentVend."Entry No.") then begin
                     TempServiceCommitmentVend := ServiceCommitmentVend;
-                    TempServiceCommitmentVend.Insert(false)
- ;
+                    TempServiceCommitmentVend.Insert(false);
                 end;
             until ServiceCommitmentVend.Next() = 0;
     end;
