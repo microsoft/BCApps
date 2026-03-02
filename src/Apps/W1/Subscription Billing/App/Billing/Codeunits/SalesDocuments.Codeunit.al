@@ -411,7 +411,7 @@ codeunit 8063 "Sales Documents"
         //The function makes sure that amounts are reset to previous values for Sales Lines with Subscription Items
         //The function makes sure that Qty. To Invoice for Subscription Items is properly set to 0 as it should never have the non-zero value
         //The Qty. To Invoice is normally being set to Qty. to Ship at this point
-        ShouldModifySalesLine := SalesLineShouldSkipInvoicing(TempSalesLine);
+        ShouldModifySalesLine := SalesLineShouldSkipInvoicing(TempSalesLine, true);
         OnSetQtyToInvoiceToZeroOnBeforePostUpdateOrderLineModifyTempLineOnAfterCalcShouldModifySalesLine(TempSalesLine, ShouldModifySalesLine);
         if not ShouldModifySalesLine then
             exit;
@@ -424,8 +424,7 @@ codeunit 8063 "Sales Documents"
             TempSalesLine.UpdateAmounts();
         end;
 
-        if TempSalesLine."Qty. to Ship" <> 0 then
-            TempSalesLine.Validate("Qty. to Invoice", 0);
+        TempSalesLine.Validate("Qty. to Invoice", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeCheckHeaderPostingType, '', false, false)]
