@@ -776,6 +776,12 @@ table 30102 "Shpfy Shop"
             Caption = 'Currency Handling';
             InitValue = "Shop Currency";
         }
+        field(136; "Process Returns As"; Enum "Shpfy Process Returns As")
+        {
+            Caption = 'Process Returns As';
+            ToolTip = 'Specifies what type of document to create when processing returns. Credit Memo creates a sales credit memo. Return Order creates a sales return order.';
+            DataClassification = CustomerContent;
+        }
         field(200; "Shop Id"; Integer)
         {
             DataClassification = SystemMetadata;
