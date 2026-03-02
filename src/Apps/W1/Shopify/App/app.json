@@ -25,6 +25,11 @@
       "id": "32f586f0-69fd-41bb-8e97-98c869856360",
       "publisher": "Microsoft",
       "name": "Shopify Connector Test"
+    },
+    {
+      "id": "f8c7b6a5-d4e3-42f1-9a8b-7c6d5e4f3a2b",
+      "publisher": "Microsoft",
+      "name": "Shopify Tax Agent"
     }
   ],
   "resourceExposurePolicy": {

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.SalesTax;
+
 /// <summary>
 /// Table Shpfy Order Tax Line (ID 30122).
 /// </summary>
@@ -80,6 +82,12 @@ table 30122 "Shpfy Order Tax Line"
             Caption = 'Channel Liable';
             DataClassification = SystemMetadata;
             Editable = false;
+        }
+        field(10; "Tax Jurisdiction Code"; Code[10])
+        {
+            Caption = 'Tax Jurisdiction Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Tax Jurisdiction";
         }
     }
     keys

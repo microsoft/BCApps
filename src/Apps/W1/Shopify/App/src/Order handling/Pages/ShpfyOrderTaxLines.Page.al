@@ -12,9 +12,7 @@ page 30168 "Shpfy Order Tax Lines"
 {
     Caption = 'Shopify Order Tax Lines';
     DeleteAllowed = false;
-    Editable = false;
     InsertAllowed = false;
-    ModifyAllowed = false;
     PageType = List;
     PromotedActionCategories = 'New,Process,Report,Fulfillment,Inspect';
     SourceTable = "Shpfy Order Tax Line";
@@ -29,34 +27,45 @@ page 30168 "Shpfy Order Tax Lines"
                 field(Title; Rec.Title)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the title of the tax line.';
                 }
                 field(Rate; Rec.Rate)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the rate of the tax line.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the amount of the tax line.';
                 }
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
                     Caption = 'Presentment Amount';
+                    Editable = false;
                     ToolTip = 'Specifies the amount of the tax line in presentment currency.';
                     Visible = PresentmentCurrencyVisible;
                 }
                 field("Rate %"; Rec."Rate %")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the rate percentage of the tax line.';
                 }
                 field("Channel Liable"; Rec."Channel Liable")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies if the channel that submitted the tax line is liable for remitting.';
+                }
+                field("Tax Jurisdiction Code"; Rec."Tax Jurisdiction Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the BC Tax Jurisdiction that matches this Shopify tax line.';
                 }
             }
         }

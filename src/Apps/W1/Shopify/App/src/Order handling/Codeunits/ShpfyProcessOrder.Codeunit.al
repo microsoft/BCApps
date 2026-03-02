@@ -27,7 +27,6 @@ codeunit 30166 "Shpfy Process Order"
     var
         ShopifyShop: Record "Shpfy Shop";
         OrderEvents: Codeunit "Shpfy Order Events";
-        OrderMgt: Codeunit "Shpfy Order Mgt.";
         LastCreatedDocumentId: Guid;
 
     trigger OnRun()
@@ -39,10 +38,10 @@ codeunit 30166 "Shpfy Process Order"
         MappingErr: Label 'Not everything can be mapped.';
     begin
         OrderHeader.Get(Rec."Shopify Order Id");
-        OrderEvents.OnBeforeProcessSalesDocument(OrderHeader);
         if not OrderMapping.DoMapping(OrderHeader) then
             Error(MappingErr);
 
+        OrderEvents.OnBeforeProcessSalesDocument(OrderHeader);
         ShopifyShop.Get(OrderHeader."Shop Code");
         CreateHeaderFromShopifyOrder(SalesHeader, OrderHeader);
         CreateLinesFromShopifyOrder(SalesHeader, OrderHeader);
@@ -64,7 +63,6 @@ codeunit 30166 "Shpfy Process Order"
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
     internal procedure CreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header")
     var
-        ShopifyTaxArea: Record "Shpfy Tax Area";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
         OrdersAPI: Codeunit "Shpfy Orders API";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
@@ -126,8 +124,8 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader.Validate("External Document No.", ShopifyOrderHeader."PO Number");
             if ShopifyOrderHeader."Due Date" <> 0D then
                 SalesHeader.Validate("Due Date", ShopifyOrderHeader."Due Date");
-            if OrderMgt.FindTaxArea(ShopifyOrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
-                SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+            if ShopifyOrderHeader."Tax Area Code" <> '' then
+                SalesHeader.Validate("Tax Area Code", ShopifyOrderHeader."Tax Area Code");
             if ShopifyOrderHeader."Shipping Method Code" <> '' then
                 SalesHeader.Validate("Shipment Method Code", ShopifyOrderHeader."Shipping Method Code");
             if ShopifyOrderHeader."Shipping Agent Code" <> '' then begin
