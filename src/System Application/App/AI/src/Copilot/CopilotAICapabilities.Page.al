@@ -261,6 +261,76 @@ page 7775 "Copilot AI Capabilities"
                 }
             }
 
+            group(SemanticDataSearchOptIn)
+            {
+                ShowCaption = false;
+                Visible = true;
+
+                group(SemanticDataSearchAllowedDataMovementOffInfo)
+                {
+                    ShowCaption = false;
+                    Visible = true;
+                    InstructionalText = 'Some features use semantic data similarity. To get the most out of these features, you must enable Semantic Data Search.';
+                }
+                field(SemanticDataSearchServiceAgreement; SemanticDataSearchMSServiceAgreementLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(SemanticDataSearchMSServiceAgreementDocLinkLbl);
+                    end;
+                }
+                field(SemanticDataSearchPrivacyStatement; SemanticDataSearchMSPrivacyStatementLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(BingMSPrivacyStatementDocLinkLbl);
+                    end;
+                }
+                group(SemanticDataSearchDataMovementGroup)
+                {
+                    ShowCaption = false;
+                    label(SemanticDataSearchCaption)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'By enabling Semantic Data  Search, you agree to data being processed by the Azure Open AI Service outside of your environment''s geographic region or compliance boundary if Azure Open AI Service is not available in your region.';
+                    }
+                    field(SemanticDataSearchAreaDataMovement; SemanticDataSearchOptIn)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Enable Semantic Search';
+                        ToolTip = 'Specifies whether to enable Semantic Data Search. This is required for some features to use Semantic Data Search in your environment.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateSemanticDataSearchOptIn();
+                        end;
+                    }
+                    field(SemanticDataSearchAOAIServiceLocated; AOAIServiceLocatedLbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(AOAIServiceLocatedDocLinkLbl);
+                        end;
+                    }
+                    field(SemanticDataSearchDataProcess; DataProcessByAOAILbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(DataProcessByAOAIDocLinkLbl);
+                        end;
+                    }
+                }
+            }
+
             part(PreviewCapabilities; "Copilot Capabilities Preview")
             {
                 Caption = 'Production-ready previews';
@@ -350,6 +420,7 @@ page 7775 "Copilot AI Capabilities"
         end;
 
         BingOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), true) = Enum::"Privacy Notice Approval State"::Agreed;
+        SemanticDataSearchOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), true) = Enum::"Privacy Notice Approval State"::Agreed;
     end;
 
     trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
@@ -428,6 +499,20 @@ page 7775 "Copilot AI Capabilities"
         CopilotNotifications.ShowCapabilityChange();
     end;
 
+    local procedure UpdateSemanticDataSearchOptIn()
+    var
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+
+        if SemanticDataSearchOptIn then
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
+        else begin
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
+        end;
+
+        CopilotNotifications.ShowCapabilityChange();
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
@@ -461,4 +546,8 @@ page 7775 "Copilot AI Capabilities"
         BingMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
         BingMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
         BingMSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
+        SemanticDataSearchOptIn: Boolean;
+        SemanticDataSearchMSServiceAgreementLbl: Label 'Microsoft Services Agreement';
+        SemanticDataSearchMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
+        SemanticDataSearchMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
 }
