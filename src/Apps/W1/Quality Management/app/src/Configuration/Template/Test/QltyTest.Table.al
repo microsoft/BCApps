@@ -366,7 +366,7 @@ table 20401 "Qlty. Test"
 
     trigger OnDelete()
     begin
-        CheckDeleteConstraints(false);
+        CheckDeleteConstraints(true);
     end;
 
     procedure CheckDeleteConstraints(AskQuestion: Boolean)
