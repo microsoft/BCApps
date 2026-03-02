@@ -506,9 +506,8 @@ page 7775 "Copilot AI Capabilities"
 
         if SemanticDataSearchOptIn then
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
-        else begin
+        else
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
-        end;
 
         CopilotNotifications.ShowCapabilityChange();
     end;
