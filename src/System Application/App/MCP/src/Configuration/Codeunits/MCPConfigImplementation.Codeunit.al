@@ -60,6 +60,7 @@ codeunit 8351 "MCP Config Implementation"
         JsonFilterTxt: Label 'JSON Files (*.json)|*.json';
         InvalidJsonErr: Label 'The selected file is not a valid configuration file.';
         ConfigNameExistsMsg: Label 'A configuration with the name ''%1'' already exists. Please provide a different name.', Comment = '%1 = configuration name';
+        ConfigurationNotFoundErr: Label 'The MCP configuration was not found.';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -89,7 +90,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if not Active and IsDefaultConfiguration(MCPConfiguration) then
             Error(DefaultConfigCannotBeDeactivatedErr);
@@ -108,7 +109,7 @@ codeunit 8351 "MCP Config Implementation"
         xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         xMCPConfiguration := MCPConfiguration;
 
@@ -139,7 +140,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(DefaultConfigCannotBeDeletedErr);
@@ -173,7 +174,7 @@ codeunit 8351 "MCP Config Implementation"
         NewMCPConfiguration: Record "MCP Configuration";
     begin
         if not SourceMCPConfiguration.GetBySystemId(SourceConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         NewMCPConfiguration.Copy(SourceMCPConfiguration);
         NewMCPConfiguration.Name := NewName;
@@ -209,7 +210,7 @@ codeunit 8351 "MCP Config Implementation"
         xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         xMCPConfiguration := MCPConfiguration;
 
@@ -229,7 +230,7 @@ codeunit 8351 "MCP Config Implementation"
         xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         xMCPConfiguration := MCPConfiguration;
 
@@ -249,7 +250,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if not MCPConfiguration.AllowProdChanges then
             Error(CreateUpdateDeleteNotAllowedErr);
@@ -288,7 +289,7 @@ codeunit 8351 "MCP Config Implementation"
         PreviousDefault: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if not MCPConfiguration.Active then
             Error(ConfigurationMustBeActiveErr);
@@ -421,7 +422,7 @@ codeunit 8351 "MCP Config Implementation"
         PageMetadata: Record "Page Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
@@ -977,7 +978,7 @@ codeunit 8351 "MCP Config Implementation"
         OutputText: Text;
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         ConfigJson.Add('name', MCPConfiguration.Name);
         ConfigJson.Add('description', MCPConfiguration.Description);
