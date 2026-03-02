@@ -857,7 +857,6 @@ table 8059 "Subscription Line"
             if MaxServiceAmount <> 0 then
                 "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
         end else begin
-            ServiceObject.TestField(Quantity);
             Amount := Price * ServiceObject.Quantity;
             if not "Usage Based Billing" then
                 Amount := Round(Amount, Currency."Amount Rounding Precision");
@@ -867,7 +866,10 @@ table 8059 "Subscription Line"
                     "Discount Amount" := Round("Discount Amount", Currency."Amount Rounding Precision");
             end;
             if CalledByFieldNo = FieldNo("Discount Amount") then
-                "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001);
+                if Amount <> 0 then
+                    "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001)
+                else
+                    "Discount %" := 0;
             if ("Discount Amount" > MaxServiceAmount) and ("Discount Amount" <> 0) then
                 Error(CannotBeGreaterThanErr, FieldCaption("Discount Amount"), Format(MaxServiceAmount));
             Amount := Amount - "Discount Amount";
