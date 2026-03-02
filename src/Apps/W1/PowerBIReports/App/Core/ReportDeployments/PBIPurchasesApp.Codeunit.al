@@ -21,26 +21,11 @@ codeunit 36965 "PBI Purchases App" implements "Power BI Deployable Report"
         exit(1);
     end;
 
-    procedure GetChangelog(): Text[2048]
-    begin
-        exit('Initial release.');
-    end;
-
-    procedure GetDatasetParameters() Parameters: List of [Text]
-    begin
-        Parameters.Add('COMPANY');
-        Parameters.Add('ENVIRONMENT');
-    end;
-
-    procedure GetDatasetParameterValue(ParameterName: Text): Text
+    procedure GetDatasetParameters() Parameters: Dictionary of [Text, Text]
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        case ParameterName of
-            'COMPANY':
-                exit(CompanyName());
-            'ENVIRONMENT':
-                exit(EnvironmentInformation.GetEnvironmentName());
-        end;
+        Parameters.Add('COMPANY', CompanyName());
+        Parameters.Add('ENVIRONMENT', EnvironmentInformation.GetEnvironmentName());
     end;
 }
