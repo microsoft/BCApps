@@ -53,7 +53,7 @@ page 20438 "Qlty. Management Setup Guide"
                 group(LetsGoText)
                 {
                     Caption = 'Let''s go!';
-                    InstructionalText = 'Go to My Settings to choose the Quality Manager role and follow the guided tours.';
+                    InstructionalText = 'Select the link below to open the Quality Manager Role Center and follow the guided tours.';
                 }
                 field(SettingsLink; SettingsLinkLbl)
                 {
