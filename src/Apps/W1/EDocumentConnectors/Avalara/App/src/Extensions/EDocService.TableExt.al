@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
-tableextension 6375 "E-Doc. Service" extends "E-Document Service"
+tableextension 6370 "E-Doc. Service" extends "E-Document Service"
 {
     fields
     {
