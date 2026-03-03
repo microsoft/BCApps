@@ -82,6 +82,7 @@ page 20438 "Qlty. Management Setup Guide"
                 Caption = 'Done';
                 ToolTip = 'Done';
                 InFooterBar = true;
+                Image = Close;
 
                 trigger OnAction();
                 begin
