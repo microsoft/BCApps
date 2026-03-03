@@ -246,16 +246,16 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink(BingMSServiceAgreementDocLinkLbl);
+                            Hyperlink(MSServiceAgreementDocLinkLbl);
                         end;
                     }
-                    field(BingSearchPrivacyStatement; BingMSPrivacyStatementLbl)
+                    field(BingSearchPrivacyStatement; MSPrivacyStatementLbl)
                     {
                         ShowCaption = false;
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink(BingMSPrivacyStatementDocLinkLbl);
+                            Hyperlink(MSPrivacyStatementDocLinkLbl);
                         end;
                     }
                 }
@@ -287,7 +287,7 @@ page 7775 "Copilot AI Capabilities"
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink(BingMSPrivacyStatementDocLinkLbl);
+                        Hyperlink(MSPrivacyStatementDocLinkLbl);
                     end;
                 }
                 group(SemanticDataSearchDataMovementGroup)
