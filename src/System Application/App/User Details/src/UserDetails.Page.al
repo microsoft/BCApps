@@ -155,12 +155,12 @@ page 774 "User Details"
         if Rec.GetFilter("Inactive Days Date Filter") <> '' then
             if Evaluate(UserDetails."Inactive Days Date Filter", Rec.GetFilter("Inactive Days Date Filter")) then
                 case UserDetails."Inactive Days Date Filter" of
-                    Rec."Inactive Days Date Filter"::"7Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-7D>', Today()), CurrentDateTime().Time));
-                    Rec."Inactive Days Date Filter"::"30Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-30D>', Today()), CurrentDateTime().Time));
-                    Rec."Inactive Days Date Filter"::"90Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-90D>', Today()), CurrentDateTime().Time));
+                    Rec."Inactive Days Date Filter"::"7 Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-7D>', Today()), 115900T));
+                    Rec."Inactive Days Date Filter"::"30 Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-30D>', Today()), 115900T));
+                    Rec."Inactive Days Date Filter"::"90 Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-90D>', Today()), 115900T));
                     else
                         OnInactiveDaysFilterCaseElse(UserDetails."Inactive Days Date Filter", Rec);
                 end;
@@ -174,6 +174,7 @@ page 774 "User Details"
     begin
         if CreatedByUser.Get(Rec.SystemCreatedBy) then;
         if ModifiedByUser.Get(Rec.SystemModifiedBy) then;
+        InactiveDays := 0;
         if Rec."Last Login Date".Date <> 0D then
             InactiveDays := Math.Floor(Today() - Rec."Last Login Date".Date);
     end;
