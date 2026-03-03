@@ -54,9 +54,11 @@ codeunit 20412 "Qlty. Assembly Integration"
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
                 if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
-                    QltyInspectionHeader.Modify(false);
-                    ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+                    if QltyInspectionHeader."No." <> '' then begin
+                        QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
+                        QltyInspectionHeader.Modify(false);
+                        ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+                    end;
                 end;
                 OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
             until TempSpecTrackingSpecification.Next(-1) = 0
@@ -68,7 +70,8 @@ codeunit 20412 "Qlty. Assembly Integration"
             HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
             if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+                if QltyInspectionHeader."No." <> '' then
+                    ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
             end;
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;

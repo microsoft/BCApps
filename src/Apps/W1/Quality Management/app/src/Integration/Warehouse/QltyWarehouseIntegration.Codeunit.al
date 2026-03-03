@@ -77,7 +77,6 @@ codeunit 20438 "Qlty. Warehouse Integration"
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                     if QltyInspectionHeader."No." <> '' then
                         ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
-
                 end;
             until TempTrackingSpecification.Next() = 0
         else
@@ -86,7 +85,6 @@ codeunit 20438 "Qlty. Warehouse Integration"
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 if QltyInspectionHeader."No." <> '' then
                     ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
-
             end;
 
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);

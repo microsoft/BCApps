@@ -445,7 +445,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
             Clear(ListOfCreatedInspectionIds);
         end;
-        OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder, ListOfCreatedInspectionIds);
+        OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder);
     end;
 
     /// <summary>
@@ -479,7 +479,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
         if HasInspection then begin
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-            ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+            if QltyInspectionHeader."No." <> '' then
+                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
         end;
 
         OnAfterProductionAttemptCreateAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
@@ -545,9 +546,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="CreatedAtLeastOneInspectionForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
     /// <param name="CreatedAtLeastOneInspectionForOrderLine">A flag indicating if at least one inspection for the production order line was created</param>
     /// <param name="CreatedInspectionForProdOrder">A flag indicating if at least one inspection for the production order was created</param>
-    /// <param name="ListOfInspectionIds">A list of record ids of the inspections that were created</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneInspectionForRoutingLine: Boolean; CreatedAtLeastOneInspectionForOrderLine: Boolean; CreatedInspectionForProdOrder: Boolean; ListOfInspectionIds: List of [RecordId])
+    local procedure OnAfterProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneInspectionForRoutingLine: Boolean; CreatedAtLeastOneInspectionForOrderLine: Boolean; CreatedInspectionForProdOrder: Boolean)
     begin
     end;
 
