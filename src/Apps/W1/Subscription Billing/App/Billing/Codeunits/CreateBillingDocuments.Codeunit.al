@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Foundation.ExtendedText;
 using System.IO;
 using System.Utilities;
 using Microsoft.Sales.Document;
@@ -226,6 +227,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling: Record "Usage Data Billing";
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
+        TransferExtendedText: Codeunit "Transfer Extended Text";
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -267,6 +269,9 @@ codeunit 8060 "Create Billing Documents"
         SetInvoicePriceFromUsageDataBilling(SalesLine, TempBillingLine);
         OnBeforeInsertSalesLineFromContractLine(SalesLine, TempBillingLine);
         SalesLine.Insert(false);
+
+        if TransferExtendedText.SalesCheckIfAnyExtText(SalesLine, false) then
+            TransferExtendedText.InsertSalesExtText(SalesLine);
 
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         CreateAdditionalInvoiceLine(ServiceContractSetup.FieldNo("Contract Invoice Add. Line 1"), SalesHeader, SalesLine, ServiceObject, ServiceCommitment);
@@ -340,6 +345,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling: Record "Usage Data Billing";
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
+        TransferExtendedText: Codeunit "Transfer Extended Text";
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -372,6 +378,10 @@ codeunit 8060 "Create Billing Documents"
 
         OnBeforeInsertPurchaseLineFromContractLine(PurchaseLine, TempBillingLine);
         PurchaseLine.Insert(false);
+
+        if TransferExtendedText.PurchCheckIfAnyExtText(PurchaseLine, false) then
+            TransferExtendedText.InsertPurchExtText(PurchaseLine);
+
         InsertDescriptionPurchaseLine(
              StrSubstNo(GetBillingPeriodDescriptionTxt(PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
 
