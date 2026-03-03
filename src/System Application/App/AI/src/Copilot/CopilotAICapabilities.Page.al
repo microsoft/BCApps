@@ -296,7 +296,7 @@ page 7775 "Copilot AI Capabilities"
                     label(SemanticDataSearchCaption)
                     {
                         ApplicationArea = All;
-                        Caption = 'By enabling Semantic Data  Search, you agree to data being processed by the Azure Open AI Service outside of your environment''s geographic region or compliance boundary if Azure Open AI Service is not available in your region.';
+                        Caption = 'By enabling Semantic Data Search, you agree to data being processed by the Azure Open AI Service outside of your environment''s geographic region or compliance boundary if Azure Open AI Service is not available in your region.';
                     }
                     field(SemanticDataSearchAreaDataMovement; SemanticDataSearchOptIn)
                     {
