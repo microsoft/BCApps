@@ -503,7 +503,6 @@ page 7775 "Copilot AI Capabilities"
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
     begin
-
         if SemanticDataSearchOptIn then
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
         else
