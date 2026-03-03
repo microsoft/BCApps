@@ -240,7 +240,7 @@ page 7775 "Copilot AI Capabilities"
                             UpdateBingSearchOptIn();
                         end;
                     }
-                    field(BingSearchServiceAgreement; BingMSServiceAgreementLbl)
+                    field(BingSearchServiceAgreement; MSServiceAgreementLbl)
                     {
                         ShowCaption = false;
 
@@ -272,16 +272,16 @@ page 7775 "Copilot AI Capabilities"
                     Visible = true;
                     InstructionalText = 'Some features use semantic data similarity. To get the most out of these features, you must enable Semantic Data Search.';
                 }
-                field(SemanticDataSearchServiceAgreement; SemanticDataSearchMSServiceAgreementLbl)
+                field(SemanticDataSearchServiceAgreement; MSServiceAgreementLbl)
                 {
                     ShowCaption = false;
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink(SemanticDataSearchMSServiceAgreementDocLinkLbl);
+                        Hyperlink(MSServiceAgreementDocLinkLbl);
                     end;
                 }
-                field(SemanticDataSearchPrivacyStatement; SemanticDataSearchMSPrivacyStatementLbl)
+                field(SemanticDataSearchPrivacyStatement; MSPrivacyStatementLbl)
                 {
                     ShowCaption = false;
 
@@ -540,12 +540,9 @@ page 7775 "Copilot AI Capabilities"
         BingOptIn: Boolean;
         BingFeaturesLbl: Label 'Features using Bing Search';
         BingFeaturesDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298540', Locked = true;
-        BingMSServiceAgreementLbl: Label 'Microsoft Services Agreement';
-        BingMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
-        BingMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
-        BingMSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
+        MSServiceAgreementLbl: Label 'Microsoft Services Agreement';
+        MSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
+        MSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
+        MSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
         SemanticDataSearchOptIn: Boolean;
-        SemanticDataSearchMSServiceAgreementLbl: Label 'Microsoft Services Agreement';
-        SemanticDataSearchMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
-        SemanticDataSearchMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
 }
