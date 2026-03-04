@@ -18,7 +18,7 @@ using Microsoft.Warehouse.Journal;
 codeunit 99001551 "Subc. WhsePostReceipt Ext"
 {
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLines, '', false, false)]
-    local procedure "Warehouse Receipt Line_OnBeforeOpenItemTrackingLines"(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
+    local procedure CheckOverDeliveryOnBeforeOpenItemTrackingLines(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
     var
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
     begin
@@ -38,12 +38,13 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", OnAfterGetQuantityRelatedParameter, '', false, false)]
-    local procedure "Purchases Warehouse Mgt._OnAfterGetQuantityRelatedParameter"(PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var QtyPerUoM: Decimal; var QtyBasePurchaseLine: Decimal)
+    local procedure CalculateSubcontractingLastOperationQuantity_OnAfterGetQuantityRelatedParameter(PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var QtyPerUoM: Decimal; var QtyBasePurchaseLine: Decimal)
     var
         Item: Record Microsoft.Inventory.Item.Item;
         UOMMgt: Codeunit "Unit of Measure Management";
     begin
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::LastOperation then begin
+            Item.SetLoadFields("No.", "Base Unit of Measure");
             Item.Get(PurchaseLine."No.");
             QtyPerUoM := UOMMgt.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
             QtyBasePurchaseLine := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine.Quantity, PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Quantity"), PurchaseLine.FieldCaption("Quantity (Base)"));
@@ -51,13 +52,13 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", OnPurchLine2ReceiptLineOnAfterInitNewLine, '', false, false)]
-    local procedure "Purchases Warehouse Mgt._OnPurchLine2ReceiptLineOnAfterInitNewLine"(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    local procedure SetSubcPurchaseLineTypeOnReceiptLine_OnPurchLine2ReceiptLineOnAfterInitNewLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         WarehouseReceiptLine."Subc. Purchase Line Type" := PurchaseLine."Subc. Purchase Line Type";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", OnBeforeCheckIfPurchLine2ReceiptLine, '', false, false)]
-    local procedure "Purchases Warehouse Mgt._OnBeforeCheckIfPurchLine2ReceiptLine"(var PurchaseLine: Record "Purchase Line"; var ReturnValue: Boolean; var IsHandled: Boolean)
+    local procedure CheckOutstandingBaseQtyForSubcontracting_OnBeforeCheckIfPurchLine2ReceiptLine(var PurchaseLine: Record "Purchase Line"; var ReturnValue: Boolean; var IsHandled: Boolean)
     var
         OutstandingQtyBase: Decimal;
         WhseOutstandingQtyBase: Decimal;
@@ -78,40 +79,40 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Purch. Release", OnReleaseOnBeforeCreateWhseRequest, '', false, false)]
-    local procedure "Whse.-Purch. Release_OnReleaseOnBeforeCreateWhseRequest"(var PurchaseLine: Record "Purchase Line"; var DoCreateWhseRequest: Boolean)
+    local procedure CreateWhseRequestForInventoriableItem_OnReleaseOnBeforeCreateWhseRequest(var PurchaseLine: Record "Purchase Line"; var DoCreateWhseRequest: Boolean)
     begin
         DoCreateWhseRequest := DoCreateWhseRequest or PurchaseLine.IsInventoriableItem();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeCalcBaseQty, '', false, false)]
-    local procedure "Warehouse Receipt Line_OnBeforeCalcBaseQty"(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var SuppressQtyPerUoMTestfield: Boolean)
+    local procedure SuppressQtyPerUoMTestfieldForSubcontracting_OnBeforeCalcBaseQty(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var SuppressQtyPerUoMTestfield: Boolean)
     begin
         SuppressQtyPerUoMTestfield := WarehouseReceiptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnValidateQtyToReceiveOnBeforeUOMMgtValidateQtyIsBalanced, '', false, false)]
-    local procedure "Warehouse Receipt Line_OnValidateQtyToReceiveOnBeforeUOMMgtValidateQtyIsBalanced"(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; xWarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean)
+    local procedure SkipValidateQtyBalancedForSubcontracting_OnValidateQtyToReceiveOnBeforeUOMMgtValidateQtyIsBalanced(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; xWarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean)
     begin
         if (WarehouseReceiptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnBeforePostWhseJnlLine, '', false, false)]
-    local procedure "Whse.-Post Receipt_OnBeforePostWhseJnlLine"(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var WhseReceiptLine: Record "Warehouse Receipt Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
+    local procedure SkipPostWhseJnlLineForSubcontracting_OnBeforePostWhseJnlLine(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var WhseReceiptLine: Record "Warehouse Receipt Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
         if PostedWhseReceiptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation, '', false, false)]
-    local procedure "Whse.-Post Receipt_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation"(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; ReceivingNo: Code[20]; PostingDate: Date; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
+    local procedure SkipWhseItemEntryRelationForSubcontracting_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; ReceivingNo: Code[20]; PostingDate: Date; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
     begin
         if PostedWhseRcptLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::None then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLineForPurchLine, '', false, false)]
-    local procedure "Warehouse Receipt Line_OnBeforeOpenItemTrackingLineForPurchLine"(PurchaseLine: Record "Purchase Line"; SecondSourceQtyArray: array[3] of Decimal; var SkipCallItemTracking: Boolean)
+    local procedure OpenItemTrackingForSubcontracting_OnBeforeOpenItemTrackingLineForPurchLine(PurchaseLine: Record "Purchase Line"; SecondSourceQtyArray: array[3] of Decimal; var SkipCallItemTracking: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
@@ -123,7 +124,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnCreatePostedRcptLineOnBeforePutAwayProcessing, '', false, false)]
-    local procedure "Whse.-Post Receipt_OnIsReceiptForSubcontracting"(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayProcessing: Boolean)
+    local procedure SkipPutAwayForSubcontracting_OnCreatePostedRcptLineOnBeforePutAwayProcessing(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayProcessing: Boolean)
     begin
         if SkipPutAwayProcessing then
             exit;
@@ -131,7 +132,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnBeforeCreatePutAwayLine, '', false, false)]
-    local procedure "Whse.-Post Receipt_OnIsReceiptIsForSubcontractingNotLastOperation"(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayCreationForLine: Boolean)
+    local procedure SkipPutAwayCreationForSubcontracting_OnBeforeCreatePutAwayLine(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayCreationForLine: Boolean)
     begin
         if PostedWhseReceiptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             SkipPutAwayCreationForLine := true;
@@ -162,6 +163,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         CannotInvoiceErrorInfo: ErrorInfo;
         CustomDimensions: Dictionary of [Text, Text];
     begin
+        PurchaseLine.SetLoadFields("Subc. Purchase Line Type", "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
         if not PurchaseLine.Get(WarehouseReceiptLine."Source Subtype", WarehouseReceiptLine."Source No.", WarehouseReceiptLine."Source Line No.") then
             exit;
         if PurchaseLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then
@@ -201,6 +203,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         PageManagement: Codeunit "Page Management";
         CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
     begin
+        PurchaseLine.SetLoadFields("Prod. Order No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.");
         if not PageManagement.PageRun(ProductionOrder) then
@@ -220,8 +223,10 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         if CustomDimensions.ContainsKey(GetWarehouseReceiptLineSystemIdCustomDimensionLbl()) then
             if not Evaluate(WarehouseReceiptLineSystemId, CustomDimensions.Get(GetWarehouseReceiptLineSystemIdCustomDimensionLbl())) then
                 exit;
+        WarehouseReceiptLine.SetLoadFields(Quantity, "Qty. to Receive (Base)");
         if not WarehouseReceiptLine.GetBySystemId(WarehouseReceiptLineSystemId) then
             exit;
+        PurchaseLine.SetLoadFields("Prod. Order No.", "Prod. Order Line No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.");
         if WarehouseReceiptLine.Quantity > ProdOrderLine.Quantity then begin
@@ -249,8 +254,10 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         if CustomDimensions.ContainsKey(GetWarehouseReceiptLineSystemIdCustomDimensionLbl()) then
             if not Evaluate(WarehouseReceiptLineSystemId, CustomDimensions.Get(GetWarehouseReceiptLineSystemIdCustomDimensionLbl())) then
                 exit;
+        WarehouseReceiptLine.SetLoadFields("Qty. to Receive (Base)");
         if not WarehouseReceiptLine.GetBySystemId(WarehouseReceiptLineSystemId) then
             exit;
+        PurchaseLine.SetLoadFields("Prod. Order No.", "Prod. Order Line No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.");
 
