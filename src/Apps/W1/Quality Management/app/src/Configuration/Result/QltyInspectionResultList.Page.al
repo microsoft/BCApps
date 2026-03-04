@@ -13,7 +13,6 @@ page 20416 "Qlty. Inspection Result List"
     SourceTable = "Qlty. Inspection Result";
     SourceTableView = sorting("Evaluation Sequence");
     PageType = List;
-    DelayedInsert = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Inspection Results';
