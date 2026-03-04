@@ -19,6 +19,15 @@ page 8355 "MCP Copy Config"
             group(Control1)
             {
                 ShowCaption = false;
+                field(InstructionMessage; InstructionMessage)
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ShowCaption = false;
+                    MultiLine = true;
+                    Style = Attention;
+                    Visible = InstructionMessage <> '';
+                }
                 field(ConfigName; ConfigName)
                 {
                     ApplicationArea = All;
@@ -38,6 +47,7 @@ page 8355 "MCP Copy Config"
     var
         ConfigName: Text[100];
         ConfigDescription: Text[250];
+        InstructionMessage: Text;
 
     internal procedure GetConfigName(): Text[100]
     begin
@@ -47,5 +57,20 @@ page 8355 "MCP Copy Config"
     internal procedure GetConfigDescription(): Text[250]
     begin
         exit(ConfigDescription);
+    end;
+
+    internal procedure SetConfigName(NewConfigName: Text[100])
+    begin
+        ConfigName := NewConfigName;
+    end;
+
+    internal procedure SetConfigDescription(NewConfigDescription: Text[250])
+    begin
+        ConfigDescription := NewConfigDescription;
+    end;
+
+    internal procedure SetInstructionMessage(NewInstructionMessage: Text)
+    begin
+        InstructionMessage := NewInstructionMessage;
     end;
 }

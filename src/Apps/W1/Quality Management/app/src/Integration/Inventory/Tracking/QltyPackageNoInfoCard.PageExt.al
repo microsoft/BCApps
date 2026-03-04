@@ -14,7 +14,7 @@ pageextension 20420 "Qlty. Package No. Info. Card" extends "Package No. Informat
     {
         addafter(General)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 

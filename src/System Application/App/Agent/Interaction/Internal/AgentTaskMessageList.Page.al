@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 page 4301 "Agent Task Message List"
 {
     PageType = List;

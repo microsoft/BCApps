@@ -16,7 +16,7 @@ page 7770 "Copilot Cap. Early Preview"
     Editable = false;
     Extensible = false;
     SourceTable = "Copilot Settings";
-    SourceTableView = where(Availability = const("Early Preview"), "Service Type" = const("Azure AI Service Type"::"Azure OpenAI"));
+    SourceTableView = where(Availability = const("Early Preview"), "Service Type" = const("Azure AI Service Type"::"Azure OpenAI"), "App Installed" = const(true));
     Permissions = tabledata "Copilot Settings" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -48,7 +48,7 @@ page 7770 "Copilot Cap. Early Preview"
                         SetStatusStyle();
                     end;
                 }
-                field(Publisher; Rec.Publisher)
+                field(Publisher; Rec."App Publisher")
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';

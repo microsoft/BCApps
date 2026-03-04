@@ -43,7 +43,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line Mapping" = X,
         table "E-Document Purchase Header" = X,
         table "E-Document Purchase Line" = X,
-        table "E-Documents Setup" = X,
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,

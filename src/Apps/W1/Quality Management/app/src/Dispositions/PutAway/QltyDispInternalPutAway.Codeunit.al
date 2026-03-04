@@ -20,17 +20,17 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
     var
         TempCreatedBufferWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header" temporary;
         ShouldSuppressNotification: Boolean;
-        PutAwayEntireLotErr: Label 'Creating an Internal Put-away the entire lot for inspection %1 was requested, however the item associated with this inspection does not require lot or serial tracking.', Comment = '%1=the inspection';
+        PutAwayEntireItemTrackingErr: Label 'Creating an Internal Put-away the entire item tracking for inspection %1 was requested, however the item associated with this inspection does not require item tracking.', Comment = '%1=the inspection';
         DocumentTypeLbl: Label 'Internal Put-Away';
 
     ///<summary>
     /// Create a warehouse internal put-away(s) from the supplied inspection.
-    /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
+    /// It's possible that multiple put-away's could be created if the item tracking is in multiple bins, but the typical scenario would be
     /// one internal put-away.
-    /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
+    /// You must be in a directed pick and put location, and you must be using item tracking warehouse tracking to use this feature.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the inspection.</param>
+    /// <param name="OptionalSpecificQuantity">Optional quantity. Leave blank to use the entire item tracking or the quantity from the inspection.</param>
     /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
     /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
     /// <param name="ReleaseImmediately">if true it will release the document, if false it will keep it open.</param>
@@ -63,7 +63,7 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         QltyManagementSetup.Get();
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
             if not QltyInspectionHeader.IsItemTrackingUsed() then
-                Error(PutAwayEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
+                Error(PutAwayEntireItemTrackingErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 

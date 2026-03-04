@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 page 4308 "Agent Task Message Card"
 {
     PageType = Card;

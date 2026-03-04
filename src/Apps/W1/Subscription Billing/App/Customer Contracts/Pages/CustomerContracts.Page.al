@@ -16,6 +16,9 @@ page 8053 "Customer Contracts"
     RefreshOnActivate = true;
     SourceTable = "Customer Subscription Contract";
     UsageCategory = Lists;
+    AdditionalSearchTerms = 'Customer Contracts, Subscription Contracts, Contract List, Billing Contracts, Customer Subscriptions, Contract Overview';
+    AboutTitle = 'About Customer Subscription Contracts';
+    AboutText = 'Use customer subscription contracts to package subscriptions for billing to customers.';
 
     layout
     {

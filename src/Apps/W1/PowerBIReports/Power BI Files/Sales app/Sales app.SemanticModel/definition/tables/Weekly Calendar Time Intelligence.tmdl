@@ -2729,27 +2729,7 @@ table 'Weekly Calendar Time Intelligence'
 			
 			IF (
 			    [ShowValueForDates],
-			    SUMX (
-			        VALUES ( 'Date'[FW YearNumber] ),
-			        VAR CurrentFiscalYearNumber = 'Date'[FW YearNumber]
-			        VAR DaysSelected =
-			            CALCULATETABLE (
-			                VALUES ( 'Date'[FW DayOfYearNumber] ),
-			                REMOVEFILTERS (
-			                    'Date'[Day Type],
-			                    'Date'[Week Day],
-			                    'Date'[WeekDayNumber]
-			                ),
-			                'Date'[DateWithSales] = TRUE
-			            )
-			        RETURN
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                'Date'[FW YearNumber] = CurrentFiscalYearNumber - 1,
-			                DaysSelected,
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
-			            )
-			    )
+			    DIVIDE([Gross Profit PY (Weekly)], [Sales Amount PY (Weekly)])
 			)
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
@@ -2784,33 +2764,12 @@ table 'Weekly Calendar Time Intelligence'
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: 58d8a289-80fb-46ff-8ca9-7e2a6a838259
 
-	measure 'Gross Profit Margin PQ (Weekly)' = ```
+	measure 'Gross Profit Margin PQ (Weekly)' =
 			
 			IF (
 			    [ShowValueForDates],
-			    SUMX ( 
-			        VALUES ( 'Date'[FW YearQuarterNumber] ),
-			        VAR CurrentFiscalYearQuarterNumber = 'Date'[FW YearQuarterNumber]
-			        VAR DaysSelected = 
-			            CALCULATETABLE (
-			                VALUES ( 'Date'[FW DayOfQuarterNumber] ),
-			                REMOVEFILTERS (
-			                    'Date'[Day Type],
-			                    'Date'[Week Day],
-			                    'Date'[WeekDayNumber]
-			                ),
-			                'Date'[DateWithSales] = TRUE
-			            )
-			        RETURN 
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                'Date'[FW YearQuarterNumber] = CurrentFiscalYearQuarterNumber - 1,
-			                DaysSelected,
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
-			            )
-			    )
+			    DIVIDE([Gross Profit PQ (Weekly)], [Sales Amount PQ (Weekly)])
 			)
-			```
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: 8a8a4587-f753-4667-948a-a9581788314f
@@ -2845,33 +2804,12 @@ table 'Weekly Calendar Time Intelligence'
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: a6f1dad7-c4c2-4a5a-bce3-9c6033e57974
 
-	measure 'Gross Profit Margin PW (Weekly)' = ```
+	measure 'Gross Profit Margin PW (Weekly)' =
 			
 			IF (
 			    [ShowValueForDates],
-			    SUMX ( 
-			        VALUES ( 'Date'[FW YearWeekNumber] ),
-			        VAR CurrentFiscalYearWeekNumber = 'Date'[FW YearWeekNumber] 
-			        VAR DaysSelected = 
-			            CALCULATETABLE (
-			                VALUES ( 'Date'[WeekDayNumber] ),
-			                REMOVEFILTERS (
-			                    'Date'[Day Type],
-			                    'Date'[Week Day],
-			                    'Date'[WeekDayNumber]
-			                ),
-			                'Date'[DateWithSales] = TRUE
-			            )
-			        RETURN 
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                'Date'[FW YearWeekNumber] = CurrentFiscalYearWeekNumber - 1,
-			                KEEPFILTERS ( DaysSelected ),
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
-			            )
-			    )
+			    DIVIDE([Gross Profit PW (Weekly)], [Sales Amount PW (Weekly)])
 			)
-			```
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: 90ae3901-1fc0-41d5-b734-8d62876e8751

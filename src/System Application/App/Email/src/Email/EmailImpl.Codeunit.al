@@ -44,6 +44,7 @@ codeunit 8900 "Email Impl"
         EmailConnectorDoesNotSupportRetrievingEmailsErr: Label 'The selected email connector does not support retrieving emails.';
         EmailConnectorDoesNotSupportMarkAsReadErr: Label 'The selected email connector does not support marking emails as read.';
         EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
+        EmailConnectorDoesNotSupportCategoriesErr: Label 'The selected email connector does not support email categories.';
         ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
         ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
@@ -270,6 +271,45 @@ codeunit 8900 "Email Impl"
         EmailConnectorv4.GetEmailFolders(EmailAccountId, EmailFolders);
     end;
 
+    procedure GetEmailCategories(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailCategories: Record "Email Categories" temporary)
+    var
+        EmailConnectorv5: Interface "Email Connector v5";
+    begin
+        CheckRequiredPermissions();
+
+        if not CheckAndGetEmailConnectorv5(Connector, EmailConnectorv5) then
+            Error(EmailConnectorDoesNotSupportCategoriesErr);
+
+        EmailConnectorv5.GetEmailCategories(EmailAccountId, EmailCategories);
+    end;
+
+    procedure CreateEmailCategory(EmailAccountId: Guid; Connector: Enum "Email Connector"; CategoryDisplayName: Text; CategoryColor: Text): Text
+    var
+        EmailConnectorv5: Interface "Email Connector v5";
+    begin
+        CheckRequiredPermissions();
+
+        if not CheckAndGetEmailConnectorv5(Connector, EmailConnectorv5) then
+            Error(EmailConnectorDoesNotSupportCategoriesErr);
+
+        exit(EmailConnectorv5.CreateEmailCategory(EmailAccountId, CategoryDisplayName, CategoryColor));
+    end;
+
+    procedure ApplyEmailCategory(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text; Categories: List of [Text])
+    var
+        EmailConnectorv5: Interface "Email Connector v5";
+    begin
+        CheckRequiredPermissions();
+
+        if ExternalId = '' then
+            Error(ExternalIdCannotBeEmptyErr);
+
+        if not CheckAndGetEmailConnectorv5(Connector, EmailConnectorv5) then
+            Error(EmailConnectorDoesNotSupportCategoriesErr);
+
+        EmailConnectorv5.ApplyEmailCategory(EmailAccountId, ExternalId, Categories);
+    end;
+
     local procedure TelemetryAppsAndPublishers(Message: Text)
     var
         Telemetry: Codeunit Telemetry;
@@ -393,10 +433,19 @@ codeunit 8900 "Email Impl"
     end;
 #endif
 
-    procedure CheckAndGetEmailConnectorv4(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v4"): Boolean
+    procedure CheckAndGetEmailConnectorv4(Connector: Interface "Email Connector"; var Connectorv4: Interface "Email Connector v4"): Boolean
     begin
         if Connector is "Email Connector v4" then begin
-            Connectorv3 := Connector as "Email Connector v4";
+            Connectorv4 := Connector as "Email Connector v4";
+            exit(true);
+        end else
+            exit(false);
+    end;
+
+    procedure CheckAndGetEmailConnectorv5(Connector: Interface "Email Connector"; var Connectorv5: Interface "Email Connector v5"): Boolean
+    begin
+        if Connector is "Email Connector v5" then begin
+            Connectorv5 := Connector as "Email Connector v5";
             exit(true);
         end else
             exit(false);

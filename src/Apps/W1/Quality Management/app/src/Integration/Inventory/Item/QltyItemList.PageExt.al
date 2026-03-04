@@ -5,50 +5,25 @@
 namespace Microsoft.QualityManagement.Integration.Inventory;
 
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20431 "Qlty. Item List" extends "Item List"
 {
     actions
     {
-        addlast(Action126)
+        addlast(navigation)
         {
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item.';
-                Visible = QltyReadTestResults;
-
-                trigger OnAction()
-                begin
-                    ShowQualityInspections();
-                end;
+                RunObject = Page "Qlty. Inspection List";
+                RunPageLink = "Source Item No." = field("No.");
+                RunPageView = sorting("Source Item No.");
             }
         }
     }
-
-    var
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
-
-    local procedure ShowQualityInspections()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        QltyInspectionHeader.SetRange("Source Item No.", Rec."No.");
-        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
-    end;
 }

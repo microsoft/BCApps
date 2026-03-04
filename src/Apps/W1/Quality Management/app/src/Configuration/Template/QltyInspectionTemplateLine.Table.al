@@ -22,7 +22,7 @@ table 20403 "Qlty. Inspection Template Line"
         field(1; "Template Code"; Code[20])
         {
             Caption = 'Template Code';
-            Description = 'A template is a collection of tests which could represent questions or measurements to take.';
+            ToolTip = 'Specifies the template, which is a collection of tests that could represent questions or measurements to take.';
             NotBlank = true;
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
         }
@@ -76,7 +76,7 @@ table 20403 "Qlty. Inspection Template Line"
         }
         field(10; "Copied From Template Code"; Code[20])
         {
-            Description = 'Used to track where a template was copied from.';
+            ToolTip = 'Specifies where a template was copied from.';
             Caption = 'Copied From Template Code';
         }
         field(11; "Default Value"; Text[250])
@@ -171,23 +171,19 @@ table 20403 "Qlty. Inspection Template Line"
     /// This will validate the expression formula.
     /// </summary>
     procedure ValidateExpressionFormula()
-    var
-        Handled: Boolean;
     begin
         Rec.CalcFields("Test Value Type");
 
-        OnValidateExpressionFormula(Rec, Handled);
-        if Handled then
-            exit;
+        OnValidateExpressionFormula(Rec);
     end;
 
     /// <summary>
     /// Validates the expression formula.
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; var Handled: Boolean)
+    local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin
     end;
 }

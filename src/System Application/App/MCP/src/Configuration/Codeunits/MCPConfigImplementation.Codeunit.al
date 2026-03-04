@@ -31,6 +31,7 @@ codeunit 8351 "MCP Config Implementation"
         InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
+        VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
         MCPConfigurationCreatedLbl: Label 'MCP Configuration created', Locked = true;
         MCPConfigurationModifiedLbl: Label 'MCP Configuration modified', Locked = true;
         MCPConfigurationDeletedLbl: Label 'MCP Configuration deleted', Locked = true;
@@ -44,9 +45,18 @@ codeunit 8351 "MCP Config Implementation"
         MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
         MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
         MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
+        MCPPrefixOnPremLbl: Label 'businesscentral-onprem', Locked = true;
+        MCPOnPremSuffixLbl: Label '/mcp', Locked = true;
+        ApiSuffixLbl: Label '/api', Locked = true;
         VSCodeAppNameLbl: Label 'VS Code', Locked = true;
-        VSCodeAppDescriptionLbl: Label 'Visual Studio Code';
+        VSCodeAppDescriptionLbl: Label 'Visual Studio Code', Locked = true;
         VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
+        ExportFileNameTxt: Label 'MCPConfig_%1_%2.json', Locked = true, Comment = '%1 = config name, %2 = date';
+        ExportTitleTxt: Label 'Export Configuration';
+        ImportTitleTxt: Label 'Import Configuration';
+        JsonFilterTxt: Label 'JSON Files (*.json)|*.json';
+        InvalidJsonErr: Label 'The selected file is not a valid configuration file.';
+        ConfigNameExistsMsg: Label 'A configuration with the name ''%1'' already exists. Please provide a different name.', Comment = '%1 = configuration name';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -251,19 +261,6 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Insert();
     end;
 
-    internal procedure CreateVSCodeEntraApplication()
-    var
-        MCPEntraApplication: Record "MCP Entra Application";
-    begin
-        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
-            exit;
-
-        MCPEntraApplication.Name := VSCodeAppNameLbl;
-        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
-        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
-        MCPEntraApplication.Insert();
-    end;
-
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
     begin
         exit(MCPConfiguration.Name = '');
@@ -359,6 +356,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
+        PageMetadata: Record "Page Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
@@ -366,12 +364,13 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        ValidateAPITool(APIPageId, ValidateAPIPublisher);
+        PageMetadata := ValidateAPITool(APIPageId, ValidateAPIPublisher);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."API Version" := GetHighestAPIVersion(PageMetadata);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -518,7 +517,7 @@ codeunit 8351 "MCP Config Implementation"
             APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
-    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean)
+    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
     var
         PageMetadata: Record "Page Metadata";
     begin
@@ -529,13 +528,15 @@ codeunit 8351 "MCP Config Implementation"
             Error(InvalidPageTypeErr);
 
         if not ValidateAPIPublisher then
-            exit;
+            exit(PageMetadata);
 
         if PageMetadata.APIPublisher = 'microsoft' then
             Error(InvalidAPIVersionErr);
 
         if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
             Error(InvalidAPIVersionErr);
+
+        exit(PageMetadata);
     end;
 
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -636,9 +637,118 @@ codeunit 8351 "MCP Config Implementation"
         MCPSystemTool."Tool Description" := ToolDescription;
         MCPSystemTool.Insert();
     end;
+
+    internal procedure ValidateAPIVersion(ObjectId: Integer; APIVersion: Text)
+    var
+        PageMetadata: Record "Page Metadata";
+        Versions: List of [Text];
+    begin
+        if not PageMetadata.Get(ObjectId) then
+            exit;
+
+        Versions := PageMetadata.APIVersion.Split(',');
+        if not Versions.Contains(APIVersion) then
+            Error(VersionNotValidErr);
+    end;
+
+    internal procedure LookupAPIVersions(PageId: Integer; var APIVersion: Text[30])
+    var
+        PageMetadata: Record "Page Metadata";
+        MCPAPIVersion: Record "MCP API Version";
+        Versions: List of [Text];
+        Version: Text[30];
+    begin
+        if not PageMetadata.Get(PageId) then
+            exit;
+
+        Versions := PageMetadata.APIVersion.Split(',');
+        foreach Version in Versions do begin
+            MCPAPIVersion."API Version" := Version;
+            MCPAPIVersion.Insert();
+        end;
+
+        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
+            APIVersion := MCPAPIVersion."API Version";
+    end;
+
+    internal procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    var
+        Versions: List of [Text];
+        Version: Text;
+        HighestVersion: Text;
+        HighestMajor: Integer;
+        HighestMinor: Integer;
+        CurrentMajor: Integer;
+        CurrentMinor: Integer;
+    begin
+        if PageMetadata.APIVersion = '' then
+            exit('');
+
+        Versions := PageMetadata.APIVersion.Split(',');
+
+        if Versions.Count() = 1 then
+            exit(CopyStr(Versions.Get(1), 1, 30));
+
+        HighestMajor := -1;
+        HighestMinor := -1;
+
+        foreach Version in Versions do
+            if TryParseVersion(Version, CurrentMajor, CurrentMinor) then
+                if (CurrentMajor > HighestMajor) or ((CurrentMajor = HighestMajor) and (CurrentMinor > HighestMinor)) then begin
+                    HighestMajor := CurrentMajor;
+                    HighestMinor := CurrentMinor;
+                    HighestVersion := Version;
+                end;
+
+        exit(CopyStr(HighestVersion, 1, 30));
+    end;
+
+    local procedure TryParseVersion(Version: Text; var Major: Integer; var Minor: Integer): Boolean
+    var
+        VersionParts: List of [Text];
+        VersionNumber: Text;
+    begin
+        // 'beta' is treated as lowest priority
+        if Version.ToLower() = 'beta' then begin
+            Major := -1;
+            Minor := -1;
+            exit(true);
+        end;
+
+        // Expected format: vMajor.Minor (e.g., v1.0, v2.0)
+        if not Version.StartsWith('v') then
+            exit(false);
+
+        VersionNumber := Version.Substring(2); // Remove 'v'
+        VersionParts := VersionNumber.Split('.');
+
+        if VersionParts.Count() <> 2 then
+            exit(false);
+
+        if not Evaluate(Major, VersionParts.Get(1)) then
+            exit(false);
+
+        if not Evaluate(Minor, VersionParts.Get(2)) then
+            exit(false);
+
+        exit(true);
+    end;
     #endregion
 
     #region Connection String
+    internal procedure CreateVSCodeEntraApplication()
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
+            exit;
+
+        MCPEntraApplication.Name := VSCodeAppNameLbl;
+        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
+        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
+        MCPEntraApplication.Insert();
+    end;
+
     internal procedure ShowConnectionString(ConfigurationName: Text[100])
     var
         MCPConnectionString: Page "MCP Connection String";
@@ -659,17 +769,34 @@ codeunit 8351 "MCP Config Implementation"
         TenantId: Text;
         EnvironmentName: Text;
         Company: Text;
+        IsSaaS: Boolean;
     begin
-        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix);
-        TenantId := AzureADTenant.GetAadTenantId();
-        EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        IsSaaS := EnvironmentInformation.IsSaaS();
         Company := CompanyName();
 
-        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName));
+        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix, IsSaaS);
+
+        if IsSaaS then begin
+            TenantId := AzureADTenant.GetAadTenantId();
+            EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        end;
+
+        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName, IsSaaS));
     end;
 
-    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text)
+    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text; IsSaaS: Boolean)
+    var
+        BaseUrl: Text;
     begin
+        if not IsSaaS then begin
+            BaseUrl := GetUrl(ClientType::Api).TrimEnd('/');
+            if BaseUrl.EndsWith(ApiSuffixLbl) then
+                BaseUrl := BaseUrl.Substring(1, StrLen(BaseUrl) - StrLen(ApiSuffixLbl));
+            MCPUrl := BaseUrl + MCPOnPremSuffixLbl;
+            MCPPrefix := MCPPrefixOnPremLbl;
+            exit;
+        end;
+
         if IsTIEEnvironment() then begin
             MCPUrl := MCPUrlTIELbl;
             MCPPrefix := MCPPrefixTIELbl;
@@ -686,7 +813,7 @@ codeunit 8351 "MCP Config Implementation"
         exit(Uri.AreURIsHaveSameHost(GetUrl(ClientType::Web), 'https://businesscentral.dynamics-tie.com'));
     end;
 
-    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]): Text
+    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]; IsSaaS: Boolean): Text
     var
         JsonBuilder: TextBuilder;
     begin
@@ -694,8 +821,10 @@ codeunit 8351 "MCP Config Implementation"
         JsonBuilder.AppendLine('  "url": "' + MCPUrl + '",');
         JsonBuilder.AppendLine('  "type": "http",');
         JsonBuilder.AppendLine('  "headers": {');
-        JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
-        JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
+        if IsSaaS then begin
+            JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
+            JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
+        end;
         JsonBuilder.AppendLine('    "Company": "' + Company + '",');
         JsonBuilder.AppendLine('    "ConfigurationName": "' + ConfigurationName + '"');
         JsonBuilder.AppendLine('  }');
@@ -721,6 +850,193 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         MCPEntraApplication.Delete();
+    end;
+    #endregion
+
+    #region Export/Import
+    internal procedure ExportConfigurationToFile(ConfigId: Guid; ConfigName: Text[100])
+    var
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        FileName: Text;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        ExportConfiguration(ConfigId, OutStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        FileName := StrSubstNo(ExportFileNameTxt, ConfigName, Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>'));
+        DownloadFromStream(InStream, ExportTitleTxt, '', JsonFilterTxt, FileName);
+    end;
+
+    internal procedure ImportConfigurationFromFile()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        MCPCopyConfig: Page "MCP Copy Config";
+        InStream: InStream;
+        OutStream: OutStream;
+        FileName: Text;
+        ConfigName: Text[100];
+        ConfigDescription: Text[250];
+    begin
+        if not UploadIntoStream(ImportTitleTxt, '', JsonFilterTxt, FileName, InStream) then
+            exit;
+
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        CopyStream(OutStream, InStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+
+        if not GetConfigFromJson(InStream, ConfigName, ConfigDescription) then
+            Error(InvalidJsonErr);
+
+        MCPConfiguration.SetRange(Name, ConfigName);
+        if not MCPConfiguration.IsEmpty() then begin
+            MCPCopyConfig.SetConfigName(ConfigName);
+            MCPCopyConfig.SetConfigDescription(ConfigDescription);
+            MCPCopyConfig.SetInstructionMessage(StrSubstNo(ConfigNameExistsMsg, ConfigName));
+            MCPCopyConfig.LookupMode := true;
+            if MCPCopyConfig.RunModal() <> Action::LookupOK then
+                exit;
+            ConfigName := MCPCopyConfig.GetConfigName();
+            ConfigDescription := MCPCopyConfig.GetConfigDescription();
+        end;
+
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        ImportConfiguration(InStream, ConfigName, ConfigDescription);
+    end;
+
+    internal procedure ExportConfiguration(ConfigId: Guid; var OutStream: OutStream)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigJson: JsonObject;
+        ToolsArray: JsonArray;
+        ToolJson: JsonObject;
+        OutputText: Text;
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        ConfigJson.Add('name', MCPConfiguration.Name);
+        ConfigJson.Add('description', MCPConfiguration.Description);
+        ConfigJson.Add('enableDynamicToolMode', MCPConfiguration.EnableDynamicToolMode);
+        ConfigJson.Add('discoverReadOnlyObjects', MCPConfiguration.DiscoverReadOnlyObjects);
+        ConfigJson.Add('allowProdChanges', MCPConfiguration.AllowProdChanges);
+
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.FindSet() then
+            repeat
+                Clear(ToolJson);
+                ToolJson.Add('objectType', Format(MCPConfigurationTool."Object Type"));
+                ToolJson.Add('objectId', MCPConfigurationTool."Object ID");
+                ToolJson.Add('apiVersion', MCPConfigurationTool."API Version");
+                ToolJson.Add('allowRead', MCPConfigurationTool."Allow Read");
+                ToolJson.Add('allowCreate', MCPConfigurationTool."Allow Create");
+                ToolJson.Add('allowModify', MCPConfigurationTool."Allow Modify");
+                ToolJson.Add('allowDelete', MCPConfigurationTool."Allow Delete");
+                ToolJson.Add('allowBoundActions', MCPConfigurationTool."Allow Bound Actions");
+                ToolsArray.Add(ToolJson);
+            until MCPConfigurationTool.Next() = 0;
+
+        ConfigJson.Add('tools', ToolsArray);
+        ConfigJson.WriteTo(OutputText);
+        OutStream.WriteText(OutputText);
+    end;
+
+    local procedure GetConfigFromJson(var InStream: InStream; var ConfigName: Text[100]; var ConfigDescription: Text[250]): Boolean
+    var
+        ConfigJson: JsonObject;
+        JsonToken: JsonToken;
+        InputText: Text;
+    begin
+        InStream.ReadText(InputText);
+        if not ConfigJson.ReadFrom(InputText) then
+            exit(false);
+
+        if not ConfigJson.Get('name', JsonToken) then
+            exit(false);
+
+        ConfigName := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigName));
+
+        if ConfigJson.Get('description', JsonToken) then
+            ConfigDescription := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigDescription));
+
+        exit(true);
+    end;
+
+    internal procedure ImportConfiguration(var InStream: InStream; NewName: Text[100]; NewDescription: Text[250]): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigJson: JsonObject;
+        ToolsArray: JsonArray;
+        ToolToken: JsonToken;
+        InputText: Text;
+    begin
+        InStream.ReadText(InputText);
+        if not ConfigJson.ReadFrom(InputText) then
+            exit;
+
+        MCPConfiguration.Name := NewName;
+        MCPConfiguration.Description := NewDescription;
+        MCPConfiguration.Active := false;
+
+        if ConfigJson.Contains('enableDynamicToolMode') then
+            MCPConfiguration.EnableDynamicToolMode := ConfigJson.GetBoolean('enableDynamicToolMode');
+
+        if ConfigJson.Contains('discoverReadOnlyObjects') then
+            MCPConfiguration.DiscoverReadOnlyObjects := ConfigJson.GetBoolean('discoverReadOnlyObjects');
+
+        if ConfigJson.Contains('allowProdChanges') then
+            MCPConfiguration.AllowProdChanges := ConfigJson.GetBoolean('allowProdChanges');
+
+        MCPConfiguration.Insert();
+        LogConfigurationCreated(MCPConfiguration);
+
+        if ConfigJson.Contains('tools') then begin
+            ToolsArray := ConfigJson.GetArray('tools');
+            foreach ToolToken in ToolsArray do
+                ImportTool(MCPConfiguration.SystemId, ToolToken.AsObject());
+        end;
+
+        exit(MCPConfiguration.SystemId);
+    end;
+
+    local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ObjectTypeText: Text;
+    begin
+        MCPConfigurationTool.Init();
+        MCPConfigurationTool.ID := ConfigId;
+
+        if ToolJson.Contains('objectType') then begin
+            ObjectTypeText := ToolJson.GetText('objectType');
+            if ObjectTypeText = 'Page' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
+        end;
+
+        if ToolJson.Contains('objectId') then
+            MCPConfigurationTool."Object ID" := ToolJson.GetInteger('objectId');
+
+        if ToolJson.Contains('apiVersion') then
+            MCPConfigurationTool."API Version" := CopyStr(ToolJson.GetText('apiVersion'), 1, MaxStrLen(MCPConfigurationTool."API Version"));
+
+        if ToolJson.Contains('allowRead') then
+            MCPConfigurationTool."Allow Read" := ToolJson.GetBoolean('allowRead');
+
+        if ToolJson.Contains('allowCreate') then
+            MCPConfigurationTool."Allow Create" := ToolJson.GetBoolean('allowCreate');
+
+        if ToolJson.Contains('allowModify') then
+            MCPConfigurationTool."Allow Modify" := ToolJson.GetBoolean('allowModify');
+
+        if ToolJson.Contains('allowDelete') then
+            MCPConfigurationTool."Allow Delete" := ToolJson.GetBoolean('allowDelete');
+
+        if ToolJson.Contains('allowBoundActions') then
+            MCPConfigurationTool."Allow Bound Actions" := ToolJson.GetBoolean('allowBoundActions');
+
+        MCPConfigurationTool.Insert();
     end;
     #endregion
 

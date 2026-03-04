@@ -8,6 +8,9 @@ page 8042 "Usage Data Subscriptions"
     UsageCategory = Lists;
     PageType = List;
     LinksAllowed = false;
+    AdditionalSearchTerms = 'Usage Data Subscription, Supplier Subscription, Usage Data Processing, Customer Subscription, Usage Based Billing';
+    AboutTitle = 'About Usage Data Supp. Subscriptions';
+    AboutText = 'Here, subscription data from the suppliers'' usage data is displayed. These entries represent the suppliers'' information about the customers'' subscriptions. Each row belongs to a Usage Data Supplier. It is required for processing and billing of usage data.';
     layout
     {
         area(content)

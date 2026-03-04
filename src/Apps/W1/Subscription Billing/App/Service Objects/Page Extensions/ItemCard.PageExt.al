@@ -13,6 +13,8 @@ pageextension 8054 "Item Card" extends "Item Card"
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies whether or not Subscription Lines can be linked to this item, or if the item is being used for recurring billing. This is only relevant if you are using Subscription Billing functionalities.';
+                AboutTitle = 'What turns an item into a subscription?';
+                AboutText = 'This determines whether an item carries or embodies subscriptions. These subscriptions may be optional or mandatory.';
 
                 trigger OnValidate()
                 begin
@@ -27,6 +29,8 @@ pageextension 8054 "Item Card" extends "Item Card"
                 ApplicationArea = All;
                 Caption = 'Subscription Packages';
                 SubPageLink = "Item No." = field("No.");
+                AboutTitle = 'Available subscription packages';
+                AboutText = 'The subscription packages available for this item are displayed here.';
             }
         }
         modify("Allow Invoice Disc.")

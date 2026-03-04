@@ -10,6 +10,7 @@ report 8053 "Vend Contr. Def. Analysis"
     ExcelLayoutMultipleDataSheets = true;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
+    AdditionalSearchTerms = 'Vendor Deferrals, Deferral Analysis, Cost Deferrals, Contract Analysis, Deferral Report, Deferred Costs';
 
     dataset
     {
@@ -49,6 +50,9 @@ report 8053 "Vend Contr. Def. Analysis"
 
     requestpage
     {
+        AboutTitle = 'About Vendor Subscription Contract Deferrals Analysis';
+        AboutText = 'Download the contract deferrals as an Excel file filtered based on your own criteria.';
+
         layout
         {
             area(content)

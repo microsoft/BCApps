@@ -263,9 +263,9 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
-    [NonDebuggable]
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        AOAIPolicyParams: Codeunit "AOAI Policy Params";
         CustomDimensions: Dictionary of [Text, Text];
         Payload, ToolChoicePayload : JsonObject;
         ToolsPayload: JsonArray;
@@ -273,9 +273,13 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
         AzureOpenAIPolicy: Text;
+        AIAOResourceUtilization: Enum "AOAI Resource Utilization";
     begin
         GuiCheck(ChatCompletionsAOAIAuthorization);
 
+        AIAOResourceUtilization := ChatCompletionsAOAIAuthorization.GetResourceUtilization();
+        if AIAOResourceUtilization <> Enum::"AOAI Resource Utilization"::"Self-Managed" then
+            ChatMessages.CheckCompatibilityWithModel(ChatCompletionsAOAIAuthorization.GetManagedResourceDeployment());
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -283,7 +287,10 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
 
-        AzureOpenAIPolicy := AOAIChatCompletionParams.GetAOAIPolicyParams().GetAOAIPolicy();
+        AOAIPolicyParams := AOAIChatCompletionParams.GetAOAIPolicyParams();
+        AzureOpenAIPolicy := (AIAOResourceUtilization = Enum::"AOAI Resource Utilization"::"Self-Managed") and AOAIPolicyParams.IsDefaultPolicy()
+            ? '' // The default value is generally not compatible with self managed resources, yet we allow them to specify their own policy and must honor that.
+            : AOAIPolicyParams.GetAOAIPolicy();
 
         Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
 
@@ -477,6 +484,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         if not IsBillingTypeAuthorized(AOAIAuthorization, CallerModuleInfo) then begin
             Error := StrSubstNo(BillingTypeAuthorizationErr, CopilotCapabilityImpl.GetCapabilityName(), CopilotCapabilityImpl.GetCopilotBillingType());
+            AOAIOperationResponse.SetOperationResponse(false, 403, '', Error);
             Error(Error);
         end;
 
@@ -499,7 +507,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             Enum::"AOAI Model Type"::"Chat Completions":
                 ALCopilotOperationResponse := ALCopilotFunctions.GenerateChatCompletion(Payload, ALCopilotAuthorization, ALCopilotCapability, AzureOpenAIPolicy);
             else
-                Error(InvalidModelTypeErr)
+                AOAIOperationResponse.SetOperationResponse(false, 400, '', InvalidModelTypeErr);
+                Error(InvalidModelTypeErr);
         end;
 
         Error := ALCopilotOperationResponse.ErrorText();

@@ -5757,56 +5757,12 @@ table 'Fiscal Calendar Time Intelligence'
 		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
 		lineageTag: b1a597ab-aef4-4461-9d0e-93ae25234dca
 
-	measure 'Gross Profit Margin PY (Fiscal)' = ```
+	measure 'Gross Profit Margin PY (Fiscal)' =
 			
-			VAR MonthsOffset = 12
-			RETURN IF (
+			IF (
 			    [ShowValueForDates],
-			    SUMX (
-			        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
-			        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
-			        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
-			        VAR DaysOnMonth = 
-			            CALCULATE (
-			                COUNTROWS ( 'Date' ),
-			                ALLEXCEPT ( 
-			                    'Date', 
-			                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
-			                    'Date'[Day Type],        -- Filter-safe Date column
-			                    'Date'[WeekDayNumber]         -- Filter-safe Date column
-			                )
-			            )
-			        VAR DaysSelected = 
-			            CALCULATE ( 
-			                COUNTROWS ( 'Date' ), 
-			                'Date'[DateWithSales] = TRUE 
-			            )
-			        RETURN IF (
-			            DaysOnMonth = DaysSelected,
-			
-			            -- Selection of all days in the month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[WeekDayNumber] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
-			            ),
-			            
-			            -- Partial selection of days in a month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[WeekDayNumber] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
-			                CALCULATETABLE ( 
-			                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
-			                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
-			                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
-			                    'Date'[DateWithSales] = TRUE 
-			                )
-			            )
-			        )
-			    )
+			    DIVIDE([Gross Profit PY (Fiscal)], [Sales Amount PY (Fiscal)])
 			)
-			```
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: f42482c7-0dfc-45a9-aacc-95c232a60da1
@@ -5840,51 +5796,12 @@ table 'Fiscal Calendar Time Intelligence'
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: d212fc00-1497-4df4-a34e-5deae829c5fc
 
-	measure 'Gross Profit Margin PQ (Fiscal)' = ```
+	measure 'Gross Profit Margin PQ (Fiscal)' =
 			
-			VAR MonthsOffset = 3
-			RETURN IF (
+			IF (
 			    [ShowValueForDates],
-			    SUMX (
-			        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
-			        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
-			        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
-			        VAR DaysOnMonth = 
-			            CALCULATE (
-			                COUNTROWS ( 'Date' ),
-			                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[Day Type], 'Date'[Week Day] )
-			            )
-			        VAR DaysSelected = 
-			            CALCULATE ( 
-			                COUNTROWS ( 'Date' ), 
-			                'Date'[DateWithSales] = TRUE 
-			            )
-			        RETURN IF (
-			            DaysOnMonth = DaysSelected,
-			
-			            -- Selection of all days in the month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
-			            ),
-			            
-			            -- Partial selection of days in a month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
-			                CALCULATETABLE ( 
-			                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
-			                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
-			                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
-			                    'Date'[DateWithSales] = TRUE 
-			                )
-			            )
-			        )
-			    )
+			    DIVIDE([Gross Profit PQ (Fiscal)], [Sales Amount PQ (Fiscal)])
 			)
-			```
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: c3ac5203-3e9d-4d45-b330-12f14f7df6bb
@@ -5919,51 +5836,12 @@ table 'Fiscal Calendar Time Intelligence'
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: 15e8887f-f9ef-44ac-b7b1-2d60196632b9
 
-	measure 'Gross Profit Margin PM (Fiscal)' = ```
+	measure 'Gross Profit Margin PM (Fiscal)' =
 			
-			VAR MonthsOffset = 1
-			RETURN IF (
+			IF (
 			    [ShowValueForDates],
-			    SUMX (
-			        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
-			        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
-			        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
-			        VAR DaysOnMonth = 
-			            CALCULATE (
-			                COUNTROWS ( 'Date' ),
-			                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[Day Type], 'Date'[Week Day] )
-			            )
-			        VAR DaysSelected = 
-			            CALCULATE ( 
-			                COUNTROWS ( 'Date' ), 
-			                'Date'[DateWithSales] = TRUE 
-			            )
-			        RETURN IF (
-			            DaysOnMonth = DaysSelected,
-			
-			            -- Selection of all days in the month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
-			            ),
-			            
-			            -- Partial selection of days in a month
-			            CALCULATE (
-			                [Adjusted Profit Margin],
-			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
-			                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
-			                CALCULATETABLE ( 
-			                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
-			                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
-			                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
-			                    'Date'[DateWithSales] = TRUE 
-			                )
-			            )
-			        )
-			    )
+			    DIVIDE([Gross Profit PM (Fiscal)], [Sales Amount PM (Fiscal)])
 			)
-			```
 		formatString: 0.00%;-0.00%;0.00%
 		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
 		lineageTag: 654d9835-8f74-45ab-b85a-4f4393ea4f6b

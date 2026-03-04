@@ -1,0 +1,1 @@
+{"data":{"productVariantsBulkCreate":{"productVariants":[{"legacyResourceId":"55278024982862","createdAt":"2026-01-21T10:17:50Z","updatedAt":"2026-01-21T10:17:50Z"}],"userErrors":[]}},"extensions":{"cost":{"requestedQueryCost":10,"actualQueryCost":10,"throttleStatus":{"maximumAvailable":2000.0,"currentlyAvailable":1990,"restoreRate":100.0}}}}

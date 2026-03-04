@@ -14,6 +14,9 @@ page 8052 "Customer Contract"
     SourceTable = "Customer Subscription Contract";
     UsageCategory = None;
     ApplicationArea = All;
+    AdditionalSearchTerms = 'Customer Contract, Subscription Contract, Contract Details, Subscription Billing, Contract Lines, Customer Subscription';
+    AboutTitle = 'About Customer Subscription Contract details';
+    AboutText = 'Take a closer look at the details of a contract. Review assigned subscriptions and their billing details or assign new subscriptions.';
 
     layout
     {
@@ -165,6 +168,8 @@ page 8052 "Customer Contract"
                 field("Contract Type"; Rec."Contract Type")
                 {
                     ToolTip = 'Specifies the classification of the contract.';
+                    AboutTitle = 'Classify contracts regarding their type';
+                    AboutText = 'To characterize a contract, assign a suitable contract type or create a new one.';
                 }
                 field("Dimension from Job No."; Rec."Dimension from Job No.")
                 {
@@ -179,6 +184,8 @@ page 8052 "Customer Contract"
                         MultiLine = true;
                         ShowCaption = false;
                         ToolTip = 'Specifies the description of the Subscription Contract.';
+                        AboutTitle = 'Enter an internal description for the contract';
+                        AboutText = 'Describe the contract in a few meaningful words.';
 
                         trigger OnValidate()
                         begin
@@ -234,6 +241,8 @@ page 8052 "Customer Contract"
                 Caption = 'Closed Lines';
                 SubPageLink = "Subscription Contract No." = field("No."), "Closed" = filter(true);
                 UpdatePropagation = Both;
+                AboutTitle = 'Closed contract lines';
+                AboutText = 'After a subscription expires, it is automatically displayed here, out of sight of the common processes.';
             }
             group("Invoice Details")
             {
@@ -262,6 +271,8 @@ page 8052 "Customer Contract"
                 field("Detail Overview"; Rec."Detail Overview")
                 {
                     ToolTip = 'Specifies whether the billing details for this contract are automatically output with invoices and credit memos.';
+                    AboutTitle = 'Your customer wants more details on their bill?';
+                    AboutText = 'When printing a sales invoice for this contract, a detailed overview can automatically be added to this invoice. This includes details of the subscriptions that have been billed.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
@@ -685,6 +696,8 @@ page 8052 "Customer Contract"
                     Caption = 'Get Subscription Lines';
                     Image = SelectLineToApply;
                     ToolTip = 'Get Subscription Lines without Contract.';
+                    AboutTitle = 'How to add subscriptions to a contract?';
+                    AboutText = 'Check subscription lines that have not been assigned to a contract, yet. Add those applicable to the current contract.';
 
                     trigger OnAction()
                     var
