@@ -79,7 +79,7 @@ page 774 "User Details"
                     Caption = 'Inactive (days)';
                     ToolTip = 'Specifies the number of days since the user last logged in.';
                 }
-                field(SystemCreatedAt; SystemCreatedAt)
+                field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'Created On';
                     ToolTip = 'Specifies the date and time when the user record was created.';
@@ -89,7 +89,7 @@ page 774 "User Details"
                     Caption = 'Created By';
                     ToolTip = 'Specifies the user who created the user record.';
                 }
-                field(SystemModifiedAt; SystemModifiedAt)
+                field(SystemModifiedAt; Rec.SystemModifiedAt)
                 {
                     Caption = 'Modified On';
                     ToolTip = 'Specifies the date and time when the user record was last modified.';
