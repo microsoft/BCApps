@@ -142,7 +142,7 @@ codeunit 605 "Data Archive Provider" implements "Data Archive Provider"
             CachedDataRecords.Set(TableIndex, TableJson)
         else
             CachedDataRecords.Add(TableIndex, TableJson);
-        if TableJson.Count() >= 10000 then
+        if TableJson.Count() >= 1000 then
             SaveTable(TableIndex, RecRef.Number);
     end;
 
