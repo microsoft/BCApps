@@ -13,12 +13,15 @@ codeunit 99001531 "Subc. Vendor Extension"
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
-        if not Rec.IsTemporary() then
-            if RunTrigger then begin
-                SubcontractorPrice.SetCurrentKey("Vendor No.");
-                SubcontractorPrice.SetRange("Vendor No.", Rec."No.");
-                if not SubcontractorPrice.IsEmpty() then
-                    SubcontractorPrice.DeleteAll(true);
-            end;
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcontractorPrice.SetCurrentKey("Vendor No.");
+        SubcontractorPrice.SetRange("Vendor No.", Rec."No.");
+        if not SubcontractorPrice.IsEmpty() then
+            SubcontractorPrice.DeleteAll(true);
     end;
 }
