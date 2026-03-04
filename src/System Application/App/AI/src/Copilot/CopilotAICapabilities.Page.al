@@ -240,22 +240,92 @@ page 7775 "Copilot AI Capabilities"
                             UpdateBingSearchOptIn();
                         end;
                     }
-                    field(BingSearchServiceAgreement; BingMSServiceAgreementLbl)
+                    field(BingSearchServiceAgreement; MSServiceAgreementLbl)
                     {
                         ShowCaption = false;
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink(BingMSServiceAgreementDocLinkLbl);
+                            Hyperlink(MSServiceAgreementDocLinkLbl);
                         end;
                     }
-                    field(BingSearchPrivacyStatement; BingMSPrivacyStatementLbl)
+                    field(BingSearchPrivacyStatement; MSPrivacyStatementLbl)
                     {
                         ShowCaption = false;
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink(BingMSPrivacyStatementDocLinkLbl);
+                            Hyperlink(MSPrivacyStatementDocLinkLbl);
+                        end;
+                    }
+                }
+            }
+
+            group(SemanticDataSearchOptIn)
+            {
+                ShowCaption = false;
+                Visible = true;
+
+                group(SemanticDataSearchAllowedDataMovementOffInfo)
+                {
+                    ShowCaption = false;
+                    Visible = true;
+                    InstructionalText = 'Some features use semantic data similarity. To get the most out of these features, you must enable Semantic Data Search.';
+                }
+                field(SemanticDataSearchServiceAgreement; MSServiceAgreementLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(MSServiceAgreementDocLinkLbl);
+                    end;
+                }
+                field(SemanticDataSearchPrivacyStatement; MSPrivacyStatementLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(MSPrivacyStatementDocLinkLbl);
+                    end;
+                }
+                group(SemanticDataSearchDataMovementGroup)
+                {
+                    ShowCaption = false;
+                    label(SemanticDataSearchCaption)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'By enabling Semantic Data Search, you agree to data being processed by the Azure Open AI Service outside of your environment''s geographic region or compliance boundary if Azure Open AI Service is not available in your region.';
+                    }
+                    field(SemanticDataSearchAreaDataMovement; SemanticDataSearchOptIn)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Enable Semantic Search';
+                        ToolTip = 'Specifies whether to enable Semantic Data Search. This is required for some features to use Semantic Data Search in your environment.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateSemanticDataSearchOptIn();
+                        end;
+                    }
+                    field(SemanticDataSearchAOAIServiceLocated; AOAIServiceLocatedLbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(AOAIServiceLocatedDocLinkLbl);
+                        end;
+                    }
+                    field(SemanticDataSearchDataProcess; DataProcessByAOAILbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(DataProcessByAOAIDocLinkLbl);
                         end;
                     }
                 }
@@ -350,6 +420,7 @@ page 7775 "Copilot AI Capabilities"
         end;
 
         BingOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), true) = Enum::"Privacy Notice Approval State"::Agreed;
+        SemanticDataSearchOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), true) = Enum::"Privacy Notice Approval State"::Agreed;
     end;
 
     trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
@@ -428,6 +499,18 @@ page 7775 "Copilot AI Capabilities"
         CopilotNotifications.ShowCapabilityChange();
     end;
 
+    local procedure UpdateSemanticDataSearchOptIn()
+    var
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+        if SemanticDataSearchOptIn then
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
+        else
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetSemanticDataSearchPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
+
+        CopilotNotifications.ShowCapabilityChange();
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
@@ -457,8 +540,9 @@ page 7775 "Copilot AI Capabilities"
         BingOptIn: Boolean;
         BingFeaturesLbl: Label 'Features using Bing Search';
         BingFeaturesDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298540', Locked = true;
-        BingMSServiceAgreementLbl: Label 'Microsoft Services Agreement';
-        BingMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
-        BingMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
-        BingMSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
+        MSServiceAgreementLbl: Label 'Microsoft Services Agreement';
+        MSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
+        MSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
+        MSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
+        SemanticDataSearchOptIn: Boolean;
 }

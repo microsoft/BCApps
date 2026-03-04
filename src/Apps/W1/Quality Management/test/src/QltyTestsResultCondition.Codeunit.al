@@ -514,6 +514,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
     end;
 
     [Test]
+    [HandlerFunctions('PromptUpdateTestsFromResultConfirmHandler_True')]
     procedure CopyResultConditionsFromDefaultToAllTemplates_WithNewTestConfiguredToCopy()
     var
         ConditionalQltyInspectionResult: Record "Qlty. Inspection Result";

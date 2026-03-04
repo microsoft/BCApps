@@ -323,6 +323,20 @@ codeunit 148157 "Service Object Test"
     end;
 
     [Test]
+    procedure CheckCreateServiceObjectWithGLAccountNo()
+    var
+        GLAccount: Record "G/L Account";
+        ServiceObject: Record "Subscription Header";
+    begin
+        ClearAll();
+        ContractTestLibrary.CreateServiceObjectForGLAccount(ServiceObject, GLAccount);
+        ServiceObject.TestField(Type, ServiceObject.Type::"G/L Account");
+        ServiceObject.TestField("Source No.", GLAccount."No.");
+        ServiceObject.TestField(Description, GLAccount.Name);
+        ServiceObject.TestField(Quantity, 1);
+    end;
+
+    [Test]
     procedure CheckDeleteServiceObjectWithArchivedServComm()
     var
         Item: Record Item;
@@ -373,31 +387,6 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.Reset();
         SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
         Assert.RecordIsEmpty(SubscriptionLine);
-    end;
-
-    [Test]
-    procedure ExpectErrorWhenDeletingSubscriptionHeaderWithAssignedSubscriptionLines()
-    var
-        Item: Record Item;
-        SubscriptionLine: Record "Subscription Line";
-        SubscriptionHeader: Record "Subscription Header";
-        CannotDeleteBecauseServiceCommitmentExistsErr: Label 'Cannot delete %1 while %2 connected to a contract exists.', Comment = '%1 = No., %2 = TableCaption', Locked = true;
-    begin
-        // [SCENARIO] When trying to delete a subscription header with subscription lines assigned to a contract, an error should be thrown
-        Initialize();
-
-        // [GIVEN] A subscription header with subscription lines
-        SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
-
-        // [GIVEN] Subscription lines are assigned to a contract
-        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
-        SubscriptionLine.ModifyAll("Subscription Contract No.", LibraryRandom.RandText(20));
-
-        // [WHEN] Attempting to delete the subscription header
-        asserterror SubscriptionHeader.Delete(true);
-
-        // [THEN] An error is thrown preventing the deletion
-        Assert.ExpectedError(StrSubstNo(CannotDeleteBecauseServiceCommitmentExistsErr, SubscriptionHeader."No.", SubscriptionLine.TableCaption));
     end;
 
     [Test]
@@ -1124,6 +1113,50 @@ codeunit 148157 "Service Object Test"
     end;
 
     [Test]
+    procedure ExpectErrorWhenDeletingSubscriptionHeaderWithAssignedSubscriptionLines()
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+        SubscriptionHeader: Record "Subscription Header";
+        CannotDeleteBecauseServiceCommitmentExistsErr: Label 'Cannot delete %1 while %2 connected to a contract exists.', Comment = '%1 = No., %2 = TableCaption', Locked = true;
+    begin
+        // [SCENARIO] When trying to delete a subscription header with subscription lines assigned to a contract, an error should be thrown
+        Initialize();
+
+        // [GIVEN] A subscription header with subscription lines
+        SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
+
+        // [GIVEN] Subscription lines are assigned to a contract
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.ModifyAll("Subscription Contract No.", LibraryRandom.RandText(20));
+
+        // [WHEN] Attempting to delete the subscription header
+        asserterror SubscriptionHeader.Delete(true);
+
+        // [THEN] An error is thrown preventing the deletion
+        Assert.ExpectedError(StrSubstNo(CannotDeleteBecauseServiceCommitmentExistsErr, SubscriptionHeader."No.", SubscriptionLine.TableCaption));
+    end;
+
+    [Test]
+    procedure TestNegativeSubscriptionQuantityBlocked()
+    var
+        Item: Record Item;
+        ServiceObject: Record "Subscription Header";
+    begin
+        // [SCENARIO] Setting subscription quantity to a negative value is blocked
+        Initialize();
+
+        // [GIVEN] Create service object with subscription lines
+        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, true);
+
+        // [WHEN] Try to set the quantity to -1
+        asserterror ServiceObject.Validate(Quantity, -1);
+
+        // [THEN] Error is raised
+        Assert.ExpectedError('The quantity cannot be negative.');
+    end;
+
+    [Test]
     procedure TestModifyCustomerAddress()
     var
         Customer: Record Customer;
@@ -1142,6 +1175,40 @@ codeunit 148157 "Service Object Test"
         ServiceObject.Validate("End-User Address", LibraryRandom.RandText(MaxStrLen(ServiceObject."End-User Address")));
         ServiceObject.Validate("End-User Address 2", LibraryRandom.RandText(MaxStrLen(ServiceObject."End-User Address 2")));
         ServiceObject.Modify(false);
+    end;
+
+    [Test]
+    procedure TestPauseAndResumeSubscriptionPreservesPrice()
+    var
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        OriginalPrice: Decimal;
+    begin
+        // [SCENARIO] Subscription can be paused (qty 0) and resumed with original prices preserved
+        Initialize();
+
+        // [GIVEN] Create service object with subscription lines
+        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, true);
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, "Service Partner"::Customer);
+        ServiceCommitment.FindFirst();
+        OriginalPrice := ServiceCommitment.Price;
+
+        // [WHEN] Set quantity to 0 (pause)
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [THEN] Service Object quantity is 0
+        Assert.AreEqual(0, ServiceObject.Quantity, 'Service Object Quantity should be 0 after pausing.');
+
+        // [WHEN] Resume with original quantity
+        ServiceObject.Validate(Quantity, LibraryRandom.RandDecInRange(1, 10, 2));
+        ServiceObject.Modify(true);
+
+        // [THEN] Price is preserved after resume
+        ServiceCommitment.Get(ServiceCommitment."Entry No.");
+        Assert.AreEqual(OriginalPrice, ServiceCommitment.Price, 'Price should be preserved after pause and resume.');
     end;
 
     [Test]
@@ -1197,6 +1264,32 @@ codeunit 148157 "Service Object Test"
         ServiceCommitment.FindSet();
         repeat
             ServiceCommitment.TestField("Subscription Package Code", ServiceCommitmentPackage2.Code); // Expect only Subscription Lines from Package 1 because of the Customer Price group
+        until ServiceCommitment.Next() = 0;
+    end;
+
+    [Test]
+    procedure TestSetSubscriptionQuantityToZero()
+    var
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+    begin
+        // [SCENARIO] Setting subscription quantity to 0 is allowed and sets subscription line amounts to 0
+        Initialize();
+
+        // [GIVEN] Create service object with subscription lines
+        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, true);
+
+        // [WHEN] Set the quantity to 0
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [THEN] Quantity is 0 and subscription line amounts are 0
+        Assert.AreEqual(0, ServiceObject.Quantity, 'Quantity should be 0.');
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindSet();
+        repeat
+            Assert.AreEqual(0, ServiceCommitment.Amount, 'Subscription Line Amount should be 0 when quantity is 0.');
         until ServiceCommitment.Next() = 0;
     end;
 
@@ -1387,26 +1480,6 @@ codeunit 148157 "Service Object Test"
         until ServiceCommitment.Next() = 0;
     end;
 
-    local procedure VerifyUnitCost(ServiceCommitment: Record "Subscription Line"; Item: Record Item)
-    var
-        ExpectedUnitCost: Decimal;
-        ValueNotCorrectTok: Label '%1 value is not correct.', Locked = true;
-    begin
-        case ServiceCommitment.Partner of
-            "Service Partner"::Customer:
-                begin
-                    ExpectedUnitCost := Item."Unit Cost" * ServiceCommitment."Calculation Base %" / 100;
-                    Assert.AreEqual(ExpectedUnitCost, ServiceCommitment."Unit Cost", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost")));
-                    Assert.AreEqual(ExpectedUnitCost, ServiceCommitment."Unit Cost (LCY)", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost (LCY)")));
-                end;
-            "Service Partner"::Vendor:
-                begin
-                    Assert.AreEqual(ServiceCommitment.Price, ServiceCommitment."Unit Cost", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost")));
-                    Assert.AreEqual(ServiceCommitment.Price, ServiceCommitment."Unit Cost (LCY)", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost (LCY)")));
-                end;
-        end;
-
-    end;
 
     [Test]
     procedure UT_CheckCreateServiceObject()
@@ -1458,28 +1531,14 @@ codeunit 148157 "Service Object Test"
     end;
 
     [Test]
-    procedure CheckCreateServiceObjectWithGLAccountNo()
-    var
-        GLAccount: Record "G/L Account";
-        ServiceObject: Record "Subscription Header";
-    begin
-        ClearAll();
-        ContractTestLibrary.CreateServiceObjectForGLAccount(ServiceObject, GLAccount);
-        ServiceObject.TestField(Type, ServiceObject.Type::"G/L Account");
-        ServiceObject.TestField("Source No.", GLAccount."No.");
-        ServiceObject.TestField(Description, GLAccount.Name);
-        ServiceObject.TestField(Quantity, 1);
-    end;
-
-    [Test]
-    procedure UT_CheckServiceObjectQtyCannotBeBlank()
+    procedure UT_CheckServiceObjectQtyCannotBeNegative()
     var
         ServiceObject: Record "Subscription Header";
     begin
         Initialize();
 
         ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, '');
-        asserterror ServiceObject.Validate(Quantity, 0);
+        asserterror ServiceObject.Validate(Quantity, -1);
     end;
 
     [Test]
@@ -1877,6 +1936,27 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.TestField("Subscription Line End Date", ExpectedEndDate);
         SubscriptionLine.TestField("Term Until", ExpectedTermUntil);
         SubscriptionLine.TestField("Cancellation Possible Until", ExpectedCancellationPossibleUntil);
+    end;
+
+    local procedure VerifyUnitCost(ServiceCommitment: Record "Subscription Line"; Item: Record Item)
+    var
+        ExpectedUnitCost: Decimal;
+        ValueNotCorrectTok: Label '%1 value is not correct.', Locked = true;
+    begin
+        case ServiceCommitment.Partner of
+            "Service Partner"::Customer:
+                begin
+                    ExpectedUnitCost := Item."Unit Cost" * ServiceCommitment."Calculation Base %" / 100;
+                    Assert.AreEqual(ExpectedUnitCost, ServiceCommitment."Unit Cost", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost")));
+                    Assert.AreEqual(ExpectedUnitCost, ServiceCommitment."Unit Cost (LCY)", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost (LCY)")));
+                end;
+            "Service Partner"::Vendor:
+                begin
+                    Assert.AreEqual(ServiceCommitment.Price, ServiceCommitment."Unit Cost", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost")));
+                    Assert.AreEqual(ServiceCommitment.Price, ServiceCommitment."Unit Cost (LCY)", StrSubstNo(ValueNotCorrectTok, ServiceCommitment.FieldCaption("Unit Cost (LCY)")));
+                end;
+        end;
+
     end;
 
     #endregion Procedures

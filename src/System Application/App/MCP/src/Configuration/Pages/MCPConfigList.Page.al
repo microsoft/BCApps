@@ -74,8 +74,6 @@ page 8350 "MCP Config List"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
                     MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
                 end;
@@ -83,6 +81,17 @@ page 8350 "MCP Config List"
         }
         area(Processing)
         {
+            action(GiveFeedback)
+            {
+                Caption = 'Give Feedback';
+                ToolTip = 'Share your feedback about the MCP server experience.';
+                Image = Comment;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.TriggerGeneralFeedback();
+                end;
+            }
             group(Advanced)
             {
                 Caption = 'Advanced';
@@ -96,8 +105,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ShowConnectionString(Rec.Name);
                     end;
@@ -117,8 +124,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
                     end;
@@ -131,8 +136,6 @@ page 8350 "MCP Config List"
                     AccessByPermission = tabledata "MCP Configuration" = IM;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ImportConfigurationFromFile();
                         CurrPage.Update(false);
@@ -179,6 +182,7 @@ page 8350 "MCP Config List"
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_SetAsDefault; SetAsDefault) { }
             actionref(Promoted_ClearDefault; ClearDefault) { }
+            actionref(Promoted_GiveFeedback; GiveFeedback) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -200,24 +204,36 @@ page 8350 "MCP Config List"
         }
     }
 
-
-
-#if not CLEAN28
     trigger OnOpenPage()
+#if not CLEAN28
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErrorInfo: ErrorInfo;
+#endif
     begin
-        if MCPConfigImplementation.IsFeatureEnabled() then
+#if not CLEAN28
+        if not MCPConfigImplementation.IsFeatureEnabled() then begin
+            FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
+            FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
+            FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
+            Error(FeatureNotEnabledErrorInfo);
+        end;
+#endif
+        HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if not HadActiveConfigsOnOpen then
             exit;
 
-        FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
-        FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
-        FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
-        Error(FeatureNotEnabledErrorInfo);
+        if MCPConfigImplementation.HasNoActiveConfigurations() then
+            MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
     end;
 
     var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        HadActiveConfigsOnOpen: Boolean;
+#if not CLEAN28
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
         GoToFeatureManagementLbl: Label 'Go to Feature Management';
 #endif
