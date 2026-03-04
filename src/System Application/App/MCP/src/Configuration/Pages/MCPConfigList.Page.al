@@ -65,8 +65,6 @@ page 8350 "MCP Config List"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
                     MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
                 end;
@@ -74,6 +72,17 @@ page 8350 "MCP Config List"
         }
         area(Processing)
         {
+            action(GiveFeedback)
+            {
+                Caption = 'Give Feedback';
+                ToolTip = 'Share your feedback about the MCP server experience.';
+                Image = Questionaire;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.TriggerGeneralFeedback();
+                end;
+            }
             group(Advanced)
             {
                 Caption = 'Advanced';
@@ -87,8 +96,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ShowConnectionString(Rec.Name);
                     end;
@@ -108,8 +115,6 @@ page 8350 "MCP Config List"
                     Scope = Repeater;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
                     end;
@@ -122,8 +127,6 @@ page 8350 "MCP Config List"
                     AccessByPermission = tabledata "MCP Configuration" = IM;
 
                     trigger OnAction()
-                    var
-                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
                     begin
                         MCPConfigImplementation.ImportConfigurationFromFile();
                         CurrPage.Update(false);
@@ -134,6 +137,7 @@ page 8350 "MCP Config List"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_GiveFeedback; GiveFeedback) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -154,4 +158,23 @@ page 8350 "MCP Config List"
             Filters = where(Active = const(true));
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if not HadActiveConfigsOnOpen then
+            exit;
+
+        if MCPConfigImplementation.HasNoActiveConfigurations() then
+            MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
+    end;
+
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        HadActiveConfigsOnOpen: Boolean;
+
 }
