@@ -1,0 +1,44 @@
+table 'Company Encoding'
+	isHidden
+	lineageTag: 2aa38e5d-adf9-43af-8e26-395c32968ab4
+
+	column ParameterValue
+		dataType: string
+		isHidden
+		lineageTag: 42877ecb-90b3-4b4a-b771-a3a5eb43f486
+		summarizeBy: none
+		sourceColumn: ParameterValue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Encoded Company Name'
+		dataType: string
+		isHidden
+		lineageTag: df24d753-3834-4602-9f9d-f2dc629888ae
+		summarizeBy: none
+		sourceColumn: Encoded Company Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Company Encoding' = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        {"ParameterValue"},
+				        {{COMPANY}}
+				    ),
+				    #"Added Encoded Column" = Table.AddColumn(Source, "Encoded Company Name", each Uri.EscapeDataString(COMPANY), type text)
+				in
+				    #"Added Encoded Column"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
