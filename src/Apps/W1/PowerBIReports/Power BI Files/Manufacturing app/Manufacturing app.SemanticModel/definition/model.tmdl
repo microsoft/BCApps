@@ -29,7 +29,7 @@ queryGroup 'Date Table'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Item","Dimension Sets","ENVIRONMENT","COMPANY","API_ENDPOINT","Production Order Lines","Prod Order Components","Prod Order Routing Lines","Prod Order Capacity Need","Item Ledger Entries","Capacity Ledger Entries","Calendar Entries","Work Center","Date Table Setup","Working Days","Machine Center","Location","Routing Link","Routing","Production Orders","Production Orders (Released or Finished)","Work Center Group","Value Entries","Manufacturing Setup","DimensionSets_DataSource","DimensionSet_Blank","Dimensions","Inventory Adjustment Entry Order Line","Back Links","Time Factors","Item Category","ConvertUTC","ConvertManufacturingStartEndTimes"]
+annotation PBI_QueryOrder = ["Item","Dimension Sets","ENVIRONMENT","COMPANY","API_ENDPOINT","Production Order Lines","Prod Order Components","Prod Order Routing Lines","Prod Order Capacity Need","Item Ledger Entries","Capacity Ledger Entries","Calendar Entries","Work Center","Date Table Setup","Working Days","Machine Center","Location","Routing Link","Routing","Production Orders","Production Orders (Released or Finished)","Work Center Group","Value Entries","Manufacturing Setup","DimensionSets_DataSource","DimensionSet_Blank","Dimensions","Inventory Adjustment Entry Order Line","Back Links","Time Factors","Item Category","ConvertUTC","ConvertManufacturingStartEndTimes","Company Encoding"]
 
 annotation __TEdtr = 1
 
@@ -67,6 +67,7 @@ ref table 'Back Links'
 ref table 'Time Factors'
 ref table 'Item Category'
 ref table 'Translated Localized Labels'
+ref table 'Company Encoding'
 
 ref cultureInfo en-US
 ref cultureInfo cs-CZ
