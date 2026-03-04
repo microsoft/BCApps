@@ -1,8 +1,0 @@
-[
-    {
-        "bug": "597430",
-        "codeunitId": 148154,
-        "CodeunitName": "Vendor Contracts Test",
-        "Method": "CheckValueChangesOnVendorContractLines"
-    }
-]
