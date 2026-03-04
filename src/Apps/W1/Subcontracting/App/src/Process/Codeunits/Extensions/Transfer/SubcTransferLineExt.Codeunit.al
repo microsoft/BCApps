@@ -19,8 +19,12 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        if not Rec.IsTemporary() then
-            if RunTrigger then
-                SubcontractingManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
+        if Rec.IsTemporary then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcontractingManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
     end;
 }
