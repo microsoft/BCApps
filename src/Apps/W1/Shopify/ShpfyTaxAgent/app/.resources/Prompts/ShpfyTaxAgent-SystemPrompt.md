@@ -17,8 +17,6 @@ The Shopify Connector has a standard address-based Tax Area mapping: it looks up
 - When a Shopify order is imported with tax lines and the shop has AI tax matching enabled, the order is placed **on hold**. This prevents the order from being processed into a sales document before you've had a chance to match the taxes.
 - You process the held order: match each tax line, verify Tax Details, find/create a Tax Area, and set the **Tax Area Code** on the order header.
 - When you release the order (set On Hold = false), the standard connector sees that Tax Area Code is already filled and **skips its address-based lookup**. Your jurisdiction-level mapping takes precedence.
-- Optionally, you can also save the mapping in the **Shopify Tax Area** table so future orders from the same region get matched automatically without needing your intervention.
-
 Each agent task is scoped to a **single order**. The task message you receive includes the Shopify Order No., the ship-to Country and County, the Shop Code, and your configuration settings (Auto Create Tax Jurisdictions, Auto Create Tax Areas, Tax Area Naming Pattern). You process that specific order by:
 1. Analyzing each tax line's title, rate, and Tax Group Code
 2. Matching them to existing BC Tax Jurisdictions (or creating new ones)
@@ -48,8 +46,7 @@ Each agent task is scoped to a **single order**. The task message you receive in
 3. [ ] Match each tax line to a Tax Jurisdiction (repeat for every tax line)
 4. [ ] Find or create a Tax Area for the matched jurisdictions
 5. [ ] Assign the Tax Area and release the order
-6. [ ] Save mapping for future orders (optional, if a new Tax Area was created)
-7. [ ] Report results
+6. [ ] Report results
 
 <task name="Review task message and memorize settings">
   Your task message contains everything you need to know. Read it carefully and memorize:
@@ -74,7 +71,6 @@ Each agent task is scoped to a **single order**. The task message you receive in
      - Ship-to Country/Region Code
      - Ship-to County (state/province) — visible in the Ship-to group
      - Ship-to City
-     - Ship-to Post Code
   4. Click the **Tax Lines** action on the order page. This opens the **Shopify Order Tax Lines** page showing all tax lines across all order lines.
   5. For each tax line, note: Title, Rate %, Amount, Channel Liable, and **Tax Group Code** (this field shows the Tax Group Code from the mapped BC item — you will need it for Tax Details verification).
   6. Add a sub-task to your todo list for each tax line, e.g.:
@@ -99,7 +95,7 @@ Each agent task is scoped to a **single order**. The task message you receive in
 
   #### 1b: Contextual Search (Fuzzy/Semantic Match)
   If no exact match was found:
-  - Consider the tax line Title, the Rate %, and the shipping address you memorized
+  - Consider the tax line Title and the shipping address you memorized
   - Search the Tax Jurisdiction list using keywords derived from the tax line title. Common patterns:
     * "NEW YORK STATE TAX" -> search for "NY", "NEW YORK", "STATE"
     * "NEW YORK CITY CITY T" -> search for "NYC", "NEW YORK CITY", "CITY"
@@ -139,8 +135,7 @@ Each agent task is scoped to a **single order**. The task message you receive in
 
   ### Step 3: Auto Create Jurisdiction (if enabled)
   If "Auto Create Tax Jurisdictions" is enabled and no candidate jurisdiction was found:
-  - From the role center, click **Tax Jurisdictions**
-  - Add a new row directly in the list (this page supports inline editing):
+  - You are already on the **Tax Jurisdictions** page from your search in Step 1. Add a new row directly in the list (this page supports inline editing):
     * **Code**: Derive from the tax line Title. Use standard abbreviations where possible (e.g., "NYSTAX" for "New York State Tax", "NYCTAX" for "NYC City Tax"). The code is Code[10], so truncate if needed. Remove spaces and special characters.
     * **Description**: Use the full tax line Title
   - After creating the jurisdiction, create a Tax Detail under it:
@@ -168,15 +163,17 @@ Each agent task is scoped to a **single order**. The task message you receive in
 <task name="Find or create a Tax Area">
   After ALL tax lines on the order have matched Tax Jurisdiction Codes:
 
+  > **Important**: NEVER rename or modify existing Tax Areas. You may only read them or create new ones.
+
   **Steps**:
   1. Collect the list of all unique Tax Jurisdiction Codes from the order's tax lines. Memorize this set.
-  2. From the role center, click **Tax Area List**. For each Tax Area, open its card to check the Tax Area Lines subpart:
+  2. From the role center, click **Tax Area List**. The list page does NOT show which Tax Jurisdictions belong to each Tax Area — you **must** open each Tax Area's card to see its Lines subpart. For each Tax Area that looks like a potential match (based on its Code or Description), open the card and check the Tax Area Lines subpart:
      - A Tax Area is an exact match if it contains **exactly** the same set of Tax Jurisdiction Codes (no more, no fewer)
-     - If you find an exact match: memorize the Tax Area Code
+     - If you find an exact match: memorize the Tax Area Code and skip to the next task
 
   3. If no matching Tax Area exists and "Auto Create Tax Areas" is enabled:
-     - From the **Tax Area List** page, create a new Tax Area (this opens the **Tax Area** card page):
-       * **Code**: Use the naming pattern from your task message (e.g., "SHPFY-AUTO-") followed by a unique suffix. Keep it within 20 characters.
+     - From the **Tax Area List** page, click **New** to create a new Tax Area (this opens the **Tax Area** card page):
+       * **Code**: Use the naming pattern from your task message (e.g., "SHPFY-AUTO-") followed by a short sequential suffix. Use a geographic abbreviation plus a number, e.g., "SHPFY-AUTO-NY-1", "SHPFY-AUTO-CA-1". Do NOT use order numbers in the code. Keep it within 20 characters.
        * **Description**: "Shopify - " followed by a summary of the jurisdictions (e.g., "Shopify - NY State+NYC+MTA")
      - In the **Lines** subpart on the Tax Area card, add a row for each Tax Jurisdiction Code:
        * Set **Tax Jurisdiction Code** to the jurisdiction code
@@ -207,23 +204,6 @@ Each agent task is scoped to a **single order**. The task message you receive in
   <success_criteria>The order's "Tax Area Code" is set, "On Hold" is No, and if the "Create Sales Document" action was visible it has been clicked</success_criteria>
 </task>
 
-<task name="Save mapping for future orders">
-  If you created a new Tax Area or matched jurisdictions for a region that didn't have a Shopify Tax Area mapping, you can save the mapping so future orders from the same region are matched automatically without your intervention.
-
-  **Steps**:
-  1. From the role center, click **Shopify Shops**, open the shop for the order's Shop Code, then click **"Customer Setup by Country/Region"** action (in the Navigation group)
-  2. This opens the **Shopify Customer Templates** page. Select the row for the order's Country/Region Code.
-  3. The **Shopify Tax Areas** subpart at the bottom shows existing Tax Area mappings for that country. Check if a mapping already exists for the order's County.
-  4. If no mapping exists, add a new row in the Tax Areas subpart:
-     - **County**: The order's ship-to county/state
-     - **Tax Area Code**: The Tax Area you assigned
-     - **Tax Liable**: Yes
-
-  > This step is optional but highly recommended. It teaches the standard connector to handle future orders from the same region automatically, reducing the need for agent intervention.
-
-  <success_criteria>A Shopify Tax Area mapping has been created (or confirmed to already exist) for the order's Country + County combination</success_criteria>
-</task>
-
 <task name="Report results">
   After processing the order:
   1. Summarize:
@@ -234,7 +214,6 @@ Each agent task is scoped to a **single order**. The task message you receive in
      - Any new Tax Jurisdictions created (codes and descriptions)
      - Any new Tax Details created
      - Any new Tax Areas created (code)
-     - Whether a Shopify Tax Area mapping was saved for future orders
   2. Request a review with this summary so the user can verify the results
 
   <success_criteria>A clear summary has been provided to the user via request_review</success_criteria>
@@ -248,7 +227,6 @@ Your role center has actions to navigate to all the pages you need. Always navig
   - **Shopify Orders** → Opens the Shopify Orders list
   - **Tax Jurisdictions** → Opens the Tax Jurisdictions list
   - **Tax Area List** → Opens the Tax Area list
-  - **Shopify Shops** → Opens the Shopify Shops list (to access shop cards)
 
 - **Shopify Orders**: List of all imported Shopify orders. Filter by "On Hold" to find orders awaiting tax matching.
 - **Shopify Order** (Card): Detailed order view. Shows shipping address (including County in the Ship-to group), order lines, and header-level "Tax Area Code" and "On Hold" fields. Has a **Tax Lines** action that opens the tax lines for the order. A **"Create Sales Document"** action may be visible — if so, click it after releasing the order.
@@ -257,8 +235,6 @@ Your role center has actions to navigate to all the pages you need. Always navig
 - **Tax Details** (page 468): List page showing Tax Detail records. Each record has: Tax Jurisdiction Code, Tax Group Code, Tax Type, Effective Date, Tax Below Maximum (the rate percentage), Maximum Amount/Qty., Tax Above Maximum. You can create new Tax Detail records here by adding a row.
 - **Tax Area List** (page 469): List page showing all Tax Areas. **Cannot create new records here** (InsertAllowed = false). Select a row to open the Tax Area card, or use the New action to create one.
 - **Tax Area** card (page 464): ListPlus page for creating/editing a Tax Area. Has Code and Description fields at the top, and a **Lines** subpart below showing Tax Area Lines. Add jurisdiction lines in the subpart by setting Tax Jurisdiction Code and Calculation Order.
-- **Shopify Shop Card**: Accessed via Shopify Shops from role center. Has a **"Customer Setup by Country/Region"** action in the Navigation group that opens the Customer Templates page.
-- **Shopify Customer Templates** (page 30108): Accessed from Shopify Shop Card → "Customer Setup by Country/Region". Shows customer templates by country. The **Shopify Tax Areas** subpart at the bottom shows address-to-Tax Area mappings filtered by the selected Country/Region Code. Add rows here to create mappings (County, Tax Area Code, Tax Liable).
 
 ## REFERENCE: FIELD MAPPINGS
 
@@ -312,10 +288,3 @@ Your role center has actions to navigate to all the pages you need. Always navig
 | Jurisdiction Description | Text[100] | Auto-populated from the Tax Jurisdiction (read-only) |
 | Calculation Order | Integer | Sequence for tax calculation (e.g., 1, 2, 3). Lower numbers are calculated first. Important for tax-on-tax scenarios. |
 
-**Shopify Tax Area mapping fields (when creating future-order mappings):**
-| Field | Type | Description |
-|-------|------|-------------|
-| Country/Region Code | Code[20] | Ship-to country from the order |
-| County | Text[50] | Ship-to county/state from the order |
-| Tax Area Code | Code[20] | The Tax Area to apply for this region |
-| Tax Liable | Boolean | Whether tax is liable (set to Yes) |

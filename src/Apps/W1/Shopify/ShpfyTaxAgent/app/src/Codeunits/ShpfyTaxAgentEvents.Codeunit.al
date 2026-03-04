@@ -32,6 +32,7 @@ codeunit 30473 "Shpfy Tax Agent Events"
         TaxAgentSetup: Record "Shpfy Tax Agent Setup";
         OrderLine: Record "Shpfy Order Line";
         TaxLine: Record "Shpfy Order Tax Line";
+        AgentTaskCU: Codeunit "Agent Task";
         HasUnmatchedTaxLines: Boolean;
     begin
         if not Result then
@@ -45,7 +46,9 @@ codeunit 30473 "Shpfy Tax Agent Events"
         if not FindTaxAgentForShop(ShopifyOrderHeader."Shop Code", Agent, TaxAgentSetup) then
             exit;
 
-        // TODO: We should check if there is any agent task already created for this order
+        // Don't create a duplicate task if one already exists for this order
+        if AgentTaskCU.TaskExists(Agent."User Security ID", Format(ShopifyOrderHeader."Shopify Order Id")) then
+            exit;
 
         // Check if this order has any tax lines without a Tax Jurisdiction Code (unmatched)
         OrderLine.SetRange("Shopify Order Id", ShopifyOrderHeader."Shopify Order Id");

@@ -15,7 +15,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using System.DataAdministration;
 using System.Globalization;
@@ -831,12 +830,6 @@ table 30102 "Shpfy Shop"
 #endif
         }
 #endif
-        field(207; "Test"; Enum "Sales Document Type")
-        {
-            Caption = 'Test';
-            DataClassification = SystemMetadata;
-            ValuesAllowed = "Credit Memo", "Return Order";
-        }
     }
 
     keys

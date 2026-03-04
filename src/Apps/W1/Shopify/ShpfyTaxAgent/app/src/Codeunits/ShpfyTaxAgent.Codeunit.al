@@ -96,7 +96,12 @@ codeunit 30470 "Shpfy Tax Agent" implements IAgentMetadata, IAgentFactory
 
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
-        // No default access controls for prototype - system defaults apply
+        TempAccessControlBuffer.Init();
+        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := '00000000-0000-0000-0000-000000000000';
+        TempAccessControlBuffer."Role ID" := SuperPermissionSetTok;
+        TempAccessControlBuffer.Insert();
     end;
 
     #endregion
@@ -110,6 +115,16 @@ codeunit 30470 "Shpfy Tax Agent" implements IAgentMetadata, IAgentFactory
         InstructionsTxt := NavApp.GetResourceAsText('Prompts/ShpfyTaxAgent-SystemPrompt.md', TextEncoding::UTF8);
         InstructionsSecret := InstructionsTxt;
         Agent.SetInstructions(AgentUserSecurityID, InstructionsSecret);
+    end;
+
+    internal procedure AgentUserName(): Code[50]
+    begin
+        exit(CopyStr(AgentUserNameLbl + ' - ' + CompanyName(), 1, 50));
+    end;
+
+    internal procedure AgentDisplayName(): Text[80]
+    begin
+        exit(AgentDisplayNameLbl);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
@@ -134,5 +149,8 @@ codeunit 30470 "Shpfy Tax Agent" implements IAgentMetadata, IAgentFactory
     var
         ShpfyTaxAgentInitialsTok: Label 'STA', Locked = true, MaxLength = 4;
         ShpfyTaxAgentProfileTok: Label 'Shpfy Tax Agent', Locked = true;
+        AgentUserNameLbl: Label 'Shpfy Tax Agent', Locked = true;
+        AgentDisplayNameLbl: Label 'Shopify Tax Matching Agent', Locked = true;
+        SuperPermissionSetTok: Label 'SUPER', Locked = true;
         CapabilityNotRegisteredMsg: Label 'The Shopify Tax Agent capability is not registered. Please activate it on the Copilot & AI Capabilities page.';
 }

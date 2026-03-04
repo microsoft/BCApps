@@ -36,12 +36,6 @@ page 30101 "Shpfy Shop Card"
                     AboutTitle = 'Name your shop';
                     AboutText = 'Give your shop a name that will make it easy to find in Business Central. For example, a name might reflect what a shop sells, such as Furniture or Coffee, or the country or region it serves.';
                 }
-                field(Test; Rec.Test)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Test';
-                    ToolTip = 'Specifies if this is a test field.';
-                }
                 field("Shopify URL"; Rec."Shopify URL")
                 {
                     ApplicationArea = All;
