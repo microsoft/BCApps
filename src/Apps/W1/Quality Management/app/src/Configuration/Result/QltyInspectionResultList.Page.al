@@ -26,9 +26,11 @@ page 20416 "Qlty. Inspection Result List"
             {
                 field(Code; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
                 field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
@@ -42,6 +44,7 @@ page 20416 "Qlty. Inspection Result List"
                 }
                 field("Copy Behavior"; Rec."Copy Behavior")
                 {
+                    Visible = false;
                 }
                 field("Result Visibility"; Rec."Result Visibility")
                 {
@@ -130,8 +133,8 @@ page 20416 "Qlty. Inspection Result List"
             action(CopyResultsToAllTemplates)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Copy Results to Existing Templates';
-                ToolTip = 'Use this to add newly created results configured to Automatically Copy on to existing tests and existing templates.';
+                Caption = 'Update Tests, Templates, and Inspections';
+                ToolTip = 'Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results. Inspections based on these templates are also updated.';
                 Image = Copy;
 
                 trigger OnAction()

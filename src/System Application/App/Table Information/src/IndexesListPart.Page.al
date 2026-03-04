@@ -133,8 +133,11 @@ page 8704 "Indexes List Part"
                 var
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
                 begin
-                    if not Rec."Metadata Defined" then
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
@@ -144,7 +147,9 @@ page 8704 "Indexes List Part"
 
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-                    Rec.Get(RecordIDOfCurrentPosition); // Return to the same position in the list after refreshing the data.
+
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
 
                     CurrPage.Update(false);
                 end;
@@ -162,8 +167,11 @@ page 8704 "Indexes List Part"
                     DatabaseIndex: Record "Database Index";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
+                    IsMetadataDefined: Boolean;
                 begin
-                    if not Rec."Metadata Defined" then
+                    IsMetadataDefined := Rec."Metadata Defined";
+
+                    if not IsMetadataDefined then
                         if not Dialog.Confirm(TurnOffIndexWarningQst) then
                             exit;
 
@@ -177,7 +185,9 @@ page 8704 "Indexes List Part"
 
                     Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
                     BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-                    Rec.Get(RecordIDOfCurrentPosition); // Return to the same position in the list after refreshing the data.
+
+                    if IsMetadataDefined then
+                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
 
                     CurrPage.Update(false);
                 end;
@@ -188,6 +198,7 @@ page 8704 "Indexes List Part"
                 Enabled = not Rec.Enabled and Rec."Metadata Defined" and not Rec.Unique;
                 Image = Add;
                 ToolTip = 'Enqueues the index to be turned on in the subsequent maintenance window.';
+
 
                 trigger OnAction()
                 var

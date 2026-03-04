@@ -84,7 +84,6 @@ codeunit 139916 "Service Comm. Archive Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine()
     var
         TempServiceCommitment: Record "Subscription Line" temporary;
@@ -93,7 +92,7 @@ codeunit 139916 "Service Comm. Archive Test"
         // Expect only one Subscription Line archive if multiple fields are modified in less then a minute
         SetupServiceObjectWithServiceCommitment(false, false);
 
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ServiceObject."End-User Customer No." := Customer."No.";
         ServiceObject.Modify(false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
