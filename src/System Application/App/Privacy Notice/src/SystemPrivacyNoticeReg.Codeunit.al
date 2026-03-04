@@ -21,7 +21,6 @@ codeunit 1566 "System Privacy Notice Reg."
         PowerAutomateLabelTxt: Label 'Microsoft Power Automate', Locked = true; // Product names are not translated and it's important this entry exists.
         MicrosoftLearnTxt: Label 'Microsoft Learn', Locked = true; // Product names are not translated and it's important this entry exists.
         BingTxt: Label 'Bing', Locked = true; // Product names are not translated and it's important this entry exists.
-        SemanticDataSearchTxt: Label 'Semantic Data Search', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -38,9 +37,6 @@ codeunit 1566 "System Privacy Notice Reg."
         if not TempPrivacyNotice.Insert() then;
         TempPrivacyNotice.ID := BingTxt;
         TempPrivacyNotice."Integration Service Name" := BingTxt;
-        if not TempPrivacyNotice.Insert() then;
-        TempPrivacyNotice.ID := SemanticDataSearchTxt;
-        TempPrivacyNotice."Integration Service Name" := SemanticDataSearchTxt;
         if not TempPrivacyNotice.Insert() then;
     end;
 
@@ -87,15 +83,6 @@ codeunit 1566 "System Privacy Notice Reg."
     procedure GetBingPrivacyNoticeName(): Code[50]
     begin
         exit(BingTxt);
-    end;
-
-    /// <summary>
-    /// Gets the Semantic Data Search privacy notice name.
-    /// </summary>
-    /// <returns>The privacy notice name for Semantic Data Search.</returns>
-    procedure GetSemanticDataSearchPrivacyNoticeName(): Code[50]
-    begin
-        exit(SemanticDataSearchTxt);
     end;
 
     [TryFunction]
