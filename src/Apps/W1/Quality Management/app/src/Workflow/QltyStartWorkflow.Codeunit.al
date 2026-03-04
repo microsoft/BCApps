@@ -11,6 +11,7 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using System.Automation;
 using System.Environment.Configuration;
+using System.Integration;
 using System.Security.User;
 
 /// <summary>
@@ -37,16 +38,46 @@ codeunit 20426 "Qlty. Start Workflow"
     internal procedure StartWorkflowInspectionCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionCreatedEvent(), QltyInspectionHeader);
+        OnInspectionCreated(
+            QltyInspectionHeader.SystemId,
+            QltyInspectionHeader."No.",
+            QltyInspectionHeader.GetReferenceRecordId(),
+            QltyInspectionHeader."Source Document No.",
+            QltyInspectionHeader."Source Item No.",
+            QltyInspectionHeader."Source Variant Code",
+            QltyInspectionHeader."Source Lot No.",
+            QltyInspectionHeader."Source Serial No.",
+            QltyInspectionHeader."Result Code");
     end;
 
     internal procedure StartWorkflowInspectionFinished(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyInspectionHeader);
+        OnInspectionFinished(
+            QltyInspectionHeader.SystemId,
+            QltyInspectionHeader."No.",
+            QltyInspectionHeader.GetReferenceRecordId(),
+            QltyInspectionHeader."Source Document No.",
+            QltyInspectionHeader."Source Item No.",
+            QltyInspectionHeader."Source Variant Code",
+            QltyInspectionHeader."Source Lot No.",
+            QltyInspectionHeader."Source Serial No.",
+            QltyInspectionHeader."Result Code");
     end;
 
     internal procedure StartWorkflowInspectionReopens(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionReopenedEvent(), QltyInspectionHeader);
+        OnInspectionReOpened(
+                    QltyInspectionHeader.SystemId,
+                    QltyInspectionHeader."No.",
+                    QltyInspectionHeader.GetReferenceRecordId(),
+                    QltyInspectionHeader."Source Document No.",
+                    QltyInspectionHeader."Source Item No.",
+                    QltyInspectionHeader."Source Variant Code",
+                    QltyInspectionHeader."Source Lot No.",
+                    QltyInspectionHeader."Source Serial No.",
+                    QltyInspectionHeader."Result Code");
     end;
 
     internal procedure StartWorkflowInspectionChanged(var QltyInspectionHeader: Record "Qlty. Inspection Header"; xQltyInspectionHeader: Record "Qlty. Inspection Header")
@@ -77,10 +108,93 @@ codeunit 20426 "Qlty. Start Workflow"
         WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetInspectionHasChangedEvent(), 1, 128), QltyInspectionHeader, xQltyInspectionHeader);
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', '');
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', '');
+
+        OnInspectionChanged(
+                    QltyInspectionHeader.SystemId,
+                    QltyInspectionHeader."No.",
+                    QltyInspectionHeader.GetReferenceRecordId(),
+                    QltyInspectionHeader."Source Document No.",
+                    QltyInspectionHeader."Source Item No.",
+                    QltyInspectionHeader."Source Variant Code",
+                    QltyInspectionHeader."Source Lot No.",
+                    QltyInspectionHeader."Source Serial No.",
+                    QltyInspectionHeader."Result Code");
     end;
 
     local procedure RecursionThrottleMilliseconds(): Integer
     begin
         exit(5000);
+    end;
+
+    /// <summary>
+    /// This action will occur when a new Quality Inspection has been created.
+    /// This is exposed with ExternalBusinessEvent and intended to be used in PowerAutomate
+    /// </summary>
+    /// <param name="inspectionIdentifier">The system record id of the newly created test</param>
+    /// <param name="inspectionNo">The test document no.</param>
+    /// <param name="sourceRecordIdentifier">The source record id of the record that triggered the test</param>
+    /// <param name="sourceDocumentNo">The source document no.</param>
+    /// <param name="sourceItemNo">The source item no.</param>
+    /// <param name="sourceVariantCode">The source variant code.</param>
+    /// <param name="sourceLotNo">The source lot number.</param>
+    /// <param name="sourceSerialNo">The source serial number.</param>
+    /// <param name="resultCode">The current grade of the test</param>
+    [ExternalBusinessEvent('QualityInspectionCreated', 'Quality Inspection Created', 'This action will occur when a new Quality Inspection has been created.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionCreated(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// This action will occur when a Quality Inspection has changed to the finished state.
+    /// This is exposed with ExternalBusinessEvent and intended to be used in PowerAutomate
+    /// </summary>
+    /// <param name="inspectionIdentifier">The system ID of the quality inspection test</param>
+    /// <param name="inspectionNo">The quality inspection test no.</param>
+    /// <param name="sourceRecordIdentifier">The system ID of the source record</param>
+    /// <param name="sourceDocumentNo">The source document no. from the test</param>
+    /// <param name="sourceItemNo">The source item no. associated with the test</param>
+    /// <param name="sourceVariantCode">If variants are used then the source variant on the test</param>
+    /// <param name="sourceLotNo">The lot number associated with the test</param>
+    /// <param name="sourceSerialNo">The serial number associated with the test</param>
+    /// <param name="resultCode">The current grade of the test</param>
+    [ExternalBusinessEvent('QualityInspectionFinished', 'Quality Inspection Finished', 'This action will occur when a Quality Inspection has changed to the finished state.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionFinished(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// This action will occur when a Quality Inspection has been re-opened.
+    /// This is exposed with ExternalBusinessEvent and intended to be used in PowerAutomate
+    /// </summary>
+    /// <param name="inspectionIdentifier">The system ID of the quality inspection test</param>
+    /// <param name="inspectionNo">The quality inspection test no.</param>
+    /// <param name="sourceRecordIdentifier">The system ID of the source record</param>
+    /// <param name="sourceDocumentNo">The source document no. from the test</param>
+    /// <param name="sourceItemNo">The source item no. associated with the test</param>
+    /// <param name="sourceVariantCode">If variants are used then the source variant on the test</param>
+    /// <param name="sourceLotNo">The lot number associated with the test</param>
+    /// <param name="sourceSerialNo">The serial number associated with the test</param>
+    /// <param name="resultCode">The current grade of the test</param>
+    [ExternalBusinessEvent('QualityInspectionReOpened', 'Quality Inspection Re-Opened', 'This action will occur when a Quality Inspection has been re-opened.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionReOpened(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// This action will occur when a Quality Inspection has changed.
+    /// This is exposed with ExternalBusinessEvent and intended to be used in PowerAutomate
+    /// </summary>
+    /// <param name="inspectionIdentifier">The system ID of the quality inspection test</param>
+    /// <param name="inspectionNo">The quality inspection test no.</param>
+    /// <param name="sourceRecordIdentifier">The system ID of the source record</param>
+    /// <param name="sourceDocumentNo">The source document no. from the test</param>
+    /// <param name="sourceItemNo">The source item no. associated with the test</param>
+    /// <param name="sourceVariantCode">If variants are used then the source variant on the test</param>
+    /// <param name="sourceLotNo">The lot number associated with the test</param>
+    /// <param name="sourceSerialNo">The serial number associated with the test</param>
+    /// <param name="resultCode">The current grade of the test</param>
+    [ExternalBusinessEvent('QualityInspectionChanged', 'Quality Inspection Changed', 'This action will occur when a Quality Inspection has changed.', EventCategory::QltyEventCategory, '1.0')]
+    procedure OnInspectionChanged(InspectionIdentifier: Guid; InspectionNo: Code[20]; SourceRecordIdentifier: Guid; SourceDocumentNo: Code[20]; SourceItemNo: Code[20]; SourceVariantCode: Code[10]; SourceLotNo: Code[50]; SourceSerialNo: Code[50]; ResultCode: Code[20])
+    begin
     end;
 }

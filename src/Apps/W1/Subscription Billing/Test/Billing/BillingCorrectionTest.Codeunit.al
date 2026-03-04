@@ -58,6 +58,7 @@ codeunit 139686 "Billing Correction Test"
         // [SCENARIO]: Create Credit Memo from Posted Purchase Invoice
 
         // [GIVEN]: Create contract and post invoice for that contract
+        Initialize();
         PostPurchaseInvoiceForContract();
 
         // [WHEN]: Delete the second contract line in that contract
@@ -97,6 +98,7 @@ codeunit 139686 "Billing Correction Test"
         // [SCENARIO]: Create Credit Memo from Posted Sales Invoice
 
         // [GIVEN]: Create contract and post invoice for that contract
+        Initialize();
         PostSalesInvoiceForContract();
 
         // [WHEN]: Delete the second contract line in that contract
