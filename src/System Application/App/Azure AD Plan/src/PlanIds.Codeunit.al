@@ -148,9 +148,9 @@ codeunit 9027 "Plan Ids"
     end;
 
     /// <summary>
-    /// Returns the ID for the Internal BC Administrator plan.
+    /// Returns the ID for the D365 Business Central Administrator plan.
     /// </summary>
-    /// <returns>The ID for the Internal BC Administrator plan.</returns>
+    /// <returns>The ID for the D365 Business Central Administrator plan.</returns>
     procedure GetBCAdminPlanId(): Guid
     begin
         exit(BCAdminGUIDTxt);

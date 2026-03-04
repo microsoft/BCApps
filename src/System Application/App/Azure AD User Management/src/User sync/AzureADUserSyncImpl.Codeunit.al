@@ -238,9 +238,9 @@ codeunit 9029 "Azure AD User Sync Impl."
     end;
 
     // If the user's plans are any of the following:
-    // - Internal Administrator (Global Administrator or Dynamics 365 Administrator or BC Administrator)
+    // - Global Administrator (Global Administrator or Dynamics 365 Administrator or BC Administrator)
     // - Microsoft 365
-    // - Internal Administrator + Microsoft 365
+    // - Global Administrator + Microsoft 365
     // and there is no environment security group defined,
     // then we don't want to create a BC user during user sync.
     local procedure SkipCreatingUserDuringSync(UserPlanIDs: List of [Guid]): Boolean

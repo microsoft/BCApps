@@ -112,6 +112,8 @@ codeunit 9057 "Plan Upgrade"
         if UpgradeTag.HasUpgradeTag(PlanUpgradeTag.GetRenameDelegatedAdminPlansUpgradeTag()) then
             exit;
 
+        RenameOrCreatePlan(PlanIds.GetBCAdminPlanId(), 'D365 Business Central Administrator');
+        RenameOrCreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Global Administrator');
         RenameOrCreatePlan(PlanIds.GetD365BCAdminPlanId(), 'Delegated Dynamics 365 Business Central Administrator');
         RenameOrCreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Delegated Global Administrator');
         RenameOrCreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator');
@@ -246,7 +248,7 @@ codeunit 9057 "Plan Upgrade"
 
         // Create internal plan
         PlanId := PlanIds.GetBCAdminPlanId();
-        PlanName := 'Internal BC Administrator';
+        PlanName := 'D365 Business Central Administrator';
         RoleCenterId := 9022;
 
         if not Plan.Get(PlanId) then
