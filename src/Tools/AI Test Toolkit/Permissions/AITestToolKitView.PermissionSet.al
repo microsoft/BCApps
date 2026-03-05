@@ -7,6 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 permissionset 149034 "AI Test Toolkit - View"
 {
+    Caption = 'Business Central AI Eval Runner - View';
     Access = Internal;
     Assignable = false;
 
