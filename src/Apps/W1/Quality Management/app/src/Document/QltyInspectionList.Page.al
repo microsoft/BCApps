@@ -32,6 +32,7 @@ page 20408 "Qlty. Inspection List"
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
+    RefreshOnActivate = true;
     AboutTitle = 'About Quality Inspections';
     AboutText = 'Review all quality inspections created by rules or manually. Track their progress through the inspection process and take action when needed.';
 
@@ -66,11 +67,13 @@ page 20408 "Qlty. Inspection List"
                 field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
+                    StyleExpr = ResultStyleExpr;
                 }
                 field("Result Description"; Rec."Result Description")
                 {
                     AboutTitle = 'Inspection results';
                     AboutText = '**Result** shows the outcome of the inspection. It''s automatically calculated from the test values on the lines and the result conditions in the quality test page.';
+                    StyleExpr = ResultStyleExpr;
                 }
                 field("Finished Date"; Rec."Finished Date")
                 {
@@ -689,6 +692,7 @@ page 20408 "Qlty. Inspection List"
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        ResultStyleExpr: Text;
         CanAssignToSelf: Boolean;
         CanCreateReinspection: Boolean;
         CanUnassign: Boolean;
@@ -696,12 +700,9 @@ page 20408 "Qlty. Inspection List"
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
 
-    trigger OnOpenPage()
+    trigger OnAfterGetRecord()
     begin
-        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
-        CanCreateReinspection := RowActionsAreEnabled;
+        ResultStyleExpr := Rec.GetResultStyle();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -709,6 +710,7 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
+        CanCreateReinspection := RowActionsAreEnabled;
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
 

@@ -115,9 +115,11 @@ page 20406 "Qlty. Inspection"
                     field("Result Code"; Rec."Result Code")
                     {
                         Importance = Additional;
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Result Description"; Rec."Result Description")
                     {
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Evaluation Sequence"; Rec."Evaluation Sequence")
                     {
@@ -820,26 +822,15 @@ page 20406 "Qlty. Inspection"
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
+        ResultStyleExpr: Text;
         CameraAvailable: Boolean;
         IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
-        VisibleCustom10: Boolean;
-        VisibleCustom9: Boolean;
-        VisibleCustom8: Boolean;
-        VisibleCustom7: Boolean;
-        VisibleCustom6: Boolean;
-        VisibleCustom5: Boolean;
-        VisibleCustom4: Boolean;
-        VisibleCustom3: Boolean;
-        VisibleCustom2: Boolean;
-        VisibleCustom1: Boolean;
-        VisibleDocumentNo: Boolean;
-        VisibleDocumentLineNo: Boolean;
-        VisibleSourceTaskNo: Boolean;
-        VisibleSourceSubType: Boolean;
-        VisibleSourceType: Boolean;
+        VisibleCustom1, VisibleCustom2, VisibleCustom3, VisibleCustom4, VisibleCustom5, VisibleCustom6, VisibleCustom7, VisibleCustom8, VisibleCustom9, VisibleCustom10 : Boolean;
+        VisibleDocumentNo, VisibleDocumentLineNo : Boolean;
+        VisibleSourceTaskNo, VisibleSourceType, VisibleSourceSubType : Boolean;
         CanChangeQuantity: Boolean;
 
     trigger OnOpenPage()
@@ -850,6 +841,8 @@ page 20406 "Qlty. Inspection"
     trigger OnAfterGetRecord()
     begin
         UpdateControlVisibilityStates(true);
+
+        ResultStyleExpr := Rec.GetResultStyle();
     end;
 
     trigger OnModifyRecord(): Boolean
