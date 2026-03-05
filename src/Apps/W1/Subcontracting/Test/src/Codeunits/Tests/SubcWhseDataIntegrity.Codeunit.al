@@ -174,7 +174,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
         NewRoutingLine.Validate(Type, ProdOrderRoutingLine.Type::"Work Center");
         asserterror NewRoutingLine.Validate("No.", WorkCenter[1]."No.");
 
-        Assert.ExpectedError('Because the Production Order Routing Line is not the last operation, the Purchase Line cannot be of type Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.');
+        Assert.ExpectedError('The Purchase Line cannot be of type Last Operation for this Production Order Routing Line. Please delete the Purchase line first before changing the Production Order Routing Line.');
     end;
 
     [Test]
