@@ -171,7 +171,7 @@ table 8072 "Vend. Sub. Contract Deferral"
                     Sign := 1;
                 end;
         end;
-        if (PurchaseLine.Quantity < 0) and (not PurchaseLine."Discount") then
+        if PurchaseLine.Quantity < 0 then
             Sign := Sign * -1;
         Rec."Vendor No." := PurchaseLine."Pay-to Vendor No.";
         Rec."Dimension Set ID" := PurchaseLine."Dimension Set ID";
