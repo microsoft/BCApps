@@ -132,7 +132,7 @@ page 20416 "Qlty. Inspection Result List"
                 ApplicationArea = QualityManagement;
                 Caption = 'Copy Results to Existing Templates';
                 ToolTip = 'Use this to add newly created results configured to Automatically Copy on to existing tests and existing templates.';
-                Image = Copy;
+                Image = CopyToTask;
 
                 trigger OnAction()
                 var

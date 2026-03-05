@@ -21,7 +21,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = I;
-                    Image = CreateForm;
+                    Image = BulletList;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this purchase order line.';
                     AboutTitle = 'Create Quality Inspection';
@@ -39,7 +39,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
-                    Image = TaskQualityMeasure;
+                    Image = CheckList;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
@@ -57,7 +57,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
-                    Image = TaskQualityMeasure;
+                    Image = CheckList;
                     Caption = 'Show Quality Inspections for Item';
                     ToolTip = 'Shows Quality Inspections for Item';
                     AboutTitle = 'Show Quality Inspections';
