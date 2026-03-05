@@ -109,6 +109,9 @@
   ],
   "enableCodeCop": true,
   "enableCodeCoverage": true,
+  "codeCoverageSetup": {
+    "excludeFilesPattern": ["*.PermissionSet.al", "*.PermissionSetExtension.al"]
+  },
   "enableAppSourceCop": true,
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
