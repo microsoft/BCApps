@@ -67,20 +67,18 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MultipleInspectionsNotificationDataFilterTok: Label 'InspectionsFilter', Locked = true;
         HandleOpenMultipleInspectionsTok: Label 'HandleOpenMultipleInspections', Locked = true;
         OpenTheInspectionPageLbl: Label 'Open the inspection';
-        AssignToYourselfTok: Label 'Assign Quality Inspection to yourself', Locked = true;
-        AssignToYourselfDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
-        InspectionCreatedNameTok: Label 'Quality Inspection created', Locked = true;
-        InspectionCreatedDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
+        AssignToYourselfNotificationTxt: Label 'Assign Quality Inspection to yourself';
+        AssignToYourselfNotificationDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
+        InspectionCreatedNotificationTxt: Label 'Quality Inspection created';
+        InspectionCreatedNotificationDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
 
     /// <summary>
     /// Ensures that configurable notifications are inserted.
     /// </summary>
-    internal procedure EnsureDefaultNotifications()
-    var
-        MyNotifications: Record "My Notifications";
+    internal procedure InitializeAllNotifications()
     begin
-        MyNotifications.InsertDefault(GetAssignToYourselfNotificationId(), AssignToYourselfTok, AssignToYourselfDescriptionTxt, true);
-        MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNameTok, InspectionCreatedDescriptionTxt, true);
+        InitializeAssignToYourselfNotification();
+        InitializeInspectionCreatedNotification();
     end;
 
     /// <summary>
@@ -96,9 +94,11 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         if not GuiAllowed() then
             exit;
-        EnsureDefaultNotifications();
+
+        InitializeInspectionCreatedNotification();
         if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
             exit;
+
         Message := StrSubstNo(InspectionCreatedMsg, QltyInspectionHeader.GetFriendlyIdentifier());
         NotificationOptions.Add(OpenTheInspectionPageLbl, HandleOpenDocumentTok);
         NotificationInspectionCreated.SetData(NotificationDataRelatedRecordIdTok, Format(QltyInspectionHeader.RecordId));
@@ -118,13 +118,12 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         if not GuiAllowed() then
             exit;
-        EnsureDefaultNotifications();
+
+        InitializeInspectionCreatedNotification();
         if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
             exit;
-        Message := StrSubstNo(
-            MultipleInspectionsCreatedMsg,
-            QltyInspectionHeader.Count()
-        );
+
+        Message := StrSubstNo(MultipleInspectionsCreatedMsg, QltyInspectionHeader.Count());
         NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
         NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
         CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
@@ -142,9 +141,11 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         if not GuiAllowed() then
             exit;
-        EnsureDefaultNotifications();
+
+        InitializeAssignToYourselfNotification();
         if not MyNotifications.IsEnabled(GetAssignToYourselfNotificationId()) then
             exit;
+
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
         AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
         AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
@@ -649,4 +650,26 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
     end;
+
+    local procedure InitializeAssignToYourselfNotification()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetAssignToYourselfNotificationId(), AssignToYourselfNotificationTxt, AssignToYourselfNotificationDescriptionTxt, true);
+    end;
+
+    local procedure InitializeInspectionCreatedNotification()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNotificationTxt, InspectionCreatedNotificationDescriptionTxt, true);
+    end;
+
+    # region Event Subscribers
+    [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
+    local procedure HandleOnInitializingNotificationWithDefaultState()
+    begin
+        InitializeAllNotifications();
+    end;
+    # endregion Event Subscribers
 }

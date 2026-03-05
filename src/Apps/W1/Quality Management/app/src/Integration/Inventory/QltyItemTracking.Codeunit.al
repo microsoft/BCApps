@@ -6,7 +6,6 @@ namespace Microsoft.QualityManagement.Integration.Inventory;
 
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
@@ -130,7 +129,7 @@ codeunit 20428 "Qlty. Item Tracking"
         Clear(QualityResultCode);
         Clear(QualityResultDescription);
 
-        if not CheckIfQualityManagementIsEnabled() then
+        if QltyInspectionHeader.IsEmpty() then
             exit;
 
         QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
@@ -153,16 +152,6 @@ codeunit 20428 "Qlty. Item Tracking"
             QualityResultCode := QltyInspectionHeader."Result Code";
             QualityResultDescription := QltyInspectionHeader."Result Description";
         end;
-    end;
-
-    local procedure CheckIfQualityManagementIsEnabled(): Boolean
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit(false);
-
-        exit(QltyManagementSetup.Visibility <> QltyManagementSetup.Visibility::Hide);
     end;
 
     /// <summary>

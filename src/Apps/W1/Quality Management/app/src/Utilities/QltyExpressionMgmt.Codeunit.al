@@ -177,7 +177,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
             repeat
                 SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionLine."Test Code");
                 if InputCurrentQltyInspectionLine.IsNumericFieldType() then
-                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
+                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Derived Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
                 else
                     Result := TextReplace(Result, SearchFor, InputCurrentQltyInspectionLine."Test Value", "Qlty. Case Sensitivity"::Insensitive);
             until InputCurrentQltyInspectionLine.Next() = 0

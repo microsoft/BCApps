@@ -15,8 +15,8 @@ page 20401 "Qlty. Tests"
 {
     Caption = 'Quality Tests';
     AdditionalSearchTerms = 'Quality measurement';
-    AboutTitle = 'Configure Available Tests';
-    AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+    AboutTitle = 'About Quality Tests';
+    AboutText = 'Create and manage tests for quality inspections, including data points, questions, and measurements. Use these tests in templates to standardize quality checks.';
     CardPageId = "Qlty. Test Card";
     Editable = false;
     InsertAllowed = false;
@@ -38,90 +38,64 @@ page 20401 "Qlty. Tests"
 
                 field("Code"; Rec.Code)
                 {
-                    AboutTitle = 'Code';
-                    AboutText = 'The short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
                 }
                 field(Description; Rec.Description)
                 {
-                    AboutTitle = 'Description';
-                    AboutText = 'The friendly description for the Test. You can enter a maximum of 100 characters, both numbers and letters.';
+                    AboutTitle = 'Describe your test';
+                    AboutText = 'This description will be visible when recording inspections and will show up on the Certificate of Analysis and other reports.';
                 }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
-                    AboutTitle = 'Field Type';
-                    AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
                 }
                 field("Allowable Values"; Rec."Allowable Values")
                 {
-                    AboutTitle = 'Allowable Values';
-                    AboutText = 'What the staff inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
                 }
                 field("Default Value"; Rec."Default Value")
                 {
-                    AboutTitle = 'Default Value';
-                    AboutText = 'A default value to set on the test.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
-                    AboutTitle = 'Unit of Measure Code';
-                    AboutText = 'The unit of measure for the measurement.';
                 }
                 field("Expression Formula"; Rec."Expression Formula")
                 {
-                    AboutTitle = 'Expression Formula';
-                    AboutText = 'Used with expression field types, this contains the formula for the expression content.';
                 }
                 field("Case Sensitive"; Rec."Case Sensitive")
                 {
-                    AboutTitle = 'Case Sensitivity';
-                    AboutText = 'Choose if case sensitivity will be enabled for text based fields.';
                 }
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible1;
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible1;
                 }
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible2;
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible2;
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Result Condition Expression';
-                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible3;
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Result Condition Description';
-                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible3;
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
@@ -211,32 +185,22 @@ page 20401 "Qlty. Tests"
                 field("Lookup Table No."; Rec."Lookup Table No.")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'When using a table lookup as a data type then this defines which table you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
                 }
                 field("Lookup Table Name"; Rec."Lookup Table Caption")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table No.';
-                    AboutText = 'The name of the lookup table. When using a table lookup as a data type then this is the name of the table that you are looking up. For example, if you want to show a list of available reason codes from the reason code table then you would use table 231 "Reason Code" here.';
                 }
                 field("Lookup Field No."; Rec."Lookup Field No.")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Field No.';
-                    AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
                 }
                 field("Lookup Field Name"; Rec."Lookup Field Caption")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Field Name';
-                    AboutText = 'This is the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
                 }
                 field("Lookup Table Filter"; Rec."Lookup Table Filter")
                 {
                     Visible = false;
-                    AboutTitle = 'Lookup Table Filter';
-                    AboutText = 'This allows you to restrict which data are available from the Lookup Table by using a standard Business Central filter expression. For example if you were using table 231 "Reason Code" as your lookup table and wanted to restrict the options to codes that started with "R" then you could enter: where("Code"=filter(R*))';
                 }
             }
         }
@@ -268,37 +232,14 @@ page 20401 "Qlty. Tests"
 
                 trigger OnAction()
                 begin
-                    Rec.EnsureCanBeDeleted(true);
+                    Rec.CheckDeleteConstraints(true);
                     Rec.Delete(true);
                     CurrPage.Update(false);
                 end;
             }
         }
-        area(Creation)
-        {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add a Test';
-                ToolTip = 'Add a new Test.';
-                Scope = Repeater;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-        }
-        area(Reporting)
-        {
-        }
         area(Promoted)
         {
-            actionref(NewTest_Promoted; NewTest)
-            {
-            }
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
             {
             }
@@ -331,7 +272,7 @@ page 20401 "Qlty. Tests"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        Rec.EnsureCanBeDeleted(true);
+        Rec.CheckDeleteConstraints(true);
     end;
 
     trigger OnAfterGetRecord()
@@ -403,16 +344,5 @@ page 20401 "Qlty. Tests"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyTestWizard: Page "Qlty. Test Wizard";
-    begin
-        QltyTestWizard.RunModalForTest();
-        CurrPage.Update(false);
     end;
 }

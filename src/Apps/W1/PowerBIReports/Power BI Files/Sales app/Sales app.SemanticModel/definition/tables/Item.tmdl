@@ -344,7 +344,7 @@ table Item
 				in
 				    #"Added Type Key"
 
-	annotation PBI_ResultType = Table
+	annotation PBI_ResultType = Exception
 
 	annotation PBI_NavigationStepName = Navigation
 

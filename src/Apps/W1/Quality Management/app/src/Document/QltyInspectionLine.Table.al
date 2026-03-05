@@ -114,10 +114,10 @@ table 20406 "Qlty. Inspection Line"
             begin
                 QltyInspectionTemplateLine.Get(Rec."Template Code", Rec."Template Line No.");
                 ValidateTestValue();
-                Rec."Numeric Value" := 0;
+                Rec."Derived Numeric Value" := 0;
                 OnBeforeEvaluateNumericTestValue(Rec, IsHandled);
                 if not IsHandled then
-                    if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+                    if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
 
                 SetLargeText(Rec."Test Value", false, true);
 
@@ -129,13 +129,14 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Blob';
             ToolTip = 'Specifies large test value data. Typically used for larger text that is captured.';
         }
-        field(25; "Numeric Value"; Decimal)
+        field(25; "Derived Numeric Value"; Decimal)
         {
+            Caption = 'Derived Numeric Value';
+            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations and analysis. This value is automatically calculated when the Test Value is entered or modified based on the configuration of the Test Value and is not directly editable.';
             Editable = false;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
-            Caption = 'Numeric Value';
-            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations. eg: easier to use for Business Central charting.';
+            BlankZero = true;
         }
         field(28; "Result Code"; Code[20])
         {
@@ -192,14 +193,14 @@ table 20406 "Qlty. Inspection Line"
         {
             Clustered = true;
         }
-        key(byResult; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
+        key(Key2; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
         {
             SumIndexFields = "Evaluation Sequence";
         }
-        key(byEvaluationSequence; "Template Code", "Inspection No.", "Re-inspection No.", "Evaluation Sequence")
+        key(Key3; "Template Code", "Inspection No.", "Re-inspection No.", "Evaluation Sequence")
         {
         }
-        key(byDate; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
+        key(Key4; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
         {
         }
     }
@@ -213,8 +214,8 @@ table 20406 "Qlty. Inspection Line"
         if not Rec.IsTemporary() then
             TestStatusOpen();
 
-        Rec."Numeric Value" := 0;
-        if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+        Rec."Derived Numeric Value" := 0;
+        if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
     end;
 
     trigger OnDelete()
@@ -336,12 +337,12 @@ table 20406 "Qlty. Inspection Line"
 
     local procedure AssistEditChooseFromTableLookup()
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        CollectAllowableValues(TempBufferQltyLookupCode);
+        CollectAllowableValues(TempBufferQltyTestLookupValue);
 
-        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyLookupCode) = Action::LookupOK then
-            Rec.Validate("Test Value", CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(Rec."Test Value")));
+        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyTestLookupValue) = Action::LookupOK then
+            Rec.Validate("Test Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Test Value")));
     end;
 
     /// <summary>
@@ -351,8 +352,8 @@ table 20406 "Qlty. Inspection Line"
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue"></param>
+    internal procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -361,7 +362,7 @@ table 20406 "Qlty. Inspection Line"
             exit;
 
         if not GetInspection() then;
-        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
+        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyTestLookupValue, Rec."Test Value");
     end;
 
     /// <summary>

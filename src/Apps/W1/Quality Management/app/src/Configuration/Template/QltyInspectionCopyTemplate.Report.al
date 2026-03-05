@@ -64,7 +64,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             area(Content)
             {
-                group(SettingsForGeneral)
+                group(General)
                 {
                     Caption = 'General';
 
@@ -75,7 +75,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         ToolTip = 'Specifies whether to create templates from items.';
                     }
                 }
-                group(SettingsForNonItem)
+                group(NonItem)
                 {
                     Caption = 'Code and Description for duplicating not based on an item';
                     InstructionalText = 'Use this with Create From Item Nos. turned off.';

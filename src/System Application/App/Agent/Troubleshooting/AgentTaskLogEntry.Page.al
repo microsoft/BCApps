@@ -43,7 +43,8 @@ page 4312 "Agent Task Log Entry"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.Description);
+                        if (Rec.Description <> '') then
+                            Message(Rec.Description);
                     end;
                 }
                 field(Reason; Rec.Reason)
@@ -54,7 +55,8 @@ page 4312 "Agent Task Log Entry"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.Reason);
+                        if (Rec.Reason <> '') then
+                            Message(Rec.Reason);
                     end;
                 }
                 field(Details; LogEntryDetailsTxt)
@@ -65,7 +67,8 @@ page 4312 "Agent Task Log Entry"
 
                     trigger OnDrillDown()
                     begin
-                        Message(LogEntryDetailsTxt);
+                        if (LogEntryDetailsTxt <> '') then
+                            Message(LogEntryDetailsTxt);
                     end;
                 }
                 field(Type; Rec.Type)
@@ -173,10 +176,10 @@ page 4312 "Agent Task Log Entry"
             }
             part(LogsPart; "Agent Task Log Entry ListPart")
             {
-                Caption = 'WhatOther actions were decided at the same time';
+                Caption = 'What other actions were decided at the same time';
                 Visible = IsLogPageVisible;
                 SubPageLink = "Task ID" = field("Task ID");
-                AboutTitle = 'WhatOther actions were decided at the same time';
+                AboutTitle = 'What other actions were decided at the same time';
                 AboutText = 'The agent can take multiple actions from the same decision. This lists the log entries related to the actions taken by the agent for this particular entry.';
             }
             group(PageContentGroup)
