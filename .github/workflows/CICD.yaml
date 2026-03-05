@@ -264,9 +264,11 @@ jobs:
 
   MergeCoverage:
     needs: [ Initialization, Build ]
-    if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped')
+    if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped' || needs.Build.result == 'failure')
     runs-on: [ windows-latest ]
     name: Merge Code Coverage
+    env:
+      BUILD_RESULT: ${{ needs.Build.result }}
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
