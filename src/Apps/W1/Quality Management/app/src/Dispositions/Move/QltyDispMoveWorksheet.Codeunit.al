@@ -25,6 +25,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         WorksheetLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the inspection, %2=from location, %3=to location';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
+        OpenSetupActionLbl: Label 'Open Quality Management Setup';
         RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item, variant, lot, serial and package. \\ Make sure to define the quantity to move.', Comment = '%1=the inspection';
         DocumentTypeWarehouseMovementLbl: Label 'Warehouse Movement';
         NoWhseWkshErr: Label 'There is no Warehouse Worksheet for the specified template, worksheet name, and location. Ensure the correct worksheet is defined on the Quality Management Setup Card and the worksheet exists for location %1.', Comment = '%1=location';
@@ -49,7 +50,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         QltyManagementSetup.Get();
         MovementWorksheetTemplateName := QltyManagementSetup.GetMovementWorksheetTemplateName();
         if QltyManagementSetup."Movement Worksheet Name" = '' then
-            Error(MissingBinMoveBatchErr);
+            ThrowMissingSetupError();
 
         if TempInstructionQltyDispositionBuffer."Location Filter" = '' then
             if QltyInspectionHeader."Location Code" <> '' then
@@ -142,7 +143,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         WhseWorksheetName.SetRange(Name, WhseWkshName);
         WhseWorksheetName.SetRange("Location Code", FromLocationCode);
         if WhseWorksheetName.IsEmpty() then
-            Error(NoWhseWkshErr, FromLocationCode);
+            ThrowNoWhseWkshError(FromLocationCode);
 
         LineNo := 10000;
         WhseActivitySortMethod := WhseActivitySortMethod::None;
@@ -220,5 +221,34 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
+    end;
+
+    local procedure ThrowMissingSetupError()
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := MissingBinMoveBatchErr;
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Worksheet", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    local procedure ThrowNoWhseWkshError(FromLocationCode: Code[10])
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := StrSubstNo(NoWhseWkshErr, FromLocationCode);
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Worksheet", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert(true);
+        Page.Run(Page::"Qlty. Management Setup", QltyManagementSetup);
     end;
 }
