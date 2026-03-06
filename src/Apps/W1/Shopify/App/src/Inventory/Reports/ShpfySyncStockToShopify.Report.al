@@ -47,13 +47,15 @@ report 30102 "Shpfy Sync Stock to Shopify"
                 group(Group)
                 {
                     Caption = 'Options';
-                    field(SkipImport; SkipImport)
+                    field("Skip Import"; SkipImport)
                     {
+                        ApplicationArea = All;
                         Caption = 'Skip Import Stock';
                         ToolTip = 'Specifies whether to skip importing stock from Shopify before exporting stock to Shopify.';
                     }
-                    field(VariantIdFilter; VariantIdFilter)
+                    field("Variant ID Filter"; VariantIdFilter)
                     {
+                        ApplicationArea = All;
                         Caption = 'Variant ID Filter';
                         ToolTip = 'Specifies a filter for the Variant ID to limit which inventory items are synchronized.';
                     }

@@ -21,9 +21,7 @@ codeunit 30197 "Shpfy Sync Inventory"
     var
         ShopInventory: Record "Shpfy Shop Inventory";
         ShopLocation: Record "Shpfy Shop Location";
-        ShpfyInventoryEvents: Codeunit "Shpfy Inventory Events";
         ShopFilter: Text;
-        VariantIdFilter: Text;
     begin
         ShopFilter := Rec.GetFilter("Shop Code");
         if ShopFilter <> '' then
