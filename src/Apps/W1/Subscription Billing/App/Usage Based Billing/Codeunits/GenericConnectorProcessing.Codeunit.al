@@ -11,7 +11,6 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         ProcessingSetupErr: Label 'You must specify either a reading/writing XMLport or a reading/writing codeunit.';
         UsageDataLinesProcessingErr: Label 'Errors were found while processing the Usage Data Lines.';
         NoDataFoundErr: Label 'No data found for processing step %1.', Comment = '%1 = Name of the processing step';
-        UsageDataWithZeroQuantityCannotBeProcessedErr: Label 'Usage data with Quantity 0 cannot be processed.';
         NoServiceObjectErr: Label 'The %1 ''%2'' is not linked to an %3.', Comment = '%1 = Table name, %2 = Entry number, %3 = Table name';
         ServiceObjectProvisionEndDateErr: Label 'The %1 ''%2'' is deinstalled.', Comment = '%1 = Table name, %2 = Entry number';
         ReferenceNotFoundErr: Label 'For %1 ''%2'' no linked %3 was found.', Comment = '%1 = Field name, %2 = Entry description, %3 = Table name';
@@ -85,7 +84,6 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         if UsageDataGenericImport.FindSet() then
             repeat
                 UsageDataGenericImport.Validate("Processing Status", Enum::"Processing Status"::None);
-                ErrorIfUsageDataGenericImportQuantityIsZero(UsageDataGenericImport);
                 GenericImportSettings.Get(UsageDataImport."Supplier No.");
                 CreateUsageDataCustomers(GenericImportSettings, UsageDataGenericImport, UsageDataSupplierReference, UsageDataImport."Supplier No.");
                 CreateUsageDataSubscriptions(GenericImportSettings, UsageDataGenericImport, UsageDataSupplierReference, UsageDataImport);
@@ -158,14 +156,6 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
             end else
                 UsageDataGenericImport."Subscription Header No." := ServiceCommitment."Subscription Header No.";
         end;
-    end;
-
-    local procedure ErrorIfUsageDataGenericImportQuantityIsZero(var UsageDataGenericImport: Record "Usage Data Generic Import")
-    begin
-        if UsageDataGenericImport.Quantity <> 0 then
-            exit;
-        UsageDataGenericImport."Processing Status" := UsageDataGenericImport."Processing Status"::Error;
-        UsageDataGenericImport.SetReason(UsageDataWithZeroQuantityCannotBeProcessedErr);
     end;
 
     local procedure CheckServiceCommitment(var UsageDataGenericImport: Record "Usage Data Generic Import"; var UsageDataImport: Record "Usage Data Import"; var ServiceCommitment: Record "Subscription Line")

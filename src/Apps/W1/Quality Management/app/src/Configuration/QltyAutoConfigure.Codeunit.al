@@ -90,6 +90,8 @@ codeunit 20402 "Qlty. Auto Configure"
         ProdRoutingToInspectDescriptionTxt: Label 'Prod. Order Routing Line to Inspection', MaxLength = 100;
         AssemblyOutputToInspectTok: Label 'ASMOUTPUTTOINSPECT', MaxLength = 20, Locked = true;
         AssemblyOutputToInspectDescriptionTxt: Label 'Posted Assembly Header to Inspection', MaxLength = 100;
+        OpenLedgerToInspectTok: Label 'ITEMLDGROPENINSPECT', MaxLength = 20, Locked = true;
+        OpenLedgerToInspectDescriptionTxt: Label 'Open Item Ledger Entry to Inspection', MaxLength = 100;
 
     internal procedure GetDefaultPassResult(): Text
     begin
@@ -242,6 +244,7 @@ codeunit 20402 "Qlty. Auto Configure"
         CreateDefaultProductionAndAssemblyConfiguration();
         CreateDefaultReceivingConfiguration();
         CreateDefaultWarehousingConfiguration();
+        CreateDefaultItemLedgerEntryOpenToInspectConfiguration();
     end;
 
     local procedure CreateDefaultTrackingSpecificationToInspectConfiguration()
@@ -1255,6 +1258,75 @@ codeunit 20402 "Qlty. Auto Configure"
         EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo(Quantity),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Variant Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Variant Code"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Lot No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Lot No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Serial No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Serial No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Package No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Package No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo(Description),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo(Description),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Location Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Location Code"),
+            '');
+    end;
+
+    local procedure CreateDefaultItemLedgerEntryOpenToInspectConfiguration()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+    begin
+        EnsureSourceConfigWithFilterExists(
+            OpenLedgerToInspectTok,
+            OpenLedgerToInspectDescriptionTxt,
+            Database::"Item Ledger Entry",
+            Database::"Qlty. Inspection Header",
+            QltyInspectSourceConfig,
+            'WHERE(Open=CONST(true))');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Document No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Document No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Item No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Item No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempItemLedgerEntry.FieldNo("Remaining Quantity"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
