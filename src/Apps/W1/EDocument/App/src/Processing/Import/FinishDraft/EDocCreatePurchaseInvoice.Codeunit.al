@@ -42,6 +42,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
         YourMatchedLinesAreNotValidErr: Label 'The purchase invoice cannot be created because one or more of its matched lines are not valid matches. Review if your configuration allows for receiving at invoice.';
         SomeLinesNotYetReceivedErr: Label 'Some of the matched purchase order lines have not yet been received, you need to either receive the lines or remove the matches.';
+        MissingInformationForMatchErr: Label 'Some of the draft lines that were matched to purchase order lines are missing unit of measure information. Please specify the unit of measure for those lines and try again.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
 
@@ -50,9 +51,12 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
-        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
+        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::ExceedsInvoiceableQty);
         if not TempPOMatchWarnings.IsEmpty() then
             Error(SomeLinesNotYetReceivedErr);
+        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::MissingInformationForMatch);
+        if not TempPOMatchWarnings.IsEmpty() then
+            Error(MissingInformationForMatchErr);
 
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
         if EDocImportParameters."Existing Doc. RecordId" <> EmptyRecordId then begin
