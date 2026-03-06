@@ -2049,6 +2049,44 @@ codeunit 148155 "Contracts Test"
         Assert.AreEqual(TestDesc, ServiceCommitment.Description, StrSubstNo(SubscLineDescErr, TestDesc));
     end;
 
+    [Test]
+    procedure ChangeSellToCustomerOnContractWithClosedSubscriptionLines()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        NewCustomer: Record Customer;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+    begin
+        // [SCENARIO] Changing the Sell-to Customer on a contract that has closed subscription lines should succeed without error.
+        Initialize();
+
+        // [GIVEN] A customer contract with a service commitment linked to a contract line.
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+
+        // [GIVEN] The contract line and its subscription line are both marked as closed (as done by UpdateServiceCommitmentAndCloseCustomerContractLine).
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        CustomerContractLine.FindFirst();
+        CustomerContractLine.GetServiceCommitment(ServiceCommitment);
+        ServiceCommitment.Closed := true;
+        ServiceCommitment.Modify(false);
+        CustomerContractLine.Closed := true;
+        CustomerContractLine.Modify(false);
+
+        // [GIVEN] A second customer to change the contract to.
+        ContractTestLibrary.CreateCustomerInLCY(NewCustomer);
+
+        // [WHEN] Changing the Sell-to Customer - should not throw an error even though closed subscription lines exist.
+        CustomerContract.SetHideValidationDialog(true);
+        CustomerContract.Validate("Sell-to Customer No.", NewCustomer."No.");
+
+        // [THEN] The customer is changed successfully.
+        CustomerContract.TestField("Sell-to Customer No.", NewCustomer."No.");
+    end;
+
     #endregion Tests
 
     #region Procedures
