@@ -357,6 +357,11 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the tax area code for the order. This determines which tax jurisdictions apply when creating the sales document.';
                 }
+                field("Tax Liable"; Rec."Tax Liable")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the order is liable for sales tax. When set, this value is carried to the sales document.';
+                }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;

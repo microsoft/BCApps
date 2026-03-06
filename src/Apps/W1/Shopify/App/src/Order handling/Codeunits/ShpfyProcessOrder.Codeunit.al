@@ -131,8 +131,10 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader.Validate("External Document No.", ShopifyOrderHeader."PO Number");
             if ShopifyOrderHeader."Due Date" <> 0D then
                 SalesHeader.Validate("Due Date", ShopifyOrderHeader."Due Date");
-            if ShopifyOrderHeader."Tax Area Code" <> '' then
+            if ShopifyOrderHeader."Tax Area Code" <> '' then begin
                 SalesHeader.Validate("Tax Area Code", ShopifyOrderHeader."Tax Area Code");
+                SalesHeader.Validate("Tax Liable", ShopifyOrderHeader."Tax Liable");
+            end;
             if ShopifyOrderHeader."Shipping Method Code" <> '' then
                 SalesHeader.Validate("Shipment Method Code", ShopifyOrderHeader."Shipping Method Code");
             if ShopifyOrderHeader."Shipping Agent Code" <> '' then begin

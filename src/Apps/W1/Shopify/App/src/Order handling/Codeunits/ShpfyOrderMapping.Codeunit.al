@@ -373,7 +373,9 @@ codeunit 30163 "Shpfy Order Mapping"
         if OrderHeader."Tax Area Code" <> '' then
             exit;
 
-        if OrderMgt.FindTaxArea(OrderHeader, ShpfyTaxArea) and (ShpfyTaxArea."Tax Area Code" <> '') then
+        if OrderMgt.FindTaxArea(OrderHeader, ShpfyTaxArea) and (ShpfyTaxArea."Tax Area Code" <> '') then begin
             OrderHeader."Tax Area Code" := ShpfyTaxArea."Tax Area Code";
+            OrderHeader."Tax Liable" := ShpfyTaxArea."Tax Liable";
+        end;
     end;
 }

@@ -906,6 +906,11 @@ table 30118 "Shpfy Order Header"
             DataClassification = CustomerContent;
             TableRelation = "Tax Area";
         }
+        field(1080; "Tax Liable"; Boolean)
+        {
+            Caption = 'Tax Liable';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
