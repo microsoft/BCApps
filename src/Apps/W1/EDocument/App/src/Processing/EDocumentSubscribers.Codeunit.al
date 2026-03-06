@@ -574,6 +574,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.Status := Enum::"E-Document Status"::Processed;
         EDocument.Modify(true);
 
+        OnAfterUpdateToPostedPurchaseEDocument(EDocument);
         EDocService := EDocumentLog.GetLastServiceFromLog(EDocument);
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
@@ -630,6 +631,11 @@ codeunit 6103 "E-Document Subscribers"
         if not IsNullGuid(LineSystemId) then
             TelemetryDimensions.Add(EDocImpSessionTelemetry.GetEDocLineSystemIdTok(), EDocImpSessionTelemetry.CreateSystemIdText(LineSystemId));
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document")
+    begin
     end;
 
 }

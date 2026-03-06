@@ -172,6 +172,7 @@ codeunit 6102 "E-Doc. Export"
         else
             EDocServiceStatus := Enum::"E-Document Service Status"::"Export Error";
 
+        OnExportEDocumentAfterCreateEDocument(EDocument, EDocumentService, TempBlob, SourceDocumentHeader, Success);
         EDocLog := EDocumentLog.InsertLog(EDocument, EDocumentService, TempBlob, EDocServiceStatus);
         EDocumentLog.InsertMappingLog(EDocLog, TempEDocMapping);
 
@@ -528,6 +529,11 @@ codeunit 6102 "E-Doc. Export"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnExportEDocumentAfterCreateEDocument(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; Success: Boolean)
     begin
     end;
 }
