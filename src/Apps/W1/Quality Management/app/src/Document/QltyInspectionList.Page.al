@@ -704,18 +704,6 @@ page 20408 "Qlty. Inspection List"
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
         CanCreateReinspection := RowActionsAreEnabled;
-        StatusStyleExpr :=
-            Rec.Status = Rec.Status::Open ? 'Favorable' :
-            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
-            'None';
-    end;
-
-    trigger OnAfterGetRecord()
-    begin
-        StatusStyleExpr :=
-            Rec.Status = Rec.Status::Open ? 'Favorable' :
-            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
-            'None';
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -725,10 +713,7 @@ page 20408 "Qlty. Inspection List"
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
-        StatusStyleExpr :=
-            Rec.Status = Rec.Status::Open ? 'Favorable' :
-            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
-            'None';
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;

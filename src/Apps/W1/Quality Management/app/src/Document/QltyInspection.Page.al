@@ -864,11 +864,7 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
-        
-        StatusStyleExpr :=
-            IsOpen ? 'Favorable' :
-            (Rec.Status = Rec.Status::Finished) ? 'Strong' :
-            'None';
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
 
         CanReopen := not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
