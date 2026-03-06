@@ -62,6 +62,14 @@ page 30113 "Shpfy Order"
                     ShowMandatory = true;
                     ToolTip = 'Specifies the number of the customer who will buy the products.';
                 }
+                field(SellToContactNo; Rec."Sell-to Contact No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Sell-to Contact No.';
+                    Editable = false;
+                    Visible = false;
+                    ToolTip = 'Specifies the number of the contact person at the sell-to customer.';
+                }
                 field(ShippingMethod; Rec."Shipping Method Code")
                 {
                     ApplicationArea = All;
@@ -466,6 +474,14 @@ page 30113 "Shpfy Order"
                         Editable = false;
                         ToolTip = 'Specifies the name of the customer''s country/region';
                     }
+                    field(ShipToContactNo; Rec."Ship-to Contact No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Ship-to Contact No.';
+                        Editable = false;
+                        Visible = false;
+                        ToolTip = 'Specifies the number of the contact person at the ship-to address.';
+                    }
                 }
                 group(BillTo)
                 {
@@ -528,6 +544,14 @@ page 30113 "Shpfy Order"
                         Caption = 'Country Name';
                         Editable = false;
                         ToolTip = 'Specifies the name of the customer''s country/region.';
+                    }
+                    field(BillToContactNo; Rec."Bill-to Contact No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Bill-to Contact No.';
+                        Editable = false;
+                        Visible = false;
+                        ToolTip = 'Specifies the number of the contact person at the bill-to customer.';
                     }
                 }
             }

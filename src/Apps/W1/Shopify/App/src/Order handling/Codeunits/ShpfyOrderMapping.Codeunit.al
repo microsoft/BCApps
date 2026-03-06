@@ -225,7 +225,7 @@ codeunit 30163 "Shpfy Order Mapping"
         exit(ShopifyOrderLine."Item No." <> '');
     end;
 
-    local procedure FindContactNo(ContactName: Text[100]; CustomerNo: Code[20]): Code[20]
+    internal procedure FindContactNo(ContactName: Text[100]; CustomerNo: Code[20]): Code[20]
     var
         Contact: Record Contact;
         ContactBusinessRelation: Record "Contact Business Relation";
