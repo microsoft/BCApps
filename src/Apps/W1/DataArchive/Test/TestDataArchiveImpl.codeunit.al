@@ -5,10 +5,10 @@
 
 namespace System.Test.DataAdministration;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using System.DataAdministration;
 using System.TestLibraries.Utilities;
-using Microsoft.Foundation.Address;
 
 /// <summary>
 /// This codeunit tests archiving scenarios.
