@@ -48,7 +48,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Route Management", OnCalculateOnBeforeProdOrderRtngLineLoopIteration, '', false, false)]
-    local procedure "Prod. Order Route Management_OnCalculateOnBeforeProdOrderRtngLineLoopIteration"(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    local procedure CheckSubcontractingOnCalculateOnBeforeProdOrderRtngLineLoopIteration(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin
         ProdOrderRoutingLine.CheckForSubcontractingPurchaseLineTypeMismatch();
     end;

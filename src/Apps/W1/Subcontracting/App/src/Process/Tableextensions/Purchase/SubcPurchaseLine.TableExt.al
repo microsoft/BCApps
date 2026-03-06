@@ -103,6 +103,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
+        ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
         exit(ItemUnitofMeasure."Qty. per Unit of Measure");
     end;
@@ -111,6 +112,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
+        ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
         exit(Round(Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;

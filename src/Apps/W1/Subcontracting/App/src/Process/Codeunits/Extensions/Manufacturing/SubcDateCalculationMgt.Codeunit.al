@@ -27,5 +27,4 @@ codeunit 99001525 "Subc. Date Calculation Mgt."
         TransferLine."Operation No." := TempTransferLine."Operation No.";
         TransferLine."Return Order" := TempTransferLine."Return Order";
     end;
-
 }
