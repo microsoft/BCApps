@@ -55,6 +55,11 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Visible = HasEDocumentOrderMatchWarnings;
                     StyleExpr = MatchWarningsStyleExpr;
                     ToolTip = 'Specifies any warnings related to matching this line to a purchase order line.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowMatchWarningDetails();
+                    end;
                 }
                 field("Line Type"; Rec."[BC] Purchase Line Type")
                 {
@@ -349,10 +354,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     trigger OnAfterGetRecord()
     var
-        MissingInfoLbl: Label 'Missing information for match';
-        NotYetReceivedLbl: Label 'Not yet received';
-        QuantityMismatchLbl: Label 'Quantity mismatch';
+        MissingInfoLbl: Label 'Unit of measure information is missing';
+        ExceedsInvoiceableQtyLbl: Label 'Exceeds quantity received';
+        ExceedsRemainingToInvoiceLbl: Label 'Exceeds remaining to invoice';
+        OverReceiptLbl: Label 'Over-receipt';
         NoWarningsLbl: Label 'No warnings';
+        MultipleWarningsLbl: Label 'Multiple warnings';
+        WarningCount: Integer;
     begin
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
@@ -363,19 +371,36 @@ page 6183 "E-Doc. Purchase Draft Subform"
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
         MatchWarningsStyleExpr := 'None';
         EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
-        if EDocumentPOMatchWarnings.FindFirst() then begin
-            case EDocumentPOMatchWarnings."Warning Type" of
-                Enum::"E-Doc PO Match Warning"::MissingInformationForMatch:
-                    MatchWarningsCaption := MissingInfoLbl;
-                Enum::"E-Doc PO Match Warning"::NotYetReceived:
-                    MatchWarningsCaption := NotYetReceivedLbl;
-                Enum::"E-Doc PO Match Warning"::QuantityMismatch:
-                    MatchWarningsCaption := QuantityMismatchLbl;
-            end;
-            MatchWarningsStyleExpr := 'Ambiguous';
-        end
-        else
-            MatchWarningsCaption := NoWarningsLbl;
+        WarningCount := EDocumentPOMatchWarnings.Count();
+        if WarningCount > 1 then begin
+            MatchWarningsCaption := MultipleWarningsLbl;
+            MatchWarningsStyleExpr := 'Unfavorable';
+        end else
+            if EDocumentPOMatchWarnings.FindFirst() then begin
+                case EDocumentPOMatchWarnings."Warning Type" of
+                    Enum::"E-Doc PO Match Warning"::MissingInformationForMatch:
+                        begin
+                            MatchWarningsCaption := MissingInfoLbl;
+                            MatchWarningsStyleExpr := 'Ambiguous';
+                        end;
+                    Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty:
+                        begin
+                            MatchWarningsCaption := ExceedsInvoiceableQtyLbl;
+                            MatchWarningsStyleExpr := 'Unfavorable';
+                        end;
+                    Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice:
+                        begin
+                            MatchWarningsCaption := ExceedsRemainingToInvoiceLbl;
+                            MatchWarningsStyleExpr := 'Ambiguous';
+                        end;
+                    Enum::"E-Doc PO Match Warning"::OverReceipt:
+                        begin
+                            MatchWarningsCaption := OverReceiptLbl;
+                            MatchWarningsStyleExpr := 'Subordinate';
+                        end;
+                end;
+            end else
+                MatchWarningsCaption := NoWarningsLbl;
     end;
 
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
@@ -496,6 +521,30 @@ page 6183 "E-Doc. Purchase Draft Subform"
             exit(StrSubstNo(MatchedToMultipleOrdersLbl, MatchedPO, TempLinkedPurchaseLines."Document No."));
 
         exit(StrSubstNo(MatchedToSingleOrderMultipleLinesLbl, MatchedPO));
+    end;
+
+    local procedure ShowMatchWarningDetails()
+    var
+        WarningDetails: TextBuilder;
+        MissingInfoDetailLbl: Label 'Quantity information for this line is missing to complete the match. Verify that the draft line has a unit of measure assigned for this item.';
+    begin
+        EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
+        if not EDocumentPOMatchWarnings.FindSet() then
+            exit;
+
+        repeat
+            case EDocumentPOMatchWarnings."Warning Type" of
+                Enum::"E-Doc PO Match Warning"::MissingInformationForMatch:
+                    WarningDetails.AppendLine(MissingInfoDetailLbl);
+                Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty,
+                Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice,
+                Enum::"E-Doc PO Match Warning"::OverReceipt:
+                    WarningDetails.AppendLine(EDocumentPOMatchWarnings."Warning Message");
+            end;
+        until EDocumentPOMatchWarnings.Next() = 0;
+
+        if WarningDetails.Length() > 0 then
+            Message(WarningDetails.ToText());
     end;
 
 }
