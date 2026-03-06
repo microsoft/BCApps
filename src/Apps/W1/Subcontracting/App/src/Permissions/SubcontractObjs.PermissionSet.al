@@ -25,7 +25,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Create Prod. Ord. Opt." = X,
         codeunit "Subc. Create Prod. Rtng. Ext." = X,
         codeunit "Subc. CrPurchSubcon(Yes/No)" = X,
-        codeunit "Subc. Date Calculation Mgt." = X,
         codeunit "Subc. DirectTransferLine Ext." = X,
         codeunit "Subc. Factbox Mgmt." = X,
         codeunit "Subc. ItemChargeAssPurchExt" = X,

@@ -1,0 +1,82 @@
+table 'ABC Classes'
+	isHidden
+	lineageTag: 0c07a510-d1d1-4d91-8504-1b1b8eef3cc1
+
+	column categoryA
+		dataType: double
+		isHidden
+		lineageTag: 8e668552-34fb-4204-8f19-27f9fa73cde9
+		summarizeBy: sum
+		sourceColumn: categoryA
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column categoryB
+		dataType: double
+		isHidden
+		lineageTag: 0ba5e346-d503-47f1-845e-7da94dc5d99c
+		summarizeBy: sum
+		sourceColumn: categoryB
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column categoryC
+		dataType: double
+		isHidden
+		lineageTag: 1e7149be-38c1-487a-b86c-8687d335c74f
+		summarizeBy: sum
+		sourceColumn: categoryC
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column auxiliaryIndex1
+		dataType: string
+		isHidden
+		lineageTag: e6ee42fd-8399-4e87-acd3-3ec533898c06
+		summarizeBy: none
+		sourceColumn: auxiliaryIndex1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: ad46fcf7-f800-4433-81c2-a99974e14bfe
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'ABC Classes' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="abcAnalysisSetups",Signature="table"]}[Data],
+				    #"Divided Column" = Table.TransformColumns(TableData, {{"categoryA", each _ / 100, type number},{"categoryB", each _ / 100, type number},{"categoryC", each _ / 100, type number}})
+				in
+				    #"Divided Column"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

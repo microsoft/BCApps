@@ -97,7 +97,6 @@ page 6122 "E-Documents"
                 Caption = 'View file';
                 ToolTip = 'View the source file.';
                 Image = ViewDetails;
-                Visible = NewEDocumentExperienceActive;
 
                 trigger OnAction()
                 begin
@@ -111,7 +110,6 @@ page 6122 "E-Documents"
             {
                 Caption = 'Inbound';
                 ToolTip = 'View inbound electronic documents.';
-                Visible = NewEDocumentExperienceActive;
                 RunObject = Page "Inbound E-Documents";
                 RunPageMode = View;
                 Image = InwardEntry;
@@ -120,7 +118,6 @@ page 6122 "E-Documents"
             {
                 Caption = 'Outbound';
                 ToolTip = 'View outbound electronic documents.';
-                Visible = NewEDocumentExperienceActive;
                 RunObject = Page "Outbound E-Documents";
                 Image = OutboundEntry;
             }
@@ -134,16 +131,6 @@ page 6122 "E-Documents"
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
-
-    var
-        NewEDocumentExperienceActive: Boolean;
-
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        NewEDocumentExperienceActive := EDocumentsSetup.IsNewEDocumentExperienceActive();
-    end;
 
     local procedure NewFromFile()
     var

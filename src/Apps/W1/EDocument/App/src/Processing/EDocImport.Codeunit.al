@@ -282,7 +282,7 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogWarningMessage(EDocument, EDocument2, EDocument2.FieldNo("Incoming E-Document No."), DocAlreadyExistsMsg);
 
             if EDocService."Validate Receiving Company" then
-                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument);
+                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument, EDocService);
         end else
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
 
@@ -545,10 +545,13 @@ codeunit 6140 "E-Doc. Import"
         end;
 
         if Vendor.Get(EDocument."Bill-to/Pay-to No.") then
-            if ValidateEDocumentIsForPurchaseOrder(EDocument, Vendor) then
-                ReceiveEDocumentToPurchaseOrder(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Vendor, Window)
+            if Vendor."Self-Billing Agreement" then
+                EDocImportHelper.LogErrorIfVendorIsSelfBilling(EDocument, Vendor)
             else
-                ReceiveEDocumentToPurchaseDoc(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Window, CreateJnlLine)
+                if ValidateEDocumentIsForPurchaseOrder(EDocument, Vendor) then
+                    ReceiveEDocumentToPurchaseOrder(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Vendor, Window)
+                else
+                    ReceiveEDocumentToPurchaseDoc(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Window, CreateJnlLine)
         else
             EDocErrorHelper.LogErrorMessage(EDocument, Vendor, Vendor.FieldNo("No."), FailedToFindVendorErr);
 

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -14,11 +13,11 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     var
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        LibraryERM: Codeunit "Library - ERM";
         IsInitialized: Boolean;
 
     trigger OnRun()
@@ -158,8 +157,8 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
     [Test]
     procedure UnitTestUpdateTaxRegistrationIdForVATRegistrationNo()
     var
-        CompanyInformation: Record "Company Information";
         Customer: Record Customer;
+        ShpfyTaxIdMappingTest: Codeunit "Shpfy Tax Id Mapping Test";
         TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
         NewTaxRegistrationId: Text[150];
     begin
@@ -167,20 +166,17 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
         Initialize();
 
         // [GIVEN] New Tax Registration Id
-        CompanyInformation.Get();
-        NewTaxRegistrationId := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
+        NewTaxRegistrationId := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(Customer."VAT Registration No."));
         // [GIVEN] Customer with empty VAT Registration No.
         CreateCustomerWithVATRegNo(Customer, '');
-        if CompanyInformation."Country/Region Code" = 'BE' then begin
-            Customer."Country/Region Code" := 'DE'; // VAT Reg No. not allowed for BE Customers
-            Customer.Modify();
-            NewTaxRegistrationId := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
-        end;
         // [GIVEN] TaxRegistrationIdMapping interface is "VAT Registration No."
         TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"VAT Registration No.";
 
         // [WHEN] UpdateTaxRegistrationId is called
+        // Bypass localization-specific VAT Registration No. validation (e.g. BE requires Enterprise No. instead)
+        BindSubscription(ShpfyTaxIdMappingTest);
         TaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, NewTaxRegistrationId);
+        UnbindSubscription(ShpfyTaxIdMappingTest);
 
         // [THEN] The VAT Registration No. field of the Customer record is updated
         Customer.Get(Customer."No.");
@@ -221,5 +217,11 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
         CompanyLocation.Id := Any.IntegerInRange(10000, 99999);
         CompanyLocation."Tax Registration Id" := RegistrationNo;
         CompanyLocation.Insert(false);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnBeforeValidateVATRegistrationNo', '', false, false)]
+    local procedure HandleOnBeforeValidateVATRegistrationNo(var Customer: Record Customer; xCustomer: Record Customer; FieldNumber: Integer; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 }

@@ -128,7 +128,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
+        QltyWarehouseIntegration: Codeunit "Qlty. Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         HasInspection: Boolean;
         SourceVariant: Variant;
@@ -242,7 +242,6 @@ codeunit 20411 "Qlty. Receiving Integration"
                             TempTrackingSpecification.DeleteAll(false);
                             TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-                            TempTrackingSpecification."Package No." := ReservationEntry."Package No.";
                             TempTrackingSpecification."Quantity (Base)" := ReservationEntry."Quantity (Base)";
                             TempTrackingSpecification.Insert();
                             AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempTrackingSpecification);
@@ -264,7 +263,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
+        QltyWarehouseIntegration: Codeunit "Qlty. Warehouse Integration";
         IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
@@ -302,7 +301,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
+        QltyWarehouseIntegration: Codeunit "Qlty. Warehouse Integration";
         OptionalSourceRecordVariant: Variant;
         IsHandled: Boolean;
         HasInspection: Boolean;
@@ -362,7 +361,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
-        QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
+        QltyWarehouseIntegration: Codeunit "Qlty. Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         IsHandled: Boolean;
         HasInspection: Boolean;

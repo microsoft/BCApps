@@ -79,6 +79,25 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Sets the specified MCP configuration as the default configuration.
+    /// When no configuration is specified by a connection, the default configuration will be used.
+    /// Only active configurations can be set as default.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to set as default.</param>
+    procedure SetAsDefaultConfiguration(ConfigId: Guid)
+    begin
+        MCPConfigImplementation.SetAsDefaultConfiguration(ConfigId);
+    end;
+
+    /// <summary>
+    /// Clears the current default configuration designation and restores the system default.
+    /// </summary>
+    procedure ClearDefaultConfiguration()
+    begin
+        MCPConfigImplementation.ClearDefaultConfiguration();
+    end;
+
+    /// <summary>
     /// Enables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>

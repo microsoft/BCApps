@@ -15,8 +15,8 @@ page 20416 "Qlty. Inspection Result List"
     PageType = List;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
-    AboutTitle = 'About Results';
-    AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific item tracking blocking is for item+variant+item tracking combinations, and can be used for serial-only tracking, or package-only tracking.';
+    AboutTitle = 'About Inspection Results';
+    AboutText = 'Inspection results show the outcome of an inspection, such as *In progress, Fail*, or *Pass*. You can set up custom grades to match your process.';
 
     layout
     {
@@ -26,12 +26,17 @@ page 20416 "Qlty. Inspection Result List"
             {
                 field(Code; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
                 field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
+                    AboutTitle = 'Evaluation Sequence';
+                    AboutText = 'The evaluation sequence sets the priority order for checking results. Inspection results with lower numbers are checked first, so *Fail* or *In progress* conditions are usually prioritized before *Pass*.';
+
                     trigger OnValidate()
                     begin
                         ValidateEvaluationSequenceNotUsedElsewhere();
@@ -39,9 +44,12 @@ page 20416 "Qlty. Inspection Result List"
                 }
                 field("Copy Behavior"; Rec."Copy Behavior")
                 {
+                    Visible = false;
                 }
                 field("Result Visibility"; Rec."Result Visibility")
                 {
+                    AboutTitle = 'Result Visibility';
+                    AboutText = '*Promote* important results, typically pass conditions, so they will show on pages and reports, such as Quality Tests, Quality Inspections and Certificate of Analysis.';
                 }
                 field("Result Category"; Rec."Result Category")
                 {
@@ -63,6 +71,8 @@ page 20416 "Qlty. Inspection Result List"
                 }
                 field("Item Tracking Allow Sales"; Rec."Item Tracking Allow Sales")
                 {
+                    AboutTitle = 'Allow or block specific transactions';
+                    AboutText = 'For items with lot, serial, or package tracking, you can specify how quality inspection results affect specific document transactions. For example, you can block purchase documents while inspections are in progress and block sales documents for failed inspections.';
                 }
                 field("Item Tracking Allow Purchase"; Rec."Item Tracking Allow Purchase")
                 {
@@ -123,9 +133,10 @@ page 20416 "Qlty. Inspection Result List"
             action(CopyResultsToAllTemplates)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Copy Results to Existing Templates';
-                ToolTip = 'Use this to add newly created results configured to Automatically Copy on to existing tests and existing templates.';
+                Caption = 'Update Tests, Templates, and Inspections';
+                ToolTip = 'Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results. Inspections based on these templates are also updated.';
                 Image = Copy;
+
                 trigger OnAction()
                 var
                     QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
