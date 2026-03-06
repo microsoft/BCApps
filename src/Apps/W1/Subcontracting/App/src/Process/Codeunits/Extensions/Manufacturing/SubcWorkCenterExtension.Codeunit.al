@@ -13,12 +13,15 @@ codeunit 99001519 "Subc. Work Center Extension"
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
-        if not Rec.IsTemporary() then
-            if RunTrigger then begin
-                SubcontractorPrice.SetCurrentKey("Work Center No.");
-                SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
-                if not SubcontractorPrice.IsEmpty() then
-                    SubcontractorPrice.DeleteAll(true);
-            end;
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcontractorPrice.SetCurrentKey("Work Center No.");
+        SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
+        if not SubcontractorPrice.IsEmpty() then
+            SubcontractorPrice.DeleteAll(true);
     end;
 }

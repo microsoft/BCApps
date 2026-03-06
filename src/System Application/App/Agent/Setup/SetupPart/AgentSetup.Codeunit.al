@@ -119,6 +119,18 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
+    /// Finds the agent user security ID based on the provided user name.
+    /// </summary> 
+    /// <param name="AgentUserName">The user name to search for. You can provide a partial or full user name.</param>
+    /// <param name="AgentUserSecurityId">The security ID of the agent user if found, otherwise a null guid.</param>
+    /// <returns>True if an agent with the provided user name is found, false otherwise.</returns>
+    procedure FindAgentByUserName(AgentUserName: Text; var AgentUserSecurityId: Guid): Boolean
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.FindAgentByUserName(AgentUserName, AgentUserSecurityId));
+    end;
+
+    /// <summary>
     /// Allows the user to select an agent out of the list of enabled agents.
     /// </summary>
     /// <param name="AgentType">The type of agent to filter the lookup on.</param>

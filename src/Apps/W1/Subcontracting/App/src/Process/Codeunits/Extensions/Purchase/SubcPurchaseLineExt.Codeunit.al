@@ -19,14 +19,21 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
     begin
-        if RunTrigger then
-            if not Rec.IsTemporary() then
-                SubcSynchronizeManagement.DeleteEnhancedDocumentsByDeletePurchLine(Rec);
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcSynchronizeManagement.DeleteEnhancedDocumentsByDeletePurchLine(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Expected Receipt Date", false, false)]
     local procedure OnAfterValidateExpectedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeExpectedReceiptDate(Rec, xRec);
     end;
@@ -34,6 +41,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
     local procedure OnAfterValidateQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeQuantity(Rec, xRec);
     end;
@@ -41,6 +51,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Unit of Measure Code", false, false)]
     local procedure OnAfterValidateUnitOfMeasureCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeQuantity(Rec, xRec);
     end;

@@ -5,6 +5,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
+using System.Globalization;
 using System.IO;
 using System.Utilities;
 
@@ -317,8 +318,6 @@ codeunit 8060 "Create Billing Documents"
     var
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
-        NewSalesLineQuantity: Decimal;
-        NewSalesLineAmount: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
             exit;
@@ -328,15 +327,21 @@ codeunit 8060 "Create Billing Documents"
         if not ServiceCommitment.IsUsageDataBillingFound(UsageDataBilling, BillingLine."Billing from", BillingLine."Billing to") then
             exit;
 
-        UsageDataBilling.CalcSums(Amount, Quantity);
-        NewSalesLineQuantity := SalesLine.Quantity;
-        NewSalesLineAmount := UsageDataBilling.Amount;
         UsageDataBilling.FindLast();
         if UsageDataBilling.Rebilling then
-            NewSalesLineQuantity := UsageDataBilling.Quantity;
+            SalesLine.Validate(Quantity, UsageDataBilling.Quantity);
+        if SalesLine.Quantity = 0 then begin
+            UsageDataBilling.SetFilter(Quantity, '<>0');
+            if UsageDataBilling.FindLast() then
+                SalesLine.Validate(Quantity, UsageDataBilling.Quantity);
+        end;
 
-        SalesLine.Validate(Quantity, NewSalesLineQuantity);
-        SalesLine.Validate("Unit Price", SalesLine.GetSalesDocumentSign() * NewSalesLineAmount / NewSalesLineQuantity);
+        UsageDataBilling.SetRange(Quantity);
+        UsageDataBilling.CalcSums(Amount);
+        if SalesLine.Quantity <> 0 then
+            SalesLine.Validate("Unit Price", SalesLine.GetSalesDocumentSign() * UsageDataBilling.Amount / SalesLine.Quantity)
+        else
+            SalesLine.Validate("Unit Price", UsageDataBilling."Unit Price");
         SalesLine.Validate("Line Discount %", ServiceCommitment."Discount %");
     end;
 
@@ -386,8 +391,10 @@ codeunit 8060 "Create Billing Documents"
         if TransferExtendedText.PurchCheckIfAnyExtText(PurchaseLine, false) then
             TransferExtendedText.InsertPurchExtText(PurchaseLine);
 
+        Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(PurchaseHeader."Format Region"), false);
         InsertDescriptionPurchaseLine(
              StrSubstNo(GetBillingPeriodDescriptionTxt(PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
+        Language.SetOverrideFormatRegion('', false);
 
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
@@ -419,8 +426,6 @@ codeunit 8060 "Create Billing Documents"
     var
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
-        NewPurchaseLineQuantity: Decimal;
-        NewPurchaseLineAmount: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
             exit;
@@ -430,15 +435,21 @@ codeunit 8060 "Create Billing Documents"
         if not ServiceCommitment.IsUsageDataBillingFound(UsageDataBilling, BillingLine."Billing from", BillingLine."Billing to") then
             exit;
 
-        UsageDataBilling.CalcSums("Cost Amount", Quantity);
-        NewPurchaseLineQuantity := PurchLine.Quantity;
-        NewPurchaseLineAmount := UsageDataBilling."Cost Amount";
         UsageDataBilling.FindLast();
         if UsageDataBilling.Rebilling then
-            NewPurchaseLineQuantity := UsageDataBilling.Quantity;
+            PurchLine.Validate(Quantity, UsageDataBilling.Quantity);
+        if PurchLine.Quantity = 0 then begin
+            UsageDataBilling.SetFilter(Quantity, '<>0');
+            if UsageDataBilling.FindLast() then
+                PurchLine.Validate(Quantity, UsageDataBilling.Quantity);
+        end;
 
-        PurchLine.Validate(Quantity, NewPurchaseLineQuantity);
-        PurchLine.Validate("Direct Unit Cost", PurchLine.GetPurchaseDocumentSign() * NewPurchaseLineAmount / NewPurchaseLineQuantity);
+        UsageDataBilling.SetRange(Quantity);
+        UsageDataBilling.CalcSums("Cost Amount");
+        if PurchLine.Quantity <> 0 then
+            PurchLine.Validate("Direct Unit Cost", PurchLine.GetPurchaseDocumentSign() * UsageDataBilling."Cost Amount" / PurchLine.Quantity)
+        else
+            PurchLine.Validate("Direct Unit Cost", 0);
         PurchLine.Validate("Line Discount %", ServiceCommitment."Discount %");
     end;
 
@@ -1174,10 +1185,14 @@ codeunit 8060 "Create Billing Documents"
                 if ServiceObject."Serial No." <> '' then
                     DescriptionText := ServiceObject.GetSerialNoDescription();
             ContractInvoiceTextType::"Billing Period":
-                DescriptionText := StrSubstNo(
-                                                GetBillingPeriodDescriptionTxt(),
-                                                ParentSalesLine."Recurring Billing from",
-                                                ParentSalesLine."Recurring Billing to");
+                begin
+                    Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(SalesHeader."Format Region"), false);
+                    DescriptionText := StrSubstNo(
+                                                    GetBillingPeriodDescriptionTxt(),
+                                                    ParentSalesLine."Recurring Billing from",
+                                                    ParentSalesLine."Recurring Billing to");
+                    Language.SetOverrideFormatRegion('', false);
+                end;
             ContractInvoiceTextType::"Primary attribute":
                 DescriptionText := ServiceObject.GetPrimaryAttributeValue();
             else begin
@@ -1376,6 +1391,7 @@ codeunit 8060 "Create Billing Documents"
         ServiceContractSetup: Record "Subscription Contract Setup";
         TranslationHelper: Codeunit "Translation Helper";
         DocumentChangeManagement: Codeunit "Document Change Management";
+        Language: Codeunit Language;
         DocumentDate: Date;
         PostingDate: Date;
         CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping";
