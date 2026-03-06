@@ -1335,6 +1335,7 @@ table 8059 "Subscription Line"
         ServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.FilterOnContract(PartnerType, ContractNo);
+        ServiceCommitment.SetRange(Closed, false);
         if ServiceCommitment.FindSet() then
             repeat
 #pragma warning disable AA0214
@@ -1352,6 +1353,7 @@ table 8059 "Subscription Line"
         ServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.FilterOnContract(PartnerType, ContractNo);
+        ServiceCommitment.SetRange(Closed, false);
         UpdateCurrencyDataOnServiceCommitments(ServiceCommitment, CurrencyFactor, CurrencyFactorDate, CurrencyCode, true);
     end;
 
