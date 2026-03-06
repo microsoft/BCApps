@@ -281,7 +281,7 @@ codeunit 5593 "Create Quality Test"
         CommentTok: Label 'COMMENT', MaxLength = 20;
         MoistureTok: Label 'MOISTURE', MaxLength = 20;
         LabelingTok: Label 'LABELING', MaxLength = 20;
-        BagWeightTok: Label 'BAG_WEIGHT', MaxLength = 20;
+        BagWeightTok: Label 'BAGWEIGHT', MaxLength = 20;
 
         ApcPerGramDescLbl: Label 'Aerobic Plate Count per Gram', MaxLength = 100;
         BrakesCheckDescLbl: Label 'Brakes Check', MaxLength = 100;
@@ -304,7 +304,7 @@ codeunit 5593 "Create Quality Test"
         NcrRequirementDescLbl: Label 'Requirement / Clause No.(s)', MaxLength = 100;
         OdorDescLbl: Label 'Odor', MaxLength = 100;
         PackageHeightDescLbl: Label 'Package Height', MaxLength = 100;
-        PackageLengthDescLbl: Label 'package length', MaxLength = 100;
+        PackageLengthDescLbl: Label 'Package Length', MaxLength = 100;
         PackageWidthDescLbl: Label 'Package Width', MaxLength = 100;
         PackagingVisualDescLbl: Label 'Packaging Visual', MaxLength = 100;
         ReasonCodeDescLbl: Label 'Reason Code', MaxLength = 100;
@@ -313,10 +313,10 @@ codeunit 5593 "Create Quality Test"
         TemperatureDescLbl: Label 'Temperature', MaxLength = 100;
         VerificationOfEffectiDescLbl: Label 'Verification of Effectiveness', MaxLength = 100;
         VisualWeldCheckDescLbl: Label 'Visual Weld Check', MaxLength = 100;
-        CoffeeUniformityDescLbl: Label 'Coffee bean uniformity', MaxLength = 100;
-        CoffeeDefectDescLbl: Label 'Coffee bean defect type', MaxLength = 100;
-        CommentDescLbl: Label 'Additional comments', MaxLength = 100;
-        MoistureDescLbl: Label 'Moisture content (%)', MaxLength = 100;
-        LabelingDescLbl: Label 'Labeling correct and readable', MaxLength = 100;
-        BagWeightDescLbl: Label 'Bag weight (kg)', MaxLength = 100;
+        CoffeeUniformityDescLbl: Label 'Coffee Bean Uniformity', MaxLength = 100;
+        CoffeeDefectDescLbl: Label 'Coffee Bean Defect Type', MaxLength = 100;
+        CommentDescLbl: Label 'Additional Comments', MaxLength = 100;
+        MoistureDescLbl: Label 'Moisture Content (%)', MaxLength = 100;
+        LabelingDescLbl: Label 'Labeling Correct and Readable', MaxLength = 100;
+        BagWeightDescLbl: Label 'Bag Weight (kg)', MaxLength = 100;
 }

@@ -31,10 +31,21 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
             FieldClass = FlowField;
             CalcFormula = exist("Billing Line" where("Document Type" = filter(Invoice), "Document No." = field("Document No."), "Document Line No." = field("Line No.")));
         }
+        modify("Deferral Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                if Rec."Deferral Code" <> '' then
+                    if Rec.IsLineAttachedToBillingLine() then
+                        if Rec.CreateContractDeferrals() then
+                            Error(DeferralCodeCannotBeUsedWithContractDeferralsErr);
+            end;
+        }
     }
 
     var
         DimMgt: Codeunit DimensionManagement;
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.';
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
     var
@@ -90,12 +101,19 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
     var
         Item: Record Item;
     begin
-        if not (Rec.Type = Enum::"Purchase Line Type"::Item) then
-            exit;
-        if not Item.Get(Rec."No.") then
-            exit;
-        exit((Item."Subscription Option" in [Enum::"Item Service Commitment Type"::"Service Commitment Item", Enum::"Item Service Commitment Type"::"Invoicing Item"])
-                                       and (not Rec.IsLineAttachedToBillingLine()));
+        case Rec.Type of
+            Enum::"Purchase Line Type"::Item:
+                begin
+                    if not Item.Get(Rec."No.") then
+                        exit(false);
+                    exit((Item."Subscription Option" in [Enum::"Item Service Commitment Type"::"Service Commitment Item", Enum::"Item Service Commitment Type"::"Invoicing Item"])
+                                               and (not Rec.IsLineAttachedToBillingLine()));
+                end;
+            Enum::"Purchase Line Type"::"G/L Account":
+                exit(not Rec.IsLineAttachedToBillingLine());
+            else
+                exit(false);
+        end;
     end;
 
     internal procedure AssignVendorContractLine()

@@ -3,7 +3,7 @@
 ## The Repository
 This repository contains the source code for several _Business Central_ applications, developed by Microsoft.
 
-The source code in this repository is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
+The source code in this repository is available to everyone under the standard [MIT license](https://github.com/microsoft/BCApps/blob/main/LICENSE).
 
 ✨ **BCApps run on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** ✨
 
@@ -24,7 +24,7 @@ Want to learn more about how to contribute to this repository? Please refer to o
 
 - `src` folder stores the source code for Business Central application, such as `System Application` and developer tools like *test libraries*, *test runner* and others.
 - `src\rulesets` is where the rulesets for building the applications are stored.
-- `build` folder contain the *magic* around how the applications are build.
+- `build` folder contains the *magic* around how the applications are built.
 - `build\projects` is where all AL-Go projects are defined.
 
 

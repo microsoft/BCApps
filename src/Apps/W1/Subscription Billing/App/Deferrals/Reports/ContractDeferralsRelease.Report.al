@@ -138,25 +138,38 @@ report 8051 "Contract Deferrals Release"
         end;
     end;
 
-    internal procedure ReleaseCustomerContractDeferralAndInsertTempGenJournalLine(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral")
+    internal procedure ReleaseCustomerContractDeferralAndInsertTempGenJournalLine(CustomerContractDeferral: Record "Cust. Sub. Contract Deferral")
     var
-        GenBusPostingGroup: Code[20];
-        GenProdPostingGroup: Code[20];
+        ShouldRelease: Boolean;
+        PostingAmount: Decimal;
     begin
-        if not CustomerContractDeferral.GetDocumentPostingGroups(GenBusPostingGroup, GenProdPostingGroup) then
+        ShouldRelease := true;
+        OnBeforeReleaseCustomerContractDeferral(CustomerContractDeferral, ShouldRelease);
+        if not ShouldRelease then begin
+            UpdateWindow(CustomerContractDeferral."Subscription Contract No.");
             exit;
-        CheckGenPostingSetup(GenBusPostingGroup, GenProdPostingGroup, Enum::"Service Partner"::Customer);
-        ReleaseContractDeferral(Enum::"Service Partner"::Customer, CustomerContractDeferral."Entry No.");
-        InsertTempGenJournalLine(
-            CustomerContractDeferral."Document No.",
-            CustomerContractDeferral."Subscription Contract No.",
-            CustomerContractDeferral."Entry No.",
-            CustomerContractDeferral."Dimension Set ID",
-            GenPostingSetup."Cust. Sub. Contract Account",
-            GenPostingSetup."Cust. Sub. Contr. Def Account",
-            GenBusPostingGroup,
-            GenProdPostingGroup,
-            GetPostingAmount(CustomerContractDeferral.Amount, CustomerContractDeferral."Discount Amount"));
+        end;
+
+        if (CustomerContractDeferral.Amount <> 0) or (CustomerContractDeferral."Discount Amount" <> 0) then
+            CheckGenPostingSetup(CustomerContractDeferral."Gen. Bus. Posting Group", CustomerContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Customer);
+
+        CustomerContractDeferral.Released := true;
+        CustomerContractDeferral."Release Posting Date" := PostingDate;
+        CustomerContractDeferral.Modify(false);
+
+        PostingAmount := GetPostingAmount(CustomerContractDeferral.Amount, CustomerContractDeferral."Discount Amount");
+        if PostingAmount <> 0 then
+            InsertTempGenJournalLine(
+                CustomerContractDeferral."Document No.",
+                CustomerContractDeferral."Subscription Contract No.",
+                CustomerContractDeferral."Entry No.",
+                CustomerContractDeferral."Dimension Set ID",
+                GenPostingSetup."Cust. Sub. Contract Account",
+                GenPostingSetup."Cust. Sub. Contr. Def Account",
+                CustomerContractDeferral."Gen. Bus. Posting Group",
+                CustomerContractDeferral."Gen. Prod. Posting Group",
+                PostingAmount);
+
         if LineDiscountPosting and (CustomerContractDeferral."Discount Amount" <> 0) then
             InsertTempGenJournalLine(
                 CustomerContractDeferral."Document No.",
@@ -165,8 +178,8 @@ report 8051 "Contract Deferrals Release"
                 CustomerContractDeferral."Dimension Set ID",
                 GenPostingSetup."Sales Line Disc. Account",
                 GenPostingSetup."Cust. Sub. Contr. Def Account",
-                GenBusPostingGroup,
-                GenProdPostingGroup,
+                CustomerContractDeferral."Gen. Bus. Posting Group",
+                CustomerContractDeferral."Gen. Prod. Posting Group",
                 -CustomerContractDeferral."Discount Amount");
     end;
 
@@ -180,25 +193,38 @@ report 8051 "Contract Deferrals Release"
         end;
     end;
 
-    internal procedure ReleaseVendorContractDeferralsAndInsertTempGenJournalLines(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral")
+    internal procedure ReleaseVendorContractDeferralsAndInsertTempGenJournalLines(VendorContractDeferral: Record "Vend. Sub. Contract Deferral")
     var
-        GenBusPostingGroup: Code[20];
-        GenProdPostingGroup: Code[20];
+        ShouldRelease: Boolean;
+        PostingAmount: Decimal;
     begin
-        if not VendorContractDeferral.GetDocumentPostingGroups(GenBusPostingGroup, GenProdPostingGroup) then
+        ShouldRelease := true;
+        OnBeforeReleaseVendorContractDeferral(VendorContractDeferral, ShouldRelease);
+        if not ShouldRelease then begin
+            UpdateWindow(VendorContractDeferral."Subscription Contract No.");
             exit;
-        CheckGenPostingSetup(GenBusPostingGroup, GenProdPostingGroup, Enum::"Service Partner"::Vendor);
-        ReleaseContractDeferral(Enum::"Service Partner"::Vendor, VendorContractDeferral."Entry No.");
-        InsertTempGenJournalLine(
-            VendorContractDeferral."Document No.",
-            VendorContractDeferral."Subscription Contract No.",
-            VendorContractDeferral."Entry No.",
-            VendorContractDeferral."Dimension Set ID",
-            GenPostingSetup."Vend. Sub. Contract Account",
-            GenPostingSetup."Vend. Sub. Contr. Def. Account",
-            GenBusPostingGroup,
-            GenProdPostingGroup,
-            GetPostingAmount(VendorContractDeferral.Amount, VendorContractDeferral."Discount Amount"));
+        end;
+
+        if (VendorContractDeferral.Amount <> 0) or (VendorContractDeferral."Discount Amount" <> 0) then
+            CheckGenPostingSetup(VendorContractDeferral."Gen. Bus. Posting Group", VendorContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Vendor);
+
+        VendorContractDeferral.Released := true;
+        VendorContractDeferral."Release Posting Date" := PostingDate;
+        VendorContractDeferral.Modify(false);
+
+        PostingAmount := GetPostingAmount(VendorContractDeferral.Amount, VendorContractDeferral."Discount Amount");
+        if PostingAmount <> 0 then
+            InsertTempGenJournalLine(
+                VendorContractDeferral."Document No.",
+                VendorContractDeferral."Subscription Contract No.",
+                VendorContractDeferral."Entry No.",
+                VendorContractDeferral."Dimension Set ID",
+                GenPostingSetup."Vend. Sub. Contract Account",
+                GenPostingSetup."Vend. Sub. Contr. Def. Account",
+                VendorContractDeferral."Gen. Bus. Posting Group",
+                VendorContractDeferral."Gen. Prod. Posting Group",
+                PostingAmount);
+
         if LineDiscountPosting and (VendorContractDeferral."Discount Amount" <> 0) then
             InsertTempGenJournalLine(
                 VendorContractDeferral."Document No.",
@@ -207,8 +233,8 @@ report 8051 "Contract Deferrals Release"
                 VendorContractDeferral."Dimension Set ID",
                 GenPostingSetup."Purch. Line Disc. Account",
                 GenPostingSetup."Vend. Sub. Contr. Def. Account",
-                GenBusPostingGroup,
-                GenProdPostingGroup,
+                VendorContractDeferral."Gen. Bus. Posting Group",
+                VendorContractDeferral."Gen. Prod. Posting Group",
                 -VendorContractDeferral."Discount Amount");
     end;
 
@@ -245,27 +271,6 @@ report 8051 "Contract Deferrals Release"
                     GenPostingSetup.TestField("Vend. Sub. Contract Account");
                     if LineDiscountPosting then
                         GenPostingSetup.TestField("Purch. Line Disc. Account");
-                end;
-        end;
-    end;
-
-    local procedure ReleaseContractDeferral(Partner: Enum "Service Partner"; DeferralEntryNo: Integer)
-    var
-        CustContractDeferralsToUpdate: Record "Cust. Sub. Contract Deferral";
-        VendContractDeferralsToUpdate: Record "Vend. Sub. Contract Deferral";
-    begin
-        case Partner of
-            Enum::"Service Partner"::Customer:
-                if CustContractDeferralsToUpdate.Get(DeferralEntryNo) then begin
-                    CustContractDeferralsToUpdate.Released := true;
-                    CustContractDeferralsToUpdate."Release Posting Date" := PostingDate;
-                    CustContractDeferralsToUpdate.Modify(false);
-                end;
-            Enum::"Service Partner"::Vendor:
-                if VendContractDeferralsToUpdate.Get(DeferralEntryNo) then begin
-                    VendContractDeferralsToUpdate.Released := true;
-                    VendContractDeferralsToUpdate."Release Posting Date" := PostingDate;
-                    VendContractDeferralsToUpdate.Modify(false);
                 end;
         end;
     end;
@@ -405,5 +410,15 @@ report 8051 "Contract Deferrals Release"
     internal procedure SetAllowGUI(NewAllowGUI: Boolean)
     begin
         AllowGUI := NewAllowGUI;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeReleaseCustomerContractDeferral(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeReleaseVendorContractDeferral(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean)
+    begin
     end;
 }

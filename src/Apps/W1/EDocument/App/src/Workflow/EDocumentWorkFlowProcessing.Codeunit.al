@@ -204,7 +204,7 @@ codeunit 6135 "E-Document WorkFlow Processing"
         end;
     end;
 
-    internal procedure GetServicesFromEntryPointResponseInWorkflow(WorkFlow: Record Workflow; var EDocumentService: Record "E-Document Service"): Boolean
+    procedure GetServicesFromEntryPointResponseInWorkflow(WorkFlow: Record Workflow; var EDocumentService: Record "E-Document Service"): Boolean
     var
         WorkflowStepArgument: Record "Workflow Step Argument";
         WorkflowStep, WorkflowStepEvent : Record "Workflow Step";
