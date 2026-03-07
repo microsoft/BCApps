@@ -121,6 +121,11 @@ codeunit 30195 "Shpfy Inventory API"
                 ShopInventory.Delete();
     end;
 
+    internal procedure ExportStock(var ShopInventory: Record "Shpfy Shop Inventory")
+    begin
+        ExportStock(ShopInventory, false);
+    end;
+
     internal procedure ExportStock(var ShopInventory: Record "Shpfy Shop Inventory"; ForceExport: Boolean)
     var
         IGraphQL: Interface "Shpfy IGraphQL";
