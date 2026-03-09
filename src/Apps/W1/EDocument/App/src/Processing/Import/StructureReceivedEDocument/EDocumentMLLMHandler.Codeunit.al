@@ -31,7 +31,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMApiCallFailedMsg: Label 'MLLM API call failed, falling back to ADI.', Locked = true;
         MLLMEmptyResponseMsg: Label 'MLLM returned empty response, falling back to ADI.', Locked = true;
         MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
-        MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required fields (invoice_line), falling back to ADI.', Locked = true;
+        MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
         ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
 
@@ -156,15 +156,45 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
     local procedure ValidateMLLMResponse(ResponseJson: JsonObject): Boolean
     var
-        LinesToken: JsonToken;
-        LinesArray: JsonArray;
+        SupplierToken: JsonToken;
+        PartyToken: JsonToken;
+        NameToken: JsonToken;
+        AddressToken: JsonToken;
+        SupplierObj: JsonObject;
+        PartyObj: JsonObject;
+        NameObj: JsonObject;
+        VendorName: Text;
     begin
-        if not ResponseJson.Get('invoice_line', LinesToken) then
+        if not ResponseJson.Get('accounting_supplier_party', SupplierToken) then
             exit(false);
-        if not LinesToken.IsArray() then
+        if not SupplierToken.IsObject() then
             exit(false);
-        LinesArray := LinesToken.AsArray();
-        exit(LinesArray.Count() >= 0);
+        SupplierObj := SupplierToken.AsObject();
+
+        if not SupplierObj.Get('party', PartyToken) then
+            exit(false);
+        if not PartyToken.IsObject() then
+            exit(false);
+        PartyObj := PartyToken.AsObject();
+
+        if not PartyObj.Get('party_name', NameToken) then
+            exit(false);
+        if not NameToken.IsObject() then
+            exit(false);
+        NameObj := NameToken.AsObject();
+
+        if not NameObj.Get('name', NameToken) then
+            exit(false);
+        VendorName := NameToken.AsValue().AsText();
+        if VendorName = '' then
+            exit(false);
+
+        if not PartyObj.Get('postal_address', AddressToken) then
+            exit(false);
+        if not AddressToken.IsObject() then
+            exit(false);
+
+        exit(true);
     end;
 
     local procedure GetInvoiceLineCount(ResponseJson: JsonObject): Integer
