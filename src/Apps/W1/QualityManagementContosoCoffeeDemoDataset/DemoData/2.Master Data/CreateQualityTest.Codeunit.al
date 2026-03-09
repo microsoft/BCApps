@@ -292,7 +292,7 @@ codeunit 5593 "Create Quality Test"
         CorrectiveActionDescLbl: Label 'Corrective Action', MaxLength = 100;
         CustomerServiceRepreDescLbl: Label 'Customer Service Representative', MaxLength = 100;
         DescriptionOfNonConfDescLbl: Label 'Description of Non Conformance', MaxLength = 100;
-        EcoliPresentDescLbl: Label 'ECOLIPRESENT', MaxLength = 100;
+        EcoliPresentDescLbl: Label 'E. coli Present', MaxLength = 100;
         ExplanationDescLbl: Label 'Explanation', MaxLength = 100;
         GearShiftCheckDescLbl: Label 'Gear Shift Check', MaxLength = 100;
         HandlebarAlignedDescLbl: Label 'Handlebar Aligned', MaxLength = 100;
