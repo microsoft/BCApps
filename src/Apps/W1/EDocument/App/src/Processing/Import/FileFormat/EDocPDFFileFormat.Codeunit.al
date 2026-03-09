@@ -24,8 +24,10 @@ codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
         Result: Enum "Structure Received E-Doc.";
+        IsExperiment: Boolean;
     begin
-        Result := FeatureConfiguration.GetConfiguration(MLLMExperimentTok) = 'control' ? "Structure Received E-Doc."::ADI : "Structure Received E-Doc."::MLLM;
+        IsExperiment := FeatureConfiguration.GetConfiguration(MLLMExperimentTok) = 'mllm';
+        Result := IsExperiment ? "Structure Received E-Doc."::MLLM : "Structure Received E-Doc."::ADI;
         OnAfterSetIStructureReceivedEDocumentForPdf(Result);
         exit(Result);
     end;
