@@ -63,6 +63,7 @@ page 20408 "Qlty. Inspection List"
                 {
                     AboutTitle = 'Inspection status at a glance';
                     AboutText = '**Status** shows whether the inspection is still in progress or finished. Finished inspections are locked and can''t be changed.';
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Result Code"; Rec."Result Code")
                 {
@@ -699,6 +700,7 @@ page 20408 "Qlty. Inspection List"
         CanFinish: Boolean;
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnAfterGetRecord()
     begin
@@ -713,6 +715,7 @@ page 20408 "Qlty. Inspection List"
         CanCreateReinspection := RowActionsAreEnabled;
         CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;

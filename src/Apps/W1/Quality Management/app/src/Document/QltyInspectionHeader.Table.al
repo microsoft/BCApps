@@ -1574,6 +1574,18 @@ table 20405 "Qlty. Inspection Header"
         exit((Rec."Re-inspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Re-inspection No."));
     end;
 
+    procedure GetStatusStyleExpression(): Text
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                exit('Favorable');
+            Rec.Status::Finished:
+                exit('Strong');
+            else
+                exit('None');
+        end;
+    end;
+
     local procedure VerifyPassAndFailQuantities()
     var
         DifferenceInPassFailQuantity: Decimal;
