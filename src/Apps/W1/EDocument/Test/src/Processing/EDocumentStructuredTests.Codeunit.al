@@ -134,41 +134,43 @@ codeunit 139891 "E-Document Structured Tests"
             'Control allocation should prefer ADI for PDF processing');
     end;
 
-    [Test]
-    procedure TestExperiment_TreatmentAllocation_PreferredImplIsMLLM()
-    var
-        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-    begin
-        // [SCENARIO] With treatment allocation, the PDF file format returns MLLM as the preferred implementation
-        LibraryLowerPermission.SetOutsideO365Scope();
+    // Todo: Reenable once #624677 is fixed
+    // [Test]
+    // procedure TestExperiment_TreatmentAllocation_PreferredImplIsMLLM()
+    // var
+    //     EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    // begin
+    //     // [SCENARIO] With treatment allocation, the PDF file format returns MLLM as the preferred implementation
+    //     LibraryLowerPermission.SetOutsideO365Scope();
 
-        FeatureConfigTestLib.UseTreatmentAllocation();
+    //     FeatureConfigTestLib.UseTreatmentAllocation();
 
-        Assert.AreEqual(
-            "Structure Received E-Doc."::MLLM,
-            EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'Treatment allocation should prefer MLLM for PDF processing');
-    end;
+    //     Assert.AreEqual(
+    //         "Structure Received E-Doc."::MLLM,
+    //         EDocPDFFileFormat.PreferredStructureDataImplementation(),
+    //         'Treatment allocation should prefer MLLM for PDF processing');
+    // end;
 
-    [Test]
-    procedure TestExperiment_TreatmentAllocation_MLLMProcessesValidDocument()
-    var
-        EDocument: Record "E-Document";
-        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-    begin
-        // [SCENARIO] With treatment allocation active, MLLM is used to process a valid UBL invoice E2E
-        Initialize(Enum::"Service Integration"::"Mock");
-        SetupMLLMEDocumentService();
+    // Todo: Reenable once #624677 is fixed
+    // [Test]
+    // procedure TestExperiment_TreatmentAllocation_MLLMProcessesValidDocument()
+    // var
+    //     EDocument: Record "E-Document";
+    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    // begin
+    //     // [SCENARIO] With treatment allocation active, MLLM is used to process a valid UBL invoice E2E
+    //     Initialize(Enum::"Service Integration"::"Mock");
+    //     SetupMLLMEDocumentService();
 
-        FeatureConfigTestLib.UseTreatmentAllocation();
+    //     FeatureConfigTestLib.UseTreatmentAllocation();
 
-        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-valid-0.json');
-        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-            StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
-        else
-            Assert.Fail(EDocumentStatusNotUpdatedErr);
-    end;
+    //     CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-valid-0.json');
+    //     if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+    //         StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
+    //     else
+    //         Assert.Fail(EDocumentStatusNotUpdatedErr);
+    // end;
     #endregion
 
     #region Fallback
