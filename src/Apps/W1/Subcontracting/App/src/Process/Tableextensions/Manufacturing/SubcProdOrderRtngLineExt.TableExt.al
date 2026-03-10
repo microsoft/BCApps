@@ -41,10 +41,8 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
-        PurchaseLineTypeMismatchLastOperationErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). Because the Production Order Routing Line is not the last operation, the Purchase Line cannot be of type Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.',
-        Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id';
-        PurchaseLineTypeMismatchNotLastOperationErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). Because the Production Order Routing Line is the last operation, the Purchase Line cannot be of type Not Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.',
-        Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id';
+        PurchaseLineTypeMismatchErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). The Purchase Line cannot be of type %3 for this Production Order Routing Line. Please delete the Purchase line first before changing the Production Order Routing Line.',
+        Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id, %3 = Purchase Line Type';
     begin
         if Status <> "Production Order Status"::Released then
             exit;
@@ -67,11 +65,11 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                 if "Next Operation No." <> '' then begin
                     PurchLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
                     if PurchLine.FindFirst() then
-                        Error(PurchaseLineTypeMismatchLastOperationErr, PurchLine.RecordId(), RecordId());
+                        Error(PurchaseLineTypeMismatchErr, PurchLine.RecordId(), RecordId(), Format("Subc. Purchase Line Type"::LastOperation));
                 end else begin
                     PurchLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
                     if PurchLine.FindFirst() then
-                        Error(PurchaseLineTypeMismatchNotLastOperationErr, PurchLine.RecordId(), RecordId());
+                        Error(PurchaseLineTypeMismatchErr, PurchLine.RecordId(), RecordId(), Format("Subc. Purchase Line Type"::NotLastOperation));
                 end;
             until ProdOrderLine.Next() = 0;
     end;

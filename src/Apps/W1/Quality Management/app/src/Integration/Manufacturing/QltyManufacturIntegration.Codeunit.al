@@ -13,7 +13,6 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
 /// Used to integrate with manufacturing related events.
@@ -22,7 +21,6 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 {
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
-        QltySessionHelper: Codeunit "Qlty. Session Helper";
 
     /// <summary>
     /// We subscribe to OnAfterPostOutput to see if we need to create an inspection related to the output.
@@ -86,36 +84,22 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnBeforeChangeStatusOnProdOrder', '', true, true)]
-    local procedure HandleOnBeforeChangeStatusOnProdOrder(var ProductionOrder: Record "Production Order"; NewStatus: Option Quote,Planned,"Firm Planned",Released,Finished; var IsHandled: Boolean; NewPostingDate: Date; NewUpdateUnitCost: Boolean)
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit;
-
-        QltySessionHelper.SetProductionOrderBeforeChangingStatus(ProductionOrder);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
-    local procedure HandleOnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean)
+    local procedure HandleOnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        OldProductionOrder: Record "Production Order";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         IsHandled: Boolean;
     begin
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltySessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
-
-        OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(OldProductionOrder, ToProdOrder, IsHandled);
+        OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(xProductionOrder, ToProdOrder, IsHandled);
         if IsHandled then
             exit;
 
         if QltyManagementSetup."Production Update Control" in [QltyManagementSetup."Production Update Control"::"Update when source changes"] then
-            UpdateReferencesForProductionOrder(OldProductionOrder, ToProdOrder);
+            UpdateReferencesForProductionOrder(xProductionOrder, ToProdOrder);
 
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;

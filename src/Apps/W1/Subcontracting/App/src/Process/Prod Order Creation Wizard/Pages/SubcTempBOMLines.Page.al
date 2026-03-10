@@ -22,7 +22,7 @@ page 99001506 "Subc. Temp BOM Lines"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(BOMLines)
             {
                 ShowCaption = false;
                 field("Line No."; Rec."Line No.")

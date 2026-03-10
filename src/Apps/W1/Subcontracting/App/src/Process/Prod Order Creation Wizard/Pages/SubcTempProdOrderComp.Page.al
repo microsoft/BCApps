@@ -23,7 +23,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(Components)
             {
                 ShowCaption = false;
                 field("Item No."; Rec."Item No.")

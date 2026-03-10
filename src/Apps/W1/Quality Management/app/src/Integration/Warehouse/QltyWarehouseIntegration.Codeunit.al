@@ -15,7 +15,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 
-codeunit 20438 "Qlty. - Warehouse Integration"
+codeunit 20438 "Qlty. Warehouse Integration"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Line", 'OnAfterInsertWhseEntry', '', true, true)]
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
@@ -144,7 +144,6 @@ codeunit 20438 "Qlty. - Warehouse Integration"
                 TempTrackingSpecification."Entry No." := ReservationCounter;
                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-                TempTrackingSpecification."Package No." := ReservationEntry."Package No.";
                 TempTrackingSpecification.Insert();
             until ReservationEntry.Next() = 0;
     end;

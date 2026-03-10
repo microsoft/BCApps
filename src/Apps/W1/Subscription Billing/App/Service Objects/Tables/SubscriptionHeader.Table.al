@@ -369,14 +369,13 @@ table 8057 "Subscription Header"
         {
             Caption = 'Quantity';
             InitValue = 1;
-            NotBlank = true;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
-                if Quantity <= 0 then
-                    Error(QtyZeroOrNegativeErr);
+                if Quantity < 0 then
+                    Error(QtyNegativeErr);
                 if (Quantity <> 1) and ("Serial No." <> '') then
                     Error(SerialQtyErr);
                 Rec.ArchiveServiceCommitments();
@@ -948,7 +947,7 @@ table 8057 "Subscription Header"
         SkipBillToContact: Boolean;
         SkipInsertServiceCommitments: Boolean;
         ConfirmChangeQst: Label 'Do you want to change %1?', Comment = '%1 = a Field Caption like Currency Code';
-        QtyZeroOrNegativeErr: Label 'The quantity cannot be zero or negative.';
+        QtyNegativeErr: Label 'The quantity cannot be negative.';
         EndUserCustomerTxt: Label 'End-User Customer';
         BillToCustomerTxt: Label 'Bill-to Customer';
         SerialQtyErr: Label 'Only Subscriptions with quantity 1 may have a serial number.';
@@ -2216,14 +2215,18 @@ table 8057 "Subscription Header"
     local procedure GetRecalculateLinesDialog(ChangedFieldName: Text): Text
     var
         RecalculateLinesQst: Label 'If you change %1, the existing Subscription Lines prices will be recalculated.\\Do you want to continue?', Comment = '%1: FieldCaption';
-        RecalculateLinesFromQuantityQst: Label 'If you change %1, only the Amount for existing service commitments will be recalculated.\\Do you want to continue?', Comment = '%1= Changed Field Name.';
+        RecalculateLinesFromQuantityQst: Label 'If you change the %1, the amount for open subscription lines will be recalculated.\\Do you want to continue?', Comment = '%1: FieldCaption';
+        PauseSubscriptionQst: Label 'If you set the %1 to 0, the billing will pause until further notice but the subscription lines are not terminated.\\Do you want to continue?', Comment = '%1: FieldCaption';
         RecalculateLinesFromVariantCodeQst: Label 'The %1 has been changed.\\Do you want to update the price?', Comment = '%1= Changed Field Name.';
     begin
         case ChangedFieldName of
             Rec.FieldName(Rec."Variant Code"):
                 exit(StrSubstNo(RecalculateLinesFromVariantCodeQst, ChangedFieldName));
             Rec.FieldName(Rec.Quantity):
-                exit(StrSubstNo(RecalculateLinesFromQuantityQst, ChangedFieldName));
+                if Rec.Quantity = 0 then
+                    exit(StrSubstNo(PauseSubscriptionQst, ChangedFieldName))
+                else
+                    exit(StrSubstNo(RecalculateLinesFromQuantityQst, ChangedFieldName));
             else
                 exit(StrSubstNo(RecalculateLinesQst, ChangedFieldName));
         end;

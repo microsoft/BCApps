@@ -19,14 +19,21 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
     begin
-        if RunTrigger then
-            if not Rec.IsTemporary() then
-                SubcSynchronizeManagement.DeleteEnhancedDocumentsByDeletePurchLine(Rec);
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcSynchronizeManagement.DeleteEnhancedDocumentsByDeletePurchLine(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Expected Receipt Date", false, false)]
     local procedure OnAfterValidateExpectedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeExpectedReceiptDate(Rec, xRec);
     end;
@@ -34,6 +41,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
     local procedure OnAfterValidateQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeQuantity(Rec, xRec);
     end;
@@ -41,6 +51,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Unit of Measure Code", false, false)]
     local procedure OnAfterValidateUnitOfMeasureCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeQuantity(Rec, xRec);
     end;
@@ -75,7 +88,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]
-    local procedure "Purchase Line_OnBeforeOpenItemTrackingLines"(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    local procedure OpenProdOrderLineItemTrackingOnBeforeOpenItemTrackingLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         OpenItemTrackingOfProdOrderLine(PurchaseLine, false);
         IsHandled := true;
@@ -167,6 +180,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         PageManagement: Codeunit "Page Management";
         CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
     begin
+        PurchaseLine.SetLoadFields("Prod. Order No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.");
         if not PageManagement.PageRun(ProductionOrder) then
@@ -178,6 +192,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
     begin
+        PurchaseLine.SetLoadFields(Type, "No.", "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", Quantity, "Qty. to Receive", "Qty. to Receive (Base)", "Qty. Rounding Precision", "Outstanding Quantity");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
         ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.");
         if PurchaseLine.Quantity > ProdOrderLine.Quantity then begin
@@ -193,7 +208,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
     begin
+        PurchaseLine.SetLoadFields(Type, "No.", "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Qty. to Receive", "Qty. to Receive (Base)", "Qty. Rounding Precision", "Outstanding Quantity");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
+        ProdOrderLine.SetLoadFields(SystemId);
         ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.");
         OpenItemTrackingOfProdOrderLine(PurchaseLine, true);
     end;

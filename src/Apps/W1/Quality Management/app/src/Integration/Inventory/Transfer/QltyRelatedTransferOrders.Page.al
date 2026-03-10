@@ -146,7 +146,7 @@ page 20480 "Qlty. Related Transfer Orders"
             }
             action(Dimensions)
             {
-                AccessByPermission = TableData Dimension = R;
+                AccessByPermission = tabledata Dimension = R;
                 Caption = 'Dimensions';
                 Image = Dimensions;
                 ShortCutKey = 'Alt+D';

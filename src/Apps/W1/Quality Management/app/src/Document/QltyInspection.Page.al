@@ -115,9 +115,11 @@ page 20406 "Qlty. Inspection"
                     field("Result Code"; Rec."Result Code")
                     {
                         Importance = Additional;
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Result Description"; Rec."Result Description")
                     {
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Evaluation Sequence"; Rec."Evaluation Sequence")
                     {
@@ -465,14 +467,14 @@ page 20406 "Qlty. Inspection"
         {
             action("Create Re-inspection")
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Re-inspection';
-                Enabled = CanCreateReinspection;
+                ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
                 begin
@@ -482,6 +484,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -499,6 +502,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
@@ -706,9 +710,9 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToSourceDocument(Rec);
+                    QltyDocumentNavigation.NavigateToSourceDocument(Rec);
                 end;
             }
             action(FindEntries)
@@ -721,9 +725,9 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToFindEntries(Rec);
+                    QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
             group(ItemAvailabilityBy)
@@ -814,31 +818,19 @@ page 20406 "Qlty. Inspection"
         }
     }
 
-    protected var
+    var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
+        ResultStyleExpr: Text;
         CameraAvailable: Boolean;
         IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
-        CanCreateReinspection: Boolean;
         CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
-        VisibleCustom10: Boolean;
-        VisibleCustom9: Boolean;
-        VisibleCustom8: Boolean;
-        VisibleCustom7: Boolean;
-        VisibleCustom6: Boolean;
-        VisibleCustom5: Boolean;
-        VisibleCustom4: Boolean;
-        VisibleCustom3: Boolean;
-        VisibleCustom2: Boolean;
-        VisibleCustom1: Boolean;
-        VisibleDocumentNo: Boolean;
-        VisibleDocumentLineNo: Boolean;
-        VisibleSourceTaskNo: Boolean;
-        VisibleSourceSubType: Boolean;
-        VisibleSourceType: Boolean;
+        VisibleCustom1, VisibleCustom2, VisibleCustom3, VisibleCustom4, VisibleCustom5, VisibleCustom6, VisibleCustom7, VisibleCustom8, VisibleCustom9, VisibleCustom10 : Boolean;
+        VisibleDocumentNo, VisibleDocumentLineNo : Boolean;
+        VisibleSourceTaskNo, VisibleSourceType, VisibleSourceSubType : Boolean;
         CanChangeQuantity: Boolean;
 
     trigger OnOpenPage()
@@ -849,6 +841,8 @@ page 20406 "Qlty. Inspection"
     trigger OnAfterGetRecord()
     begin
         UpdateControlVisibilityStates(true);
+
+        ResultStyleExpr := Rec.GetResultStyle();
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -861,11 +855,10 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
-        CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
+        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanFinish := Rec.Status <> Rec.Status::Finished;
         if Rec.Status = Rec.Status::Open then
-            if QltyPermissionMgmt.CanChangeTrackingNo() then begin
+            if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
                 TempItemTrackingSetup."Package No. Required" := true;

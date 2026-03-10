@@ -9,7 +9,7 @@ using System.Integration.PowerBI;
 page 37107 "Production Order WIP"
 {
     UsageCategory = ReportsAndAnalysis;
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     PageType = UserControlHost;
     Caption = 'Production Order WIP';
     AboutTitle = 'About Production Order WIP';

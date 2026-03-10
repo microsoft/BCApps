@@ -5,7 +5,6 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 
@@ -33,24 +32,14 @@ query 4406 "EXR Trial Balance Budget"
                 filter(BudgetDate; Date)
                 {
                 }
-                filter(BudgetName; "Budget Name")
+                column(DimensionValue1Code; "Global Dimension 1 Code")
                 {
                 }
-                dataitem(DimensionValue1; "Dimension Value")
+                column(DimensionValue2Code; "Global Dimension 2 Code")
                 {
-                    DataItemLink = Code = GLBudgetEntry."Global Dimension 1 Code";
-                    SqlJoinType = LeftOuterJoin;
-                    column(DimensionValue1Code; Code)
-                    {
-                    }
-                    dataitem(DimensionValue2; "Dimension Value")
-                    {
-                        DataItemLink = Code = GLBudgetEntry."Global Dimension 2 Code";
-                        SqlJoinType = LeftOuterJoin;
-                        column(DimensionValue2Code; Code)
-                        {
-                        }
-                    }
+                }
+                filter(BudgetName; "Budget Name")
+                {
                 }
             }
         }

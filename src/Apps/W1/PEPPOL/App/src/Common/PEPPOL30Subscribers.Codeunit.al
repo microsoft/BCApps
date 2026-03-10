@@ -12,7 +12,7 @@ codeunit 37217 "PEPPOL 3.0 Subscribers"
     InherentPermissions = X;
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnAfterInitElectronicFormats, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]
     local procedure CompanyInitialize_OnAfterInitElectronicFormats()
     var
         PEPPOL30Initialize: Codeunit "PEPPOL30 Initialize";

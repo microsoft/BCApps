@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Inventory;
 
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20433 "Qlty. Item Variant Card" extends "Item Variant Card"
@@ -17,10 +16,10 @@ pageextension 20433 "Qlty. Item Variant Card" extends "Item Variant Card"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item and variant.';
-                Visible = QltyReadQualityInspections;
                 RunObject = Page "Qlty. Inspection List";
                 RunPageLink = "Source Item No." = field("Item No."),
                               "Source Variant Code" = field("Code");
@@ -28,14 +27,4 @@ pageextension 20433 "Qlty. Item Variant Card" extends "Item Variant Card"
             }
         }
     }
-
-    var
-        QltyReadQualityInspections: Boolean;
-
-    trigger OnOpenPage()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
 }

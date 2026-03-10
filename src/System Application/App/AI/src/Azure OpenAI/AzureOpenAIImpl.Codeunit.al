@@ -263,7 +263,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
-    [NonDebuggable]
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
@@ -274,9 +273,13 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
         AzureOpenAIPolicy: Text;
+        AIAOResourceUtilization: Enum "AOAI Resource Utilization";
     begin
         GuiCheck(ChatCompletionsAOAIAuthorization);
 
+        AIAOResourceUtilization := ChatCompletionsAOAIAuthorization.GetResourceUtilization();
+        if AIAOResourceUtilization <> Enum::"AOAI Resource Utilization"::"Self-Managed" then
+            ChatMessages.CheckCompatibilityWithModel(ChatCompletionsAOAIAuthorization.GetManagedResourceDeployment());
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -285,7 +288,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
 
         AOAIPolicyParams := AOAIChatCompletionParams.GetAOAIPolicyParams();
-        AzureOpenAIPolicy := (ChatCompletionsAOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed") and AOAIPolicyParams.IsDefaultPolicy()
+        AzureOpenAIPolicy := (AIAOResourceUtilization = Enum::"AOAI Resource Utilization"::"Self-Managed") and AOAIPolicyParams.IsDefaultPolicy()
             ? '' // The default value is generally not compatible with self managed resources, yet we allow them to specify their own policy and must honor that.
             : AOAIPolicyParams.GetAOAIPolicy();
 

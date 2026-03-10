@@ -17,7 +17,6 @@ using Microsoft.Service.History;
 /// </summary>
 codeunit 37218 "PEPPOL30 Common"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
