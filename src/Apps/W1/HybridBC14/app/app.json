@@ -2,7 +2,7 @@
   "id": "2363a2b7-1018-4976-a32a-c77338dc9f16",
   "name": "BC14ReimplementationTool",
   "publisher": "Microsoft",
-  "version": "$(app_currentVersion)",
+  "version": "29.0.0.0",
   "brief": "Migrate data from Business Central 14 on-premises to Business Central online",
   "description": "This extension enables cloud migration from Business Central 14 on-premises to Business Central online. It replicates and transforms customers, vendors, items, chart of accounts, and transactional data to help you move your business to the cloud seamlessly.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -12,16 +12,16 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2115702",
   "logo": "ExtensionLogo.png",
   "dependencies": [
-       {
+    {
       "id": "58623bfa-0559-4bc2-ae1c-0979c29fd9e0",
       "publisher": "Microsoft",
       "name": "Intelligent Cloud Base",
-      "version": "$(app_minimumVersion)"
-    } 
+      "version": "29.0.0.0"
+    }
   ],
   "screenshots": [],
-  "platform": "$(app_platformVersion)",
-  "application": "$(app_minimumVersion)",
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
   "idRanges": [
     {
       "from": 50150,
