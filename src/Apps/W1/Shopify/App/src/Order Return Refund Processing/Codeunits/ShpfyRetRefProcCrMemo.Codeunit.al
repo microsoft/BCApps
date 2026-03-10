@@ -67,7 +67,6 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
         Shop: Record "Shpfy Shop";
         CreateSalesDocRefund: Codeunit "Shpfy Create Sales Doc. Refund";
         IDocumentSource: Interface "Shpfy IDocument Source";
-        IProcessReturnsAs: Interface "Shpfy IProcess Returns As";
         ErrorInfo: ErrorInfo;
         TextBuilder: TextBuilder;
     begin
@@ -89,8 +88,10 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
 
         RefundHeader.Get(SourceDocumentId);
         Shop.Get(RefundHeader."Shop Code");
-        IProcessReturnsAs := Shop."Process Returns As";
-        CreateSalesDocRefund.SetTargetDocumentType(IProcessReturnsAs.GetTargetDocumentType());
+        if Shop."Process Returns As" = Shop."Process Returns As"::"Return Order" then
+            CreateSalesDocRefund.SetTargetDocumentType("Sales Document Type"::"Return Order")
+        else
+            CreateSalesDocRefund.SetTargetDocumentType("Sales Document Type"::"Credit Memo");
 
         Commit();
         if CreateSalesDocRefund.Run() then begin
