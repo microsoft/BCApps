@@ -1,0 +1,214 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DataMigration.BC14;
+
+using Microsoft.DataMigration;
+using Microsoft.Utilities;
+
+codeunit 50153 "BC14 Cloud Migration"
+{
+    TableNo = "Hybrid Replication Summary";
+
+    trigger OnRun();
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14Management: Codeunit "BC14 Management";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        BC14HandleUpgradeError: Codeunit "BC14 Handle Upgrade Error";
+        Success: Boolean;
+    begin
+        // Update Start Time to reflect when this upgrade attempt started
+        // Clear End Time when starting a new attempt
+        Rec.Find();
+        Rec."Start Time" := CurrentDateTime();
+        Rec."End Time" := 0DT;
+        Rec.Status := Rec.Status::UpgradeInProgress;
+        Rec.Modify();
+        Commit();
+
+        BC14MigrationErrorHandler.ClearErrorOccurred();
+        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
+
+        ClearLastError();
+        OnUpgradeBC14Company(Success);
+
+        if not Success then begin
+            BC14HandleUpgradeError.MarkUpgradeFailed(Rec);
+            BC14HelperFunctions.LogLastError();
+            BC14MigrationErrorHandler.ClearErrorOccurred();
+            Commit();
+
+            if not BC14UpgradeSettings."Collect All Errors" then
+                Error(DataTransformationErrorsPresentMsg);
+        end;
+
+        HybridCompanyStatus.SetFilter(Name, '<>''''');
+        HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
+        if HybridCompanyStatus.FindFirst() then begin
+            BC14Management.InvokeCompanyUpgrade(Rec, HybridCompanyStatus.Name);
+            exit;
+        end;
+
+        if not Rec.Find() then begin
+            Session.LogMessage('0000RO0', ReplicationSummaryNotFoundMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            exit;
+        end;
+
+        if Rec.Status = Rec.Status::UpgradeFailed then begin
+            Session.LogMessage('0000RO1', UpgradeAlreadyFailedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            exit;
+        end;
+
+        if Rec.Status = Rec.Status::Failed then begin
+            Session.LogMessage('0000RO2', ReplicationFailedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            exit;
+        end;
+
+        if BC14MigrationErrorHandler.ErrorOccurredDuringLastUpgrade() then begin
+            BC14HandleUpgradeError.MarkUpgradeFailed(Rec);
+            exit;
+        end;
+
+        Rec.Status := Rec.Status::Completed;
+        Rec."End Time" := CurrentDateTime();
+        Rec.Modify();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"BC14 Cloud Migration", 'OnUpgradeBC14Company', '', false, false)]
+    local procedure HandleOnUpgradeBC14Company(var Success: Boolean)
+    var
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+    begin
+        ClearLastError();
+        UpgradeBC14Company();
+        Success := not BC14MigrationErrorHandler.GetErrorOccurred();
+    end;
+
+    /// <summary>
+    /// Upgrades the current company from BC14 format to the current version.
+    /// This procedure checks if the company setup is completed before initiating migration.
+    /// </summary>
+    /// <remarks>
+    /// Prerequisites:
+    /// - Company must exist in Assisted Company Setup Status
+    /// - Company setup status must be Completed
+    /// </remarks>
+    internal procedure UpgradeBC14Company()
+    var
+        AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        SetupStatus: Enum "Company Setup Status";
+    begin
+        if AssistedCompanySetupStatus.Get(CompanyName()) then begin
+            SetupStatus := AssistedCompanySetupStatus.GetCompanySetupStatusValue(CopyStr(CompanyName(), 1, 30));
+            if SetupStatus = SetupStatus::Completed then
+                InitiateBC14Migration()
+            else
+                Session.LogMessage('0000RO3', CompanyFailedToMigrateMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        end;
+
+        Commit();
+        if HybridCompanyStatus.Get(CompanyName) then begin
+            HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed;
+            HybridCompanyStatus.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Initiates the BC14 migration process for the current company.
+    /// Runs the complete migration pipeline: Setup -> Master -> Transactions -> Historical -> Post Journals.
+    /// </summary>
+    /// <remarks>
+    /// This procedure:
+    /// 1. Runs pre-migration cleanup
+    /// 2. Adjusts GL Setup if needed
+    /// 3. Creates pre-migration data (extension point)
+    /// 4. Executes the migration runner
+    /// 5. Creates post-migration data (extension point)
+    /// 
+    /// The procedure uses Commit() at specific points to ensure data consistency
+    /// and allow for partial recovery in case of failures.
+    /// </remarks>
+    local procedure InitiateBC14Migration()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+    begin
+        Session.LogMessage('0000RO4', InitiateMigrationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+
+        // Check if migration has already been started for this company - prevent duplicate migration
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        if BC14CompanyAdditionalSettings.IsDataMigrationStarted() then begin
+            Session.LogMessage('0000RO5', MigrationAlreadyStartedSkippingMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            exit;
+        end;
+
+        SelectLatestVersion();
+        BC14HelperFunctions.SetProcessesRunning(true);
+
+        BC14HelperFunctions.RunPreMigrationCleanup();
+        // Commit required: Persist cleanup before migration starts
+        Commit();
+
+        // Pre-migration data creation (extension point)
+        if not BC14HelperFunctions.CreatePreMigrationData() then begin
+            BC14HelperFunctions.LogLastError();
+            BC14HelperFunctions.SetProcessesRunning(false);
+            exit;
+        end;
+        // Commit required: Persist pre-migration data before main migration
+        Commit();
+
+        // Mark that data migration has started for this company
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.SetDataMigrationStarted();
+
+        // Run the migration (Setup -> Master -> Transactions -> Historical -> Post Journals)
+        Session.LogMessage('0000RO6', StartMigrationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        BC14MigrationRunner.RunMigration();
+
+        // Post-migration data creation (extension point)
+        BC14HelperFunctions.CreatePostMigrationData();
+
+        BC14HelperFunctions.SetProcessesRunning(false);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnIsCloudMigrationCompleted', '', false, false)]
+    local procedure HandleIsCloudMigrationCompleted(SourceProduct: Text; var CloudMigrationCompleted: Boolean)
+    var
+        BC14Wizard: Codeunit "BC14 Wizard";
+    begin
+        if SourceProduct <> BC14Wizard.GetMigrationProviderId() then
+            exit;
+
+        CloudMigrationCompleted := true;
+    end;
+
+    /// <summary>
+    /// Integration event raised when upgrading a BC14 company.
+    /// Subscribe to this event to provide custom upgrade logic or to extend the default upgrade behavior.
+    /// </summary>
+    /// <param name="Success">Set to false if the upgrade encountered errors. The default handler sets this based on error occurrence.</param>
+    [IntegrationEvent(false, false, true)]
+    internal procedure OnUpgradeBC14Company(var Success: Boolean)
+    begin
+    end;
+
+    var
+        CompanyFailedToMigrateMsg: Label 'Migration did not start because the company setup is still in process.', Locked = true;
+        InitiateMigrationMsg: Label 'Initiating BC14 Migration for company.', Locked = true;
+        MigrationAlreadyStartedSkippingMsg: Label 'Migration has already been started for this company. Skipping to prevent duplicate data.', Locked = true;
+        StartMigrationMsg: Label 'Starting BC14 data migration: Setup -> Master -> Transactions -> Historical -> Post Journals.', Locked = true;
+        ReplicationSummaryNotFoundMsg: Label 'Hybrid Replication Summary record not found. Exiting upgrade process.', Locked = true;
+        UpgradeAlreadyFailedMsg: Label 'Upgrade status is already UpgradeFailed. Skipping further processing.', Locked = true;
+        ReplicationFailedMsg: Label 'Replication status is Failed. Skipping upgrade completion.', Locked = true;
+        DataTransformationErrorsPresentMsg: Label 'Data transformation errors have occurred. Please review the BC14 Migration Error Overview page for details.';
+
+}
