@@ -68,7 +68,7 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] The mutation was executed successfully (verified by subscriber not throwing error)
         UnbindSubscription(InventorySubscriber);
@@ -108,7 +108,7 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] The mutation was retried and succeeded (2 calls total)
         LibraryAssert.AreEqual(2, InventorySubscriber.GetCallCount(), 'Expected 2 GraphQL calls (1 failure + 1 retry success)');
@@ -150,7 +150,7 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] The mutation was retried and succeeded (2 calls total)
         LibraryAssert.AreEqual(2, InventorySubscriber.GetCallCount(), 'Expected 2 GraphQL calls (1 failure + 1 retry success)');
@@ -198,7 +198,7 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] A skipped record was logged
         SkippedCountAfter := SkippedRecord.Count();
@@ -244,7 +244,7 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] The GraphQL request contains changeFromQuantity: null
         LastGraphQLRequest := InventorySubscriber.GetLastGraphQLRequest();
@@ -287,11 +287,97 @@ codeunit 139594 "Shpfy Inventory Export Test"
         // [WHEN] ExportStock is called
         ShopInventory.SetRange("Shop Code", Shop.Code);
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
-        InventoryAPI.ExportStock(ShopInventory);
+        InventoryAPI.ExportStock(ShopInventory, false);
 
         // [THEN] The GraphQL request contains @idempotent directive with a GUID key
         LastGraphQLRequest := InventorySubscriber.GetLastGraphQLRequest();
         LibraryAssert.IsTrue(LastGraphQLRequest.Contains('@idempotent(key:'), 'Expected @idempotent directive in GraphQL request');
+
+        UnbindSubscription(InventorySubscriber);
+    end;
+
+    [Test]
+    procedure UnitTestExportStockForceExportWhenStockEqual()
+    var
+        Shop: Record "Shpfy Shop";
+        ShopLocation: Record "Shpfy Shop Location";
+        Item: Record Item;
+        ShopifyProduct: Record "Shpfy Product";
+        ShopInventory: Record "Shpfy Shop Inventory";
+        InventorySubscriber: Codeunit "Shpfy Inventory Subscriber";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InventoryAPI: Codeunit "Shpfy Inventory API";
+        StockCalculate: Enum "Shpfy Stock Calculation";
+        LastGraphQLRequest: Text;
+    begin
+        // [SCENARIO] Export stock with ForceExport=true exports even when stock equals Shopify stock
+        // [GIVEN] A ShopInventory record where stock equals Shopify stock (would normally be skipped)
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
+        CreateItem(Item);
+        UpdateItemInventory(Item, 10);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        ShopInventory."Shopify Stock" := 10; // Same as item stock - would normally skip export
+        ShopInventory.Modify();
+
+        // [GIVEN] The inventory subscriber is configured to return success
+        BindSubscription(InventorySubscriber);
+        InventorySubscriber.SetRetryScenario(Enum::"Shpfy Inventory Retry Scenario"::Success);
+        InventoryAPI.SetShop(Shop.Code);
+
+        // [WHEN] ExportStock is called with ForceExport = true
+        ShopInventory.SetRange("Shop Code", Shop.Code);
+        ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
+        InventoryAPI.ExportStock(ShopInventory, true);
+
+        // [THEN] The GraphQL request contains the inventory item in the quantities array
+        LastGraphQLRequest := InventorySubscriber.GetLastGraphQLRequest();
+        LibraryAssert.IsTrue(LastGraphQLRequest.Contains('"inventoryItemId"'), 'Expected quantities to be populated in GraphQL request when ForceExport is true');
+
+        UnbindSubscription(InventorySubscriber);
+    end;
+
+    [Test]
+    procedure UnitTestExportStockNoForceExportSkipsWhenStockEqual()
+    var
+        Shop: Record "Shpfy Shop";
+        ShopLocation: Record "Shpfy Shop Location";
+        Item: Record Item;
+        ShopifyProduct: Record "Shpfy Product";
+        ShopInventory: Record "Shpfy Shop Inventory";
+        InventorySubscriber: Codeunit "Shpfy Inventory Subscriber";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InventoryAPI: Codeunit "Shpfy Inventory API";
+        StockCalculate: Enum "Shpfy Stock Calculation";
+        LastGraphQLRequest: Text;
+    begin
+        // [SCENARIO] Export stock with ForceExport=false skips export when stock equals Shopify stock
+        // [GIVEN] A ShopInventory record where stock equals Shopify stock
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
+        CreateItem(Item);
+        UpdateItemInventory(Item, 10);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        ShopInventory."Shopify Stock" := 10; // Same as item stock
+        ShopInventory.Modify();
+
+        // [GIVEN] The inventory subscriber is configured to return success
+        BindSubscription(InventorySubscriber);
+        InventorySubscriber.SetRetryScenario(Enum::"Shpfy Inventory Retry Scenario"::Success);
+        InventoryAPI.SetShop(Shop.Code);
+
+        // [WHEN] ExportStock is called with ForceExport = false
+        ShopInventory.SetRange("Shop Code", Shop.Code);
+        ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
+        InventoryAPI.ExportStock(ShopInventory, false);
+
+        // [THEN] The GraphQL request contains an empty quantities array
+        LastGraphQLRequest := InventorySubscriber.GetLastGraphQLRequest();
+        LibraryAssert.IsFalse(LastGraphQLRequest.Contains('"inventoryItemId"'), 'Expected empty quantities in GraphQL request when ForceExport is false and stock is equal');
 
         UnbindSubscription(InventorySubscriber);
     end;
