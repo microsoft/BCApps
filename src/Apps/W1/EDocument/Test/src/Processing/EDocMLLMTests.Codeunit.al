@@ -4,13 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
+using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.TestLibraries.Config;
 
-codeunit 135647 "EDoc MLLM Schema Helper Tests"
+codeunit 135647 "EDoc MLLM Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;
@@ -197,6 +200,68 @@ codeunit 135647 "EDoc MLLM Schema Helper Tests"
         EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine);
 
         Assert.IsTrue(TempLine.IsEmpty(), 'No lines should be inserted for empty array');
+    end;
+
+    [Test]
+    procedure PreferredImpl_ControlAllocation_ReturnsADI()
+    var
+        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    begin
+        // [SCENARIO] With control allocation, PreferredStructureDataImplementation returns ADI
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        FeatureConfigTestLib.UseControlAllocation();
+
+        Assert.AreEqual(
+            "Structure Received E-Doc."::ADI,
+            EDocPDFFileFormat.PreferredStructureDataImplementation(),
+            'Control allocation should return ADI');
+    end;
+
+    [Test]
+    procedure PreferredImpl_TreatmentAllocation_ReturnsMLLM()
+    var
+        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    begin
+        // [SCENARIO] With treatment allocation, PreferredStructureDataImplementation returns MLLM
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        FeatureConfigTestLib.UseTreatmentAllocation();
+
+        // Bug #624677: ECS must be enabled for this test to pass. See wiki for ECS configuration.
+        // Assert.AreEqual(
+        //     "Structure Received E-Doc."::MLLM,
+        //     EDocPDFFileFormat.PreferredStructureDataImplementation(),
+        //     'Treatment allocation should return MLLM');
+    end;
+
+    [Test]
+    procedure PreferredImpl_EventOverride_TakesPrecedence()
+    var
+        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+        EDocMLLMTests: Codeunit "EDoc MLLM Tests";
+    begin
+        // [SCENARIO] An event subscriber can override the result regardless of experiment allocation
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        FeatureConfigTestLib.UseControlAllocation(); // Would normally return ADI
+        BindSubscription(EDocMLLMTests);
+
+        Assert.AreEqual(
+            "Structure Received E-Doc."::MLLM,
+            EDocPDFFileFormat.PreferredStructureDataImplementation(),
+            'Event override should take precedence over experiment allocation');
+
+        UnbindSubscription(EDocMLLMTests);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. PDF File Format", OnAfterSetIStructureReceivedEDocumentForPdf, '', false, false)]
+    local procedure OverrideToMLLM(var Result: Enum "Structure Received E-Doc.")
+    begin
+        Result := "Structure Received E-Doc."::MLLM;
     end;
 
     local procedure EnsureGLSetup()
