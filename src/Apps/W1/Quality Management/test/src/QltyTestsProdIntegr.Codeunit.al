@@ -31,6 +31,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     var
         ReUsedProdOrderLine: Record "Prod. Order Line";
         LibraryAssert: Codeunit "Library Assert";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -2070,6 +2071,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyManagementSetup: Record "Qlty. Management Setup";
         BeforeCount: Integer;
         CountOfRoutingLines: Integer;
     begin
@@ -2078,6 +2080,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetupExists();
+        LibrarySetupStorage.Save(Database::"Qlty. Management Setup");
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
+        QltyManagementSetup.Modify();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2107,6 +2113,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [THEN] Inspections are created for each routing line
         LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionHeader.Count(), 'Inspection(s) was not created.');
+
+        LibrarySetupStorage.Restore();
     end;
 
     [Test]
