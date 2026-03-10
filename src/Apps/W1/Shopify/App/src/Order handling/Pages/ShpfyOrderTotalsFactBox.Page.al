@@ -171,7 +171,7 @@ page 30172 "Shpfy Order Totals FactBox"
                 field(TotalAmountExclVAT; TotalSalesLine.Amount)
                 {
                     ApplicationArea = All;
-                    AutoFormatExpression = CurrencyCode;
+                    AutoFormatExpression = SalesHeader."Currency Code";
                     AutoFormatType = 1;
                     CaptionClass = DocumentTotals.GetTotalExclVATCaption(CurrencyCode);
                     Caption = 'Total Amount Excl. VAT';
@@ -180,7 +180,7 @@ page 30172 "Shpfy Order Totals FactBox"
                 field("Total VAT Amount"; VATAmount)
                 {
                     ApplicationArea = All;
-                    AutoFormatExpression = CurrencyCode;
+                    AutoFormatExpression = SalesHeader."Currency Code";
                     AutoFormatType = 1;
                     CaptionClass = DocumentTotals.GetTotalVATCaption(CurrencyCode);
                     Caption = 'Total VAT';
@@ -189,7 +189,7 @@ page 30172 "Shpfy Order Totals FactBox"
                 field("Total Amount Incl. VAT"; TotalSalesLine."Amount Including VAT")
                 {
                     ApplicationArea = All;
-                    AutoFormatExpression = CurrencyCode;
+                    AutoFormatExpression = SalesHeader."Currency Code";
                     AutoFormatType = 1;
                     CaptionClass = DocumentTotals.GetTotalInclVATCaption(CurrencyCode);
                     Caption = 'Total Amount Incl. VAT';
