@@ -17,6 +17,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         GLSetup: Record "General Ledger Setup";
         TempXMLBuffer: Record "XML Buffer" temporary;
         DocStream: InStream;
+        RootPath: Text;
     begin
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -27,11 +28,11 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
         EDocument.Direction := EDocument.Direction::Incoming;
 
-        case UpperCase(GetDocumentType(TempXMLBuffer)) of
+        case UpperCase(GetDocumentType(TempXMLBuffer, RootPath)) of
             InvoiceTok:
-                ParseInvoiceBasicInfo(EDocument, TempXMLBuffer);
+                ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, RootPath);
             CreditNoteTok:
-                ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer);
+                ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer, RootPath);
         end;
     end;
 
@@ -39,6 +40,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         TempXMLBuffer: Record "XML Buffer" temporary;
         DocStream: InStream;
+        RootPath: Text;
     begin
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -47,23 +49,23 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         PurchaseHeader."Buy-from Vendor No." := EDocument."Bill-to/Pay-to No.";
         PurchaseHeader."Currency Code" := EDocument."Currency Code";
 
-        case UpperCase(GetDocumentType(TempXMLBuffer)) of
+        case UpperCase(GetDocumentType(TempXMLBuffer, RootPath)) of
             InvoiceTok:
-                CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
+                CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, RootPath);
             CreditNoteTok:
-                CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
+                CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, RootPath);
         end;
     end;
 
-    local procedure ParseInvoiceBasicInfo(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseInvoiceBasicInfo(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         DueDate, IssueDate : Text;
         Currency: Text[10];
     begin
         EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
         EDocument."Incoming E-Document No." := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cbc:ID'), 1, MaxStrLen(EDocument."Document No."));
-        ParseAccountingSupplierParty(EDocument, TempXMLBuffer);
-        ParseAccountingCustomerParty(EDocument, TempXMLBuffer);
+        ParseAccountingSupplierParty(EDocument, TempXMLBuffer, RootPath);
+        ParseAccountingCustomerParty(EDocument, TempXMLBuffer, RootPath);
 
         DueDate := GetNodeByPath(TempXMLBuffer, RootPath + '/cbc:DueDate');
         if DueDate <> '' then
@@ -82,15 +84,15 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             EDocument."Currency Code" := Currency;
     end;
 
-    local procedure ParseCreditMemoBasicInfo(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseCreditMemoBasicInfo(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         DueDate, IssueDate : Text;
         Currency: Text[10];
     begin
         EDocument."Document Type" := EDocument."Document Type"::"Purchase Credit Memo";
         EDocument."Incoming E-Document No." := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cbc:ID'), 1, MaxStrLen(EDocument."Document No."));
-        ParseAccountingSupplierParty(EDocument, TempXMLBuffer);
-        ParseAccountingCustomerParty(EDocument, TempXMLBuffer);
+        ParseAccountingSupplierParty(EDocument, TempXMLBuffer, RootPath);
+        ParseAccountingCustomerParty(EDocument, TempXMLBuffer, RootPath);
 
         DueDate := GetNodeByPath(TempXMLBuffer, RootPath + '/cac:PaymentMeans/cbc:PaymentDueDate');
         if DueDate <> '' then
@@ -107,7 +109,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             EDocument."Currency Code" := Currency;
     end;
 
-    local procedure ParseAccountingSupplierParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseAccountingSupplierParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         EDocumentService: Record "E-Document Service";
         Vendor: Record Vendor;
@@ -149,7 +151,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         end;
     end;
 
-    local procedure ParseAccountingCustomerParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseAccountingCustomerParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         CompanyIdentifierValue, SchemaId : Text;
         ReceivingId: Text[250];
@@ -183,7 +185,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         EDocument."Receiving Company Id" := ReceivingId;
     end;
 
-    local procedure CreateInvoice(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure CreateInvoice(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentData: Codeunit "Temp Blob";
@@ -198,7 +200,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.Reset();
         if TempXMLBuffer.FindSet() then
             repeat
-                ParseInvoice(EDocument, PurchaseHeader, PurchaseLine, DocumentAttachment, DocumentAttachmentData, TempXMLBuffer);
+                ParseInvoice(EDocument, PurchaseHeader, PurchaseLine, DocumentAttachment, DocumentAttachmentData, TempXMLBuffer, RootPath);
             until TempXMLBuffer.Next() = 0;
 
         // Insert last document attachment
@@ -214,10 +216,10 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         PurchaseHeader.Modify();
 
         // Allowance charge
-        CreateInvoiceAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
+        CreateInvoiceAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, RootPath);
     end;
 
-    local procedure CreateCreditMemo(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure CreateCreditMemo(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentData: Codeunit "Temp Blob";
@@ -230,7 +232,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.Reset();
         if TempXMLBuffer.FindSet() then
             repeat
-                ParseCreditMemo(EDocument, PurchaseHeader, PurchaseLine, DocumentAttachment, DocumentAttachmentData, TempXMLBuffer);
+                ParseCreditMemo(EDocument, PurchaseHeader, PurchaseLine, DocumentAttachment, DocumentAttachmentData, TempXMLBuffer, RootPath);
             until TempXMLBuffer.Next() = 0;
 
         // Insert last document attachment
@@ -245,10 +247,10 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         PurchaseHeader.Modify();
 
         // Allowance charge
-        CreateInvoiceAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
+        CreateInvoiceAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, RootPath);
     end;
 
-    local procedure CreateInvoiceAllowanceChargeLines(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure CreateInvoiceAllowanceChargeLines(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         LineNo: Integer;
     begin
@@ -303,7 +305,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     /// Parses credit memo information line by line from TempXMLBuffer.
     /// We handle the insert of Purchase Order Line and Document Attachment after the call to this function.
     /// </summary>
-    local procedure ParseCreditMemo(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseCreditMemo(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: record "Purchase Line" temporary; var DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         Base64Convert: Codeunit "Base64 Convert";
         InStream: InStream;
@@ -417,7 +419,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     /// Parses invoice information line by line from TempXMLBuffer.
     /// We handle the insert of Purchase Order Line and Document Attachment after the call to this function.
     /// </summary>
-    local procedure ParseInvoice(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; var DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    local procedure ParseInvoice(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; var DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
     var
         Base64Convert: Codeunit "Base64 Convert";
         InStream: InStream;
@@ -568,7 +570,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         exit('0088');
     end;
 
-    local procedure GetDocumentType(var TempXMLBuffer: Record "XML Buffer" temporary): Text
+    local procedure GetDocumentType(var TempXMLBuffer: Record "XML Buffer" temporary; var RootPath: Text): Text
     var
         InvalidXMLFileErr: Label 'Invalid XML file';
     begin
@@ -615,7 +617,6 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         InvoiceTok: Label 'INVOICE', Locked = true;
         CreditNoteTok: Label 'CREDITNOTE', Locked = true;
         LCYCode: Code[10];
-        RootPath: Text;
 
     [IntegrationEvent(false, false)]
     internal procedure OnAfterParseInvoice(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; TempXMLBuffer: Record "XML Buffer" temporary; Path: Text; Value: Text)
